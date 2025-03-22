@@ -278,8 +278,8 @@
                         </constraints>
                     </view>
                     <connections>
-                        <outlet property="themeDescription" destination="BFm-BP-pKK" id="zjc-JK-gpN"/>
-                        <outlet property="themeName" destination="bed-D9-RHA" id="aNG-yE-N8u"/>
+                        <outlet property="themeDescriptionLabel" destination="BFm-BP-pKK" id="zjc-JK-gpN"/>
+                        <outlet property="themeNameLabel" destination="bed-D9-RHA" id="aNG-yE-N8u"/>
                     </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="Fc7-OD-CzJ" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>

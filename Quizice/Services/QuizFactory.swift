@@ -9,7 +9,7 @@ import UIKit
 
 class QuizFactory {
     
-    static let shared = QuizFactory() // Singleton (один для всего класса)
+    static let shared = QuizFactory()
     
     private init() {}
     

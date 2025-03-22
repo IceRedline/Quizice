@@ -10,5 +10,5 @@ import Foundation
 struct ThemeModel {
     var name: String
     var description: String
-    var questionsAndAnswers: Dictionary<String, Array<String> > // словарь с вопросами и ответами
+    var questionsAndAnswers: Dictionary<String, Array<String>>
 }
