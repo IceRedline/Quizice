@@ -7,10 +7,10 @@
 
 import UIKit
 
-class QuizQuestionViewController: UIViewController {
+class QuizQuestionViewController: UIViewController, QuizQuestionViewControllerProtocol {
     
     // MARK: - IBOutlet Properties
-
+    
     @IBOutlet weak var themeName: UILabel!
     @IBOutlet weak var questionNumber: UILabel!
     @IBOutlet weak var question: UILabel!
@@ -30,13 +30,17 @@ class QuizQuestionViewController: UIViewController {
     private var timer: Timer?
     private var remainingTime: TimeInterval = 40.0
     private let totalTime: TimeInterval = 40.0
-    private let QF = QuizFactory.shared
+    private let quizFactory = QuizFactory.shared
+    
+    var presenter: QuizQuestionPresenterProtocol?
     
     // MARK: - viewDidLoad
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        loadQuestion()
+        configurePresenter(QuizQuestionPresenter())
+        
+        presenter?.viewDidLoad()
     }
     
     // MARK: - Timer methods
@@ -44,8 +48,7 @@ class QuizQuestionViewController: UIViewController {
     private func startTimer() {
         timer?.invalidate() // Убедитесь, что предыдущий таймер сброшен
         remainingTime = totalTime
-        timerBar.progress = 1.0 // Начальное значение прогрессбара
-        timerBar.tintColor = .systemBlue
+        timeStarted()
         
         timer = Timer.scheduledTimer(withTimeInterval: 0.03, repeats: true) { [weak self] _ in
             guard let self = self else { return }
@@ -61,10 +64,15 @@ class QuizQuestionViewController: UIViewController {
         }
     }
     
+    private func timeStarted() {
+        timerBar.progress = 1.0 // Начальное значение прогрессбара
+        timerBar.tintColor = .systemBlue
+    }
+    
     private func timeExpired() {
         colorButtons()
         notificationFeedback.notificationOccurred(.error)
-        QF.updateQuizState(isCorrect: false)
+        quizFactory.updateQuizState(isCorrect: false)
         nextButton.isEnabled = true
     }
     
@@ -75,10 +83,15 @@ class QuizQuestionViewController: UIViewController {
     
     // MARK: - Methods
     
+    private func configurePresenter(_ presenter: QuizQuestionPresenterProtocol) {
+        self.presenter = presenter
+        self.presenter?.view = self
+    }
+    
     private func colorButtons() {
         questionButtons?.forEach() { button in
             button.isEnabled = false
-            if QF.checkAnswer(selectedAnswer: button) {
+            if quizFactory.checkAnswer(selectedAnswer: button) {
                 button.setTitleColor(.white, for: .disabled)
                 animationsEngine.animateBackgroundColor(button, color: UIColor.correctAnswerButton.cgColor, duration: animationsDuration)
             } else {
@@ -87,35 +100,44 @@ class QuizQuestionViewController: UIViewController {
         }
     }
     
-    private func loadQuestion() {
+    func resetButtons() {
         questionButtons = [answer1, answer2, answer3, answer4]
         questionButtons?.forEach() { button in
             button.backgroundColor = .defaultButton
             button.setTitleColor(.gray, for: .disabled)
             button.isEnabled = true
         }
+    }
+    
+    func loadQuestionToView(themeName: String, question: String, questionNumberText: String, currentAnswers: [String]) {
+        resetButtons()
         
-        question.textColor = .white
-        timerBar.progress = Float(QF.currentProgress)
+        timerBar.progress = Float(quizFactory.currentProgress)
         
-        themeName.text = QF.chosenTheme.name
-        QF.currentQuestion = QF.chosenThemeQuestionsArray[0]
-        question.text = QF.currentQuestion
-        var currentAnswers = QF.chosenTheme.questionsAndAnswers[QF.currentQuestion]!.shuffled()
+        self.themeName.text = themeName
+        self.question.text = question
         
-        while !currentAnswers.isEmpty {
-            questionButtons?.forEach() { button in
-                button.setTitle(currentAnswers[0], for: .normal)
-                currentAnswers.remove(at: 0)
-            }
+        for i in 0...3 {
+            questionButtons?[i].setTitle(currentAnswers[i], for: .normal)
         }
         
-        questionNumber.text = "Вопрос №\(QF.questionCount + 1)"
+        questionNumber.text = questionNumberText
         nextButton.isEnabled = false
         startTimer()
     }
     
-    private func showResultsController() {
+    func correctAnswerTapped(isTrue: Bool) {
+        switch isTrue {
+            case true:
+                notificationFeedback.notificationOccurred(.success)
+                animationsEngine.animateTintColor(timerBar, color: .correctAnswerBar, duration: animationsDuration)
+            case false:
+                notificationFeedback.notificationOccurred(.error)
+                animationsEngine.animateTintColor(timerBar, color: .wrongAnswerBar, duration: animationsDuration)
+        }
+    }
+    
+    func showResults() {
         let storyboard = UIStoryboard(name: "Main", bundle: nil)
         let vc = storyboard.instantiateViewController(withIdentifier: "QuizResultID")
         self.present(vc, animated: true)
@@ -124,37 +146,23 @@ class QuizQuestionViewController: UIViewController {
     // MARK: - IBAction Methods
     
     @IBAction func answerChosen(_ sender: UIButton) {
-        let isCorrect = QF.checkAnswer(selectedAnswer: sender)
+        presenter?.checkAnswer(sender)
         
         colorButtons()
-        
-        if isCorrect {
-            notificationFeedback.notificationOccurred(.success)
-            animationsEngine.animateTintColor(timerBar, color: .correctAnswerBar, duration: animationsDuration)
-        } else {
-            notificationFeedback.notificationOccurred(.error)
-            animationsEngine.animateTintColor(timerBar, color: .wrongAnswerBar, duration: animationsDuration)
-        }
-        
-        QF.updateQuizState(isCorrect: isCorrect)
+    
         nextButton.isEnabled = true
         
         stopTimer()
     }
     
     @IBAction func nextButtonTapped() {
-        if QF.questionCount == QF.questionsToComplete {
-            showResultsController()
-            QF.chosenThemeQuestionsArray.remove(at: 0)
-        } else {
-            QF.chosenThemeQuestionsArray.remove(at: 0)
-            loadQuestion()
-        }
+        presenter?.checkQuestionNumberAndProceed()
     }
     
     @IBAction func backButtonTapped() {
         dismiss(animated: true)
-        QF.resetProgress()
+        presenter?.resetGame()
     }
     
 }
+
