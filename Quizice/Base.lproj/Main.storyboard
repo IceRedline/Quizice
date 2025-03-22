@@ -476,14 +476,14 @@
                         </constraints>
                     </view>
                     <connections>
-                        <outlet property="answer1" destination="5FC-hi-abQ" id="cOC-Y2-BKS"/>
-                        <outlet property="answer2" destination="Uaq-mF-1UG" id="bxS-LT-ccc"/>
-                        <outlet property="answer3" destination="nSZ-o2-0cx" id="j10-NH-Gz1"/>
-                        <outlet property="answer4" destination="5bc-YK-Wuw" id="tPU-dL-YW2"/>
+                        <outlet property="answer1Button" destination="5FC-hi-abQ" id="cOC-Y2-BKS"/>
+                        <outlet property="answer2Button" destination="Uaq-mF-1UG" id="bxS-LT-ccc"/>
+                        <outlet property="answer3Button" destination="nSZ-o2-0cx" id="j10-NH-Gz1"/>
+                        <outlet property="answer4Button" destination="5bc-YK-Wuw" id="tPU-dL-YW2"/>
                         <outlet property="nextButton" destination="SEh-PM-6No" id="gN4-Cr-GOf"/>
-                        <outlet property="question" destination="Jei-cX-AZK" id="sBb-CP-WLJ"/>
-                        <outlet property="questionNumber" destination="3dJ-yN-gXI" id="LM1-yX-1a7"/>
-                        <outlet property="themeName" destination="5Vh-iO-NZW" id="oQ9-Gi-iCE"/>
+                        <outlet property="questionLabel" destination="Jei-cX-AZK" id="sBb-CP-WLJ"/>
+                        <outlet property="questionNumberLabel" destination="3dJ-yN-gXI" id="LM1-yX-1a7"/>
+                        <outlet property="themeNameLabel" destination="5Vh-iO-NZW" id="oQ9-Gi-iCE"/>
                         <outlet property="timerBar" destination="Ut8-n3-gvJ" id="2r0-XK-VNf"/>
                     </connections>
                 </viewController>

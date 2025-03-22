@@ -8,17 +8,18 @@
 import UIKit
 
 class QuizResultViewController: UIViewController {
-
+    
     @IBOutlet weak var resultLabel: UILabel!
     @IBOutlet weak var resultDescription: UILabel!
     
-    private let quizFactory = QuizFactory.shared
+    var correctAnswers: Int = 0
+    var totalQuestions: Int = 0
     
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        resultLabel.text = "Твой результат:\n \(quizFactory.correctAnswers)/\(quizFactory.questionsTotalCount)"
-        switch QuizFactory.shared.correctAnswers {
+        resultLabel.text = "Твой результат:\n \(correctAnswers)/\(totalQuestions)"
+        switch correctAnswers {
         case 0:
             resultDescription.text = "Эм..."
         case 1:
@@ -41,5 +42,4 @@ class QuizResultViewController: UIViewController {
         let vc = storyboard.instantiateViewController(withIdentifier: "QuizID")
         self.present(vc, animated: true)
     }
-    
 }
