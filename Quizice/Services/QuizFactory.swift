@@ -16,8 +16,8 @@ class QuizFactory {
     var chosenTheme: ThemeModel = ThemeModel(name: "No name", description: "No description", questionsAndAnswers: [:])
     
     var chosenThemeQuestionsArray: [String] = []
-    var questionsToComplete: Int = 0
-    var questionCount = 0
+    var currentQuestionIndex: Int = 0
+    var questionsTotalCount = 0
     var currentQuestion = ""
     var chosenAnswer = ""
     var correctAnswers = 0
@@ -25,6 +25,7 @@ class QuizFactory {
     
     
     func loadTheme(_ buttonTag: Int) {
+        resetProgress()
         switch buttonTag {
         case 1:
             chosenTheme = ThemeModel(name: "Музыка",
@@ -61,20 +62,20 @@ class QuizFactory {
                                                         ["М. Ходорковский","П. Авен","Г. Греф","Б. Березовский"]] )
         default: return
         }
-        resetProgress()
-        questionsToComplete = chosenThemeQuestionsArray.count
+        loadQuestions()
     }
     
     func resetProgress() {
-        questionCount = 0
-        questionsToComplete = 0
+        questionsTotalCount = 0
+        currentQuestionIndex = 0
         correctAnswers = 0
         currentProgress = 0.2
     }
     
     func loadQuestions() {
         chosenThemeQuestionsArray = Array(QuizFactory.shared.chosenTheme.questionsAndAnswers.keys).shuffled()
-        questionsToComplete = QuizFactory.shared.chosenThemeQuestionsArray.count
+        questionsTotalCount = chosenThemeQuestionsArray.count
+        currentQuestion = chosenThemeQuestionsArray[0]
     }
     
     func checkAnswer(selectedAnswer: UIButton) -> Bool {
@@ -87,6 +88,6 @@ class QuizFactory {
             correctAnswers += 1
         }
         currentProgress += 0.2
-        questionCount += 1
+        currentQuestionIndex += 1
     }
 }

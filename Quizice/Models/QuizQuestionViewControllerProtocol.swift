@@ -6,3 +6,11 @@
 //
 
 import Foundation
+
+protocol QuizQuestionViewControllerProtocol {
+    var presenter: QuizQuestionPresenterProtocol? { get set }
+    
+    func loadQuestionToView(themeName: String, question: String, questionNumberText: String, currentAnswers: [String])
+    func correctAnswerTapped(isTrue: Bool)
+    func showResults()
+}

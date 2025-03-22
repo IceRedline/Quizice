@@ -12,10 +12,12 @@ class QuizResultViewController: UIViewController {
     @IBOutlet weak var resultLabel: UILabel!
     @IBOutlet weak var resultDescription: UILabel!
     
+    private let quizFactory = QuizFactory.shared
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        resultLabel.text = "Твой результат:\n \(QuizFactory.shared.correctAnswers)/\(QuizFactory.shared.questionCount)"
+        resultLabel.text = "Твой результат:\n \(quizFactory.correctAnswers)/\(quizFactory.questionsTotalCount)"
         switch QuizFactory.shared.correctAnswers {
         case 0:
             resultDescription.text = "Эм..."

@@ -15,7 +15,7 @@ class QuizViewController: UIViewController {
         super.viewDidLoad()
     }
     
-    private func showVC() {
+    private func showDescriptionViewController() {
         let storyboard = UIStoryboard(name: "Main", bundle: nil)
         let vc = storyboard.instantiateViewController(withIdentifier: "QuizDescriptionID")
         self.present(vc, animated: true)
@@ -27,7 +27,7 @@ class QuizViewController: UIViewController {
     
     @IBAction private func themeButtonTouchedUpInside(_ sender: UIButton) {
         QuizFactory.shared.loadTheme(sender.tag)
-        showVC()
+        showDescriptionViewController()
     }
     
     @IBAction private func themeButtonTouchedUpOutside(_ sender: UIButton) {
