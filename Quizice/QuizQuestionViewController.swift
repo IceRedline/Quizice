@@ -11,26 +11,26 @@ class QuizQuestionViewController: UIViewController, QuizQuestionViewControllerPr
     
     // MARK: - IBOutlet Properties
     
-    @IBOutlet weak var themeName: UILabel!
-    @IBOutlet weak var questionNumber: UILabel!
-    @IBOutlet weak var question: UILabel!
+    @IBOutlet weak var themeNameLabel: UILabel!
+    @IBOutlet weak var questionNumberLabel: UILabel!
+    @IBOutlet weak var questionLabel: UILabel!
     @IBOutlet weak var timerBar: UIProgressView!
-    @IBOutlet weak var answer1: UIButton!
-    @IBOutlet weak var answer2: UIButton!
-    @IBOutlet weak var answer3: UIButton!
-    @IBOutlet weak var answer4: UIButton!
+    @IBOutlet weak var answer1Button: UIButton!
+    @IBOutlet weak var answer2Button: UIButton!
+    @IBOutlet weak var answer3Button: UIButton!
+    @IBOutlet weak var answer4Button: UIButton!
     @IBOutlet weak var nextButton: UIButton!
     
     // MARK: - Properties
     
-    var questionButtons: Array<UIButton>?
+    private var questionButtons: Array<UIButton>?
+    private let quizFactory = QuizFactory.shared
     private let notificationFeedback = UINotificationFeedbackGenerator()
     private let animationsEngine = Animations()
     private let animationsDuration: Double = 0.15
     private var timer: Timer?
     private var remainingTime: TimeInterval = 40.0
     private let totalTime: TimeInterval = 40.0
-    private let quizFactory = QuizFactory.shared
     
     var presenter: QuizQuestionPresenterProtocol?
     
@@ -39,7 +39,6 @@ class QuizQuestionViewController: UIViewController, QuizQuestionViewControllerPr
     override func viewDidLoad() {
         super.viewDidLoad()
         configurePresenter(QuizQuestionPresenter())
-        
         presenter?.viewDidLoad()
     }
     
@@ -70,9 +69,9 @@ class QuizQuestionViewController: UIViewController, QuizQuestionViewControllerPr
     }
     
     private func timeExpired() {
-        colorButtons()
+        colorAndDisableButtons()
         notificationFeedback.notificationOccurred(.error)
-        quizFactory.updateQuizState(isCorrect: false)
+        presenter?.updateQuizState(isCorrect: false)
         nextButton.isEnabled = true
     }
     
@@ -88,10 +87,10 @@ class QuizQuestionViewController: UIViewController, QuizQuestionViewControllerPr
         self.presenter?.view = self
     }
     
-    private func colorButtons() {
+    private func colorAndDisableButtons() {
         questionButtons?.forEach() { button in
             button.isEnabled = false
-            if quizFactory.checkAnswer(selectedAnswer: button) {
+            if presenter!.checkAnswerButtonTitle(selectedAnswer: button) {
                 button.setTitleColor(.white, for: .disabled)
                 animationsEngine.animateBackgroundColor(button, color: UIColor.correctAnswerButton.cgColor, duration: animationsDuration)
             } else {
@@ -101,7 +100,7 @@ class QuizQuestionViewController: UIViewController, QuizQuestionViewControllerPr
     }
     
     func resetButtons() {
-        questionButtons = [answer1, answer2, answer3, answer4]
+        questionButtons = [answer1Button, answer2Button, answer3Button, answer4Button]
         questionButtons?.forEach() { button in
             button.backgroundColor = .defaultButton
             button.setTitleColor(.gray, for: .disabled)
@@ -112,46 +111,46 @@ class QuizQuestionViewController: UIViewController, QuizQuestionViewControllerPr
     func loadQuestionToView(themeName: String, question: String, questionNumberText: String, currentAnswers: [String]) {
         resetButtons()
         
-        timerBar.progress = Float(quizFactory.currentProgress)
+        timerBar.progress = Float(presenter!.currentProgress)
         
-        self.themeName.text = themeName
-        self.question.text = question
+        self.themeNameLabel.text = themeName
+        self.questionLabel.text = question
         
         for i in 0...3 {
             questionButtons?[i].setTitle(currentAnswers[i], for: .normal)
         }
         
-        questionNumber.text = questionNumberText
+        questionNumberLabel.text = questionNumberText
         nextButton.isEnabled = false
         startTimer()
     }
     
     func correctAnswerTapped(isTrue: Bool) {
         switch isTrue {
-            case true:
-                notificationFeedback.notificationOccurred(.success)
-                animationsEngine.animateTintColor(timerBar, color: .correctAnswerBar, duration: animationsDuration)
-            case false:
-                notificationFeedback.notificationOccurred(.error)
-                animationsEngine.animateTintColor(timerBar, color: .wrongAnswerBar, duration: animationsDuration)
+        case true:
+            notificationFeedback.notificationOccurred(.success)
+            animationsEngine.animateTintColor(timerBar, color: .correctAnswerBar, duration: animationsDuration)
+        case false:
+            notificationFeedback.notificationOccurred(.error)
+            animationsEngine.animateTintColor(timerBar, color: .wrongAnswerBar, duration: animationsDuration)
         }
     }
     
     func showResults() {
         let storyboard = UIStoryboard(name: "Main", bundle: nil)
-        let vc = storyboard.instantiateViewController(withIdentifier: "QuizResultID")
-        self.present(vc, animated: true)
+        if let vc = storyboard.instantiateViewController(withIdentifier: "QuizResultID") as? QuizResultViewController {
+            vc.correctAnswers = presenter!.correctAnswers
+            vc.totalQuestions = presenter!.questionsTotalCount
+            self.present(vc, animated: true)
+        }
     }
     
     // MARK: - IBAction Methods
     
     @IBAction func answerChosen(_ sender: UIButton) {
+        colorAndDisableButtons()
         presenter?.checkAnswer(sender)
-        
-        colorButtons()
-    
         nextButton.isEnabled = true
-        
         stopTimer()
     }
     
@@ -161,8 +160,7 @@ class QuizQuestionViewController: UIViewController, QuizQuestionViewControllerPr
     
     @IBAction func backButtonTapped() {
         dismiss(animated: true)
-        presenter?.resetGame()
+        presenter?.resetGameProgress()
     }
-    
 }
 
