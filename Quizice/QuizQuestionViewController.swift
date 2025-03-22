@@ -24,13 +24,9 @@ class QuizQuestionViewController: UIViewController, QuizQuestionViewControllerPr
     // MARK: - Properties
     
     private var questionButtons: Array<UIButton>?
-    private let quizFactory = QuizFactory.shared
     private let notificationFeedback = UINotificationFeedbackGenerator()
     private let animationsEngine = Animations()
     private let animationsDuration: Double = 0.15
-    private var timer: Timer?
-    private var remainingTime: TimeInterval = 40.0
-    private let totalTime: TimeInterval = 40.0
     
     var presenter: QuizQuestionPresenterProtocol?
     
@@ -44,40 +40,14 @@ class QuizQuestionViewController: UIViewController, QuizQuestionViewControllerPr
     
     // MARK: - Timer methods
     
-    private func startTimer() {
-        timer?.invalidate() // Убедитесь, что предыдущий таймер сброшен
-        remainingTime = totalTime
-        timeStarted()
-        
-        timer = Timer.scheduledTimer(withTimeInterval: 0.03, repeats: true) { [weak self] _ in
-            guard let self = self else { return }
-            
-            self.remainingTime -= 0.1
-            self.timerBar.progress = Float(self.remainingTime / self.totalTime)
-            
-            if self.remainingTime <= 0 {
-                self.timer?.invalidate()
-                self.timer = nil
-                self.timeExpired()
-            }
-        }
+    func updateProgress(_ progress: Float) {
+        timerBar.progress = progress
     }
     
-    private func timeStarted() {
-        timerBar.progress = 1.0 // Начальное значение прогрессбара
-        timerBar.tintColor = .systemBlue
-    }
-    
-    private func timeExpired() {
+    func showTimeExpired() {
         colorAndDisableButtons()
         notificationFeedback.notificationOccurred(.error)
-        presenter?.updateQuizState(isCorrect: false)
         nextButton.isEnabled = true
-    }
-    
-    private func stopTimer() {
-        timer?.invalidate()
-        timer = nil
     }
     
     // MARK: - Methods
@@ -99,17 +69,18 @@ class QuizQuestionViewController: UIViewController, QuizQuestionViewControllerPr
         }
     }
     
-    func resetButtons() {
+    func resetAllColore() {
         questionButtons = [answer1Button, answer2Button, answer3Button, answer4Button]
         questionButtons?.forEach() { button in
             button.backgroundColor = .defaultButton
             button.setTitleColor(.gray, for: .disabled)
             button.isEnabled = true
         }
+        timerBar.tintColor = .systemBlue
     }
     
     func loadQuestionToView(themeName: String, question: String, questionNumberText: String, currentAnswers: [String]) {
-        resetButtons()
+        resetAllColore()
         
         timerBar.progress = Float(presenter!.currentProgress)
         
@@ -122,7 +93,7 @@ class QuizQuestionViewController: UIViewController, QuizQuestionViewControllerPr
         
         questionNumberLabel.text = questionNumberText
         nextButton.isEnabled = false
-        startTimer()
+        presenter?.startTimer()
     }
     
     func correctAnswerTapped(isTrue: Bool) {
@@ -151,7 +122,7 @@ class QuizQuestionViewController: UIViewController, QuizQuestionViewControllerPr
         colorAndDisableButtons()
         presenter?.checkAnswer(sender)
         nextButton.isEnabled = true
-        stopTimer()
+        presenter?.stopTimer()
     }
     
     @IBAction func nextButtonTapped() {

@@ -14,6 +14,8 @@ protocol QuizQuestionPresenterProtocol {
     var currentProgress: Float { get set }
     
     func viewDidLoad()
+    func startTimer()
+    func stopTimer()
     func loadQuestion()
     func checkQuestionNumberAndProceed()
     func checkAnswerButtonTitle(selectedAnswer: UIButton) -> Bool

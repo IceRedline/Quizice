@@ -9,15 +9,16 @@ import UIKit
 
 class QuizDescriptionViewController: UIViewController {
     
-    @IBOutlet weak var themeName: UILabel!
-    @IBOutlet weak var themeDescription: UILabel!
+    @IBOutlet weak var themeNameLabel: UILabel!
+    @IBOutlet weak var themeDescriptionLabel: UILabel!
     
-    private let quizFactory = QuizFactory.shared
+    var themeName: String = "Default name"
+    var themeDescription: String = "Default description"
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        themeName.text = quizFactory.chosenTheme.name
-        themeDescription.text = quizFactory.chosenTheme.description
+        themeNameLabel.text = themeName
+        themeDescriptionLabel.text = themeDescription
     }
     
     @IBAction private func startButtonTapped() {

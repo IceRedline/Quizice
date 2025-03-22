@@ -15,12 +15,6 @@ class QuizViewController: UIViewController {
         super.viewDidLoad()
     }
     
-    private func showDescriptionViewController() {
-        let storyboard = UIStoryboard(name: "Main", bundle: nil)
-        let vc = storyboard.instantiateViewController(withIdentifier: "QuizDescriptionID")
-        self.present(vc, animated: true)
-    }
-    
     @IBAction private func themeButtonTouchedDown(_ sender: UIButton) {
         animationsEngine.animateDownFloat(sender)
     }
@@ -32,6 +26,15 @@ class QuizViewController: UIViewController {
     
     @IBAction private func themeButtonTouchedUpOutside(_ sender: UIButton) {
         animationsEngine.animateUpFloat(sender)
+    }
+    
+    private func showDescriptionViewController() {
+        let storyboard = UIStoryboard(name: "Main", bundle: nil)
+        if let vc = storyboard.instantiateViewController(withIdentifier: "QuizDescriptionID") as? QuizDescriptionViewController {
+            vc.themeName = QuizFactory.shared.chosenTheme.name
+            vc.themeDescription = QuizFactory.shared.chosenTheme.description
+            self.present(vc, animated: true)
+        }
     }
     
     @IBAction private func progressButtonTapped() {
