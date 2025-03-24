@@ -6,7 +6,6 @@
         <capability name="Image references" minToolsVersion="12.0"/>
         <capability name="Named colors" minToolsVersion="9.0"/>
         <capability name="Safe area layout guides" minToolsVersion="9.0"/>
-        <capability name="System colors in document resources" minToolsVersion="11.0"/>
         <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
     </dependencies>
     <scenes>
@@ -18,6 +17,9 @@
                         <rect key="frame" x="0.0" y="0.0" width="393" height="852"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
+                            <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="backgroundImage" translatesAutoresizingMaskIntoConstraints="NO" id="h61-AJ-C7G">
+                                <rect key="frame" x="0.0" y="0.0" width="393" height="852"/>
+                            </imageView>
                             <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" distribution="fillEqually" spacing="20" translatesAutoresizingMaskIntoConstraints="NO" id="Xxw-s7-SyQ">
                                 <rect key="frame" x="26.666666666666657" y="316.33333333333331" width="340" height="339.99999999999994"/>
                                 <subviews>
@@ -26,7 +28,7 @@
                                         <subviews>
                                             <button opaque="NO" tag="1" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="3R0-Up-SBk">
                                                 <rect key="frame" x="0.0" y="0.0" width="160" height="160"/>
-                                                <color key="backgroundColor" systemColor="systemPinkColor"/>
+                                                <accessibility key="accessibilityConfiguration" identifier="Музыка"/>
                                                 <constraints>
                                                     <constraint firstAttribute="height" constant="160" id="jEW-7r-gTZ"/>
                                                     <constraint firstAttribute="width" constant="160" id="yUU-ZR-7kj"/>
@@ -34,14 +36,7 @@
                                                 <fontDescription key="fontDescription" type="system" weight="semibold" pointSize="16"/>
                                                 <color key="tintColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                                                 <state key="normal" title="Музыка" image="music icon"/>
-                                                <buttonConfiguration key="configuration" style="plain" image="music" imagePlacement="top" title="Музыка" imagePadding="6">
-                                                    <fontDescription key="titleFontDescription" type="system" weight="semibold" pointSize="16"/>
-                                                </buttonConfiguration>
-                                                <userDefinedRuntimeAttributes>
-                                                    <userDefinedRuntimeAttribute type="number" keyPath="cornerRadius">
-                                                        <integer key="value" value="25"/>
-                                                    </userDefinedRuntimeAttribute>
-                                                </userDefinedRuntimeAttributes>
+                                                <buttonConfiguration key="configuration" style="plain" image="Музыка" imagePlacement="top" imagePadding="6"/>
                                                 <connections>
                                                     <action selector="themeButtonTouchedDown:" destination="CwH-N1-SHE" eventType="touchDown" id="yjy-Uf-aZB"/>
                                                     <action selector="themeButtonTouchedUpInside:" destination="CwH-N1-SHE" eventType="touchUpInside" id="W13-oH-qTY"/>
@@ -50,22 +45,16 @@
                                             </button>
                                             <button opaque="NO" tag="3" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="z7k-cz-Hzt">
                                                 <rect key="frame" x="180" y="0.0" width="160" height="160"/>
-                                                <color key="backgroundColor" systemColor="systemMintColor"/>
+                                                <accessibility key="accessibilityConfiguration" identifier="Технологии"/>
                                                 <constraints>
                                                     <constraint firstAttribute="width" constant="160" id="9aB-Eb-HXo"/>
                                                     <constraint firstAttribute="height" constant="160" id="ijO-QR-xkC"/>
                                                 </constraints>
                                                 <color key="tintColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                                                 <state key="normal" title="Button"/>
-                                                <buttonConfiguration key="configuration" style="plain" imagePlacement="top" title="Технологии" imagePadding="-3">
-                                                    <imageReference key="image" image="mac" symbolScale="large"/>
-                                                    <fontDescription key="titleFontDescription" type="system" weight="semibold" pointSize="16"/>
+                                                <buttonConfiguration key="configuration" style="plain" imagePlacement="top" imagePadding="-3">
+                                                    <imageReference key="image" image="Технологии" symbolScale="large"/>
                                                 </buttonConfiguration>
-                                                <userDefinedRuntimeAttributes>
-                                                    <userDefinedRuntimeAttribute type="number" keyPath="cornerRadius">
-                                                        <integer key="value" value="25"/>
-                                                    </userDefinedRuntimeAttribute>
-                                                </userDefinedRuntimeAttributes>
                                                 <connections>
                                                     <action selector="themeButtonTouchedDown:" destination="CwH-N1-SHE" eventType="touchDown" id="u2v-nx-Cbj"/>
                                                     <action selector="themeButtonTouchedUpInside:" destination="CwH-N1-SHE" eventType="touchUpInside" id="7gC-k8-Liw"/>
@@ -79,21 +68,14 @@
                                         <subviews>
                                             <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="phq-TZ-6sy">
                                                 <rect key="frame" x="0.0" y="0.0" width="160" height="160"/>
-                                                <color key="backgroundColor" systemColor="systemIndigoColor"/>
+                                                <accessibility key="accessibilityConfiguration" identifier="История и культура"/>
                                                 <constraints>
                                                     <constraint firstAttribute="width" constant="160" id="Tua-Zy-ZPk"/>
                                                     <constraint firstAttribute="height" constant="160" id="UYe-E8-Fl1"/>
                                                 </constraints>
                                                 <color key="tintColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                                                 <state key="normal" title="Button"/>
-                                                <buttonConfiguration key="configuration" style="plain" image="theatre" imagePlacement="top" title="История и культура" imagePadding="3" titleAlignment="center">
-                                                    <fontDescription key="titleFontDescription" type="system" weight="semibold" pointSize="16"/>
-                                                </buttonConfiguration>
-                                                <userDefinedRuntimeAttributes>
-                                                    <userDefinedRuntimeAttribute type="number" keyPath="cornerRadius">
-                                                        <integer key="value" value="25"/>
-                                                    </userDefinedRuntimeAttribute>
-                                                </userDefinedRuntimeAttributes>
+                                                <buttonConfiguration key="configuration" style="plain" image="История и культура" imagePlacement="top" imagePadding="3"/>
                                                 <connections>
                                                     <action selector="themeButtonTouchedDown:" destination="CwH-N1-SHE" eventType="touchDown" id="wNE-iw-cYv"/>
                                                     <action selector="themeButtonTouchedUpInside:" destination="CwH-N1-SHE" eventType="touchUpInside" id="3G0-nF-XX0"/>
@@ -102,21 +84,14 @@
                                             </button>
                                             <button opaque="NO" tag="2" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="yqm-2J-pCF">
                                                 <rect key="frame" x="180" y="0.0" width="160" height="160"/>
-                                                <color key="backgroundColor" systemColor="systemOrangeColor"/>
+                                                <accessibility key="accessibilityConfiguration" identifier="Политика и бизнес"/>
                                                 <constraints>
                                                     <constraint firstAttribute="height" constant="160" id="ujr-zk-ZiH"/>
                                                     <constraint firstAttribute="width" constant="160" id="wOc-Tq-8Ik"/>
                                                 </constraints>
                                                 <color key="tintColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                                                 <state key="normal" title="Button"/>
-                                                <buttonConfiguration key="configuration" style="plain" image="business" imagePlacement="top" title="Политика и бизнес" imagePadding="5" titleAlignment="center">
-                                                    <fontDescription key="titleFontDescription" type="system" weight="semibold" pointSize="16"/>
-                                                </buttonConfiguration>
-                                                <userDefinedRuntimeAttributes>
-                                                    <userDefinedRuntimeAttribute type="number" keyPath="cornerRadius">
-                                                        <integer key="value" value="25"/>
-                                                    </userDefinedRuntimeAttribute>
-                                                </userDefinedRuntimeAttributes>
+                                                <buttonConfiguration key="configuration" style="plain" image="Политика и бизнес" imagePlacement="top" imagePadding="5"/>
                                                 <connections>
                                                     <action selector="themeButtonTouchedDown:" destination="CwH-N1-SHE" eventType="touchDown" id="eSP-ju-D6O"/>
                                                     <action selector="themeButtonTouchedUpInside:" destination="CwH-N1-SHE" eventType="touchUpInside" id="DbR-at-811"/>
@@ -163,21 +138,23 @@
                                 <color key="textColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                                 <nil key="highlightedColor"/>
                             </label>
-                            <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" distribution="fillEqually" spacing="10" translatesAutoresizingMaskIntoConstraints="NO" id="h6b-d0-ZMF">
+                            <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" distribution="fillEqually" spacing="20" translatesAutoresizingMaskIntoConstraints="NO" id="h6b-d0-ZMF">
                                 <rect key="frame" x="45" y="129" width="303" height="106"/>
                                 <subviews>
                                     <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Добро пожаловать в" textAlignment="center" lineBreakMode="tailTruncation" numberOfLines="0" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="3Hh-6B-D2E">
-                                        <rect key="frame" x="0.0" y="0.0" width="303" height="48"/>
+                                        <rect key="frame" x="0.0" y="0.0" width="303" height="43"/>
                                         <fontDescription key="fontDescription" type="boldSystem" pointSize="30"/>
                                         <color key="textColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                                         <nil key="highlightedColor"/>
                                     </label>
-                                    <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Quizice" textAlignment="center" lineBreakMode="tailTruncation" numberOfLines="0" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="Mwx-je-k4V">
-                                        <rect key="frame" x="0.0" y="58" width="303" height="48"/>
-                                        <fontDescription key="fontDescription" type="system" weight="black" pointSize="40"/>
-                                        <color key="textColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
-                                        <nil key="highlightedColor"/>
-                                    </label>
+                                    <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="Quizice" translatesAutoresizingMaskIntoConstraints="NO" id="fcC-tZ-nYL">
+                                        <rect key="frame" x="0.0" y="63" width="303" height="43"/>
+                                        <constraints>
+                                            <constraint firstAttribute="height" constant="48" id="0oA-uD-Fye"/>
+                                            <constraint firstAttribute="width" constant="303" id="agT-AK-W9f"/>
+                                            <constraint firstAttribute="height" relation="greaterThanOrEqual" constant="48" id="gYx-Is-Vcs"/>
+                                        </constraints>
+                                    </imageView>
                                 </subviews>
                                 <constraints>
                                     <constraint firstAttribute="height" constant="106" id="Blu-Hq-CAo"/>
@@ -186,20 +163,24 @@
                             </stackView>
                         </subviews>
                         <viewLayoutGuide key="safeArea" id="y6z-fE-gRe"/>
-                        <color key="backgroundColor" red="0.061543367350000003" green="0.07704482973" blue="0.1133078231" alpha="1" colorSpace="calibratedRGB"/>
+                        <color key="backgroundColor" name="backgroundColor"/>
                         <constraints>
+                            <constraint firstAttribute="bottom" secondItem="h61-AJ-C7G" secondAttribute="bottom" id="2EX-DK-mah"/>
                             <constraint firstItem="wYX-Fh-SlD" firstAttribute="leading" secondItem="y6z-fE-gRe" secondAttribute="leading" constant="26" id="9tm-cg-18z"/>
+                            <constraint firstItem="y6z-fE-gRe" firstAttribute="trailing" secondItem="h61-AJ-C7G" secondAttribute="trailing" id="AGP-C7-ROr"/>
                             <constraint firstItem="h6b-d0-ZMF" firstAttribute="centerX" secondItem="k3h-qf-Gwm" secondAttribute="centerX" id="Bi9-jh-CIu"/>
                             <constraint firstItem="Xxw-s7-SyQ" firstAttribute="centerX" secondItem="k3h-qf-Gwm" secondAttribute="centerX" id="BiW-EP-g4T"/>
+                            <constraint firstItem="h61-AJ-C7G" firstAttribute="top" secondItem="k3h-qf-Gwm" secondAttribute="top" id="FTk-6q-gj2"/>
                             <constraint firstItem="wYX-Fh-SlD" firstAttribute="top" secondItem="h6b-d0-ZMF" secondAttribute="bottom" constant="30" id="Itk-oW-XFk"/>
                             <constraint firstItem="Xxw-s7-SyQ" firstAttribute="top" secondItem="wYX-Fh-SlD" secondAttribute="bottom" constant="20" id="JMB-YA-kMB"/>
+                            <constraint firstItem="h61-AJ-C7G" firstAttribute="leading" secondItem="y6z-fE-gRe" secondAttribute="leading" id="Vcn-Se-1a5"/>
                             <constraint firstItem="h6b-d0-ZMF" firstAttribute="top" secondItem="y6z-fE-gRe" secondAttribute="top" constant="70" id="lYv-Mm-lU1"/>
                         </constraints>
                     </view>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="0Sh-uD-9Xw" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="1897" y="1260"/>
+            <point key="canvasLocation" x="1896.9465648854962" y="1259.8591549295775"/>
         </scene>
         <!--Quiz Description View Controller-->
         <scene sceneID="0n1-25-jjv">
@@ -209,6 +190,9 @@
                         <rect key="frame" x="0.0" y="0.0" width="393" height="852"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
+                            <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="backgroundImage" translatesAutoresizingMaskIntoConstraints="NO" id="bVv-vo-Cuk">
+                                <rect key="frame" x="0.0" y="0.0" width="393" height="852"/>
+                            </imageView>
                             <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="themeDescription" lineBreakMode="tailTruncation" numberOfLines="0" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="BFm-BP-pKK">
                                 <rect key="frame" x="49.666666666666657" y="305" width="294" height="194"/>
                                 <constraints>
@@ -266,14 +250,18 @@
                             </label>
                         </subviews>
                         <viewLayoutGuide key="safeArea" id="Z17-fa-JzZ"/>
-                        <color key="backgroundColor" red="0.061543367350000003" green="0.07704482973" blue="0.1133078231" alpha="1" colorSpace="calibratedRGB"/>
+                        <color key="backgroundColor" name="backgroundColor"/>
                         <constraints>
                             <constraint firstItem="bed-D9-RHA" firstAttribute="top" secondItem="Z17-fa-JzZ" secondAttribute="top" constant="60" id="8jW-qW-mOX"/>
                             <constraint firstItem="BFm-BP-pKK" firstAttribute="top" secondItem="bed-D9-RHA" secondAttribute="bottom" constant="60" id="ABH-wu-BV0"/>
                             <constraint firstItem="bed-D9-RHA" firstAttribute="centerX" secondItem="2nh-Ln-4LT" secondAttribute="centerX" id="H5l-Hh-4ph"/>
                             <constraint firstItem="Z17-fa-JzZ" firstAttribute="bottom" secondItem="TSh-HX-xz4" secondAttribute="bottom" constant="75" id="RMl-2h-um6"/>
                             <constraint firstItem="BFm-BP-pKK" firstAttribute="centerX" secondItem="2nh-Ln-4LT" secondAttribute="centerX" id="a0c-cv-J8m"/>
+                            <constraint firstAttribute="bottom" secondItem="bVv-vo-Cuk" secondAttribute="bottom" id="bJW-Qh-GaC"/>
+                            <constraint firstItem="bVv-vo-Cuk" firstAttribute="trailing" secondItem="Z17-fa-JzZ" secondAttribute="trailing" id="etj-Dc-lkM"/>
+                            <constraint firstItem="bVv-vo-Cuk" firstAttribute="top" secondItem="2nh-Ln-4LT" secondAttribute="top" id="kAT-fQ-0mt"/>
                             <constraint firstItem="TSh-HX-xz4" firstAttribute="centerX" secondItem="2nh-Ln-4LT" secondAttribute="centerX" id="oxU-mh-PfV"/>
+                            <constraint firstItem="bVv-vo-Cuk" firstAttribute="leading" secondItem="Z17-fa-JzZ" secondAttribute="leading" id="t04-2C-Qzk"/>
                             <constraint firstItem="BFm-BP-pKK" firstAttribute="centerX" secondItem="2nh-Ln-4LT" secondAttribute="centerX" id="tJU-yH-OVB"/>
                         </constraints>
                     </view>
@@ -294,6 +282,9 @@
                         <rect key="frame" x="0.0" y="0.0" width="393" height="852"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
+                            <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="backgroundImage" translatesAutoresizingMaskIntoConstraints="NO" id="FcN-Kh-jfJ">
+                                <rect key="frame" x="0.0" y="0.0" width="393" height="852"/>
+                            </imageView>
                             <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" distribution="fillEqually" spacing="20" translatesAutoresizingMaskIntoConstraints="NO" id="3ZV-iO-cMj">
                                 <rect key="frame" x="28.666666666666657" y="523" width="336" height="220"/>
                                 <subviews>
@@ -461,13 +452,17 @@
                             </progressView>
                         </subviews>
                         <viewLayoutGuide key="safeArea" id="Sg0-dZ-72i"/>
-                        <color key="backgroundColor" red="0.078431375319999996" green="0.1019607931" blue="0.14901961389999999" alpha="1" colorSpace="custom" customColorSpace="displayP3"/>
+                        <color key="backgroundColor" name="backgroundColor"/>
                         <constraints>
+                            <constraint firstItem="FcN-Kh-jfJ" firstAttribute="top" secondItem="IaG-e6-pHj" secondAttribute="top" id="7aJ-Kf-FLd"/>
                             <constraint firstItem="Sg0-dZ-72i" firstAttribute="trailing" secondItem="SEh-PM-6No" secondAttribute="trailing" constant="29" id="9tt-a2-QlF"/>
+                            <constraint firstItem="FcN-Kh-jfJ" firstAttribute="trailing" secondItem="Sg0-dZ-72i" secondAttribute="trailing" id="DmW-9y-Wld"/>
+                            <constraint firstAttribute="bottom" secondItem="FcN-Kh-jfJ" secondAttribute="bottom" id="S1P-WU-dFY"/>
                             <constraint firstItem="3ZV-iO-cMj" firstAttribute="top" secondItem="Ut8-n3-gvJ" secondAttribute="bottom" constant="34" id="dJb-oM-VSi"/>
                             <constraint firstItem="HzT-bl-aJ1" firstAttribute="top" secondItem="3ZV-iO-cMj" secondAttribute="bottom" constant="20" id="dTW-4z-PS7"/>
                             <constraint firstItem="SEh-PM-6No" firstAttribute="top" secondItem="3ZV-iO-cMj" secondAttribute="bottom" constant="20" id="es6-Yi-i0O"/>
                             <constraint firstItem="Ut8-n3-gvJ" firstAttribute="centerX" secondItem="IaG-e6-pHj" secondAttribute="centerX" id="g12-Pc-lVL"/>
+                            <constraint firstItem="FcN-Kh-jfJ" firstAttribute="leading" secondItem="Sg0-dZ-72i" secondAttribute="leading" id="itH-ko-n50"/>
                             <constraint firstItem="HzT-bl-aJ1" firstAttribute="leading" secondItem="Sg0-dZ-72i" secondAttribute="leading" constant="30" id="m9f-cg-MBm"/>
                             <constraint firstItem="9a6-ZP-5m7" firstAttribute="centerX" secondItem="IaG-e6-pHj" secondAttribute="centerX" id="nZm-su-KJ6"/>
                             <constraint firstItem="9a6-ZP-5m7" firstAttribute="top" secondItem="Sg0-dZ-72i" secondAttribute="top" constant="90" id="pbj-gr-8S7"/>
@@ -499,6 +494,9 @@
                         <rect key="frame" x="0.0" y="0.0" width="393" height="852"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
+                            <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="backgroundImage" translatesAutoresizingMaskIntoConstraints="NO" id="TIA-UF-CPg">
+                                <rect key="frame" x="0.0" y="0.0" width="393" height="852"/>
+                            </imageView>
                             <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" translatesAutoresizingMaskIntoConstraints="NO" id="cwX-K2-RZs">
                                 <rect key="frame" x="28.666666666666657" y="229" width="336" height="252"/>
                                 <subviews>
@@ -544,12 +542,16 @@
                             </button>
                         </subviews>
                         <viewLayoutGuide key="safeArea" id="eBe-Vm-tq6"/>
-                        <color key="backgroundColor" red="0.078431375319999996" green="0.1019607931" blue="0.14901961389999999" alpha="1" colorSpace="custom" customColorSpace="displayP3"/>
+                        <color key="backgroundColor" name="backgroundColor"/>
                         <constraints>
+                            <constraint firstItem="TIA-UF-CPg" firstAttribute="top" secondItem="JjN-Dq-cBC" secondAttribute="top" id="3Lm-Vx-9Cc"/>
                             <constraint firstItem="cwX-K2-RZs" firstAttribute="top" secondItem="eBe-Vm-tq6" secondAttribute="top" constant="170" id="92N-k1-Neu"/>
                             <constraint firstItem="M62-59-jfP" firstAttribute="centerX" secondItem="JjN-Dq-cBC" secondAttribute="centerX" id="E3R-Pm-tzR"/>
                             <constraint firstItem="eBe-Vm-tq6" firstAttribute="bottom" secondItem="M62-59-jfP" secondAttribute="bottom" constant="140" id="UzG-Vj-AFX"/>
+                            <constraint firstAttribute="bottom" secondItem="TIA-UF-CPg" secondAttribute="bottom" id="VaQ-qf-WNQ"/>
                             <constraint firstItem="cwX-K2-RZs" firstAttribute="centerX" secondItem="JjN-Dq-cBC" secondAttribute="centerX" id="YCG-HK-d2V"/>
+                            <constraint firstItem="TIA-UF-CPg" firstAttribute="leading" secondItem="eBe-Vm-tq6" secondAttribute="leading" id="iKe-Ks-Cbc"/>
+                            <constraint firstItem="TIA-UF-CPg" firstAttribute="trailing" secondItem="eBe-Vm-tq6" secondAttribute="trailing" id="oOc-PT-LaQ"/>
                         </constraints>
                     </view>
                     <connections>
@@ -563,27 +565,20 @@
         </scene>
     </scenes>
     <resources>
-        <image name="business" width="100" height="78"/>
+        <image name="Quizice" width="134.66667175292969" height="32.666667938232422"/>
+        <image name="backgroundImage" width="402" height="874"/>
         <image name="chevron.left" catalog="system" width="97" height="128"/>
         <image name="chevron.right" catalog="system" width="97" height="128"/>
-        <image name="mac" width="100" height="100"/>
-        <image name="music" width="100" height="78"/>
         <image name="music icon" width="100" height="100"/>
-        <image name="theatre" width="100" height="78"/>
+        <image name="История и культура" width="160" height="160"/>
+        <image name="Музыка" width="160" height="160"/>
+        <image name="Политика и бизнес" width="160" height="160"/>
+        <image name="Технологии" width="160" height="160"/>
+        <namedColor name="backgroundColor">
+            <color red="0.082352941176470587" green="0.10196078431372549" blue="0.14901960784313725" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+        </namedColor>
         <namedColor name="defaultButtonColor">
             <color red="0.10588235294117647" green="0.15686274509803921" blue="0.23921568627450981" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
         </namedColor>
-        <systemColor name="systemIndigoColor">
-            <color red="0.34509803919999998" green="0.33725490200000002" blue="0.83921568629999999" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
-        </systemColor>
-        <systemColor name="systemMintColor">
-            <color red="0.0" green="0.78039215689999997" blue="0.74509803919999995" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
-        </systemColor>
-        <systemColor name="systemOrangeColor">
-            <color red="1" green="0.58431372550000005" blue="0.0" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
-        </systemColor>
-        <systemColor name="systemPinkColor">
-            <color red="1" green="0.1764705882" blue="0.33333333329999998" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
-        </systemColor>
     </resources>
 </document>

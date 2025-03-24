@@ -27,7 +27,7 @@ class QuizFactory {
     func loadTheme(button: UIButton) {
         guard
             let loadedThemes = themes,
-            let chosenTheme = loadedThemes.first(where: { $0.theme == button.titleLabel?.text})
+            let chosenTheme = loadedThemes.first(where: { $0.theme == button.accessibilityIdentifier})
         else {
             print("не удалось определить выбранную тему, текущий текст кнопки: \(String(describing: button.currentTitle))")
             return
