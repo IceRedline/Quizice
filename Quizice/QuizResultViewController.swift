@@ -7,7 +7,7 @@
 
 import UIKit
 
-class QuizResultViewController: UIViewController {
+final class QuizResultViewController: UIViewController {
     
     @IBOutlet weak var resultLabel: UILabel!
     @IBOutlet weak var resultDescription: UILabel!
@@ -39,7 +39,7 @@ class QuizResultViewController: UIViewController {
     
     @IBAction func backButtonTapped() {
         let storyboard = UIStoryboard(name: "Main", bundle: nil)
-        let vc = storyboard.instantiateViewController(withIdentifier: "QuizID")
+        let vc = storyboard.instantiateViewController(withIdentifier: "QuizViewController")
         self.present(vc, animated: true)
     }
 }

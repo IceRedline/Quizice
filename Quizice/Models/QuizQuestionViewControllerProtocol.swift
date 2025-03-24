@@ -12,7 +12,7 @@ protocol QuizQuestionViewControllerProtocol {
     
     func updateProgress(_ progress: Float)
     func showTimeExpired()
-    func loadQuestionToView(themeName: String, question: String, questionNumberText: String, currentAnswers: [String])
+    func loadQuestionToView(themeName: String, questionText: String, questionNumberText: String, currentAnswers: [String])
     func correctAnswerTapped(isTrue: Bool)
     func showResults()
 }

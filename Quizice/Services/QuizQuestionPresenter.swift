@@ -7,7 +7,7 @@
 
 import UIKit
 
-class QuizQuestionPresenter: QuizQuestionPresenterProtocol {
+final class QuizQuestionPresenter: QuizQuestionPresenterProtocol {
     
     private let quizFactory = QuizFactory.shared
     
@@ -17,8 +17,8 @@ class QuizQuestionPresenter: QuizQuestionPresenterProtocol {
     private var remainingTime: TimeInterval = 20
     private let totalTime: TimeInterval = 20
     
-    var chosenThemeQuestionsArray: [String] = []
-    var currentQuestion: String = ""
+    var chosenThemeQuestionsArray: [QuestionModel] = []
+    var currentQuestion: QuestionModel?
     var questionsTotalCount: Int = 0
     var currentQuestionIndex: Int = 0
     var correctAnswers: Int = 0
@@ -64,21 +64,23 @@ class QuizQuestionPresenter: QuizQuestionPresenterProtocol {
     // MARK: - Methods
     
     func loadQuestions() {
-        chosenThemeQuestionsArray = Array(quizFactory.chosenTheme.questionsAndAnswers.keys).shuffled()
+        chosenThemeQuestionsArray = Array(quizFactory.chosenTheme!.questionsAndAnswers).shuffled()
         questionsTotalCount = chosenThemeQuestionsArray.count
-        currentQuestion = chosenThemeQuestionsArray[0]
     }
     
     func loadQuestion() {
         
         currentQuestion = chosenThemeQuestionsArray[currentQuestionIndex]
         
-        let themeName = quizFactory.chosenTheme.name
-        let question = currentQuestion
-        let questionNumberText = "Вопрос №\(currentQuestionIndex + 1)"
-        let currentAnswers = quizFactory.chosenTheme.questionsAndAnswers[currentQuestion]!.shuffled()
+        guard
+            let themeName = quizFactory.chosenTheme?.themeName,
+            let questionText = currentQuestion?.questionText
+        else { return }
         
-        view?.loadQuestionToView(themeName: themeName, question: question, questionNumberText: questionNumberText, currentAnswers: currentAnswers)
+        let currentAnswers = chosenThemeQuestionsArray[currentQuestionIndex].answers.shuffled()
+        let questionNumberText = "Вопрос №\(currentQuestionIndex + 1)"
+        
+        view?.loadQuestionToView(themeName: themeName, questionText: questionText, questionNumberText: questionNumberText, currentAnswers: currentAnswers)
     }
     
     func updateQuizState(isCorrect: Bool) {
@@ -90,7 +92,7 @@ class QuizQuestionPresenter: QuizQuestionPresenterProtocol {
     }
     
     func checkAnswerButtonTitle(selectedAnswer: UIButton) -> Bool {
-        let correctAnswer = quizFactory.chosenTheme.questionsAndAnswers[currentQuestion]?.first
+        let correctAnswer = chosenThemeQuestionsArray[currentQuestionIndex].correctAnswer
         return selectedAnswer.currentTitle == correctAnswer
     }
     

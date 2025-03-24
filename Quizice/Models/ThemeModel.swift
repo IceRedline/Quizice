@@ -8,7 +8,17 @@
 import Foundation
 
 struct ThemeModel {
-    var name: String
-    var description: String
-    var questionsAndAnswers: Dictionary<String, Array<String>>
+    let quizTheme: QuizTheme
+    
+    var themeName: String {
+        quizTheme.theme
+    }
+    
+    var description: String {
+        quizTheme.themeDescription
+    }
+    
+    var questionsAndAnswers: [QuestionModel] {
+        quizTheme.questions.map { QuestionModel(quizQuestion: $0) }
+    }
 }

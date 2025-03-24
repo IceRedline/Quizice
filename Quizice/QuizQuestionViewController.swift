@@ -7,7 +7,7 @@
 
 import UIKit
 
-class QuizQuestionViewController: UIViewController, QuizQuestionViewControllerProtocol {
+final class QuizQuestionViewController: UIViewController, QuizQuestionViewControllerProtocol {
     
     // MARK: - IBOutlet Properties
     
@@ -69,7 +69,7 @@ class QuizQuestionViewController: UIViewController, QuizQuestionViewControllerPr
         }
     }
     
-    func resetAllColore() {
+    func resetAllColors() {
         questionButtons = [answer1Button, answer2Button, answer3Button, answer4Button]
         questionButtons?.forEach() { button in
             button.backgroundColor = .defaultButton
@@ -79,13 +79,13 @@ class QuizQuestionViewController: UIViewController, QuizQuestionViewControllerPr
         timerBar.tintColor = .systemBlue
     }
     
-    func loadQuestionToView(themeName: String, question: String, questionNumberText: String, currentAnswers: [String]) {
-        resetAllColore()
+    func loadQuestionToView(themeName: String, questionText: String, questionNumberText: String, currentAnswers: [String]) {
+        resetAllColors()
         
         timerBar.progress = Float(presenter!.currentProgress)
         
         self.themeNameLabel.text = themeName
-        self.questionLabel.text = question
+        self.questionLabel.text = questionText
         
         for i in 0...3 {
             questionButtons?[i].setTitle(currentAnswers[i], for: .normal)

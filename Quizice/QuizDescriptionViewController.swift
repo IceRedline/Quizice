@@ -7,7 +7,7 @@
 
 import UIKit
 
-class QuizDescriptionViewController: UIViewController {
+final class QuizDescriptionViewController: UIViewController {
     
     @IBOutlet weak var themeNameLabel: UILabel!
     @IBOutlet weak var themeDescriptionLabel: UILabel!
