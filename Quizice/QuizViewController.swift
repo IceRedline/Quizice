@@ -7,12 +7,14 @@
 
 import UIKit
 
-class QuizViewController: UIViewController {
+final class QuizViewController: UIViewController {
     
     private let animationsEngine = Animations()
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        
+        QuizFactory.shared.loadData()
     }
     
     @IBAction private func themeButtonTouchedDown(_ sender: UIButton) {
@@ -20,7 +22,8 @@ class QuizViewController: UIViewController {
     }
     
     @IBAction private func themeButtonTouchedUpInside(_ sender: UIButton) {
-        QuizFactory.shared.loadTheme(sender.tag)
+        animationsEngine.animateUpFloat(sender)
+        QuizFactory.shared.loadTheme(button: sender)
         showDescriptionViewController()
     }
     
@@ -31,8 +34,8 @@ class QuizViewController: UIViewController {
     private func showDescriptionViewController() {
         let storyboard = UIStoryboard(name: "Main", bundle: nil)
         if let vc = storyboard.instantiateViewController(withIdentifier: "QuizDescriptionID") as? QuizDescriptionViewController {
-            vc.themeName = QuizFactory.shared.chosenTheme.name
-            vc.themeDescription = QuizFactory.shared.chosenTheme.description
+            vc.themeName = QuizFactory.shared.chosenTheme?.themeName ?? "no themeName"
+            vc.themeDescription = QuizFactory.shared.chosenTheme?.description ?? "no description"
             self.present(vc, animated: true)
         }
     }
