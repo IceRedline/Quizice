@@ -18,19 +18,22 @@ final class QuizResultViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         
+        let resultPercentage: Float = Float(correctAnswers) / Float(totalQuestions)
+        print(resultPercentage)
+        
         resultLabel.text = "Твой результат:\n \(correctAnswers)/\(totalQuestions)"
-        switch correctAnswers {
-        case 0:
+        switch resultPercentage {
+        case 0...0.15:
             resultDescription.text = "Эм..."
-        case 1:
-            resultDescription.text = "Ну, хотя бы в один попал..."
-        case 2:
+        case 0.15...0.3:
+            resultDescription.text = "Ну, слабовато..."
+        case 0.3...0.5:
             resultDescription.text = "Да ладно, я знаю что ты не старался)"
-        case 3:
+        case 0.5...0.75:
             resultDescription.text = "Нормально, сойдёт для сельской местности"
-        case 4:
+        case 0.75..<1:
             resultDescription.text = "Ещё чуть-чуть и был бы как Айс!"
-        case 5:
+        case 1:
             resultDescription.text = "Легенда, гений, соло легчайше для величайшего!"
         default:
             resultDescription.text = "Что-то пошло не так! Я не смог понять, сколько ответов правильные("

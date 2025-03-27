@@ -19,13 +19,14 @@ final class QuizQuestionPresenter: QuizQuestionPresenterProtocol {
     
     var chosenThemeQuestionsArray: [QuestionModel] = []
     var currentQuestion: QuestionModel?
-    var questionsTotalCount: Int = 0
+    var questionsTotalCount: Int?
     var currentQuestionIndex: Int = 0
     var correctAnswers: Int = 0
     var currentProgress: Float = 0.2
     
     func viewDidLoad() {
         resetGameProgress()
+        questionsTotalCount = QuizFactory.shared.questionsCount
         loadQuestions()
         loadQuestion()
     }
@@ -52,8 +53,8 @@ final class QuizQuestionPresenter: QuizQuestionPresenterProtocol {
     }
     
     private func timeExpired() {
-        updateQuizState(isCorrect: false)
         view?.showTimeExpired()
+        updateQuizState(isCorrect: false)
     }
     
     func stopTimer() {
@@ -64,8 +65,7 @@ final class QuizQuestionPresenter: QuizQuestionPresenterProtocol {
     // MARK: - Methods
     
     func loadQuestions() {
-        chosenThemeQuestionsArray = Array(quizFactory.chosenTheme!.questionsAndAnswers).shuffled()
-        questionsTotalCount = chosenThemeQuestionsArray.count
+        chosenThemeQuestionsArray = Array(quizFactory.chosenTheme!.questionsAndAnswers.shuffled().prefix(questionsTotalCount!))
     }
     
     func loadQuestion() {

@@ -10,7 +10,7 @@ import UIKit
 protocol QuizQuestionPresenterProtocol {
     var view: QuizQuestionViewControllerProtocol? { get set }
     var correctAnswers: Int { get set }
-    var questionsTotalCount: Int { get set }
+    var questionsTotalCount: Int? { get set }
     var currentProgress: Float { get set }
     
     func viewDidLoad()
