@@ -32,7 +32,67 @@
                 "answers": ["Satisfaction", "Hey Jude", "House of the Rising Sun", "Stairway to Heaven"],
                 "correctAnswer": "Satisfaction",
                 "explanation": ""
-            }
+            },
+            {
+                "question": "Какой инструмент считается основным в джазовой музыке?",
+                "answers": ["Труба", "Гитара", "Фортепиано", "Саксофон"],
+                "correctAnswer": "Саксофон",
+                "explanation": ""
+              },
+              {
+                "question": "Какая группа выпустила альбом 'Abbey Road'?",
+                "answers": ["The Rolling Stones", "The Beatles", "Led Zeppelin", "Pink Floyd"],
+                "correctAnswer": "The Beatles",
+                "explanation": ""
+              },
+              {
+                "question": "Какой жанр музыки характеризуется быстрым темпом и энергичными ритмами?",
+                "answers": ["Блюз", "Рок-н-ролл", "Рэп", "Джаз"],
+                "correctAnswer": "Рок-н-ролл",
+                "explanation": ""
+              },
+              {
+                "question": "Какая песня стала хитом для группы Queen в 1975 году?",
+                "answers": ["We Are The Champions", "Bohemian Rhapsody", "Don't Stop Me Now", "Somebody to Love"],
+                "correctAnswer": "Bohemian Rhapsody",
+                "explanation": ""
+              },
+              {
+                "question": "Кто написал знаменитую симфонию 'Лунная соната'?",
+                "answers": ["Вольфганг Амадей Моцарт", "Людвиг ван Бетховен", "Пётр Ильич Чайковский", "Иоганн Себастьян Бах"],
+                "correctAnswer": "Людвиг ван Бетховен",
+                "explanation": ""
+              },
+              {
+                "question": "Какая группа является автором хита 'Smells Like Teen Spirit'?",
+                "answers": ["Pearl Jam", "Nirvana", "Green Day", "Red Hot Chili Peppers"],
+                "correctAnswer": "Nirvana",
+                "explanation": ""
+              },
+              {
+                "question": "Какой музыкальный стиль родился в Нью-Йорке в 1970-х годах?",
+                "answers": ["Хип-хоп", "Панк", "Синти-поп", "Глэм-рок"],
+                "correctAnswer": "Хип-хоп",
+                "explanation": ""
+              },
+              {
+                "question": "Какой из этих альбомов был выпущен Michael Jackson?",
+                "answers": ["Purple Rain", "Thriller", "Like a Prayer", "Back in Black"],
+                "correctAnswer": "Thriller",
+                "explanation": ""
+              },
+              {
+                "question": "Какая группа исполнила песню 'Hotel California'?",
+                "answers": ["The Eagles", "Led Zeppelin", "The Rolling Stones", "Pink Floyd"],
+                "correctAnswer": "The Eagles",
+                "explanation": ""
+              },
+              {
+                "question": "Какое произведение Петра Ильича Чайковского стало популярным на Рождество?",
+                "answers": ["Щелкунчик", "Лебединое озеро", "Спящая красавица", "Манфред"],
+                "correctAnswer": "Щелкунчик",
+                "explanation": ""
+              }
         ]
     },
     {
@@ -68,7 +128,67 @@
                 "answers": ["Intel и Apple", "AMD и Apple", "Apple", "Intel и AMD"],
                 "correctAnswer": "Intel и Apple",
                 "explanation": ""
-            }
+            },
+            {
+                "question": "Как называется технология, позволяющая заряжать устройства без проводов?",
+                "answers": ["Fast Charge", "Qi", "PD", "MagSafe"],
+                "correctAnswer": "Qi",
+                "explanation": ""
+              },
+              {
+                "question": "Какой процессор первым использовал 5-нм техпроцесс?",
+                "answers": ["Apple A14 Bionic", "Intel Core i9-11900K", "AMD Ryzen 5950X", "Snapdragon 888"],
+                "correctAnswer": "Apple A14 Bionic",
+                "explanation": ""
+              },
+              {
+                "question": "Какой порт пришел на замену microUSB в большинстве современных смартфонов?",
+                "answers": ["USB-C", "Lightning", "Thunderbolt", "Mini-USB"],
+                "correctAnswer": "USB-C",
+                "explanation": ""
+              },
+              {
+                "question": "Как называется технология, позволяющая увеличить производительность процессора за счет временного повышения тактовой частоты?",
+                "answers": ["Turbo Boost", "Hyper-Threading", "SpeedStep", "Multi-Core"],
+                "correctAnswer": "Turbo Boost",
+                "explanation": ""
+              },
+              {
+                "question": "Какой компании принадлежит бренд видеокарт GeForce?",
+                "answers": ["AMD", "Intel", "NVIDIA", "Qualcomm"],
+                "correctAnswer": "NVIDIA",
+                "explanation": ""
+              },
+              {
+                "question": "Какой тип матрицы чаще всего используется в игровых мониторах из-за высокой частоты обновления?",
+                "answers": ["TN", "IPS", "OLED", "VA"],
+                "correctAnswer": "TN",
+                "explanation": ""
+              },
+              {
+                "question": "Что означает аббревиатура VPN?",
+                "answers": ["Virtual Private Network", "Variable Protocol Node", "Verified Personal Number", "Virtual Processing Network"],
+                "correctAnswer": "Virtual Private Network",
+                "explanation": ""
+              },
+              {
+                "question": "Какая файловая система используется на современных Mac?",
+                "answers": ["NTFS", "ext4", "APFS", "FAT32"],
+                "correctAnswer": "APFS",
+                "explanation": ""
+              },
+              {
+                "question": "Какой из этих стандартов беспроводной связи обеспечивает самую высокую скорость?",
+                "answers": ["Wi-Fi 5", "Wi-Fi 6", "Bluetooth 5.0", "LTE"],
+                "correctAnswer": "Wi-Fi 6",
+                "explanation": ""
+              },
+              {
+                "question": "Какая технология позволяет хранить данные на флеш-памяти без движущихся частей?",
+                "answers": ["HDD", "SSD", "CD-ROM", "RAM"],
+                "correctAnswer": "SSD",
+                "explanation": ""
+              }
         ]
     },
     {
@@ -104,7 +224,67 @@
                 "answers": ["Воронеж", "Москва", "Санкт-Петербург", "Екатеринбург"],
                 "correctAnswer": "Воронеж",
                 "explanation": ""
-            }
+            },
+            {
+                "question": "Как назывался самый известный храм Древней Греции, посвящённый богине Афине?",
+                "answers": ["Парфенон", "Колизей", "Пантеон", "Акрополь"],
+                "correctAnswer": "Парфенон",
+                "explanation": ""
+              },
+              {
+                "question": "Какой художник написал картину 'Тайная вечеря'?",
+                "answers": ["Леонардо да Винчи", "Микеланджело", "Рафаэль", "Рембрандт"],
+                "correctAnswer": "Леонардо да Винчи",
+                "explanation": ""
+              },
+              {
+                "question": "Какой древний город был погребён под пеплом во время извержения Везувия в 79 году?",
+                "answers": ["Помпеи", "Карфаген", "Троя", "Афины"],
+                "correctAnswer": "Помпеи",
+                "explanation": ""
+              },
+              {
+                "question": "Как называлось государство, существовавшее на территории России до образования Руси?",
+                "answers": ["Скифия", "Золотая Орда", "Византия", "Хазарский каганат"],
+                "correctAnswer": "Хазарский каганат",
+                "explanation": ""
+              },
+              {
+                "question": "Кто написал роман 'Война и мир'?",
+                "answers": ["Лев Толстой", "Фёдор Достоевский", "Александр Пушкин", "Иван Тургенев"],
+                "correctAnswer": "Лев Толстой",
+                "explanation": ""
+              },
+              {
+                "question": "Какой памятник архитектуры считается символом Индии?",
+                "answers": ["Тадж-Махал", "Большая китайская стена", "Пирамиды Гизы", "Ангкор-Ват"],
+                "correctAnswer": "Тадж-Махал",
+                "explanation": ""
+              },
+              {
+                "question": "Какой стиль архитектуры характеризуется массивными стенами, круглыми арками и небольшими окнами?",
+                "answers": ["Романский", "Готический", "Барокко", "Модерн"],
+                "correctAnswer": "Романский",
+                "explanation": ""
+              },
+              {
+                "question": "Какой король Франции был казнён во время Великой французской революции?",
+                "answers": ["Людовик XVI", "Наполеон I", "Людовик XIV", "Филипп IV"],
+                "correctAnswer": "Людовик XVI",
+                "explanation": ""
+              },
+              {
+                "question": "Какая страна считается родиной Олимпийских игр?",
+                "answers": ["Греция", "Италия", "Египет", "Франция"],
+                "correctAnswer": "Греция",
+                "explanation": ""
+              },
+              {
+                "question": "Как назывался торговый путь, соединявший Китай и Европу в Средние века?",
+                "answers": ["Шёлковый путь", "Путь Святого Иакова", "Великий чайный путь", "Спайс Роуд"],
+                "correctAnswer": "Шёлковый путь",
+                "explanation": ""
+              }
         ]
     },
     {
@@ -140,7 +320,67 @@
                 "answers": ["М. Ходорковский", "П. Авен", "Г. Греф", "Б. Березовский"],
                 "correctAnswer": "М. Ходорковский",
                 "explanation": ""
-            }
+            },
+            {
+                "question": "Какой экономический термин обозначает снижение покупательной способности денег вследствие общего роста цен?",
+                "answers": ["Инфляция", "Дефляция", "Рецессия", "Стагфляция"],
+                "correctAnswer": "Инфляция",
+                "explanation": ""
+              },
+              {
+                "question": "Какая страна первой в истории объявила дефолт по своим внешним обязательствам?",
+                "answers": ["Франция", "Испания", "Великобритания", "Германия"],
+                "correctAnswer": "Испания",
+                "explanation": ""
+              },
+              {
+                "question": "Какая налоговая концепция предполагает, что богатые платят более высокий процент с доходов, чем бедные?",
+                "answers": ["Прогрессивное налогообложение", "Регрессивное налогообложение", "Пропорциональное налогообложение", "Косвенное налогообложение"],
+                "correctAnswer": "Прогрессивное налогообложение",
+                "explanation": ""
+              },
+              {
+                "question": "Какой банк был признан крупнейшим инвестиционным банком в мире по активам?",
+                "answers": ["JPMorgan Chase", "Goldman Sachs", "Morgan Stanley", "Bank of America"],
+                "correctAnswer": "JPMorgan Chase",
+                "explanation": ""
+              },
+              {
+                "question": "Какая корпорация первой в истории достигла рыночной капитализации в 1 триллион долларов?",
+                "answers": ["Apple", "Microsoft", "Amazon", "Saudi Aramco"],
+                "correctAnswer": "Apple",
+                "explanation": ""
+              },
+              {
+                "question": "Какая из стран G7 не входит в Совет Безопасности ООН?",
+                "answers": ["Канада", "Франция", "Великобритания", "Италия"],
+                "correctAnswer": "Канада",
+                "explanation": ""
+              },
+              {
+                "question": "Как называется макроэкономическая ситуация, при которой одновременно растут безработица и инфляция?",
+                "answers": ["Стагфляция", "Рецессия", "Дефляция", "Кризис ликвидности"],
+                "correctAnswer": "Стагфляция",
+                "explanation": ""
+              },
+              {
+                "question": "В каком году была проведена крупнейшая в истории IPO компания Saudi Aramco?",
+                "answers": ["2019", "2015", "2021", "2017"],
+                "correctAnswer": "2019",
+                "explanation": ""
+              },
+              {
+                "question": "Кто является автором концепции 'Невидимой руки рынка'?",
+                "answers": ["Адам Смит", "Джон Кейнс", "Карл Маркс", "Милтон Фридман"],
+                "correctAnswer": "Адам Смит",
+                "explanation": ""
+              },
+              {
+                "question": "Какое событие привело к мировому финансовому кризису 2008 года?",
+                "answers": ["Кризис ипотечного кредитования в США", "Крах Lehman Brothers", "Греческий долговой кризис", "Падение цен на нефть"],
+                "correctAnswer": "Кризис ипотечного кредитования в США",
+                "explanation": ""
+              }
         ]
     }
 ]

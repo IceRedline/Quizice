@@ -127,24 +127,32 @@ final class QuizQuestionViewController: UIViewController, QuizQuestionViewContro
         let storyboard = UIStoryboard(name: "Main", bundle: nil)
         if let vc = storyboard.instantiateViewController(withIdentifier: "QuizResultID") as? QuizResultViewController {
             vc.correctAnswers = presenter!.correctAnswers
-            vc.totalQuestions = presenter!.questionsTotalCount
+            vc.totalQuestions = presenter!.questionsTotalCount ?? 5
             self.present(vc, animated: true)
         }
+    }
+    
+    private func resetSoundPlayers() {
+        soundOfCorrectAnswerPlayer?.stop()
+        soundOfCorrectAnswerPlayer?.currentTime = 0
+        soundOfIncorrectAnswerPlayer?.stop()
+        soundOfIncorrectAnswerPlayer?.currentTime = 0
     }
     
     // MARK: - IBAction Methods
     
     @IBAction func answerChosen(_ sender: UIButton) {
         hapticFeedback.prepare()
+        resetSoundPlayers()
         colorAndDisableButtons()
         presenter?.checkAnswer(sender)
-        nextButton.isEnabled = true
         presenter?.stopTimer()
+        UIView.animate(withDuration: 1) {
+            self.nextButton.isEnabled = true
+        }
     }
     
     @IBAction func nextButtonTapped() {
-        soundOfCorrectAnswerPlayer.stop()
-        soundOfIncorrectAnswerPlayer.stop()
         presenter?.checkQuestionNumberAndProceed()
     }
     

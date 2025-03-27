@@ -17,6 +17,7 @@ class QuizFactory {
     
     var themes: [QuizTheme]?
     var chosenTheme: ThemeModel?
+    var questionsCount: Int = 5
     var startup1st: Bool = true
     
     private init() {}
