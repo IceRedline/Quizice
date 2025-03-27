@@ -25,6 +25,9 @@
 		993C1C052D8F0A6000AD9BE4 /* data.json in Resources */ = {isa = PBXBuildFile; fileRef = 993C1C042D8F0A5B00AD9BE4 /* data.json */; };
 		993C1C092D8F0F3B00AD9BE4 /* QuizQuestion.swift in Sources */ = {isa = PBXBuildFile; fileRef = 993C1C082D8F0F3B00AD9BE4 /* QuizQuestion.swift */; };
 		993C1C232D8F0F6900AD9BE4 /* QuizTheme.swift in Sources */ = {isa = PBXBuildFile; fileRef = 993C1C222D8F0F6900AD9BE4 /* QuizTheme.swift */; };
+		99722CB52D9424180028758D /* Quizice Enter.m4a in Resources */ = {isa = PBXBuildFile; fileRef = 99722CB42D9424180028758D /* Quizice Enter.m4a */; };
+		99722CBA2D9427480028758D /* Quizice Correct.m4a in Resources */ = {isa = PBXBuildFile; fileRef = 99722CB82D9427480028758D /* Quizice Correct.m4a */; };
+		99722CBB2D9427480028758D /* Quizice Incorrect.m4a in Resources */ = {isa = PBXBuildFile; fileRef = 99722CB92D9427480028758D /* Quizice Incorrect.m4a */; };
 		99ADC9632D907844006DDC18 /* QuestionModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99ADC9622D907844006DDC18 /* QuestionModel.swift */; };
 /* End PBXBuildFile section */
 
@@ -49,6 +52,9 @@
 		993C1C042D8F0A5B00AD9BE4 /* data.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = data.json; sourceTree = "<group>"; };
 		993C1C082D8F0F3B00AD9BE4 /* QuizQuestion.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuizQuestion.swift; sourceTree = "<group>"; };
 		993C1C222D8F0F6900AD9BE4 /* QuizTheme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuizTheme.swift; sourceTree = "<group>"; };
+		99722CB42D9424180028758D /* Quizice Enter.m4a */ = {isa = PBXFileReference; lastKnownFileType = file; path = "Quizice Enter.m4a"; sourceTree = "<group>"; };
+		99722CB82D9427480028758D /* Quizice Correct.m4a */ = {isa = PBXFileReference; lastKnownFileType = file; path = "Quizice Correct.m4a"; sourceTree = "<group>"; };
+		99722CB92D9427480028758D /* Quizice Incorrect.m4a */ = {isa = PBXFileReference; lastKnownFileType = file; path = "Quizice Incorrect.m4a"; sourceTree = "<group>"; };
 		99ADC9622D907844006DDC18 /* QuestionModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuestionModel.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -95,6 +101,7 @@
 				993C1BC22D8D5EC200AD9BE4 /* Assets.xcassets */,
 				993C1C042D8F0A5B00AD9BE4 /* data.json */,
 				993C1BC32D8D5EC200AD9BE4 /* Info.plist */,
+				99722CAD2D941CC70028758D /* Sounds */,
 			);
 			path = Quizice;
 			sourceTree = "<group>";
@@ -120,6 +127,16 @@
 				993C1BE42D8D668700AD9BE4 /* QuizQuestionPresenter.swift */,
 			);
 			path = Services;
+			sourceTree = "<group>";
+		};
+		99722CAD2D941CC70028758D /* Sounds */ = {
+			isa = PBXGroup;
+			children = (
+				99722CB42D9424180028758D /* Quizice Enter.m4a */,
+				99722CB82D9427480028758D /* Quizice Correct.m4a */,
+				99722CB92D9427480028758D /* Quizice Incorrect.m4a */,
+			);
+			path = Sounds;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -184,7 +201,10 @@
 			buildActionMask = 2147483647;
 			files = (
 				993C1BCE2D8D5EC200AD9BE4 /* Assets.xcassets in Resources */,
+				99722CBA2D9427480028758D /* Quizice Correct.m4a in Resources */,
+				99722CBB2D9427480028758D /* Quizice Incorrect.m4a in Resources */,
 				993C1BD02D8D5EC200AD9BE4 /* LaunchScreen.storyboard in Resources */,
+				99722CB52D9424180028758D /* Quizice Enter.m4a in Resources */,
 				993C1C052D8F0A6000AD9BE4 /* data.json in Resources */,
 				993C1BD12D8D5EC200AD9BE4 /* Main.storyboard in Resources */,
 			);

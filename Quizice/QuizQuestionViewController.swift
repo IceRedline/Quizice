@@ -6,6 +6,7 @@
 //
 
 import UIKit
+import AVKit
 
 final class QuizQuestionViewController: UIViewController, QuizQuestionViewControllerProtocol {
     
@@ -24,9 +25,11 @@ final class QuizQuestionViewController: UIViewController, QuizQuestionViewContro
     // MARK: - Properties
     
     private var questionButtons: Array<UIButton>?
-    private let notificationFeedback = UINotificationFeedbackGenerator()
+    private let hapticFeedback = UINotificationFeedbackGenerator()
     private let animationsEngine = Animations()
     private let animationsDuration: Double = 0.15
+    private var soundOfCorrectAnswerPlayer: AVAudioPlayer!
+    private var soundOfIncorrectAnswerPlayer: AVAudioPlayer!
     
     var presenter: QuizQuestionPresenterProtocol?
     
@@ -34,8 +37,19 @@ final class QuizQuestionViewController: UIViewController, QuizQuestionViewContro
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        if
+            let correctSoundURL = Bundle.main.url(forResource: "Quizice Correct", withExtension: "m4a"),
+            let incorrectSoundURL = Bundle.main.url(forResource: "Quizice Incorrect", withExtension: "m4a") {
+            soundOfCorrectAnswerPlayer = try? AVAudioPlayer(contentsOf: correctSoundURL)
+            soundOfIncorrectAnswerPlayer = try? AVAudioPlayer(contentsOf: incorrectSoundURL)
+        } else {
+            print("Аудиофайлы не были загружены")
+        }
+        
         configurePresenter(QuizQuestionPresenter())
         presenter?.viewDidLoad()
+        
+        hapticFeedback.prepare()
     }
     
     // MARK: - Timer methods
@@ -46,7 +60,7 @@ final class QuizQuestionViewController: UIViewController, QuizQuestionViewContro
     
     func showTimeExpired() {
         colorAndDisableButtons()
-        notificationFeedback.notificationOccurred(.error)
+        hapticFeedback.notificationOccurred(.error)
         nextButton.isEnabled = true
     }
     
@@ -99,10 +113,12 @@ final class QuizQuestionViewController: UIViewController, QuizQuestionViewContro
     func correctAnswerTapped(isTrue: Bool) {
         switch isTrue {
         case true:
-            notificationFeedback.notificationOccurred(.success)
+            soundOfCorrectAnswerPlayer.play()
+            hapticFeedback.notificationOccurred(.success)
             animationsEngine.animateTintColor(timerBar, color: .correctAnswerBar, duration: animationsDuration)
         case false:
-            notificationFeedback.notificationOccurred(.error)
+            soundOfIncorrectAnswerPlayer.play()
+            hapticFeedback.notificationOccurred(.error)
             animationsEngine.animateTintColor(timerBar, color: .wrongAnswerBar, duration: animationsDuration)
         }
     }
@@ -119,6 +135,7 @@ final class QuizQuestionViewController: UIViewController, QuizQuestionViewContro
     // MARK: - IBAction Methods
     
     @IBAction func answerChosen(_ sender: UIButton) {
+        hapticFeedback.prepare()
         colorAndDisableButtons()
         presenter?.checkAnswer(sender)
         nextButton.isEnabled = true
@@ -126,6 +143,8 @@ final class QuizQuestionViewController: UIViewController, QuizQuestionViewContro
     }
     
     @IBAction func nextButtonTapped() {
+        soundOfCorrectAnswerPlayer.stop()
+        soundOfIncorrectAnswerPlayer.stop()
         presenter?.checkQuestionNumberAndProceed()
     }
     

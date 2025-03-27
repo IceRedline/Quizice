@@ -40,7 +40,7 @@ final class QuizQuestionPresenter: QuizQuestionPresenterProtocol {
         timer = Timer.scheduledTimer(withTimeInterval: 0.03, repeats: true) { [weak self] _ in
             guard let self = self else { return }
             
-            self.remainingTime -= 0.1
+            self.remainingTime -= 0.05
             let progress = Float(self.remainingTime / self.totalTime)
             self.view?.updateProgress(progress)
             
