@@ -6,15 +6,72 @@
 //
 
 import UIKit
+import AVKit
 
 final class QuizViewController: UIViewController {
     
+    @IBOutlet weak var welcomeLabel: UILabel!
+    @IBOutlet weak var quiziceLabel: UIImageView!
+    @IBOutlet weak var chooseThemeLabel: UILabel!
+    
+    @IBOutlet weak var musicThemeButton: UIButton!
+    @IBOutlet weak var techThemeButton: UIButton!
+    @IBOutlet weak var historyAndCultureThemeButton: UIButton!
+    @IBOutlet weak var politicsAndBusinessThemeButton: UIButton!
+    
+    @IBOutlet weak var exitButton: UIButton!
+    @IBOutlet weak var feelingLuckyButton: UIButton!
+    
     private let animationsEngine = Animations()
+    private var soundPlayer: AVAudioPlayer!
     
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        QuizFactory.shared.loadData()
+        if QuizFactory.shared.startup1st == true {
+            QuizFactory.shared.loadData()
+            animateViewsAndPlaySound()
+            QuizFactory.shared.startup1st = false
+        }
+    }
+    
+    private func animateViewsAndPlaySound() {
+        
+        let views = [welcomeLabel, quiziceLabel, chooseThemeLabel, musicThemeButton, techThemeButton, historyAndCultureThemeButton, politicsAndBusinessThemeButton, exitButton, feelingLuckyButton]
+        let buttons = [musicThemeButton, techThemeButton, historyAndCultureThemeButton, politicsAndBusinessThemeButton]
+        
+        views.forEach { view in
+            view?.alpha = 0
+        }
+        buttons.forEach { button in
+            button?.isEnabled = false
+        }
+        
+        if let startupSoundURL = Bundle.main.url(forResource: "Quizice Enter", withExtension: "m4a") {
+            soundPlayer = try? AVAudioPlayer(contentsOf: startupSoundURL)
+        }
+        
+        welcomeLabel.fadeIn(duration: 1)
+        
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
+            
+            self.soundPlayer.play()
+            self.quiziceLabel.fadeIn(duration: 2)
+            
+            DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
+                
+                self.chooseThemeLabel.fadeIn(duration: 1)
+                self.exitButton.fadeIn(duration: 1)
+                self.feelingLuckyButton.fadeIn(duration: 1)
+                
+                for (index, button) in buttons.enumerated() {
+                    DispatchQueue.main.asyncAfter(deadline: .now() + Double(index) * 0.15) {
+                        button?.fadeIn(duration: 1) {
+                            button?.isEnabled = true
+                        }                         }
+                }
+            }
+        }
     }
     
     @IBAction private func themeButtonTouchedDown(_ sender: UIButton) {

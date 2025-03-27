@@ -107,7 +107,7 @@
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                 <color key="tintColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                                 <state key="normal" title="Button"/>
-                                <buttonConfiguration key="configuration" style="plain" imagePlacement="trailing" title="Your progress ">
+                                <buttonConfiguration key="configuration" style="plain" imagePlacement="trailing" title="Мне повезёт ">
                                     <imageReference key="image" image="chevron.right" catalog="system" symbolScale="medium"/>
                                     <fontDescription key="titleFontDescription" type="system" weight="medium" pointSize="19"/>
                                 </buttonConfiguration>
@@ -120,7 +120,7 @@
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                 <color key="tintColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                                 <state key="normal" title="Button"/>
-                                <buttonConfiguration key="configuration" style="plain" imagePlacement="leading" title=" Back" titleAlignment="leading">
+                                <buttonConfiguration key="configuration" style="plain" imagePlacement="leading" title=" Выход" titleAlignment="leading">
                                     <imageReference key="image" image="chevron.left" catalog="system" symbolScale="medium"/>
                                     <fontDescription key="titleFontDescription" type="system" weight="medium" pointSize="19"/>
                                 </buttonConfiguration>
@@ -150,9 +150,7 @@
                                     <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="Quizice" translatesAutoresizingMaskIntoConstraints="NO" id="fcC-tZ-nYL">
                                         <rect key="frame" x="0.0" y="63" width="303" height="43"/>
                                         <constraints>
-                                            <constraint firstAttribute="height" constant="48" id="0oA-uD-Fye"/>
                                             <constraint firstAttribute="width" constant="303" id="agT-AK-W9f"/>
-                                            <constraint firstAttribute="height" relation="greaterThanOrEqual" constant="48" id="gYx-Is-Vcs"/>
                                         </constraints>
                                     </imageView>
                                 </subviews>
@@ -177,6 +175,17 @@
                             <constraint firstItem="h6b-d0-ZMF" firstAttribute="top" secondItem="y6z-fE-gRe" secondAttribute="top" constant="70" id="lYv-Mm-lU1"/>
                         </constraints>
                     </view>
+                    <connections>
+                        <outlet property="chooseThemeLabel" destination="wYX-Fh-SlD" id="9Km-w7-ULf"/>
+                        <outlet property="exitButton" destination="XQV-CU-9vT" id="SOX-aU-okp"/>
+                        <outlet property="feelingLuckyButton" destination="5p0-PT-Bn7" id="uXO-8o-wgf"/>
+                        <outlet property="historyAndCultureThemeButton" destination="phq-TZ-6sy" id="6Y7-1S-hHQ"/>
+                        <outlet property="musicThemeButton" destination="3R0-Up-SBk" id="wIG-RQ-4A2"/>
+                        <outlet property="politicsAndBusinessThemeButton" destination="yqm-2J-pCF" id="E2w-Ob-Z3Y"/>
+                        <outlet property="quiziceLabel" destination="fcC-tZ-nYL" id="kJT-6I-Z5o"/>
+                        <outlet property="techThemeButton" destination="z7k-cz-Hzt" id="wTJ-zp-JUO"/>
+                        <outlet property="welcomeLabel" destination="3Hh-6B-D2E" id="hoR-iw-Wf7"/>
+                    </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="0Sh-uD-9Xw" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
             </objects>
