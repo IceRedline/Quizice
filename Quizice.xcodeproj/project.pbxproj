@@ -32,6 +32,9 @@
 		99FCF0252D969B7F006341F4 /* QuizResultPresenterProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99FCF0242D969B7F006341F4 /* QuizResultPresenterProtocol.swift */; };
 		99FCF0272D969B96006341F4 /* QuizResultPresenter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99FCF0262D969B96006341F4 /* QuizResultPresenter.swift */; };
 		99FCF0292D969CDF006341F4 /* QuizResultViewControllerProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99FCF0282D969CDF006341F4 /* QuizResultViewControllerProtocol.swift */; };
+		99FCF02B2D96A522006341F4 /* QuizDescriptionPresenter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99FCF02A2D96A522006341F4 /* QuizDescriptionPresenter.swift */; };
+		99FCF02D2D96A544006341F4 /* QuizDescriptionPresenterProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99FCF02C2D96A544006341F4 /* QuizDescriptionPresenterProtocol.swift */; };
+		99FCF02F2D96A569006341F4 /* QuizDescriptionViewControllerProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99FCF02E2D96A569006341F4 /* QuizDescriptionViewControllerProtocol.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -62,6 +65,9 @@
 		99FCF0242D969B7F006341F4 /* QuizResultPresenterProtocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuizResultPresenterProtocol.swift; sourceTree = "<group>"; };
 		99FCF0262D969B96006341F4 /* QuizResultPresenter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuizResultPresenter.swift; sourceTree = "<group>"; };
 		99FCF0282D969CDF006341F4 /* QuizResultViewControllerProtocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuizResultViewControllerProtocol.swift; sourceTree = "<group>"; };
+		99FCF02A2D96A522006341F4 /* QuizDescriptionPresenter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuizDescriptionPresenter.swift; sourceTree = "<group>"; };
+		99FCF02C2D96A544006341F4 /* QuizDescriptionPresenterProtocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuizDescriptionPresenterProtocol.swift; sourceTree = "<group>"; };
+		99FCF02E2D96A569006341F4 /* QuizDescriptionViewControllerProtocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuizDescriptionViewControllerProtocol.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -117,6 +123,8 @@
 			children = (
 				993C1BD72D8D600E00AD9BE4 /* ThemeModel.swift */,
 				99ADC9622D907844006DDC18 /* QuestionModel.swift */,
+				99FCF02C2D96A544006341F4 /* QuizDescriptionPresenterProtocol.swift */,
+				99FCF02E2D96A569006341F4 /* QuizDescriptionViewControllerProtocol.swift */,
 				993C1BE62D8D669B00AD9BE4 /* QuizQuestionPresenterProtocol.swift */,
 				993C1BE82D8D66AB00AD9BE4 /* QuizQuestionViewControllerProtocol.swift */,
 				99FCF0242D969B7F006341F4 /* QuizResultPresenterProtocol.swift */,
@@ -132,6 +140,7 @@
 			children = (
 				993C1BE12D8D606100AD9BE4 /* Animations.swift */,
 				993C1BD32D8D600E00AD9BE4 /* QuizFactory.swift */,
+				99FCF02A2D96A522006341F4 /* QuizDescriptionPresenter.swift */,
 				993C1BE42D8D668700AD9BE4 /* QuizQuestionPresenter.swift */,
 				99FCF0262D969B96006341F4 /* QuizResultPresenter.swift */,
 			);
@@ -226,6 +235,8 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				99FCF02D2D96A544006341F4 /* QuizDescriptionPresenterProtocol.swift in Sources */,
+				99FCF02B2D96A522006341F4 /* QuizDescriptionPresenter.swift in Sources */,
 				993C1BCB2D8D5EC200AD9BE4 /* AppDelegate.swift in Sources */,
 				993C1BE92D8D66AB00AD9BE4 /* QuizQuestionViewControllerProtocol.swift in Sources */,
 				99FCF0292D969CDF006341F4 /* QuizResultViewControllerProtocol.swift in Sources */,
@@ -236,6 +247,7 @@
 				993C1BD92D8D600E00AD9BE4 /* QuizFactory.swift in Sources */,
 				993C1BDA2D8D600E00AD9BE4 /* QuizQuestionViewController.swift in Sources */,
 				99FCF0272D969B96006341F4 /* QuizResultPresenter.swift in Sources */,
+				99FCF02F2D96A569006341F4 /* QuizDescriptionViewControllerProtocol.swift in Sources */,
 				993C1BE22D8D606100AD9BE4 /* Animations.swift in Sources */,
 				99ADC9632D907844006DDC18 /* QuestionModel.swift in Sources */,
 				99FCF0252D969B7F006341F4 /* QuizResultPresenterProtocol.swift in Sources */,

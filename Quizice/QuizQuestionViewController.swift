@@ -37,6 +37,8 @@ final class QuizQuestionViewController: UIViewController, QuizQuestionViewContro
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        questionLabel.adjustsFontSizeToFitWidth = true
+        
         if
             let correctSoundURL = Bundle.main.url(forResource: "Quizice Correct", withExtension: "m4a"),
             let incorrectSoundURL = Bundle.main.url(forResource: "Quizice Incorrect", withExtension: "m4a") {
