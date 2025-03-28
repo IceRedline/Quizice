@@ -126,8 +126,7 @@ final class QuizQuestionViewController: UIViewController, QuizQuestionViewContro
     func showResults() {
         let storyboard = UIStoryboard(name: "Main", bundle: nil)
         if let vc = storyboard.instantiateViewController(withIdentifier: "QuizResultID") as? QuizResultViewController {
-            vc.correctAnswers = presenter!.correctAnswers
-            vc.totalQuestions = presenter!.questionsTotalCount ?? 5
+            presenter?.configureResultPresenter(viewController: vc)
             self.present(vc, animated: true)
         }
     }

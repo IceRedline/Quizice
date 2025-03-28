@@ -68,7 +68,8 @@ final class QuizViewController: UIViewController {
                     DispatchQueue.main.asyncAfter(deadline: .now() + Double(index) * 0.15) {
                         button?.fadeIn(duration: 1) {
                             button?.isEnabled = true
-                        }                         }
+                        }
+                    }
                 }
             }
         }

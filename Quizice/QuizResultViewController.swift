@@ -7,37 +7,26 @@
 
 import UIKit
 
-final class QuizResultViewController: UIViewController {
+final class QuizResultViewController: UIViewController, QuizResultViewControllerProtocol {
     
     @IBOutlet weak var resultLabel: UILabel!
     @IBOutlet weak var resultDescription: UILabel!
     
-    var correctAnswers: Int = 0
-    var totalQuestions: Int = 0
+    var presenter: QuizResultPresenterProtocol?
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        
-        let resultPercentage: Float = Float(correctAnswers) / Float(totalQuestions)
-        print(resultPercentage)
-        
-        resultLabel.text = "Твой результат:\n \(correctAnswers)/\(totalQuestions)"
-        switch resultPercentage {
-        case 0...0.15:
-            resultDescription.text = "Эм..."
-        case 0.15...0.3:
-            resultDescription.text = "Ну, слабовато..."
-        case 0.3...0.5:
-            resultDescription.text = "Да ладно, я знаю что ты не старался)"
-        case 0.5...0.75:
-            resultDescription.text = "Нормально, сойдёт для сельской местности"
-        case 0.75..<1:
-            resultDescription.text = "Ещё чуть-чуть и был бы как Айс!"
-        case 1:
-            resultDescription.text = "Легенда, гений, соло легчайше для величайшего!"
-        default:
-            resultDescription.text = "Что-то пошло не так! Я не смог понять, сколько ответов правильные("
-        }
+        presenter?.viewDidLoad()
+    }
+    
+    func configurePresenter(_ presenter: QuizResultPresenterProtocol) {
+        self.presenter = presenter
+        self.presenter?.view = self
+    }
+    
+    func updateResultLabels(resultText: String, descriptionText: String) {
+        resultLabel.text = resultText
+        resultDescription.text = descriptionText
     }
     
     @IBAction func backButtonTapped() {

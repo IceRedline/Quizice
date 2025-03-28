@@ -29,6 +29,9 @@
 		99722CBA2D9427480028758D /* Quizice Correct.m4a in Resources */ = {isa = PBXBuildFile; fileRef = 99722CB82D9427480028758D /* Quizice Correct.m4a */; };
 		99722CBB2D9427480028758D /* Quizice Incorrect.m4a in Resources */ = {isa = PBXBuildFile; fileRef = 99722CB92D9427480028758D /* Quizice Incorrect.m4a */; };
 		99ADC9632D907844006DDC18 /* QuestionModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99ADC9622D907844006DDC18 /* QuestionModel.swift */; };
+		99FCF0252D969B7F006341F4 /* QuizResultPresenterProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99FCF0242D969B7F006341F4 /* QuizResultPresenterProtocol.swift */; };
+		99FCF0272D969B96006341F4 /* QuizResultPresenter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99FCF0262D969B96006341F4 /* QuizResultPresenter.swift */; };
+		99FCF0292D969CDF006341F4 /* QuizResultViewControllerProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99FCF0282D969CDF006341F4 /* QuizResultViewControllerProtocol.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -56,6 +59,9 @@
 		99722CB82D9427480028758D /* Quizice Correct.m4a */ = {isa = PBXFileReference; lastKnownFileType = file; path = "Quizice Correct.m4a"; sourceTree = "<group>"; };
 		99722CB92D9427480028758D /* Quizice Incorrect.m4a */ = {isa = PBXFileReference; lastKnownFileType = file; path = "Quizice Incorrect.m4a"; sourceTree = "<group>"; };
 		99ADC9622D907844006DDC18 /* QuestionModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuestionModel.swift; sourceTree = "<group>"; };
+		99FCF0242D969B7F006341F4 /* QuizResultPresenterProtocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuizResultPresenterProtocol.swift; sourceTree = "<group>"; };
+		99FCF0262D969B96006341F4 /* QuizResultPresenter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuizResultPresenter.swift; sourceTree = "<group>"; };
+		99FCF0282D969CDF006341F4 /* QuizResultViewControllerProtocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuizResultViewControllerProtocol.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -113,6 +119,8 @@
 				99ADC9622D907844006DDC18 /* QuestionModel.swift */,
 				993C1BE62D8D669B00AD9BE4 /* QuizQuestionPresenterProtocol.swift */,
 				993C1BE82D8D66AB00AD9BE4 /* QuizQuestionViewControllerProtocol.swift */,
+				99FCF0242D969B7F006341F4 /* QuizResultPresenterProtocol.swift */,
+				99FCF0282D969CDF006341F4 /* QuizResultViewControllerProtocol.swift */,
 				993C1C222D8F0F6900AD9BE4 /* QuizTheme.swift */,
 				993C1C082D8F0F3B00AD9BE4 /* QuizQuestion.swift */,
 			);
@@ -125,6 +133,7 @@
 				993C1BE12D8D606100AD9BE4 /* Animations.swift */,
 				993C1BD32D8D600E00AD9BE4 /* QuizFactory.swift */,
 				993C1BE42D8D668700AD9BE4 /* QuizQuestionPresenter.swift */,
+				99FCF0262D969B96006341F4 /* QuizResultPresenter.swift */,
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -219,14 +228,17 @@
 			files = (
 				993C1BCB2D8D5EC200AD9BE4 /* AppDelegate.swift in Sources */,
 				993C1BE92D8D66AB00AD9BE4 /* QuizQuestionViewControllerProtocol.swift in Sources */,
+				99FCF0292D969CDF006341F4 /* QuizResultViewControllerProtocol.swift in Sources */,
 				993C1C092D8F0F3B00AD9BE4 /* QuizQuestion.swift in Sources */,
 				993C1BE72D8D669B00AD9BE4 /* QuizQuestionPresenterProtocol.swift in Sources */,
 				993C1BCC2D8D5EC200AD9BE4 /* SceneDelegate.swift in Sources */,
 				993C1BD82D8D600E00AD9BE4 /* QuizDescriptionViewController.swift in Sources */,
 				993C1BD92D8D600E00AD9BE4 /* QuizFactory.swift in Sources */,
 				993C1BDA2D8D600E00AD9BE4 /* QuizQuestionViewController.swift in Sources */,
+				99FCF0272D969B96006341F4 /* QuizResultPresenter.swift in Sources */,
 				993C1BE22D8D606100AD9BE4 /* Animations.swift in Sources */,
 				99ADC9632D907844006DDC18 /* QuestionModel.swift in Sources */,
+				99FCF0252D969B7F006341F4 /* QuizResultPresenterProtocol.swift in Sources */,
 				993C1C232D8F0F6900AD9BE4 /* QuizTheme.swift in Sources */,
 				993C1BDB2D8D600E00AD9BE4 /* QuizViewController.swift in Sources */,
 				993C1BE52D8D668700AD9BE4 /* QuizQuestionPresenter.swift in Sources */,

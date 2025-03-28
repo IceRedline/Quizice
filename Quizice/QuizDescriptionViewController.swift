@@ -14,7 +14,6 @@ final class QuizDescriptionViewController: UIViewController {
     @IBOutlet weak var numberOfQuestionsPickerView: UIPickerView!
     
     private let numberOfQuestionsOptions: [Int] = [5, 10, 15]
-    //private var finalNumber: Int = 2
     
     var themeName: String = "Default name"
     var themeDescription: String = "Default description"
