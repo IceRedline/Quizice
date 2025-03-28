@@ -92,10 +92,15 @@ final class QuizViewController: UIViewController {
     private func showDescriptionViewController() {
         let storyboard = UIStoryboard(name: "Main", bundle: nil)
         if let vc = storyboard.instantiateViewController(withIdentifier: "QuizDescriptionID") as? QuizDescriptionViewController {
-            vc.themeName = QuizFactory.shared.chosenTheme?.themeName ?? "no themeName"
-            vc.themeDescription = QuizFactory.shared.chosenTheme?.description ?? "no description"
+            configureDescriptionPresenter(viewController: vc)
             self.present(vc, animated: true)
         }
+    }
+    
+    func configureDescriptionPresenter(viewController: QuizDescriptionViewController) {
+        viewController.configurePresenter(QuizDescriptionPresenter())
+        viewController.presenter?.themeName = QuizFactory.shared.chosenTheme?.themeName ?? "no themeName"
+        viewController.presenter?.themeDescription = QuizFactory.shared.chosenTheme?.description ?? "no description"
     }
     
     @IBAction private func progressButtonTapped() {

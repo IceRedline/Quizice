@@ -7,30 +7,35 @@
 
 import UIKit
 
-final class QuizDescriptionViewController: UIViewController {
+final class QuizDescriptionViewController: UIViewController, QuizDescriptionViewControllerProtocol {
     
     @IBOutlet weak var themeNameLabel: UILabel!
     @IBOutlet weak var themeDescriptionLabel: UILabel!
     @IBOutlet weak var numberOfQuestionsPickerView: UIPickerView!
     
-    private let numberOfQuestionsOptions: [Int] = [5, 10, 15]
-    
-    var themeName: String = "Default name"
-    var themeDescription: String = "Default description"
+    var presenter: QuizDescriptionPresenterProtocol?
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        //configurePresenter(QuizDescriptionPresenter())
+        presenter?.configurePickerView(numberOfQuestionsPickerView)
+        presenter?.viewDidLoad()
         
         numberOfQuestionsPickerView.setValue(UIColor.white, forKey: "textColor")
-        
-        numberOfQuestionsPickerView.delegate = self
-        numberOfQuestionsPickerView.dataSource = self
+    }
+    
+    func updateLabels(themeName: String, themeDescription: String) {
         themeNameLabel.text = themeName
         themeDescriptionLabel.text = themeDescription
     }
     
+    func configurePresenter(_ presenter: QuizDescriptionPresenterProtocol) {
+        self.presenter = presenter
+        self.presenter?.view = self
+    }
+    
     @IBAction private func startButtonTapped() {
-        QuizFactory.shared.questionsCount = numberOfQuestionsOptions[numberOfQuestionsPickerView.selectedRow(inComponent: 0)]
+        presenter?.saveNumberOfQuestions(chosenRow: numberOfQuestionsPickerView.selectedRow(inComponent: 0))
         
         let storyboard = UIStoryboard(name: "Main", bundle: nil)
         let vc = storyboard.instantiateViewController(withIdentifier: "QuizQuestionID")
@@ -42,19 +47,4 @@ final class QuizDescriptionViewController: UIViewController {
     }
 }
 
-extension QuizDescriptionViewController: UIPickerViewDelegate, UIPickerViewDataSource {
-    func numberOfComponents(in pickerView: UIPickerView) -> Int { 1 }
-    
-    func pickerView(_ pickerView: UIPickerView, numberOfRowsInComponent component: Int) -> Int {
-        numberOfQuestionsOptions.count
-    }
-    
-    func pickerView(_ pickerView: UIPickerView, titleForRow row: Int, forComponent component: Int) -> String? {
-        String(numberOfQuestionsOptions[row])
-    }
-    
-    func pickerView(_ pickerView: UIPickerView, didSelectRow row: Int, inComponent component: Int) {
-        QuizFactory.shared.questionsCount = numberOfQuestionsOptions[row]
-    }
-    
-}
+
