@@ -21,5 +21,6 @@ protocol QuizQuestionPresenterProtocol {
     func checkAnswerButtonTitle(selectedAnswer: UIButton) -> Bool
     func checkAnswer(_ sender: UIButton)
     func updateQuizState(isCorrect: Bool)
+    func configureResultPresenter(viewController: QuizResultViewController)
     func resetGameProgress()
 }

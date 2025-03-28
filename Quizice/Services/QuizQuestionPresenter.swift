@@ -66,10 +66,11 @@ final class QuizQuestionPresenter: QuizQuestionPresenterProtocol {
     
     func loadQuestions() {
         chosenThemeQuestionsArray = Array(quizFactory.chosenTheme!.questionsAndAnswers.shuffled().prefix(questionsTotalCount!))
+        print("загружены вопросы: \(chosenThemeQuestionsArray.count)")
     }
     
     func loadQuestion() {
-        
+        print("questionsTotalCount: \(questionsTotalCount), currentQuestionIndex: \(currentQuestionIndex)")
         currentQuestion = chosenThemeQuestionsArray[currentQuestionIndex]
         
         guard
@@ -108,6 +109,12 @@ final class QuizQuestionPresenter: QuizQuestionPresenterProtocol {
         } else {
             loadQuestion()
         }
+    }
+    
+    func configureResultPresenter(viewController: QuizResultViewController) {
+        viewController.configurePresenter(QuizResultPresenter())
+        viewController.presenter?.correctAnswers = correctAnswers
+        viewController.presenter?.totalQuestions = questionsTotalCount ?? 404
     }
     
     func resetGameProgress() {
