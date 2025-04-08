@@ -9,7 +9,7 @@ import UIKit
 import SwiftData
 import CryptoKit
 
-class QuizFactory {
+final class QuizFactory {
     
     static let shared = QuizFactory()
     
@@ -27,12 +27,12 @@ class QuizFactory {
         self.modelContext = context
     }
     
-    func loadTheme(button: UIButton) {
+    func loadTheme(themeName: String) {
         guard
             let loadedThemes = themes,
-            let chosenTheme = loadedThemes.first(where: { $0.theme == button.accessibilityIdentifier})
+            let chosenTheme = loadedThemes.first(where: { $0.theme == themeName})
         else {
-            print("не удалось определить выбранную тему, текущий текст кнопки: \(String(describing: button.currentTitle))")
+            print("не удалось определить выбранную тему, переданный текст: \(themeName)")
             return
         }
         self.chosenTheme = ThemeModel(quizTheme: chosenTheme)

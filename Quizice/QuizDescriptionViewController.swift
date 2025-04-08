@@ -17,7 +17,6 @@ final class QuizDescriptionViewController: UIViewController, QuizDescriptionView
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        //configurePresenter(QuizDescriptionPresenter())
         presenter?.configurePickerView(numberOfQuestionsPickerView)
         presenter?.viewDidLoad()
         

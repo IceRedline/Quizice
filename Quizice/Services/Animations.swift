@@ -7,7 +7,7 @@
 
 import UIKit
 
-class Animations {
+final class Animations {
     
     func animateDownSpring(_ viewToAnimate: UIView) {
         UIView.animate(

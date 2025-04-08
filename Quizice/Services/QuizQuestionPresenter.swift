@@ -70,7 +70,6 @@ final class QuizQuestionPresenter: QuizQuestionPresenterProtocol {
     }
     
     func loadQuestion() {
-        print("questionsTotalCount: \(questionsTotalCount), currentQuestionIndex: \(currentQuestionIndex)")
         currentQuestion = chosenThemeQuestionsArray[currentQuestionIndex]
         
         guard
