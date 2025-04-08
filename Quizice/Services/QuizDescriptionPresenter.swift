@@ -7,7 +7,7 @@
 
 import UIKit
 
-class QuizDescriptionPresenter: NSObject, QuizDescriptionPresenterProtocol {
+final class QuizDescriptionPresenter: NSObject, QuizDescriptionPresenterProtocol {
     
     private let numberOfQuestionsOptions: [Int] = [5, 10, 15]
     

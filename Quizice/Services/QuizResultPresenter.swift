@@ -7,7 +7,7 @@
 
 import Foundation
 
-class QuizResultPresenter: QuizResultPresenterProtocol {
+final class QuizResultPresenter: QuizResultPresenterProtocol {
     var view: QuizResultViewControllerProtocol?
     
     var correctAnswers: Int = 0
@@ -25,15 +25,15 @@ class QuizResultPresenter: QuizResultPresenterProtocol {
         resultText = "Твой результат:\n \(correctAnswers)/\(totalQuestions)"
         switch resultPercentage {
         case 0...0.15:
-            descriptionText = "Эм..."
+            descriptionText = "Тебе точно стоит попробовать ещё раз!"
         case 0.15...0.3:
-            descriptionText = "Ну, слабовато..."
+            descriptionText = "Ты знаешь, могло быть и хуже! Не сильно... Но могло!"
         case 0.3...0.5:
             descriptionText = "Да ладно, я знаю что ты не старался)"
         case 0.5...0.75:
             descriptionText = "Нормально, сойдёт для сельской местности"
         case 0.75..<1:
-            descriptionText = "Ещё чуть-чуть и был бы как Айс!"
+            descriptionText = "Ещё чуть-чуть и был бы как сам создатель квиза, молодец!"
         case 1:
             descriptionText = "Легенда, гений, соло легчайше для величайшего!"
         default:

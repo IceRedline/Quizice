@@ -4,7 +4,7 @@
         "themeDescription": "В данной викторине вам предстоит угадывать исполнителей и названия песен. Проверьте свои музыкальные знания, вспомните хиты разных эпох и получите удовольствие от путешествия по миру музыки.",
         "questions": [
             {
-                "question": "Когда вышел трек бургер?",
+                "question": "Когда вышел трек 'Бургер'?",
                 "answers": ["2017", "2018", "2016", "2015"],
                 "correctAnswer": "2017",
                 "explanation": ""
@@ -22,7 +22,7 @@
                 "explanation": ""
             },
             {
-                "question": "В каком году вышла песня Hotel California группы Eagles?",
+                "question": "В каком году вышла песня 'Hotel California' группы Eagles?",
                 "answers": ["1976", "1980", "1972", "1985"],
                 "correctAnswer": "1976",
                 "explanation": ""
@@ -38,61 +38,463 @@
                 "answers": ["Труба", "Гитара", "Фортепиано", "Саксофон"],
                 "correctAnswer": "Саксофон",
                 "explanation": ""
-              },
-              {
+            },
+            {
                 "question": "Какая группа выпустила альбом 'Abbey Road'?",
                 "answers": ["The Rolling Stones", "The Beatles", "Led Zeppelin", "Pink Floyd"],
                 "correctAnswer": "The Beatles",
                 "explanation": ""
-              },
-              {
+            },
+            {
                 "question": "Какой жанр музыки характеризуется быстрым темпом и энергичными ритмами?",
                 "answers": ["Блюз", "Рок-н-ролл", "Рэп", "Джаз"],
                 "correctAnswer": "Рок-н-ролл",
                 "explanation": ""
-              },
-              {
+            },
+            {
                 "question": "Какая песня стала хитом для группы Queen в 1975 году?",
                 "answers": ["We Are The Champions", "Bohemian Rhapsody", "Don't Stop Me Now", "Somebody to Love"],
                 "correctAnswer": "Bohemian Rhapsody",
                 "explanation": ""
-              },
-              {
+            },
+            {
                 "question": "Кто написал знаменитую симфонию 'Лунная соната'?",
                 "answers": ["Вольфганг Амадей Моцарт", "Людвиг ван Бетховен", "Пётр Ильич Чайковский", "Иоганн Себастьян Бах"],
                 "correctAnswer": "Людвиг ван Бетховен",
                 "explanation": ""
-              },
-              {
+            },
+            {
                 "question": "Какая группа является автором хита 'Smells Like Teen Spirit'?",
                 "answers": ["Pearl Jam", "Nirvana", "Green Day", "Red Hot Chili Peppers"],
                 "correctAnswer": "Nirvana",
                 "explanation": ""
-              },
-              {
+            },
+            {
                 "question": "Какой музыкальный стиль родился в Нью-Йорке в 1970-х годах?",
                 "answers": ["Хип-хоп", "Панк", "Синти-поп", "Глэм-рок"],
                 "correctAnswer": "Хип-хоп",
                 "explanation": ""
-              },
-              {
+            },
+            {
                 "question": "Какой из этих альбомов был выпущен Michael Jackson?",
                 "answers": ["Purple Rain", "Thriller", "Like a Prayer", "Back in Black"],
                 "correctAnswer": "Thriller",
                 "explanation": ""
-              },
-              {
+            },
+            {
                 "question": "Какая группа исполнила песню 'Hotel California'?",
                 "answers": ["The Eagles", "Led Zeppelin", "The Rolling Stones", "Pink Floyd"],
                 "correctAnswer": "The Eagles",
                 "explanation": ""
-              },
-              {
+            },
+            {
                 "question": "Какое произведение Петра Ильича Чайковского стало популярным на Рождество?",
                 "answers": ["Щелкунчик", "Лебединое озеро", "Спящая красавица", "Манфред"],
                 "correctAnswer": "Щелкунчик",
                 "explanation": ""
-              }
+            },
+            {
+                "question": "Какой певец известен как 'Король поп-музыки'?",
+                "answers": ["Elvis Presley", "Michael Jackson", "Prince", "Freddie Mercury"],
+                "correctAnswer": "Michael Jackson",
+                "explanation": ""
+            },
+            {
+                "question": "Какая песня сделала группу A-ha знаменитой?",
+                "answers": ["The Sun Always Shines on TV", "Take On Me", "Hunting High and Low", "Crying in the Rain"],
+                "correctAnswer": "Take On Me",
+                "explanation": ""
+            },
+            {
+                "question": "Кто написал песню 'Yesterday'?",
+                "answers": ["John Lennon", "Paul McCartney", "George Harrison", "Ringo Starr"],
+                "correctAnswer": "Paul McCartney",
+                "explanation": ""
+            },
+            {
+                "question": "Какой хит группы Pink Floyd связан с темой психического здоровья?",
+                "answers": ["Comfortably Numb", "Another Brick in the Wall", "Wish You Were Here", "Money"],
+                "correctAnswer": "Comfortably Numb",
+                "explanation": ""
+            },
+            {
+                "question": "Какой альбом Beyoncé посвящён женской силе и афроамериканской культуре?",
+                "answers": ["4", "B'Day", "Lemonade", "Dangerously in Love"],
+                "correctAnswer": "Lemonade",
+                "explanation": ""
+            },
+            {
+                "question": "Какой музыкант известен под прозвищем 'Король рок-н-ролла'?",
+                "answers": ["Chuck Berry", "Little Richard", "Elvis Presley", "Jerry Lee Lewis"],
+                "correctAnswer": "Elvis Presley",
+                "explanation": ""
+            },
+            {
+                "question": "Какая группа исполняет песню 'Sweet Child O' Mine'?",
+                "answers": ["Aerosmith", "Guns N' Roses", "Bon Jovi", "Def Leppard"],
+                "correctAnswer": "Guns N' Roses",
+                "explanation": ""
+            },
+            {
+                "question": "Какой хит 1980-х начинается со слов 'It's nine o'clock on a Saturday'?",
+                "answers": ["Every Breath You Take", "Billie Jean", "Piano Man", "Sweet Child O' Mine"],
+                "correctAnswer": "Piano Man",
+                "explanation": ""
+            },
+            {
+                "question": "Кто является автором песни 'Imagine'?",
+                "answers": ["John Lennon", "Paul McCartney", "Bob Dylan", "David Bowie"],
+                "correctAnswer": "John Lennon",
+                "explanation": ""
+            },
+            {
+                "question": "Какой альбом группы Metallica стал самым продаваемым?",
+                "answers": ["Master of Puppets", "Ride the Lightning", "Metallica (The Black Album)", "And Justice for All"],
+                "correctAnswer": "Metallica (The Black Album)",
+                "explanation": ""
+            },
+            {
+                "question": "Какой музыкальный коллектив исполняет песню 'Wonderwall'?",
+                "answers": ["Blur", "Radiohead", "The Verve", "Oasis"],
+                "correctAnswer": "Oasis",
+                "explanation": ""
+            },
+            {
+                "question": "Кто является автором песни 'Bohemian Rhapsody'?",
+                "answers": ["Freddie Mercury", "Brian May", "Roger Taylor", "John Deacon"],
+                "correctAnswer": "Freddie Mercury",
+                "explanation": ""
+            },
+            {
+                "question": "Какой хит группы The Prodigy стал символом электронной музыки 1990-х?",
+                "answers": ["Firestarter", "Breathe", "Smack My Bitch Up", "No Good (Start the Dance)"],
+                "correctAnswer": "Firestarter",
+                "explanation": ""
+            },
+            {
+                "question": "Какой певец известен как 'The Boss'?",
+                "answers": ["Bob Dylan", "Bruce Springsteen", "Tom Petty", "Neil Young"],
+                "correctAnswer": "Bruce Springsteen",
+                "explanation": ""
+            },
+            {
+                "question": "Какая группа исполняет песню 'Stairway to Heaven'?",
+                "answers": ["The Rolling Stones", "Led Zeppelin", "Pink Floyd", "The Who"],
+                "correctAnswer": "Led Zeppelin",
+                "explanation": ""
+            },
+            {
+                "question": "Какой хит Whitney Houston стал саундтреком к фильму 'The Bodyguard'?",
+                "answers": ["I Will Always Love You", "Greatest Love of All", "I Wanna Dance with Somebody", "Saving All My Love for You"],
+                "correctAnswer": "I Will Always Love You",
+                "explanation": ""
+            },
+            {
+                "question": "Какой музыкант известен как 'Принц поп-музыки'?",
+                "answers": ["Michael Jackson", "Prince", "George Michael", "David Bowie"],
+                "correctAnswer": "Prince",
+                "explanation": ""
+            },
+            {
+                "question": "Какая песня группы Nirvana стала символом гранжа?",
+                "answers": ["Come As You Are", "Lithium", "Smells Like Teen Spirit", "Heart-Shaped Box"],
+                "correctAnswer": "Smells Like Teen Spirit",
+                "explanation": ""
+            },
+            {
+                "question": "Какой альбом стал дебютным для группы Arctic Monkeys?",
+                "answers": ["Favourite Worst Nightmare", "AM", "Whatever People Say I Am, That's What I'm Not", "Humbug"],
+                "correctAnswer": "Whatever People Say I Am, That's What I'm Not",
+                "explanation": ""
+            },
+            {
+                "question": "Кто является автором песни 'Like a Rolling Stone'?",
+                "answers": ["Bob Dylan", "Neil Young", "Leonard Cohen", "Bruce Springsteen"],
+                "correctAnswer": "Bob Dylan",
+                "explanation": ""
+            },
+            {
+                "question": "Какой хит группы The Killers стал их визитной карточкой?",
+                "answers": ["Somebody Told Me", "Mr. Brightside", "When You Were Young", "Human"],
+                "correctAnswer": "Mr. Brightside",
+                "explanation": ""
+            },
+            {
+                "question": "Какой альбом группы Pink Floyd считается концептуальным и посвящён отсутствию фронтмена Сида Барретта?",
+                "answers": ["The Dark Side of the Moon", "Wish You Were Here", "Animals", "The Wall"],
+                "correctAnswer": "Wish You Were Here",
+                "explanation": ""
+            },
+            {
+                "question": "Какой певец известен как 'Король соула'?",
+                "answers": ["Ray Charles", "James Brown", "Marvin Gaye", "Stevie Wonder"],
+                "correctAnswer": "James Brown",
+                "explanation": ""
+            },
+            {
+                "question": "Какая группа исполняет песню 'Don't Stop Believin'?",
+                "answers": ["Bon Jovi", "Journey", "Boston", "Foreigner"],
+                "correctAnswer": "Journey",
+                "explanation": ""
+            },
+            {
+                "question": "Какой хит группы AC/DC стал гимном рока?",
+                "answers": ["Back in Black", "Highway to Hell", "Thunderstruck", "You Shook Me All Night Long"],
+                "correctAnswer": "Highway to Hell",
+                "explanation": ""
+            },
+            {
+                "question": "Какой музыкант известен как 'Король блюза'?",
+                "answers": ["B.B. King", "Muddy Waters", "John Lee Hooker", "Howlin' Wolf"],
+                "correctAnswer": "B.B. King",
+                "explanation": ""
+            },
+            {
+                "question": "Какая группа исполняет песню 'Another Brick in the Wall'?",
+                "answers": ["Led Zeppelin", "Pink Floyd", "The Who", "Deep Purple"],
+                "correctAnswer": "Pink Floyd",
+                "explanation": ""
+            },
+            {
+                "question": "Какой хит группы The Beatles стал самой кавер-версируемой песней в истории?",
+                "answers": ["Let It Be", "Yesterday", "Hey Jude", "Help!"],
+                "correctAnswer": "Yesterday",
+                "explanation": ""
+            },
+            {
+                "question": "Какой певец известен как 'Голос поколения'?",
+                "answers": ["Bob Dylan", "John Lennon", "Kurt Cobain", "Freddie Mercury"],
+                "correctAnswer": "Bob Dylan",
+                "explanation": ""
+            },
+            {
+                "question": "Какая группа исполняет песню 'Under the Bridge'?",
+                "answers": ["Red Hot Chili Peppers", "Nirvana", "Foo Fighters", "Pearl Jam"],
+                "correctAnswer": "Red Hot Chili Peppers",
+                "explanation": ""
+            },
+            {
+                "question": "Какой хит группы Queen стал саундтреком к фильму 'Шахматная горячка'?",
+                "answers": ["We Will Rock You", "Another One Bites the Dust", "I Want to Break Free", "Radio Ga Ga"],
+                "correctAnswer": "I Want to Break Free",
+                "explanation": ""
+            },
+            {
+                "question": "Какой музыкант известен как 'Король латиноамериканской поп-музыки'?",
+                "answers": ["Ricky Martin", "Enrique Iglesias", "Shakira", "Marc Anthony"],
+                "correctAnswer": "Ricky Martin",
+                "explanation": ""
+            },
+            {
+                "question": "Какая группа исполняет песню 'Zombie'?",
+                "answers": ["U2", "The Cranberries", "Radiohead", "The Cure"],
+                "correctAnswer": "The Cranberries",
+                "explanation": ""
+            },
+            {
+                "question": "Какой хит группы Coldplay стал одним из самых популярных в 2000-х?",
+                "answers": ["Clocks", "Viva la Vida", "The Scientist", "Yellow"],
+                "correctAnswer": "Yellow",
+                "explanation": ""
+            },
+            {
+                "question": "Какой певец известен как 'Король поп-панка'?",
+                "answers": ["Billie Joe Armstrong", "Travis Barker", "Blink-182", "Green Day"],
+                "correctAnswer": "Billie Joe Armstrong",
+                "explanation": ""
+            },
+            {
+                "question": "Какая группа исполняет песню 'Basket Case'?",
+                "answers": ["Blink-182", "Sum 41", "Green Day", "The Offspring"],
+                "correctAnswer": "Green Day",
+                "explanation": ""
+            },
+            {
+                "question": "Какой хит группы Linkin Park стал символом нулевых?",
+                "answers": ["In the End", "Numb", "Crawling", "What I've Done"],
+                "correctAnswer": "In the End",
+                "explanation": ""
+            },
+            {
+                "question": "Какой музыкант известен как 'Король фанка'?",
+                "answers": ["James Brown", "George Clinton", "Sly Stone", "Prince"],
+                "correctAnswer": "James Brown",
+                "explanation": ""
+            },
+            {
+                "question": "Какая группа исполняет песню 'Californication'?",
+                "answers": ["Red Hot Chili Peppers", "Foo Fighters", "Nirvana", "Pearl Jam"],
+                "correctAnswer": "Red Hot Chili Peppers",
+                "explanation": ""
+            },
+            {
+                "question": "Какой хит группы The Rolling Stones стал их визитной карточкой?",
+                "answers": ["Paint It Black", "Sympathy for the Devil", "Angie", "Satisfaction"],
+                "correctAnswer": "Satisfaction",
+                "explanation": ""
+            },
+            {
+                "question": "Какой певец известен как 'Король R&B'?",
+                "answers": ["Usher", "Chris Brown", "R. Kelly", "Marvin Gaye"],
+                "correctAnswer": "Usher",
+                "explanation": ""
+            },
+            {
+                "question": "Какая группа исполняет песню 'Smells Like Teen Spirit'?",
+                "answers": ["Pearl Jam", "Nirvana", "Soundgarden", "Alice in Chains"],
+                "correctAnswer": "Nirvana",
+                "explanation": ""
+            },
+            {
+                "question": "Какой хит группы Radiohead стал культовым в 1990-х?",
+                "answers": ["Paranoid Android", "Karma Police", "Creep", "No Surprises"],
+                "correctAnswer": "Creep",
+                "explanation": ""
+            },
+            {
+                "question": "Какой музыкант известен как 'Король регги'?",
+                "answers": ["Bob Marley", "Peter Tosh", "Jimmy Cliff", "Burning Spear"],
+                "correctAnswer": "Bob Marley",
+                "explanation": ""
+            },
+            {
+                "question": "Какая группа исполняет песню 'Sweet Home Alabama'?",
+                "answers": ["The Allman Brothers Band", "Lynyrd Skynyrd", "ZZ Top", "The Doobie Brothers"],
+                "correctAnswer": "Lynyrd Skynyrd",
+                "explanation": ""
+            },
+            {
+                "question": "Какой хит группы U2 стал символом 1980-х?",
+                "answers": ["With or Without You", "Sunday Bloody Sunday", "Beautiful Day", "One"],
+                "correctAnswer": "With or Without You",
+                "explanation": ""
+            },
+            {
+                "question": "Какой певец известен как 'Король хауса'?",
+                "answers": ["David Guetta", "Avicii", "Swedish House Mafia", "Daft Punk"],
+                "correctAnswer": "David Guetta",
+                "explanation": ""
+            },
+            {
+                "question": "Какая группа исполняет песню 'Enter Sandman'?",
+                "answers": ["Megadeth", "Slayer", "Metallica", "Anthrax"],
+                "correctAnswer": "Metallica",
+                "explanation": ""
+            },
+            {
+                "question": "Какой хит группы The Doors стал культовым?",
+                "answers": ["Light My Fire", "Riders on the Storm", "Break On Through", "The End"],
+                "correctAnswer": "Light My Fire",
+                "explanation": ""
+            },
+            {
+                "question": "Какой музыкант известен как 'Король хип-хопа'?",
+                "answers": ["Jay-Z", "Nas", "Tupac Shakur", "The Notorious B.I.G."],
+                "correctAnswer": "The Notorious B.I.G.",
+                "explanation": ""
+            },
+            {
+                "question": "Какая группа исполняет песню 'Wonderful Tonight'?",
+                "answers": ["Eric Clapton", "The Rolling Stones", "The Beatles", "Pink Floyd"],
+                "correctAnswer": "Eric Clapton",
+                "explanation": ""
+            },
+            {
+                "question": "Какой хит группы Oasis стал символом брит-попа?",
+                "answers": ["Don't Look Back in Anger", "Champagne Supernova", "Live Forever", "Wonderwall"],
+                "correctAnswer": "Wonderwall",
+                "explanation": ""
+            },
+            {
+                "question": "Какой певец известен как 'Король диско'?",
+                "answers": ["Donna Summer", "Bee Gees", "Gloria Gaynor", "ABBA"],
+                "correctAnswer": "Bee Gees",
+                "explanation": ""
+            },
+            {
+                "question": "Какая группа исполняет песню 'November Rain'?",
+                "answers": ["Aerosmith", "Guns N' Roses", "Bon Jovi", "Def Leppard"],
+                "correctAnswer": "Guns N' Roses",
+                "explanation": ""
+            },
+            {
+                "question": "Какой хит группы The Police стал мировым хитом?",
+                "answers": ["Roxanne", "Every Breath You Take", "Message in a Bottle", "Walking on the Moon"],
+                "correctAnswer": "Every Breath You Take",
+                "explanation": ""
+            },
+            {
+                "question": "Какой музыкант известен как 'Король джаза'?",
+                "answers": ["Louis Armstrong", "Duke Ellington", "Miles Davis", "Charlie Parker"],
+                "correctAnswer": "Louis Armstrong",
+                "explanation": ""
+            },
+            {
+                "question": "Какая группа исполняет песню 'Losing My Religion'?",
+                "answers": ["Nirvana", "Pearl Jam", "R.E.M.", "Soundgarden"],
+                "correctAnswer": "R.E.M.",
+                "explanation": ""
+            },
+            {
+                "question": "Какой хит группы The Clash стал символом панк-рока?",
+                "answers": ["London Calling", "Should I Stay or Should I Go", "Rock the Casbah", "Train in Vain"],
+                "correctAnswer": "Should I Stay or Should I Go",
+                "explanation": ""
+            },
+            {
+                "question": "Какой певец известен как 'Король кантри'?",
+                "answers": ["Johnny Cash", "Willie Nelson", "Dolly Parton", "Kenny Rogers"],
+                "correctAnswer": "Johnny Cash",
+                "explanation": ""
+            },
+            {
+                "question": "Какая группа исполняет песню 'Bitter Sweet Symphony'?",
+                "answers": ["Oasis", "The Verve", "Blur", "Radiohead"],
+                "correctAnswer": "The Verve",
+                "explanation": ""
+            },
+            {
+                "question": "Какой хит группы Blur стал символом брит-попа?",
+                "answers": ["Song 2", "Parklife", "Girls & Boys", "Tender"],
+                "correctAnswer": "Song 2",
+                "explanation": ""
+            },
+            {
+                "question": "Какой музыкант известен как 'Король соул-блюза'?",
+                "answers": ["B.B. King", "Ray Charles", "Otis Redding", "Sam Cooke"],
+                "correctAnswer": "Ray Charles",
+                "explanation": ""
+            },
+            {
+                "question": "Какая группа исполняет песню 'Killer Queen'?",
+                "answers": ["Queen", "The Rolling Stones", "David Bowie", "Elton John"],
+                "correctAnswer": "Queen",
+                "explanation": ""
+            },
+            {
+                "question": "Какой хит группы The Beach Boys стал символом серфинговой музыки?",
+                "answers": ["Good Vibrations", "California Girls", "Surfin' USA", "Wouldn't It Be Nice"],
+                "correctAnswer": "Surfin' USA",
+                "explanation": ""
+            },
+            {
+                "question": "Какой певец известен как 'Король лаунж-музыки'?",
+                "answers": ["Frank Sinatra", "Dean Martin", "Tony Bennett", "Sammy Davis Jr."],
+                "correctAnswer": "Frank Sinatra",
+                "explanation": ""
+            },
+            {
+                "question": "Какая группа исполняет песню 'Don't Speak'?",
+                "answers": ["No Doubt", "The Cranberries", "Garbage", "Alanis Morissette"],
+                "correctAnswer": "No Doubt",
+                "explanation": ""
+            },
+            {
+                "question": "Какой хит группы The White Stripes стал культовым?",
+                "answers": ["Seven Nation Army", "Fell in Love with a Girl", "The Hardest Button to Button", "Icky Thump"],
+                "correctAnswer": "Seven Nation Army",
+                "explanation": ""
+            }
         ]
     },
     {
@@ -134,61 +536,487 @@
                 "answers": ["Fast Charge", "Qi", "PD", "MagSafe"],
                 "correctAnswer": "Qi",
                 "explanation": ""
-              },
-              {
+            },
+            {
                 "question": "Какой процессор первым использовал 5-нм техпроцесс?",
                 "answers": ["Apple A14 Bionic", "Intel Core i9-11900K", "AMD Ryzen 5950X", "Snapdragon 888"],
                 "correctAnswer": "Apple A14 Bionic",
                 "explanation": ""
-              },
-              {
+            },
+            {
                 "question": "Какой порт пришел на замену microUSB в большинстве современных смартфонов?",
                 "answers": ["USB-C", "Lightning", "Thunderbolt", "Mini-USB"],
                 "correctAnswer": "USB-C",
                 "explanation": ""
-              },
-              {
+            },
+            {
                 "question": "Как называется технология, позволяющая увеличить производительность процессора за счет временного повышения тактовой частоты?",
                 "answers": ["Turbo Boost", "Hyper-Threading", "SpeedStep", "Multi-Core"],
                 "correctAnswer": "Turbo Boost",
                 "explanation": ""
-              },
-              {
+            },
+            {
                 "question": "Какой компании принадлежит бренд видеокарт GeForce?",
                 "answers": ["AMD", "Intel", "NVIDIA", "Qualcomm"],
                 "correctAnswer": "NVIDIA",
                 "explanation": ""
-              },
-              {
+            },
+            {
                 "question": "Какой тип матрицы чаще всего используется в игровых мониторах из-за высокой частоты обновления?",
                 "answers": ["TN", "IPS", "OLED", "VA"],
                 "correctAnswer": "TN",
                 "explanation": ""
-              },
-              {
+            },
+            {
                 "question": "Что означает аббревиатура VPN?",
                 "answers": ["Virtual Private Network", "Variable Protocol Node", "Verified Personal Number", "Virtual Processing Network"],
                 "correctAnswer": "Virtual Private Network",
                 "explanation": ""
-              },
-              {
+            },
+            {
                 "question": "Какая файловая система используется на современных Mac?",
                 "answers": ["NTFS", "ext4", "APFS", "FAT32"],
                 "correctAnswer": "APFS",
                 "explanation": ""
-              },
-              {
+            },
+            {
                 "question": "Какой из этих стандартов беспроводной связи обеспечивает самую высокую скорость?",
                 "answers": ["Wi-Fi 5", "Wi-Fi 6", "Bluetooth 5.0", "LTE"],
                 "correctAnswer": "Wi-Fi 6",
                 "explanation": ""
-              },
-              {
+            },
+            {
                 "question": "Какая технология позволяет хранить данные на флеш-памяти без движущихся частей?",
                 "answers": ["HDD", "SSD", "CD-ROM", "RAM"],
                 "correctAnswer": "SSD",
                 "explanation": ""
-              }
+            },
+            {
+                "question": "Какой язык программирования создал Гвидо ван Россум?",
+                "answers": ["Java", "Python", "C++", "Ruby"],
+                "correctAnswer": "Python",
+                "explanation": ""
+            },
+            {
+                "question": "Какая компания разработала первый коммерческий графический пользовательский интерфейс (GUI)?",
+                "answers": ["Microsoft", "Apple", "Xerox", "IBM"],
+                "correctAnswer": "Xerox",
+                "explanation": ""
+            },
+            {
+                "question": "Что означает аббревиатура 'GPU'?",
+                "answers": ["Graphical Processing Unit", "General Processing Unit", "Graphics Performance Unit", "Global Processing Unit"],
+                "correctAnswer": "Graphical Processing Unit",
+                "explanation": ""
+            },
+            {
+                "question": "Какой год считается годом рождения интернета?",
+                "answers": ["1969", "1983", "1991", "1975"],
+                "correctAnswer": "1983",
+                "explanation": ""
+            },
+            {
+                "question": "Какая технология лежит в основе криптовалют, таких как Bitcoin?",
+                "answers": ["Блокчейн", "Квантовые вычисления", "Искусственный интеллект", "Облачные сервисы"],
+                "correctAnswer": "Блокчейн",
+                "explanation": ""
+            },
+            {
+                "question": "Как называется стандарт беспроводной зарядки, используемый в большинстве смартфонов?",
+                "answers": ["Qi", "PowerMat", "AirFuel", "WiPower"],
+                "correctAnswer": "Qi",
+                "explanation": ""
+            },
+            {
+                "question": "Какой процессор использовался в первом Macintosh (1984)?",
+                "answers": ["Motorola 68000", "Intel 8086", "Zilog Z80", "MOS 6502"],
+                "correctAnswer": "Motorola 68000",
+                "explanation": ""
+            },
+            {
+                "question": "Что измеряется в терафлопсах?",
+                "answers": ["Скорость интернета", "Производительность процессора", "Ёмкость батареи", "Частота обновления экрана"],
+                "correctAnswer": "Производительность процессора",
+                "explanation": ""
+            },
+            {
+                "question": "Какая из этих ОС является открытой?",
+                "answers": ["Windows", "macOS", "Linux", "iOS"],
+                "correctAnswer": "Linux",
+                "explanation": ""
+            },
+            {
+                "question": "Как называется технология, позволяющая запускать Windows-приложения на macOS?",
+                "answers": ["Boot Camp", "Parallels", "Wine", "VirtualBox"],
+                "correctAnswer": "Wine",
+                "explanation": ""
+            },
+            {
+                "question": "Какой протокол обеспечивает безопасное соединение с веб-сайтами?",
+                "answers": ["HTTP", "FTP", "HTTPS", "SMTP"],
+                "correctAnswer": "HTTPS",
+                "explanation": ""
+            },
+            {
+                "question": "Какое устройство изобрел Дуглас Энгельбарт в 1964 году?",
+                "answers": ["Клавиатура", "Монитор", "Компьютерная мышь", "Принтер"],
+                "correctAnswer": "Компьютерная мышь",
+                "explanation": ""
+            },
+            {
+                "question": "Какой язык программирования используется для создания веб-страниц?",
+                "answers": ["Python", "Java", "HTML", "Swift"],
+                "correctAnswer": "HTML",
+                "explanation": ""
+            },
+            {
+                "question": "Как называется самая быстрая память в компьютере?",
+                "answers": ["HDD", "SSD", "RAM", "Кэш-память"],
+                "correctAnswer": "Кэш-память",
+                "explanation": ""
+            },
+            {
+                "question": "Какая компания разработала ARM-архитектуру процессоров?",
+                "answers": ["Intel", "AMD", "ARM Holdings", "Qualcomm"],
+                "correctAnswer": "ARM Holdings",
+                "explanation": ""
+            },
+            {
+                "question": "Какой стандарт связи используется в современных смартфонах для оплаты?",
+                "answers": ["Bluetooth", "NFC", "Wi-Fi", "LTE"],
+                "correctAnswer": "NFC",
+                "explanation": ""
+            },
+            {
+                "question": "Какой тип дисплея не требует подсветки?",
+                "answers": ["LCD", "OLED", "IPS", "TN"],
+                "correctAnswer": "OLED",
+                "explanation": ""
+            },
+            {
+                "question": "Как называется технология, позволяющая увеличить разрешение изображения с помощью ИИ?",
+                "answers": ["DLSS", "Ray Tracing", "FSR", "HDR"],
+                "correctAnswer": "DLSS",
+                "explanation": ""
+            },
+            {
+                "question": "Какой процессор используется в PlayStation 5?",
+                "answers": ["AMD Ryzen", "Intel Core i9", "Apple M1", "Qualcomm Snapdragon"],
+                "correctAnswer": "AMD Ryzen",
+                "explanation": ""
+            },
+            {
+                "question": "Какой язык программирования создала Microsoft в 2000 году?",
+                "answers": ["Java", "C#", "Python", "Ruby"],
+                "correctAnswer": "C#",
+                "explanation": ""
+            },
+            {
+                "question": "Какая технология позволяет передавать данные со скоростью до 40 Гбит/с?",
+                "answers": ["USB 3.0", "Thunderbolt 3", "HDMI 2.1", "Ethernet"],
+                "correctAnswer": "Thunderbolt 3",
+                "explanation": ""
+            },
+            {
+                "question": "Как называется операционная система для умных часов Apple?",
+                "answers": ["watchOS", "Wear OS", "Tizen", "HarmonyOS"],
+                "correctAnswer": "watchOS",
+                "explanation": ""
+            },
+            {
+                "question": "Какой компонент отвечает за обработку графики в компьютере?",
+                "answers": ["CPU", "GPU", "RAM", "SSD"],
+                "correctAnswer": "GPU",
+                "explanation": ""
+            },
+            {
+                "question": "Какой формат файлов используется для 3D-печати?",
+                "answers": ["JPEG", "STL", "MP4", "DOCX"],
+                "correctAnswer": "STL",
+                "explanation": ""
+            },
+            {
+                "question": "Какой язык программирования используется для создания приложений под Android?",
+                "answers": ["Swift", "Kotlin", "C++", "Ruby"],
+                "correctAnswer": "Kotlin",
+                "explanation": ""
+            },
+            {
+                "question": "Какая компания разработала первый SSD?",
+                "answers": ["Samsung", "Intel", "SanDisk", "Toshiba"],
+                "correctAnswer": "SanDisk",
+                "explanation": ""
+            },
+            {
+                "question": "Как называется технология, позволяющая использовать несколько мониторов?",
+                "answers": ["Multi-Screen", "Dual Display", "Extended Desktop", "Multi-Monitor"],
+                "correctAnswer": "Extended Desktop",
+                "explanation": ""
+            },
+            {
+                "question": "Какой стандарт Wi-Fi работает на частоте 6 ГГц?",
+                "answers": ["Wi-Fi 5", "Wi-Fi 6", "Wi-Fi 6E", "Wi-Fi 7"],
+                "correctAnswer": "Wi-Fi 6E",
+                "explanation": ""
+            },
+            {
+                "question": "Какой язык разметки используется для создания веб-страниц?",
+                "answers": ["CSS", "JavaScript", "HTML", "PHP"],
+                "correctAnswer": "HTML",
+                "explanation": ""
+            },
+            {
+                "question": "Какая технология позволяет заряжать устройства на расстоянии?",
+                "answers": ["Qi", "AirFuel", "Resonant Charging", "MagSafe"],
+                "correctAnswer": "Resonant Charging",
+                "explanation": ""
+            },
+            {
+                "question": "Какой процессор используется в iPhone 13?",
+                "answers": ["A14 Bionic", "A15 Bionic", "Snapdragon 888", "Exynos 2100"],
+                "correctAnswer": "A15 Bionic",
+                "explanation": ""
+            },
+            {
+                "question": "Какой язык программирования создал Брендан Эйх?",
+                "answers": ["Python", "Java", "JavaScript", "C#"],
+                "correctAnswer": "JavaScript",
+                "explanation": ""
+            },
+            {
+                "question": "Какая компания разработала первый коммерческий компьютер?",
+                "answers": ["IBM", "Apple", "Microsoft", "HP"],
+                "correctAnswer": "IBM",
+                "explanation": ""
+            },
+            {
+                "question": "Какой стандарт связи используется в беспроводных наушниках?",
+                "answers": ["Wi-Fi", "Bluetooth", "NFC", "LTE"],
+                "correctAnswer": "Bluetooth",
+                "explanation": ""
+            },
+            {
+                "question": "Как называется технология, позволяющая использовать компьютер без мыши и клавиатуры?",
+                "answers": ["Touch Screen", "Voice Control", "Gesture Control", "Eye Tracking"],
+                "correctAnswer": "Voice Control",
+                "explanation": ""
+            },
+            {
+                "question": "Какой язык программирования используется для создания iOS-приложений?",
+                "answers": ["Java", "Kotlin", "Swift", "Dart"],
+                "correctAnswer": "Swift",
+                "explanation": ""
+            },
+            {
+                "question": "Какая технология позволяет компьютеру понимать человеческую речь?",
+                "answers": ["NLP", "AI", "ML", "VR"],
+                "correctAnswer": "NLP",
+                "explanation": ""
+            },
+            {
+                "question": "Какой компонент компьютера хранит BIOS?",
+                "answers": ["HDD", "SSD", "RAM", "ROM"],
+                "correctAnswer": "ROM",
+                "explanation": ""
+            },
+            {
+                "question": "Какой язык программирования используется для анализа данных?",
+                "answers": ["Python", "C++", "Java", "Ruby"],
+                "correctAnswer": "Python",
+                "explanation": ""
+            },
+            {
+                "question": "Какая компания разработала первый сенсорный экран?",
+                "answers": ["Apple", "IBM", "Microsoft", "HP"],
+                "correctAnswer": "IBM",
+                "explanation": ""
+            },
+            {
+                "question": "Какой стандарт используется для передачи видео в высоком разрешении?",
+                "answers": ["HDMI", "VGA", "DVI", "DisplayPort"],
+                "correctAnswer": "HDMI",
+                "explanation": ""
+            },
+            {
+                "question": "Как называется технология, позволяющая использовать компьютер в качестве телефона?",
+                "answers": ["VoIP", "VPN", "RDP", "HTTP"],
+                "correctAnswer": "VoIP",
+                "explanation": ""
+            },
+            {
+                "question": "Какой язык программирования используется для создания игр?",
+                "answers": ["Python", "C#", "Java", "Ruby"],
+                "correctAnswer": "C#",
+                "explanation": ""
+            },
+            {
+                "question": "Какая технология позволяет увеличить скорость интернета?",
+                "answers": ["5G", "Wi-Fi 6", "Fiber Optics", "Всё перечисленное"],
+                "correctAnswer": "Всё перечисленное",
+                "explanation": ""
+            },
+            {
+                "question": "Какой компонент отвечает за хранение данных в компьютере?",
+                "answers": ["CPU", "GPU", "RAM", "SSD"],
+                "correctAnswer": "SSD",
+                "explanation": ""
+            },
+            {
+                "question": "Какой язык программирования используется для создания веб-сайтов?",
+                "answers": ["HTML", "CSS", "JavaScript", "Всё перечисленное"],
+                "correctAnswer": "Всё перечисленное",
+                "explanation": ""
+            },
+            {
+                "question": "Какая компания разработала первый ноутбук?",
+                "answers": ["IBM", "Apple", "Toshiba", "HP"],
+                "correctAnswer": "Toshiba",
+                "explanation": ""
+            },
+            {
+                "question": "Какой стандарт используется для передачи аудио в высоком качестве?",
+                "answers": ["Bluetooth", "3.5mm jack", "USB-C", "HDMI"],
+                "correctAnswer": "HDMI",
+                "explanation": ""
+            },
+            {
+                "question": "Как называется самая безопасная технология, разблокировки без пароля?",
+                "answers": ["Сканер лица", "Сканер отпечатка пальца", "Распознавание голоса", "Всё перечисленное"],
+                "correctAnswer": "Сканер лица",
+                "explanation": ""
+            },
+            {
+                "question": "Какой язык программирования используется для создания искусственного интеллекта?",
+                "answers": ["Python", "Java", "C++", "Ruby"],
+                "correctAnswer": "Python",
+                "explanation": ""
+            },
+            {
+                "question": "Какая технология позволяет использовать компьютер в виртуальной реальности?",
+                "answers": ["VR", "AR", "MR", "Всё перечисленное"],
+                "correctAnswer": "Всё перечисленное",
+                "explanation": ""
+            },
+            {
+                "question": "Какой компонент компьютера отвечает за обработку звука?",
+                "answers": ["CPU", "GPU", "Sound Card", "SSD"],
+                "correctAnswer": "Sound Card",
+                "explanation": ""
+            },
+            {
+                "question": "Какой язык программирования используется для создания блокчейн-приложений?",
+                "answers": ["Python", "Solidity", "Java", "C#"],
+                "correctAnswer": "Solidity",
+                "explanation": ""
+            },
+            {
+                "question": "Какая компания разработала первый смартфон?",
+                "answers": ["Apple", "IBM", "Nokia", "BlackBerry"],
+                "correctAnswer": "IBM",
+                "explanation": ""
+            },
+            {
+                "question": "Какой стандарт используется для передачи данных только в IoT-устройствах?",
+                "answers": ["Bluetooth", "Wi-Fi", "Zigbee", "Всё перечисленное"],
+                "correctAnswer": "Zigbee",
+                "explanation": ""
+            },
+            {
+                "question": "Как называется технология, позволяющая использовать компьютер в дополненной реальности?",
+                "answers": ["VR", "AR", "MR", "XR"],
+                "correctAnswer": "AR",
+                "explanation": ""
+            },
+            {
+                "question": "Какой язык программирования используется для создания мобильных iOS-приложений?",
+                "answers": ["Python", "Java", "Swift", "Всё перечисленное"],
+                "correctAnswer": "Swift",
+                "explanation": ""
+            },
+            {
+                "question": "Какая технология позволяет использовать персональный компьютер для майнинга криптовалют?",
+                "answers": ["Блокчейн", "GPU Майнинг", "ASIC Майнинг", "Всё перечисленное"],
+                "correctAnswer": "GPU Майнинг",
+                "explanation": ""
+            },
+            {
+                "question": "Какой компонент компьютера отвечает за подключение к интернету?",
+                "answers": ["CPU", "GPU", "Network Card", "SSD"],
+                "correctAnswer": "Network Card",
+                "explanation": ""
+            },
+            {
+                "question": "Какой язык программирования используется для создания операционных систем?",
+                "answers": ["Python", "C", "Java", "Ruby"],
+                "correctAnswer": "C",
+                "explanation": ""
+            },
+            {
+                "question": "Какая компания разработала первый планшет?",
+                "answers": ["Apple", "Microsoft", "IBM", "HP"],
+                "correctAnswer": "Microsoft",
+                "explanation": ""
+            },
+            {
+                "question": "Какой стандарт используется для передачи данных в умных домах?",
+                "answers": ["Bluetooth", "Wi-Fi", "Zigbee", "Всё перечисленное"],
+                "correctAnswer": "Всё перечисленное",
+                "explanation": ""
+            },
+            {
+                "question": "Как называется технология Apple, позволяющая использовать компьютер для распознавания лиц?",
+                "answers": ["Face ID", "Facial Recognition", "Biometric Scanning", "Всё перечисленное"],
+                "correctAnswer": "Face ID",
+                "explanation": ""
+            },
+            {
+                "question": "Какой язык программирования используется для создания игр на Unity?",
+                "answers": ["Python", "C#", "Java", "Ruby"],
+                "correctAnswer": "C#",
+                "explanation": ""
+            },
+            {
+                "question": "Какая технология позволяет использовать компьютер для автоматизации задач?",
+                "answers": ["AI", "ML", "RPA", "Всё перечисленное"],
+                "correctAnswer": "Всё перечисленное",
+                "explanation": ""
+            },
+            {
+                "question": "Какой компонент компьютера отвечает за охлаждение?",
+                "answers": ["CPU", "GPU", "Cooling Fan", "SSD"],
+                "correctAnswer": "Cooling Fan",
+                "explanation": ""
+            },
+            {
+                "question": "Какой язык программирования чаще всех используется для создания веб-приложений?",
+                "answers": ["Python", "JavaScript", "Java", "Kotlin"],
+                "correctAnswer": "JavaScript",
+                "explanation": ""
+            },
+            {
+                "question": "Какая компания разработала первый умный дом?",
+                "answers": ["Apple", "Google", "Amazon", "Microsoft"],
+                "correctAnswer": "Microsoft",
+                "explanation": ""
+            },
+            {
+                "question": "Какой стандарт используется для передачи данных в беспилотных автомобилях?",
+                "answers": ["5G", "Wi-Fi", "V2X", "Всё перечисленное"],
+                "correctAnswer": "Всё перечисленное",
+                "explanation": ""
+            },
+            {
+                "question": "Как называется технология, обеспечивающая синтез голоса голосовых помощников?",
+                "answers": ["NLP", "AI", "ML", "Всё перечисленное"],
+                "correctAnswer": "Всё перечисленное",
+                "explanation": ""
+            },
+            {
+                "question": "Какой язык программирования используется для создания чат-ботов?",
+                "answers": ["Python", "JavaScript", "Java", "Всё перечисленное"],
+                "correctAnswer": "Всё перечисленное",
+                "explanation": ""
+            }
         ]
     },
     {
@@ -230,61 +1058,577 @@
                 "answers": ["Парфенон", "Колизей", "Пантеон", "Акрополь"],
                 "correctAnswer": "Парфенон",
                 "explanation": ""
-              },
-              {
+            },
+            {
                 "question": "Какой художник написал картину 'Тайная вечеря'?",
                 "answers": ["Леонардо да Винчи", "Микеланджело", "Рафаэль", "Рембрандт"],
                 "correctAnswer": "Леонардо да Винчи",
                 "explanation": ""
-              },
-              {
+            },
+            {
                 "question": "Какой древний город был погребён под пеплом во время извержения Везувия в 79 году?",
                 "answers": ["Помпеи", "Карфаген", "Троя", "Афины"],
                 "correctAnswer": "Помпеи",
                 "explanation": ""
-              },
-              {
+            },
+            {
                 "question": "Как называлось государство, существовавшее на территории России до образования Руси?",
                 "answers": ["Скифия", "Золотая Орда", "Византия", "Хазарский каганат"],
                 "correctAnswer": "Хазарский каганат",
                 "explanation": ""
-              },
-              {
+            },
+            {
                 "question": "Кто написал роман 'Война и мир'?",
                 "answers": ["Лев Толстой", "Фёдор Достоевский", "Александр Пушкин", "Иван Тургенев"],
                 "correctAnswer": "Лев Толстой",
                 "explanation": ""
-              },
-              {
+            },
+            {
                 "question": "Какой памятник архитектуры считается символом Индии?",
                 "answers": ["Тадж-Махал", "Большая китайская стена", "Пирамиды Гизы", "Ангкор-Ват"],
                 "correctAnswer": "Тадж-Махал",
                 "explanation": ""
-              },
-              {
+            },
+            {
                 "question": "Какой стиль архитектуры характеризуется массивными стенами, круглыми арками и небольшими окнами?",
                 "answers": ["Романский", "Готический", "Барокко", "Модерн"],
                 "correctAnswer": "Романский",
                 "explanation": ""
-              },
-              {
+            },
+            {
                 "question": "Какой король Франции был казнён во время Великой французской революции?",
                 "answers": ["Людовик XVI", "Наполеон I", "Людовик XIV", "Филипп IV"],
                 "correctAnswer": "Людовик XVI",
                 "explanation": ""
-              },
-              {
+            },
+            {
                 "question": "Какая страна считается родиной Олимпийских игр?",
                 "answers": ["Греция", "Италия", "Египет", "Франция"],
                 "correctAnswer": "Греция",
                 "explanation": ""
-              },
-              {
+            },
+            {
                 "question": "Как назывался торговый путь, соединявший Китай и Европу в Средние века?",
                 "answers": ["Шёлковый путь", "Путь Святого Иакова", "Великий чайный путь", "Спайс Роуд"],
                 "correctAnswer": "Шёлковый путь",
                 "explanation": ""
-              }
+            },
+            {
+                "question": "Кто автор скульптуры 'Давид'?",
+                "answers": ["Донателло", "Микеланджело", "Бернини", "Роден"],
+                "correctAnswer": "Микеланджело",
+                "explanation": ""
+            },
+            {
+                "question": "В каком году произошла Куликовская битва?",
+                "answers": ["1380", "1240", "1480", "1547"],
+                "correctAnswer": "1380",
+                "explanation": ""
+            },
+            {
+                "question": "Какой русский царь провёл реформу календаря в 1700 году?",
+                "answers": ["Иван Грозный", "Пётр I", "Алексей Михайлович", "Павел I"],
+                "correctAnswer": "Пётр I",
+                "explanation": ""
+            },
+            {
+                "question": "Кто написал 'Горе от ума'?",
+                "answers": ["Пушкин", "Грибоедов", "Гоголь", "Тургенев"],
+                "correctAnswer": "Грибоедов",
+                "explanation": ""
+            },
+            {
+                "question": "Какой художник создал 'Чёрный квадрат'?",
+                "answers": ["Кандинский", "Малевич", "Шагал", "Пикассо"],
+                "correctAnswer": "Малевич",
+                "explanation": ""
+            },
+            {
+                "question": "В каком веке жил Шекспир?",
+                "answers": ["XIV", "XV", "XVI", "XVII"],
+                "correctAnswer": "XVI",
+                "explanation": ""
+            },
+            {
+                "question": "Какой древний народ построил пирамиды в Гизе?",
+                "answers": ["Шумеры", "Ацтеки", "Египтяне", "Майя"],
+                "correctAnswer": "Египтяне",
+                "explanation": ""
+            },
+            {
+                "question": "Кто был первым императором Рима?",
+                "answers": ["Юлий Цезарь", "Октавиан Август", "Нерон", "Константин"],
+                "correctAnswer": "Октавиан Август",
+                "explanation": ""
+            },
+            {
+                "question": "Какой стиль живописи представлял Ван Гог?",
+                "answers": ["Импрессионизм", "Постимпрессионизм", "Кубизм", "Сюрреализм"],
+                "correctAnswer": "Постимпрессионизм",
+                "explanation": ""
+            },
+            {
+                "question": "Кто автор 'Божественной комедии'?",
+                "answers": ["Данте", "Петрарка", "Боккаччо", "Мольер"],
+                "correctAnswer": "Данте",
+                "explanation": ""
+            },
+            {
+                "question": "Как называлась первая печатная книга в Европе?",
+                "answers": ["Библия Гутенберга", "Книга мёртвых", "Илиада", "Одиссея"],
+                "correctAnswer": "Библия Гутенберга",
+                "explanation": ""
+            },
+            {
+                "question": "Кто написал музыку к балету 'Лебединое озеро'?",
+                "answers": ["Чайковский", "Мусоргский", "Римский-Корсаков", "Шостакович"],
+                "correctAnswer": "Чайковский",
+                "explanation": ""
+            },
+            {
+                "question": "Какой город был столицей Византийской империи?",
+                "answers": ["Рим", "Афины", "Константинополь", "Антиохия"],
+                "correctAnswer": "Константинополь",
+                "explanation": ""
+            },
+            {
+                "question": "Кто автор картины 'Крик'?",
+                "answers": ["Мунк", "Ван Гог", "Пикассо", "Дали"],
+                "correctAnswer": "Мунк",
+                "explanation": ""
+            },
+            {
+                "question": "Какой русский писатель был лауреатом Нобелевской премии по литературе в 1958 году?",
+                "answers": ["Толстой", "Пастернак", "Солженицын", "Бунин"],
+                "correctAnswer": "Пастернак",
+                "explanation": ""
+            },
+            {
+                "question": "Какой архитектурный стиль характеризуется остроконечными арками и витражами?",
+                "answers": ["Романский", "Готический", "Барокко", "Рококо"],
+                "correctAnswer": "Готический",
+                "explanation": ""
+            },
+            {
+                "question": "Кто был главным божеством в древнегреческой мифологии?",
+                "answers": ["Аполлон", "Зевс", "Посейдон", "Геракл"],
+                "correctAnswer": "Зевс",
+                "explanation": ""
+            },
+            {
+                "question": "Какой русский художник написал 'Богатырей'?",
+                "answers": ["Репин", "Васнецов", "Суриков", "Айвазовский"],
+                "correctAnswer": "Васнецов",
+                "explanation": ""
+            },
+            {
+                "question": "В каком году был основан Санкт-Петербург?",
+                "answers": ["1703", "1712", "1682", "1725"],
+                "correctAnswer": "1703",
+                "explanation": ""
+            },
+            {
+                "question": "Кто написал 'Преступление и наказание'?",
+                "answers": ["Толстой", "Достоевский", "Чехов", "Тургенев"],
+                "correctAnswer": "Достоевский",
+                "explanation": ""
+            },
+            {
+                "question": "Какой древний город был известен своими Висячими садами?",
+                "answers": ["Вавилон", "Афины", "Рим", "Карфаген"],
+                "correctAnswer": "Вавилон",
+                "explanation": ""
+            },
+            {
+                "question": "Кто был первым президентом США?",
+                "answers": ["Джефферсон", "Линкольн", "Вашингтон", "Рузвельт"],
+                "correctAnswer": "Вашингтон",
+                "explanation": ""
+            },
+            {
+                "question": "Какой композитор написал 'Лунную сонату'?",
+                "answers": ["Моцарт", "Бетховен", "Бах", "Шопен"],
+                "correctAnswer": "Бетховен",
+                "explanation": ""
+            },
+            {
+                "question": "Какой русский царь известен как 'Грозный'?",
+                "answers": ["Иван IV", "Пётр I", "Александр II", "Николай II"],
+                "correctAnswer": "Иван IV",
+                "explanation": ""
+            },
+            {
+                "question": "Кто автор 'Гамлета'?",
+                "answers": ["Шекспир", "Мольер", "Гёте", "Данте"],
+                "correctAnswer": "Шекспир",
+                "explanation": ""
+            },
+            {
+                "question": "Какой город был центром Возрождения?",
+                "answers": ["Париж", "Флоренция", "Венеция", "Рим"],
+                "correctAnswer": "Флоренция",
+                "explanation": ""
+            },
+            {
+                "question": "Кто написал 'Евгения Онегина'?",
+                "answers": ["Лермонтов", "Пушкин", "Гоголь", "Тургенев"],
+                "correctAnswer": "Пушкин",
+                "explanation": ""
+            },
+            {
+                "question": "Какой древний народ создал алфавит?",
+                "answers": ["Финикийцы", "Египтяне", "Шумеры", "Греки"],
+                "correctAnswer": "Финикийцы",
+                "explanation": ""
+            },
+            {
+                "question": "Кто был последним императором России?",
+                "answers": ["Александр II", "Николай II", "Пётр I", "Александр III"],
+                "correctAnswer": "Николай II",
+                "explanation": ""
+            },
+            {
+                "question": "Какой художник написал 'Мону Лизу'?",
+                "answers": ["Рафаэль", "Микеланджело", "Леонардо да Винчи", "Тициан"],
+                "correctAnswer": "Леонардо да Винчи",
+                "explanation": ""
+            },
+            {
+                "question": "В каком году началась Первая мировая война?",
+                "answers": ["1914", "1917", "1918", "1915"],
+                "correctAnswer": "1914",
+                "explanation": ""
+            },
+            {
+                "question": "Кто автор 'Илиады' и 'Одиссеи'?",
+                "answers": ["Гомер", "Вергилий", "Гесиод", "Овидий"],
+                "correctAnswer": "Гомер",
+                "explanation": ""
+            },
+            {
+                "question": "Какой русский композитор написал 'Щелкунчика'?",
+                "answers": ["Чайковский", "Рахманинов", "Шостакович", "Прокофьев"],
+                "correctAnswer": "Чайковский",
+                "explanation": ""
+            },
+            {
+                "question": "Какой город был столицей Древнего Египта?",
+                "answers": ["Фивы", "Мемфис", "Александрия", "Каир"],
+                "correctAnswer": "Мемфис",
+                "explanation": ""
+            },
+            {
+                "question": "Кто написал 'Войну и мир'?",
+                "answers": ["Достоевский", "Толстой", "Тургенев", "Чехов"],
+                "correctAnswer": "Толстой",
+                "explanation": ""
+            },
+            {
+                "question": "Какой стиль искусства представлял Сальвадор Дали?",
+                "answers": ["Кубизм", "Сюрреализм", "Импрессионизм", "Футуризм"],
+                "correctAnswer": "Сюрреализм",
+                "explanation": ""
+            },
+            {
+                "question": "В каком году произошла Октябрьская революция?",
+                "answers": ["1917", "1905", "1914", "1924"],
+                "correctAnswer": "1917",
+                "explanation": ""
+            },
+            {
+                "question": "Кто автор 'Фауста'?",
+                "answers": ["Гёте", "Шиллер", "Гейне", "Ницше"],
+                "correctAnswer": "Гёте",
+                "explanation": ""
+            },
+            {
+                "question": "Какой русский художник написал 'Утро стрелецкой казни'?",
+                "answers": ["Репин", "Суриков", "Васнецов", "Айвазовский"],
+                "correctAnswer": "Суриков",
+                "explanation": ""
+            },
+            {
+                "question": "Какой древний город был известен Колоссом Родосским?",
+                "answers": ["Афины", "Родос", "Александрия", "Вавилон"],
+                "correctAnswer": "Родос",
+                "explanation": ""
+            },
+            {
+                "question": "Кто был первым человеком в космосе?",
+                "answers": ["Гагарин", "Армстронг", "Титов", "Леонов"],
+                "correctAnswer": "Гагарин",
+                "explanation": ""
+            },
+            {
+                "question": "Какой композитор написал 'Симфонию №5'?",
+                "answers": ["Моцарт", "Бетховен", "Бах", "Шуберт"],
+                "correctAnswer": "Бетховен",
+                "explanation": ""
+            },
+            {
+                "question": "Какой русский писатель был автором 'Мёртвых душ'?",
+                "answers": ["Толстой", "Достоевский", "Гоголь", "Тургенев"],
+                "correctAnswer": "Гоголь",
+                "explanation": ""
+            },
+            {
+                "question": "Какой город был столицей Османской империи?",
+                "answers": ["Анкара", "Стамбул", "Дамаск", "Каир"],
+                "correctAnswer": "Стамбул",
+                "explanation": ""
+            },
+            {
+                "question": "Кто написал 'Анну Каренину'?",
+                "answers": ["Достоевский", "Толстой", "Чехов", "Тургенев"],
+                "correctAnswer": "Толстой",
+                "explanation": ""
+            },
+            {
+                "question": "Какой стиль архитектуры представляет Собор Парижской Богоматери?",
+                "answers": ["Романский", "Готический", "Барокко", "Ренессанс"],
+                "correctAnswer": "Готический",
+                "explanation": ""
+            },
+            {
+                "question": "В каком году была основана Москва?",
+                "answers": ["1147", "1240", "988", "1380"],
+                "correctAnswer": "1147",
+                "explanation": ""
+            },
+            {
+                "question": "Кто автор 'Дон Кихота'?",
+                "answers": ["Сервантес", "Шекспир", "Гёте", "Данте"],
+                "correctAnswer": "Сервантес",
+                "explanation": ""
+            },
+            {
+                "question": "Какой русский художник написал 'Девятый вал'?",
+                "answers": ["Айвазовский", "Шишкин", "Репин", "Левитан"],
+                "correctAnswer": "Айвазовский",
+                "explanation": ""
+            },
+            {
+                "question": "Какой древний город был известен Александрийской библиотекой?",
+                "answers": ["Афины", "Рим", "Александрия", "Карфаген"],
+                "correctAnswer": "Александрия",
+                "explanation": ""
+            },
+            {
+                "question": "Кто был первым римским папой?",
+                "answers": ["Пётр", "Павел", "Иоанн", "Лев"],
+                "correctAnswer": "Пётр",
+                "explanation": ""
+            },
+            {
+                "question": "Какой композитор написал 'Времена года'?",
+                "answers": ["Вивальди", "Бах", "Моцарт", "Бетховен"],
+                "correctAnswer": "Вивальди",
+                "explanation": ""
+            },
+            {
+                "question": "Какой русский писатель был автором 'Отцов и детей'?",
+                "answers": ["Толстой", "Достоевский", "Тургенев", "Чехов"],
+                "correctAnswer": "Тургенев",
+                "explanation": ""
+            },
+            {
+                "question": "Какой город был столицей Византии?",
+                "answers": ["Рим", "Афины", "Константинополь", "Антиохия"],
+                "correctAnswer": "Константинополь",
+                "explanation": ""
+            },
+            {
+                "question": "Кто написал 'Ревизора'?",
+                "answers": ["Гоголь", "Толстой", "Достоевский", "Чехов"],
+                "correctAnswer": "Гоголь",
+                "explanation": ""
+            },
+            {
+                "question": "Какой стиль живописи представлял Клод Моне?",
+                "answers": ["Импрессионизм", "Экспрессионизм", "Кубизм", "Сюрреализм"],
+                "correctAnswer": "Импрессионизм",
+                "explanation": ""
+            },
+            {
+                "question": "В каком году произошла Бородинская битва?",
+                "answers": ["1812", "1805", "1825", "1799"],
+                "correctAnswer": "1812",
+                "explanation": ""
+            },
+            {
+                "question": "Кто автор 'Братьев Карамазовых'?",
+                "answers": ["Толстой", "Достоевский", "Тургенев", "Чехов"],
+                "correctAnswer": "Достоевский",
+                "explanation": ""
+            },
+            {
+                "question": "Какой русский художник написал 'Бурлаков на Волге'?",
+                "answers": ["Репин", "Суриков", "Васнецов", "Левитан"],
+                "correctAnswer": "Репин",
+                "explanation": ""
+            },
+            {
+                "question": "Какой древний город был известен Храмом Артемиды?",
+                "answers": ["Афины", "Эфес", "Рим", "Вавилон"],
+                "correctAnswer": "Эфес",
+                "explanation": ""
+            },
+            {
+                "question": "Кто был первым королём Англии?",
+                "answers": ["Вильгельм Завоеватель", "Альфред Великий", "Генрих VIII", "Ричард Львиное Сердце"],
+                "correctAnswer": "Альфред Великий",
+                "explanation": ""
+            },
+            {
+                "question": "Какой композитор написал 'Реквием'?",
+                "answers": ["Бах", "Моцарт", "Бетховен", "Шуберт"],
+                "correctAnswer": "Моцарт",
+                "explanation": ""
+            },
+            {
+                "question": "Какой русский писатель был автором 'Вишнёвого сада'?",
+                "answers": ["Толстой", "Достоевский", "Чехов", "Тургенев"],
+                "correctAnswer": "Чехов",
+                "explanation": ""
+            },
+            {
+                "question": "Какой город был столицей Древнего Китая?",
+                "answers": ["Пекин", "Шанхай", "Сиань", "Нанкин"],
+                "correctAnswer": "Сиань",
+                "explanation": ""
+            },
+            {
+                "question": "Кто написал 'Героя нашего времени'?",
+                "answers": ["Лермонтов", "Пушкин", "Гоголь", "Тургенев"],
+                "correctAnswer": "Лермонтов",
+                "explanation": ""
+            },
+            {
+                "question": "Какой стиль архитектуры представляет Тадж-Махал?",
+                "answers": ["Готика", "Барокко", "Могольская архитектура", "Ренессанс"],
+                "correctAnswer": "Могольская архитектура",
+                "explanation": ""
+            },
+            {
+                "question": "В каком году была подписана Великая хартия вольностей?",
+                "answers": ["1215", "1066", "1346", "1485"],
+                "correctAnswer": "1215",
+                "explanation": ""
+            },
+            {
+                "question": "Кто автор 'Декамерона'?",
+                "answers": ["Данте", "Петрарка", "Боккаччо", "Мольер"],
+                "correctAnswer": "Боккаччо",
+                "explanation": ""
+            },
+            {
+                "question": "Какой русский художник написал 'Грачи прилетели'?",
+                "answers": ["Саврасов", "Шишкин", "Левитан", "Репин"],
+                "correctAnswer": "Саврасов",
+                "explanation": ""
+            },
+            {
+                "question": "Какой древний город был известен Мавзолеем в Галикарнасе?",
+                "answers": ["Афины", "Галикарнас", "Рим", "Вавилон"],
+                "correctAnswer": "Галикарнас",
+                "explanation": ""
+            },
+            {
+                "question": "Кто был первым императором Китая?",
+                "answers": ["Цинь Шихуанди", "Конфуций", "Лао-цзы", "Сунь-цзы"],
+                "correctAnswer": "Цинь Шихуанди",
+                "explanation": ""
+            },
+            {
+                "question": "Какой композитор написал 'Лебединое озеро'?",
+                "answers": ["Чайковский", "Рахманинов", "Шостакович", "Прокофьев"],
+                "correctAnswer": "Чайковский",
+                "explanation": ""
+            },
+            {
+                "question": "Какой русский писатель был автором 'Капитанской дочки'?",
+                "answers": ["Пушкин", "Лермонтов", "Гоголь", "Тургенев"],
+                "correctAnswer": "Пушкин",
+                "explanation": ""
+            },
+            {
+                "question": "Какой город был столицей Древнего Рима?",
+                "answers": ["Рим", "Константинополь", "Афины", "Карфаген"],
+                "correctAnswer": "Рим",
+                "explanation": ""
+            },
+            {
+                "question": "Кто написал 'Мцыри'?",
+                "answers": ["Лермонтов", "Пушкин", "Гоголь", "Тургенев"],
+                "correctAnswer": "Лермонтов",
+                "explanation": ""
+            },
+            {
+                "question": "Какой стиль живописи представлял Пабло Пикассо?",
+                "answers": ["Кубизм", "Сюрреализм", "Импрессионизм", "Футуризм"],
+                "correctAnswer": "Кубизм",
+                "explanation": ""
+            },
+            {
+                "question": "В каком году произошла Великая французская революция?",
+                "answers": ["1789", "1776", "1799", "1812"],
+                "correctAnswer": "1789",
+                "explanation": ""
+            },
+            {
+                "question": "Кто автор 'Божественной комедии'?",
+                "answers": ["Данте", "Петрарка", "Боккаччо", "Мольер"],
+                "correctAnswer": "Данте",
+                "explanation": ""
+            },
+            {
+                "question": "Какой русский художник написал 'Утро в сосновом лесу'?",
+                "answers": ["Шишкин", "Левитан", "Саврасов", "Репин"],
+                "correctAnswer": "Шишкин",
+                "explanation": ""
+            },
+            {
+                "question": "Какой древний город был известен Статуей Зевса в Олимпии?",
+                "answers": ["Афины", "Олимпия", "Рим", "Вавилон"],
+                "correctAnswer": "Олимпия",
+                "explanation": ""
+            },
+            {
+                "question": "Кто был первым президентом Франции?",
+                "answers": ["Наполеон", "Луи-Филипп", "Шарль де Голль", "Луи Наполеон Бонапарт"],
+                "correctAnswer": "Луи Наполеон Бонапарт",
+                "explanation": ""
+            },
+            {
+                "question": "Какой композитор написал 'Кармен'?",
+                "answers": ["Бизе", "Верди", "Пуччини", "Моцарт"],
+                "correctAnswer": "Бизе",
+                "explanation": ""
+            },
+            {
+                "question": "Какой русский писатель был автором 'Обломова'?",
+                "answers": ["Гончаров", "Тургенев", "Достоевский", "Толстой"],
+                "correctAnswer": "Гончаров",
+                "explanation": ""
+            },
+            {
+                "question": "Какой город был столицей Древней Персии?",
+                "answers": ["Персеполь", "Вавилон", "Сузы", "Пасаргады"],
+                "correctAnswer": "Персеполь",
+                "explanation": ""
+            },
+            {
+                "question": "Кто написал 'Слово о полку Игореве'?",
+                "answers": ["Неизвестный автор", "Пушкин", "Лермонтов", "Гоголь"],
+                "correctAnswer": "Неизвестный автор",
+                "explanation": ""
+            },
+            {
+                "question": "Какой стиль архитектуры представляет Собор Святого Петра в Риме?",
+                "answers": ["Готика", "Барокко", "Ренессанс", "Романский"],
+                "correctAnswer": "Барокко",
+                "explanation": ""
+            }
         ]
     },
     {
@@ -326,61 +1670,613 @@
                 "answers": ["Инфляция", "Дефляция", "Рецессия", "Стагфляция"],
                 "correctAnswer": "Инфляция",
                 "explanation": ""
-              },
-              {
+            },
+            {
                 "question": "Какая страна первой в истории объявила дефолт по своим внешним обязательствам?",
                 "answers": ["Франция", "Испания", "Великобритания", "Германия"],
                 "correctAnswer": "Испания",
                 "explanation": ""
-              },
-              {
+            },
+            {
                 "question": "Какая налоговая концепция предполагает, что богатые платят более высокий процент с доходов, чем бедные?",
                 "answers": ["Прогрессивное налогообложение", "Регрессивное налогообложение", "Пропорциональное налогообложение", "Косвенное налогообложение"],
                 "correctAnswer": "Прогрессивное налогообложение",
                 "explanation": ""
-              },
-              {
+            },
+            {
                 "question": "Какой банк был признан крупнейшим инвестиционным банком в мире по активам?",
                 "answers": ["JPMorgan Chase", "Goldman Sachs", "Morgan Stanley", "Bank of America"],
                 "correctAnswer": "JPMorgan Chase",
                 "explanation": ""
-              },
-              {
+            },
+            {
                 "question": "Какая корпорация первой в истории достигла рыночной капитализации в 1 триллион долларов?",
                 "answers": ["Apple", "Microsoft", "Amazon", "Saudi Aramco"],
                 "correctAnswer": "Apple",
                 "explanation": ""
-              },
-              {
+            },
+            {
                 "question": "Какая из стран G7 не входит в Совет Безопасности ООН?",
                 "answers": ["Канада", "Франция", "Великобритания", "Италия"],
                 "correctAnswer": "Канада",
                 "explanation": ""
-              },
-              {
+            },
+            {
                 "question": "Как называется макроэкономическая ситуация, при которой одновременно растут безработица и инфляция?",
                 "answers": ["Стагфляция", "Рецессия", "Дефляция", "Кризис ликвидности"],
                 "correctAnswer": "Стагфляция",
                 "explanation": ""
-              },
-              {
+            },
+            {
                 "question": "В каком году была проведена крупнейшая в истории IPO компания Saudi Aramco?",
                 "answers": ["2019", "2015", "2021", "2017"],
                 "correctAnswer": "2019",
                 "explanation": ""
-              },
-              {
+            },
+            {
                 "question": "Кто является автором концепции 'Невидимой руки рынка'?",
                 "answers": ["Адам Смит", "Джон Кейнс", "Карл Маркс", "Милтон Фридман"],
                 "correctAnswer": "Адам Смит",
                 "explanation": ""
-              },
-              {
+            },
+            {
                 "question": "Какое событие привело к мировому финансовому кризису 2008 года?",
                 "answers": ["Кризис ипотечного кредитования в США", "Крах Lehman Brothers", "Греческий долговой кризис", "Падение цен на нефть"],
                 "correctAnswer": "Кризис ипотечного кредитования в США",
                 "explanation": ""
-              }
+            },
+            {
+                "question": "Какая валюта используется в Швейцарии?",
+                "answers": ["Швейцарский франк", "Евро", "Доллар США", "Фунт стерлингов"],
+                "correctAnswer": "Швейцарский франк",
+                "explanation": ""
+            },
+            {
+                "question": "Какой российский бизнесмен основал компанию Wildberries?",
+                "answers": ["Татьяна Бакальчук", "Олег Тиньков", "Алишер Усманов", "Аркадий Волож"],
+                "correctAnswer": "Татьяна Бакальчук",
+                "explanation": ""
+            },
+            {
+                "question": "Как называется международная организация, следящая за уровнем коррупции в странах?",
+                "answers": ["Transparency International", "UNESCO", "МВФ", "OECD"],
+                "correctAnswer": "Transparency International",
+                "explanation": ""
+            },
+            {
+                "question": "Что означает аббревиатура IPO?",
+                "answers": ["Первичное публичное размещение акций", "Инвестиции в производственные объекты", "Налог на прибыль организаций", "Индивидуальный предприниматель онлайн"],
+                "correctAnswer": "Первичное публичное размещение акций",
+                "explanation": ""
+            },
+            {
+                "question": "Какой автоконцерн владеет брендом Lamborghini?",
+                "answers": ["Volkswagen", "Ferrari", "Mercedes-Benz", "BMW"],
+                "correctAnswer": "Volkswagen",
+                "explanation": ""
+            },
+            {
+                "question": "Кто является основателем инвестиционного фонда Berkshire Hathaway?",
+                "answers": ["Уоррен Баффет", "Джордж Сорос", "Рэй Далио", "Бенджамин Грэм"],
+                "correctAnswer": "Уоррен Баффет",
+                "explanation": ""
+            },
+            {
+                "question": "Что из перечисленного не является криптовалютой?",
+                "answers": ["Ethereum", "Bitcoin", "Ripple", "VISA"],
+                "correctAnswer": "VISA",
+                "explanation": ""
+            },
+            {
+                "question": "Что такое off-shore зона?",
+                "answers": ["Регион с льготным налогообложением", "Место добычи нефти", "Площадка для торгов на бирже", "Закрытая экономическая зона"],
+                "correctAnswer": "Регион с льготным налогообложением",
+                "explanation": ""
+            },
+            {
+                "question": "Кто написал книгу 'Капитал в XXI веке'?",
+                "answers": ["Томас Пикетти", "Карл Маркс", "Пол Кругман", "Нуриэль Рубини"],
+                "correctAnswer": "Томас Пикетти",
+                "explanation": ""
+            },
+            {
+                "question": "Какой бизнесмен возглавил компанию Tesla после ухода Мартина Эберхарда?",
+                "answers": ["Илон Маск", "Ларри Пейдж", "Стив Джобс", "Джефф Безос"],
+                "correctAnswer": "Илон Маск",
+                "explanation": ""
+            },
+            {
+                "question": "Какая компания была основана как интернет-магазин книг?",
+                "answers": ["Amazon", "eBay", "Google", "AliExpress"],
+                "correctAnswer": "Amazon",
+                "explanation": ""
+            },
+            {
+                "question": "В какой стране была основана компания Nestlé?",
+                "answers": ["Швейцария", "Франция", "США", "Германия"],
+                "correctAnswer": "Швейцария",
+                "explanation": ""
+            },
+            {
+                "question": "Какой мировой лидер подвергся импичменту дважды?",
+                "answers": ["Дональд Трамп", "Ричард Никсон", "Билл Клинтон", "Борис Джонсон"],
+                "correctAnswer": "Дональд Трамп",
+                "explanation": ""
+            },
+            {
+                "question": "Какой бизнесмен купил Twitter в 2022 году?",
+                "answers": ["Илон Маск", "Марк Цукерберг", "Ларри Эллисон", "Питер Тиль"],
+                "correctAnswer": "Илон Маск",
+                "explanation": ""
+            },
+            {
+                "question": "Что такое санкции в международной политике?",
+                "answers": ["Меры давления на страну", "Экономическая помощь", "Миротворческая миссия", "Избирательная реформа"],
+                "correctAnswer": "Меры давления на страну",
+                "explanation": ""
+            },
+            {
+                "question": "Как называется система контроля за госрасходами и борьбой с коррупцией в РФ?",
+                "answers": ["Федеральное казначейство", "ЦБ РФ", "ФНС", "Росфинмониторинг"],
+                "correctAnswer": "Федеральное казначейство",
+                "explanation": ""
+            },
+            {
+                "question": "Какая компания стала первой в мире по рыночной капитализации в 2023 году?",
+                "answers": ["Apple", "Microsoft", "Saudi Aramco", "Tesla"],
+                "correctAnswer": "Apple",
+                "explanation": ""
+            },
+            {
+                "question": "Какой российский банк был отключен от системы SWIFT в 2022 году первым?",
+                "answers": ["Сбербанк", "ВТБ", "Тинькофф", "Альфа-Банк"],
+                "correctAnswer": "Сбербанк",
+                "explanation": ""
+            },
+            {
+                "question": "Кто стал самым молодым миллиардером в истории, заработавшим состояние самостоятельно?",
+                "answers": ["Марк Цукерберг", "Илон Маск", "Кайли Дженнер", "Эван Шпигель"],
+                "correctAnswer": "Кайли Дженнер",
+                "explanation": ""
+            },
+            {
+                "question": "Как называется политика запрета на ввоз определенных товаров в страну?",
+                "answers": ["Эмбарго", "Протекционизм", "Демпинг", "Санкции"],
+                "correctAnswer": "Эмбарго",
+                "explanation": ""
+            },
+            {
+                "question": "Какая страна первой ввела безусловный базовый доход на национальном уровне?",
+                "answers": ["Финляндия", "Швейцария", "Канада", "Нидерланды"],
+                "correctAnswer": "Финляндия",
+                "explanation": ""
+            },
+            {
+                "question": "Какой российский олигарх был арестован в Лондоне в 2023 году?",
+                "answers": ["Роман Абрамович", "Михаил Фридман", "Олег Дерипаска", "Виктор Вексельберг"],
+                "correctAnswer": "Михаил Фридман",
+                "explanation": ""
+            },
+            {
+                "question": "Какая криптовалюта стала первой по капитализации в 2023 году?",
+                "answers": ["Bitcoin", "Ethereum", "BNB", "Cardano"],
+                "correctAnswer": "Bitcoin",
+                "explanation": ""
+            },
+            {
+                "question": "Какой индекс называют 'барометром американской экономики'?",
+                "answers": ["NASDAQ", "S&P 500", "Dow Jones", "Russell 2000"],
+                "correctAnswer": "Dow Jones",
+                "explanation": ""
+            },
+            {
+                "question": "Кто из этих миллиардеров не входит в 'Большую четверку' технологических компаний?",
+                "answers": ["Джефф Безос", "Марк Цукерберг", "Илон Маск", "Билл Гейтс"],
+                "correctAnswer": "Илон Маск",
+                "explanation": ""
+            },
+            {
+                "question": "Какой банк называли 'самым устойчивым банком России' до кризиса 2008 года?",
+                "answers": ["Сбербанк", "Банк Москвы", "Инвестбанк", "КИТ Финанс"],
+                "correctAnswer": "КИТ Финанс",
+                "explanation": ""
+            },
+            {
+                "question": "Какая компания провела крупнейшее IPO в истории США в 2014 году?",
+                "answers": ["Facebook", "Alibaba", "Uber", "Airbnb"],
+                "correctAnswer": "Alibaba",
+                "explanation": ""
+            },
+            {
+                "question": "Какой политический термин означает 'власть богатых'?",
+                "answers": ["Плутократия", "Олигархия", "Клептократия", "Меритократия"],
+                "correctAnswer": "Плутократия",
+                "explanation": ""
+            },
+            {
+                "question": "Кто из этих политиков не был лауреатом Нобелевской премии мира?",
+                "answers": ["Барак Обама", "Дональд Трамп", "Ангела Меркель", "Михаил Горбачев"],
+                "correctAnswer": "Дональд Трамп",
+                "explanation": ""
+            },
+            {
+                "question": "Как называется экономическая теория, предполагающая минимальное вмешательство государства?",
+                "answers": ["Кейнсианство", "Монетаризм", "Либертарианство", "Социализм"],
+                "correctAnswer": "Либертарианство",
+                "explanation": ""
+            },
+            {
+                "question": "Какая страна первой легализовала биткоин как платежное средство?",
+                "answers": ["Сальвадор", "Швейцария", "Сингапур", "Япония"],
+                "correctAnswer": "Сальвадор",
+                "explanation": ""
+            },
+            {
+                "question": "Какой российский бизнесмен владеет футбольным клубом 'Монако'?",
+                "answers": ["Роман Абрамович", "Дмитрий Рыболовлев", "Алишер Усманов", "Михаил Прохоров"],
+                "correctAnswer": "Дмитрий Рыболовлев",
+                "explanation": ""
+            },
+            {
+                "question": "Какая компания разработала технологию блокчейн?",
+                "answers": ["IBM", "Satoshi Nakamoto", "Vitalik Buterin", "Ripple Labs"],
+                "correctAnswer": "Satoshi Nakamoto",
+                "explanation": ""
+            },
+            {
+                "question": "Как называется процесс выкупа компании её менеджментом?",
+                "answers": ["IPO", "MBO", "SPO", "LBO"],
+                "correctAnswer": "MBO",
+                "explanation": ""
+            },
+            {
+                "question": "Кто из этих политиков не входил в 'Большую семерку'?",
+                "answers": ["Владимир Путин", "Ангела Меркель", "Эммануэль Макрон", "Джо Байден"],
+                "correctAnswer": "Владимир Путин",
+                "explanation": ""
+            },
+            {
+                "question": "Какой российский банк был первым включен в санкционный список США?",
+                "answers": ["Банк Москвы", "Россельхозбанк", "Промсвязьбанк", "Внешэкономбанк"],
+                "correctAnswer": "Банк Москвы",
+                "explanation": ""
+            },
+            {
+                "question": "Какая страна является крупнейшим держателем американского госдолга?",
+                "answers": ["Китай", "Япония", "Великобритания", "Саудовская Аравия"],
+                "correctAnswer": "Япония",
+                "explanation": ""
+            },
+            {
+                "question": "Как называется экономический показатель, отражающий все конечные товары и услуги?",
+                "answers": ["ВВП", "ВНП", "ЧНП", "НД"],
+                "correctAnswer": "ВВП",
+                "explanation": ""
+            },
+            {
+                "question": "Кто из этих миллиардеров не входит в совет директоров Facebook?",
+                "answers": ["Марк Цукерберг", "Шерил Сэндберг", "Питер Тиль", "Илон Маск"],
+                "correctAnswer": "Илон Маск",
+                "explanation": ""
+            },
+            {
+                "question": "Какой российский бизнесмен владеет Brooklyn Nets?",
+                "answers": ["Михаил Прохоров", "Роман Абрамович", "Алишер Усманов", "Олег Дерипаска"],
+                "correctAnswer": "Михаил Прохоров",
+                "explanation": ""
+            },
+            {
+                "question": "Какая компания провела крупнейшее IPO в истории Китая?",
+                "answers": ["Alibaba", "Tencent", "Huawei", "Xiaomi"],
+                "correctAnswer": "Alibaba",
+                "explanation": ""
+            },
+            {
+                "question": "Как называется экономическая политика замораживания цен и зарплат?",
+                "answers": ["Дерегуляция", "Стабилизационная программа", "Политика доходов", "Монетарное таргетирование"],
+                "correctAnswer": "Политика доходов",
+                "explanation": ""
+            },
+            {
+                "question": "Кто из этих политиков не был министром финансов России?",
+                "answers": ["Алексей Кудрин", "Антон Силуанов", "Герман Греф", "Эльвира Набиуллина"],
+                "correctAnswer": "Герман Греф",
+                "explanation": ""
+            },
+            {
+                "question": "Какая компания первой достигла капитализации в $3 трлн?",
+                "answers": ["Apple", "Microsoft", "Amazon", "Saudi Aramco"],
+                "correctAnswer": "Apple",
+                "explanation": ""
+            },
+            {
+                "question": "Как называется процесс искусственного занижения курса национальной валюты?",
+                "answers": ["Девальвация", "Ревальвация", "Деноминация", "Дефолт"],
+                "correctAnswer": "Девальвация",
+                "explanation": ""
+            },
+            {
+                "question": "Кто из этих бизнесменов не входит в список Forbes?",
+                "answers": ["Павел Дуров", "Юрий Мильнер", "Аркадий Волож", "Игорь Рыбаков"],
+                "correctAnswer": "Юрий Мильнер",
+                "explanation": ""
+            },
+            {
+                "question": "Какая страна первой ввела цифровую валюту центрального банка?",
+                "answers": ["Китай", "США", "Швеция", "Япония"],
+                "correctAnswer": "Китай",
+                "explanation": ""
+            },
+            {
+                "question": "Как называется экономическая теория, основанная на идеях Милтона Фридмана?",
+                "answers": ["Кейнсианство", "Монетаризм", "Марксизм", "Институционализм"],
+                "correctAnswer": "Монетаризм",
+                "explanation": ""
+            },
+            {
+                "question": "Кто из этих политиков не был председателем Центробанка России?",
+                "answers": ["Сергей Игнатьев", "Виктор Геращенко", "Алексей Улюкаев", "Эльвира Набиуллина"],
+                "correctAnswer": "Алексей Улюкаев",
+                "explanation": ""
+            },
+            {
+                "question": "Какая компания приобрела LinkedIn за $26 млрд?",
+                "answers": ["Google", "Microsoft", "Facebook", "Salesforce"],
+                "correctAnswer": "Microsoft",
+                "explanation": ""
+            },
+            {
+                "question": "Как называется политика искусственного завышения курса национальной валюты?",
+                "answers": ["Девальвация", "Ревальвация", "Деноминация", "Дефолт"],
+                "correctAnswer": "Ревальвация",
+                "explanation": ""
+            },
+            {
+                "question": "Кто из этих бизнесменов не входит в совет директоров Tesla?",
+                "answers": ["Илон Маск", "Ларри Эллисон", "Кимбал Маск", "Джефф Безос"],
+                "correctAnswer": "Джефф Безос",
+                "explanation": ""
+            },
+            {
+                "question": "Какая страна первой ввела отрицательные процентные ставки?",
+                "answers": ["Япония", "Швейцария", "Швеция", "Дания"],
+                "correctAnswer": "Дания",
+                "explanation": ""
+            },
+            {
+                "question": "Как называется экономическая теория, основанная на идеях Джона Кейнса?",
+                "answers": ["Монетаризм", "Кейнсианство", "Марксизм", "Институционализм"],
+                "correctAnswer": "Кейнсианство",
+                "explanation": ""
+            },
+            {
+                "question": "Кто из этих политиков не был премьер-министром России?",
+                "answers": ["Виктор Черномырдин", "Сергей Кириенко", "Алексей Кудрин", "Михаил Касьянов"],
+                "correctAnswer": "Алексей Кудрин",
+                "explanation": ""
+            },
+            {
+                "question": "Какая компания приобрела GitHub за $7.5 млрд?",
+                "answers": ["Google", "Microsoft", "Facebook", "Salesforce"],
+                "correctAnswer": "Microsoft",
+                "explanation": ""
+            },
+            {
+                "question": "Как называется процесс сокращения денежной массы в экономике?",
+                "answers": ["Эмиссия", "Девальвация", "Деноминация", "Демонетизация"],
+                "correctAnswer": "Демонетизация",
+                "explanation": ""
+            },
+            {
+                "question": "Кто из этих бизнесменов не входит в совет директоров Google?",
+                "answers": ["Сундар Пичаи", "Ларри Пейдж", "Сергей Брин", "Илон Маск"],
+                "correctAnswer": "Илон Маск",
+                "explanation": ""
+            },
+            {
+                "question": "Какая страна первой ввела налог на роскошь?",
+                "answers": ["Франция", "Швеция", "США", "Великобритания"],
+                "correctAnswer": "Франция",
+                "explanation": ""
+            },
+            {
+                "question": "Как называется экономическая теория, основанная на идеях Карла Маркса?",
+                "answers": ["Монетаризм", "Кейнсианство", "Марксизм", "Институционализм"],
+                "correctAnswer": "Марксизм",
+                "explanation": ""
+            },
+            {
+                "question": "Кто из этих политиков не был министром экономики России?",
+                "answers": ["Андрей Нечаев", "Евгений Ясин", "Герман Греф", "Алексей Кудрин"],
+                "correctAnswer": "Алексей Кудрин",
+                "explanation": ""
+            },
+            {
+                "question": "Какая компания приобрела WhatsApp за $19 млрд?",
+                "answers": ["Google", "Microsoft", "Facebook", "Tencent"],
+                "correctAnswer": "Facebook",
+                "explanation": ""
+            },
+            {
+                "question": "Как называется процесс увеличения денежной массы в экономике?",
+                "answers": ["Эмиссия", "Девальвация", "Деноминация", "Демонетизация"],
+                "correctAnswer": "Эмиссия",
+                "explanation": ""
+            },
+            {
+                "question": "Кто из этих бизнесменов не входит в совет директоров Amazon?",
+                "answers": ["Джефф Безос", "Уоррен Баффет", "Энди Джесси", "Розалинд Брюэр"],
+                "correctAnswer": "Уоррен Баффет",
+                "explanation": ""
+            },
+            {
+                "question": "Какая страна первой ввела безусловный базовый доход на национальном уровне?",
+                "answers": ["Финляндия", "Швейцария", "Канада", "Нидерланды"],
+                "correctAnswer": "Финляндия",
+                "explanation": ""
+            },
+            {
+                "question": "Как называется экономическая теория, основанная на идеях Фридриха Хайека?",
+                "answers": ["Австрийская школа", "Чикагская школа", "Кембриджская школа", "Стокгольмская школа"],
+                "correctAnswer": "Австрийская школа",
+                "explanation": ""
+            },
+            {
+                "question": "Кто из этих политиков не был министром финансов США?",
+                "answers": ["Генри Полсон", "Тимоти Гайтнер", "Стивен Мнучин", "Джанет Йеллен"],
+                "correctAnswer": "Джанет Йеллен",
+                "explanation": ""
+            },
+            {
+                "question": "Какая компания приобрела Nokia за $7.2 млрд?",
+                "answers": ["Google", "Microsoft", "Samsung", "Huawei"],
+                "correctAnswer": "Microsoft",
+                "explanation": ""
+            },
+            {
+                "question": "Как называется процесс замены старых денежных знаков на новые?",
+                "answers": ["Эмиссия", "Девальвация", "Деноминация", "Демонетизация"],
+                "correctAnswer": "Деноминация",
+                "explanation": ""
+            },
+            {
+                "question": "Кто из этих бизнесменов не входит в совет директоров Berkshire Hathaway?",
+                "answers": ["Уоррен Баффет", "Чарли Мангер", "Билл Гейтс", "Джефф Безос"],
+                "correctAnswer": "Джефф Безос",
+                "explanation": ""
+            },
+            {
+                "question": "Какая страна первой ввела налог на выбросы углекислого газа?",
+                "answers": ["Финляндия", "Швеция", "Норвегия", "Дания"],
+                "correctAnswer": "Финляндия",
+                "explanation": ""
+            },
+            {
+                "question": "Как называется экономическая теория, основанная на идеях Торстейна Веблена?",
+                "answers": ["Монетаризм", "Кейнсианство", "Институционализм", "Марксизм"],
+                "correctAnswer": "Институционализм",
+                "explanation": ""
+            },
+            {
+                "question": "Кто из этих политиков не был председателем ФРС США?",
+                "answers": ["Алан Гринспен", "Бен Бернанке", "Джанет Йеллен", "Стивен Мнучин"],
+                "correctAnswer": "Стивен Мнучин",
+                "explanation": ""
+            },
+            {
+                "question": "Какая компания приобрела Motorola Mobility за $12.5 млрд?",
+                "answers": ["Google", "Microsoft", "Lenovo", "Samsung"],
+                "correctAnswer": "Google",
+                "explanation": ""
+            },
+            {
+                "question": "Как называется процесс отказа государства от выполнения своих долговых обязательств?",
+                "answers": ["Девальвация", "Ревальвация", "Деноминация", "Дефолт"],
+                "correctAnswer": "Дефолт",
+                "explanation": ""
+            },
+            {
+                "question": "Кто из этих бизнесменов не входит в совет директоров Alibaba?",
+                "answers": ["Джек Ма", "Джозеф Цай", "Масаёши Сон", "Илон Маск"],
+                "correctAnswer": "Илон Маск",
+                "explanation": ""
+            },
+            {
+                "question": "Какая страна первой ввела прогрессивную шкалу подоходного налога?",
+                "answers": ["Великобритания", "Германия", "Франция", "США"],
+                "correctAnswer": "Великобритания",
+                "explanation": ""
+            },
+            {
+                "question": "Как называется экономическая теория, основанная на идеях Йозефа Шумпетера?",
+                "answers": ["Теория экономического роста", "Теория деловых циклов", "Теория инноваций", "Теория конкуренции"],
+                "correctAnswer": "Теория инноваций",
+                "explanation": ""
+            },
+            {
+                "question": "Кто из этих политиков не был президентом Всемирного банка?",
+                "answers": ["Роберт Зеллик", "Джим Ён Ким", "Кристин Лагард", "Пол Вулфовиц"],
+                "correctAnswer": "Кристин Лагард",
+                "explanation": ""
+            },
+            {
+                "question": "Какая компания приобрела Skype за $8.5 млрд?",
+                "answers": ["Google", "Microsoft", "eBay", "Yahoo"],
+                "correctAnswer": "Microsoft",
+                "explanation": ""
+            },
+            {
+                "question": "Как называется процесс снижения общего уровня цен в экономике?",
+                "answers": ["Инфляция", "Дефляция", "Стагфляция", "Рецессия"],
+                "correctAnswer": "Дефляция",
+                "explanation": ""
+            },
+            {
+                "question": "Кто из этих бизнесменов не входит в совет директоров Twitter?",
+                "answers": ["Джек Дорси", "Илон Маск", "Эван Уильямс", "Питер Фентон"],
+                "correctAnswer": "Илон Маск",
+                "explanation": ""
+            },
+            {
+                "question": "Какая страна первой ввела налог на добавленную стоимость (НДС)?",
+                "answers": ["Франция", "Германия", "Великобритания", "США"],
+                "correctAnswer": "Франция",
+                "explanation": ""
+            },
+            {
+                "question": "Как называется экономическая теория, основанная на идеях Рональда Коуза?",
+                "answers": ["Теория трансакционных издержек", "Теория общественного выбора", "Теория игр", "Теория контрактов"],
+                "correctAnswer": "Теория трансакционных издержек",
+                "explanation": ""
+            },
+            {
+                "question": "Кто из этих политиков не был главой МВФ?",
+                "answers": ["Доминик Стросс-Кан", "Кристин Лагард", "Роберт Зеллик", "Кристалина Георгиева"],
+                "correctAnswer": "Роберт Зеллик",
+                "explanation": ""
+            },
+            {
+                "question": "Какая компания приобрела YouTube за $1.65 млрд?",
+                "answers": ["Google", "Microsoft", "Yahoo", "Facebook"],
+                "correctAnswer": "Google",
+                "explanation": ""
+            },
+            {
+                "question": "Как называется процесс одновременного роста инфляции и безработицы?",
+                "answers": ["Стагфляция", "Рецессия", "Депрессия", "Дефляция"],
+                "correctAnswer": "Стагфляция",
+                "explanation": ""
+            },
+            {
+                "question": "Кто из этих бизнесменов не входит в совет директоров Netflix?",
+                "answers": ["Рид Хастингс", "Тед Сарандос", "Уоррен Баффет", "Энн Минер"],
+                "correctAnswer": "Уоррен Баффет",
+                "explanation": ""
+            },
+            {
+                "question": "Какая страна первой ввела налог на наследство?",
+                "answers": ["Великобритания", "Франция", "США", "Германия"],
+                "correctAnswer": "Великобритания",
+                "explanation": ""
+            },
+            {
+                "question": "Как называется экономическая теория, основанная на идеях Джеймса Бьюкенена?",
+                "answers": ["Теория общественного выбора", "Теория игр", "Теория контрактов", "Теория аукционов"],
+                "correctAnswer": "Теория общественного выбора",
+                "explanation": ""
+            },
+            {
+                "question": "Кто из этих политиков не был главой ЕЦБ?",
+                "answers": ["Жан-Клод Трише", "Марио Драги", "Кристин Лагард", "Ангела Меркель"],
+                "correctAnswer": "Ангела Меркель",
+                "explanation": ""
+            },
+            {
+                "question": "Какая компания приобрела Instagram за $1 млрд?",
+                "answers": ["Google", "Microsoft", "Facebook", "Twitter"],
+                "correctAnswer": "Facebook",
+                "explanation": ""
+            }
         ]
     }
 ]

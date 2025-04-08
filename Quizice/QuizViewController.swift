@@ -8,7 +8,7 @@
 import UIKit
 import AVKit
 
-final class QuizViewController: UIViewController {
+final class QuizViewController: UIViewController, QuizViewControllerProtocol, ThemeCollectionDelegate {
     
     @IBOutlet weak var welcomeLabel: UILabel!
     @IBOutlet weak var quiziceLabel: UIImageView!
@@ -22,29 +22,66 @@ final class QuizViewController: UIViewController {
     @IBOutlet weak var exitButton: UIButton!
     @IBOutlet weak var feelingLuckyButton: UIButton!
     
+    @IBOutlet weak var themesCollectionView: UICollectionView!
+    
     private let animationsEngine = Animations()
     private var soundPlayer: AVAudioPlayer!
+    
+    let themesCollectionService = ThemesCollectionService()
+    var presenter: QuizPresenterProtocol?
     
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        if QuizFactory.shared.startup1st == true {
+        if QuizFactory.shared.startup1st {
             QuizFactory.shared.loadData()
+        }
+        
+        configurePresenter(QuizPresenter())
+        
+        themesCollectionView.backgroundColor = .clear
+        themesCollectionService.delegate = self
+        themesCollectionView.delegate = themesCollectionService
+        themesCollectionView.dataSource = themesCollectionService
+        themesCollectionView.register(UICollectionViewCell.self, forCellWithReuseIdentifier: "themeCell")
+    }
+    
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+        
+        if QuizFactory.shared.startup1st {
             animateViewsAndPlaySound()
             QuizFactory.shared.startup1st = false
         }
     }
     
+    func configurePresenter(_ presenter: any QuizPresenterProtocol) {
+        self.presenter = presenter
+        self.presenter?.view = self
+    }
+    
+    private func hideAllViews() {
+        let views = [welcomeLabel, quiziceLabel, themesCollectionView, chooseThemeLabel, exitButton, feelingLuckyButton]
+        views.forEach { view in
+            view?.alpha = 0
+        }
+    }
+    
     private func animateViewsAndPlaySound() {
         
-        let views = [welcomeLabel, quiziceLabel, chooseThemeLabel, musicThemeButton, techThemeButton, historyAndCultureThemeButton, politicsAndBusinessThemeButton, exitButton, feelingLuckyButton]
-        let buttons = [musicThemeButton, techThemeButton, historyAndCultureThemeButton, politicsAndBusinessThemeButton]
+        let views = [welcomeLabel, quiziceLabel, themesCollectionView, chooseThemeLabel, exitButton, feelingLuckyButton]
+        let visibleCells = themesCollectionView.visibleCells.sorted { $0.frame.origin.x < $1.frame.origin.x }
         
         views.forEach { view in
             view?.alpha = 0
         }
-        buttons.forEach { button in
-            button?.isEnabled = false
+        
+        visibleCells.forEach { cell in
+            cell.alpha = 0
+        }
+        
+        visibleCells.forEach { cell in
+            cell.isUserInteractionEnabled = false
         }
         
         if let startupSoundURL = Bundle.main.url(forResource: "Quizice Enter", withExtension: "m4a") {
@@ -57,17 +94,20 @@ final class QuizViewController: UIViewController {
             
             self.soundPlayer.play()
             self.quiziceLabel.fadeIn(duration: 2)
+            self.themesCollectionView.alpha = 1
             
             DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
                 
                 self.chooseThemeLabel.fadeIn(duration: 1)
                 self.exitButton.fadeIn(duration: 1)
                 self.feelingLuckyButton.fadeIn(duration: 1)
+               
                 
-                for (index, button) in buttons.enumerated() {
+                
+                for (index, cell) in visibleCells.enumerated() {
                     DispatchQueue.main.asyncAfter(deadline: .now() + Double(index) * 0.15) {
-                        button?.fadeIn(duration: 1) {
-                            button?.isEnabled = true
+                        cell.fadeIn(duration: 1) {
+                            cell.isUserInteractionEnabled = true
                         }
                     }
                 }
@@ -75,48 +115,43 @@ final class QuizViewController: UIViewController {
         }
     }
     
-    @IBAction private func themeButtonTouchedDown(_ sender: UIButton) {
+    func themeButtonTouchedDown(_ sender: UIButton) {
         animationsEngine.animateDownFloat(sender)
     }
     
-    @IBAction private func themeButtonTouchedUpInside(_ sender: UIButton) {
+    func themeButtonTouchedUpInside(_ sender: UIButton, themeName: String) {
         animationsEngine.animateUpFloat(sender)
-        QuizFactory.shared.loadTheme(button: sender)
+        QuizFactory.shared.loadTheme(themeName: themeName)
         showDescriptionViewController()
     }
     
-    @IBAction private func themeButtonTouchedUpOutside(_ sender: UIButton) {
+    func themeButtonTouchedUpOutside(_ sender: UIButton) {
         animationsEngine.animateUpFloat(sender)
     }
     
     private func showDescriptionViewController() {
         let storyboard = UIStoryboard(name: "Main", bundle: nil)
         if let vc = storyboard.instantiateViewController(withIdentifier: "QuizDescriptionID") as? QuizDescriptionViewController {
-            configureDescriptionPresenter(viewController: vc)
+            presenter?.configureDescriptionPresenter(viewController: vc)
             self.present(vc, animated: true)
         }
     }
     
-    func configureDescriptionPresenter(viewController: QuizDescriptionViewController) {
-        viewController.configurePresenter(QuizDescriptionPresenter())
-        viewController.presenter?.themeName = QuizFactory.shared.chosenTheme?.themeName ?? "no themeName"
-        viewController.presenter?.themeDescription = QuizFactory.shared.chosenTheme?.description ?? "no description"
-    }
-    
-    @IBAction private func progressButtonTapped() {
-        let alert = UIAlertController(
-            title: "Ой!",
-            message: "Этой страницы пока нету",
-            preferredStyle: .alert
-        )
-        alert.addAction(UIAlertAction(title: "ОК", style: .default))
-        present(alert, animated: true)
+    @IBAction private func randomButtonTapped() {
+        QuizFactory.shared.loadTheme(themeName: (QuizFactory.shared.themes?.randomElement()!.theme)!)
+        showDescriptionViewController()
     }
     
     @IBAction private func backButtonTapped() {
-        let storyboard = UIStoryboard(name: "Main", bundle: nil)
-        let vc = storyboard.instantiateViewController(withIdentifier: "Navigation")
-        self.present(vc, animated: true)
+        let alert = UIAlertController(
+            title: "Выход",
+            message: "Вы уверены что хотите выйти?",
+            preferredStyle: .alert
+        )
+        alert.addAction(UIAlertAction(title: "Нет", style: .cancel))
+        alert.addAction(UIAlertAction(title: "Да", style: .destructive, handler: { _ in
+            exit(-1)
+        }))
+        present(alert, animated: true)
     }
-    
 }
