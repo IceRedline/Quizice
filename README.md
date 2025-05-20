@@ -1,8 +1,10 @@
-# QuizIce App
+# QuizIce
 
-## (pet-project)
+### Quiz-game
 
-### Pet-project Quiz-game, that includes multiple themes
+A quiz app where you can train answering questions on different topics. 
+
+Flexibile and scalable: it can be easily adapted to any topic, be it school tests, interview preparation simulators or just entertaining quizzes.
 
 This App includes themes:
 - Music
@@ -10,4 +12,4 @@ This App includes themes:
 - Culture
 - Politics
 
-> UIKit, MVP, SwiftData
+> Swift, UIKit, MVP, SwiftData
