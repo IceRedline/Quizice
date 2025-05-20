@@ -1,4 +1,4 @@
-# QuizIce
+# Quizice
 
 ### Quiz-game
 
