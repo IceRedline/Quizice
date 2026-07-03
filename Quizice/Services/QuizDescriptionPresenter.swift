@@ -8,13 +8,12 @@
 import UIKit
 
 final class QuizDescriptionPresenter: NSObject, QuizDescriptionPresenterProtocol {
-    
     private let numberOfQuestionsOptions: [Int] = [5, 10, 15]
-    
+
     var view: QuizDescriptionViewControllerProtocol?
-    
-    var themeName: String = "Default name"
-    var themeDescription: String = "Default description"
+
+    var themeName: String = L10n.Description.defaultThemeName
+    var themeDescription: String = L10n.Description.defaultThemeDescription
     
     func viewDidLoad() {
         getLabelsText()

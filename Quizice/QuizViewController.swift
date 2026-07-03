@@ -75,7 +75,7 @@ final class QuizViewController: UIViewController, QuizViewControllerProtocol, Th
     }
     
     private func configureProgrammaticSubviews(in rootView: UIView) {
-        welcomeLabel = makeLabel(text: "Добро пожаловать в", font: .systemFont(ofSize: 26, weight: .semibold))
+        welcomeLabel = makeLabel(text: L10n.Home.welcome, font: .systemFont(ofSize: 26, weight: .semibold))
         welcomeLabel.accessibilityIdentifier = "homeWelcomeLabel"
         welcomeLabel.adjustsFontForContentSizeCategory = true
         quiziceLabel = UIImageView(image: UIImage(named: "Quizice"))
@@ -83,7 +83,7 @@ final class QuizViewController: UIViewController, QuizViewControllerProtocol, Th
         quiziceLabel.accessibilityLabel = "Quizice"
         quiziceLabel.contentMode = .scaleAspectFit
         quiziceLabel.translatesAutoresizingMaskIntoConstraints = false
-        chooseThemeLabel = makeLabel(text: "Выберите тему", font: .systemFont(ofSize: 24, weight: .semibold))
+        chooseThemeLabel = makeLabel(text: L10n.Home.chooseTheme, font: .systemFont(ofSize: 24, weight: .semibold))
         chooseThemeLabel.accessibilityIdentifier = "homeChooseThemeLabel"
         chooseThemeLabel.adjustsFontForContentSizeCategory = true
         
@@ -92,13 +92,13 @@ final class QuizViewController: UIViewController, QuizViewControllerProtocol, Th
         historyAndCultureThemeButton = makeLegacyThemeButton(named: "История и культура")
         politicsAndBusinessThemeButton = makeLegacyThemeButton(named: "Политика и бизнес")
         
-        exitButton = makeSecondaryActionButton(title: "Выход")
+        exitButton = makeSecondaryActionButton(title: L10n.Common.exit)
         exitButton.accessibilityIdentifier = "homeExitButton"
-        exitButton.accessibilityLabel = "Выход"
+        exitButton.accessibilityLabel = L10n.Common.exit
         exitButton.addTarget(self, action: #selector(backButtonTapped), for: .touchUpInside)
-        feelingLuckyButton = makePrimaryActionButton(title: "Мне повезет")
+        feelingLuckyButton = makePrimaryActionButton(title: L10n.Home.feelingLucky)
         feelingLuckyButton.accessibilityIdentifier = "homeFeelingLuckyButton"
-        feelingLuckyButton.accessibilityLabel = "Мне повезет"
+        feelingLuckyButton.accessibilityLabel = L10n.Home.feelingLucky
         feelingLuckyButton.addTarget(self, action: #selector(randomButtonTapped), for: .touchUpInside)
         
         actionButtonsStackView = UIStackView(arrangedSubviews: [feelingLuckyButton, exitButton])
@@ -114,7 +114,7 @@ final class QuizViewController: UIViewController, QuizViewControllerProtocol, Th
         layout.sectionInset = UIEdgeInsets(top: 0, left: 24, bottom: 24, right: 24)
         themesCollectionView = UICollectionView(frame: .zero, collectionViewLayout: layout)
         themesCollectionView.accessibilityIdentifier = "homeThemesCollectionView"
-        themesCollectionView.accessibilityLabel = "Темы викторины"
+        themesCollectionView.accessibilityLabel = L10n.Home.themesCollectionAccessibilityLabel
         themesCollectionView.alwaysBounceVertical = true
         themesCollectionView.showsVerticalScrollIndicator = false
         themesCollectionView.translatesAutoresizingMaskIntoConstraints = false
@@ -290,7 +290,7 @@ final class QuizViewController: UIViewController, QuizViewControllerProtocol, Th
     
     private func updateThemeAvailabilityMessage() {
         let hasThemes = QuizFactory.shared.themes?.isEmpty == false
-        chooseThemeLabel.text = hasThemes ? "Выберите тему" : "Темы пока недоступны"
+        chooseThemeLabel.text = hasThemes ? L10n.Home.chooseTheme : L10n.Home.unavailableThemes
     }
     
     @objc private func randomButtonTapped() {
@@ -306,12 +306,12 @@ final class QuizViewController: UIViewController, QuizViewControllerProtocol, Th
     
     @objc private func backButtonTapped() {
         let alert = UIAlertController(
-            title: "Выход",
-            message: "Вы уверены что хотите выйти?",
+            title: L10n.Common.exit,
+            message: L10n.Home.exitAlertMessage,
             preferredStyle: .alert
         )
-        alert.addAction(UIAlertAction(title: "Нет", style: .cancel))
-        alert.addAction(UIAlertAction(title: "Да", style: .destructive, handler: { _ in
+        alert.addAction(UIAlertAction(title: L10n.Common.no, style: .cancel))
+        alert.addAction(UIAlertAction(title: L10n.Common.yes, style: .destructive, handler: { _ in
             exit(-1)
         }))
         present(alert, animated: true)

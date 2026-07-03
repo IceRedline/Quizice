@@ -8,7 +8,6 @@
 import UIKit
 
 final class QuizQuestionPresenter: QuizQuestionPresenterProtocol {
-    
     private let quizFactory = QuizFactory.shared
     private let statisticsStore = StatisticsStore()
     
@@ -102,16 +101,16 @@ final class QuizQuestionPresenter: QuizQuestionPresenterProtocol {
             currentQuestion = nil
             stopTimer()
             view?.updateProgress(0)
-            view?.showQuestionUnavailable(themeName: quizFactory.chosenTheme?.themeName, message: "В этой теме пока нет доступных вопросов. Вернитесь назад и выберите другую тему.")
+            view?.showQuestionUnavailable(themeName: quizFactory.chosenTheme?.themeName, message: L10n.Question.unavailableMessage)
             return
         }
         
         let question = chosenThemeQuestionsArray[currentQuestionIndex]
         currentQuestion = question
         
-        let themeName = quizFactory.chosenTheme?.themeName ?? "Викторина"
+        let themeName = quizFactory.chosenTheme?.themeName ?? L10n.Question.fallbackTheme
         let currentAnswers = Array(question.answers.shuffled().prefix(4))
-        let questionNumberText = "Вопрос №\(currentQuestionIndex + 1)"
+        let questionNumberText = L10n.Question.number(currentQuestionIndex + 1)
         
         view?.loadQuestionToView(themeName: themeName, questionText: question.questionText, questionNumberText: questionNumberText, currentAnswers: currentAnswers)
     }
