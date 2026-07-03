@@ -111,9 +111,9 @@ final class QuizDescriptionViewController: UIViewController, QuizDescriptionView
     @objc private func startButtonTapped() {
         presenter?.saveNumberOfQuestions(chosenRow: numberOfQuestionsPickerView.selectedRow(inComponent: 0))
         
-        let storyboard = UIStoryboard(name: "Main", bundle: nil)
-        let vc = storyboard.instantiateViewController(withIdentifier: "QuizQuestionID")
-        self.present(vc, animated: true)
+        let viewController = QuizQuestionViewController()
+        viewController.modalPresentationStyle = .fullScreen
+        present(viewController, animated: true)
     }
     
     @objc private func backButtonTapped() {
