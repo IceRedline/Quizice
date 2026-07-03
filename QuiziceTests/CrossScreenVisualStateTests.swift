@@ -6,6 +6,7 @@ final class CrossScreenVisualStateTests: XCTestCase {
     override func setUp() {
         super.setUp()
         resetQuestionFactoryState()
+        UserDefaults.standard.set(AppDesignStyle.clean.rawValue, forKey: AppAppearanceStore.Keys.designStyle)
         UIView.setAnimationsEnabled(false)
     }
 
@@ -47,10 +48,10 @@ final class CrossScreenVisualStateTests: XCTestCase {
         XCTAssertEqual(descriptionLabel.numberOfLines, 0)
         XCTAssertEqual(pickerView.layer.cornerRadius, 22)
         XCTAssertEqual(startButton.title(for: .normal), "Начать")
-        XCTAssertEqual(startButton.layer.cornerRadius, 22)
+        XCTAssertEqual(startButton.layer.cornerRadius, 24)
         XCTAssertGreaterThan(startButton.layer.shadowOpacity, 0)
         XCTAssertEqual(backButton.title(for: .normal), "Назад")
-        XCTAssertEqual(backButton.layer.cornerRadius, 20)
+        XCTAssertEqual(backButton.layer.cornerRadius, 22)
         XCTAssertEqual(backButton.layer.borderWidth, 1)
     }
 
@@ -102,11 +103,11 @@ final class CrossScreenVisualStateTests: XCTestCase {
         XCTAssertEqual(answerButtons.count, 4)
         XCTAssertTrue(answerButtons.allSatisfy(\.isEnabled))
         XCTAssertTrue(answerButtons.allSatisfy { $0.layer.cornerRadius >= 16 })
-        XCTAssertTrue(answerButtons.allSatisfy { $0.backgroundColor == .defaultButton })
+        XCTAssertTrue(answerButtons.allSatisfy { $0.backgroundColor == currentAppearance().answerDefaultColor })
 
         let timerBar = viewController.view.descendant(withAccessibilityIdentifier: "questionTimerProgressView") as? UIProgressView
-        assertColor(timerBar?.progressTintColor, equals: .defaultButton)
-        assertColor(timerBar?.tintColor, equals: .defaultButton)
+        assertColor(timerBar?.progressTintColor, equals: currentAppearance().accentColor)
+        assertColor(timerBar?.tintColor, equals: currentAppearance().accentColor)
     }
 
     func testQuestionScreenPreservesPresenterDrivenAnswerFeedbackState() throws {
@@ -123,12 +124,18 @@ final class CrossScreenVisualStateTests: XCTestCase {
         correctButton.sendActions(for: .touchUpInside)
 
         XCTAssertTrue(answerButtons.allSatisfy { !$0.isEnabled })
-        XCTAssertEqual(correctButton.backgroundColor, .correctAnswerButton)
-        XCTAssertTrue(wrongButtons.allSatisfy { $0.backgroundColor == .wrongAnswerButton })
+        XCTAssertEqual(correctButton.backgroundColor, currentAppearance().answerDefaultColor)
+        XCTAssertEqual(correctButton.layer.borderWidth, 4)
+        assertColor(UIColor(cgColor: correctButton.layer.borderColor ?? UIColor.clear.cgColor), equals: currentAppearance().correctAnswerColor)
+        XCTAssertTrue(wrongButtons.allSatisfy { $0.backgroundColor == currentAppearance().answerDefaultColor })
+        XCTAssertTrue(wrongButtons.allSatisfy { $0.layer.borderWidth == 4 })
+        for wrongButton in wrongButtons {
+            assertColor(UIColor(cgColor: wrongButton.layer.borderColor ?? UIColor.clear.cgColor), equals: currentAppearance().wrongAnswerColor)
+        }
 
         let timerBar = try XCTUnwrap(viewController.view.descendant(withAccessibilityIdentifier: "questionTimerProgressView") as? UIProgressView)
-        assertColor(timerBar.progressTintColor, equals: .correctAnswerBar)
-        assertColor(timerBar.tintColor, equals: .correctAnswerBar)
+        assertColor(timerBar.progressTintColor, equals: currentAppearance().correctAnswerColor)
+        assertColor(timerBar.tintColor, equals: currentAppearance().correctAnswerColor)
 
         let nextButton = try XCTUnwrap(viewController.view.descendant(withAccessibilityIdentifier: "questionNextButton") as? UIButton)
         XCTAssertTrue(nextButton.isEnabled)
@@ -147,15 +154,49 @@ final class CrossScreenVisualStateTests: XCTestCase {
         XCTAssertTrue(answerButtons.allSatisfy { !$0.isEnabled })
 
         let correctButton = try XCTUnwrap(answerButtons.first { $0.title(for: .normal) == "Правильный ответ" })
-        XCTAssertEqual(correctButton.backgroundColor, .correctAnswerButton)
-        XCTAssertTrue(answerButtons.filter { $0 !== correctButton }.allSatisfy { $0.backgroundColor == .wrongAnswerButton })
+        XCTAssertEqual(correctButton.backgroundColor, currentAppearance().answerDefaultColor)
+        XCTAssertEqual(correctButton.layer.borderWidth, 4)
+        assertColor(UIColor(cgColor: correctButton.layer.borderColor ?? UIColor.clear.cgColor), equals: currentAppearance().correctAnswerColor)
+        let wrongButtons = answerButtons.filter { $0 !== correctButton }
+        XCTAssertTrue(wrongButtons.allSatisfy { $0.backgroundColor == currentAppearance().answerDefaultColor })
+        XCTAssertTrue(wrongButtons.allSatisfy { $0.layer.borderWidth == 4 })
+        for wrongButton in wrongButtons {
+            assertColor(UIColor(cgColor: wrongButton.layer.borderColor ?? UIColor.clear.cgColor), equals: currentAppearance().wrongAnswerColor)
+        }
 
         let timerBar = try XCTUnwrap(viewController.view.descendant(withAccessibilityIdentifier: "questionTimerProgressView") as? UIProgressView)
-        assertColor(timerBar.progressTintColor, equals: .wrongAnswerBar)
-        assertColor(timerBar.tintColor, equals: .wrongAnswerBar)
+        assertColor(timerBar.progressTintColor, equals: currentAppearance().wrongAnswerColor)
+        assertColor(timerBar.tintColor, equals: currentAppearance().wrongAnswerColor)
 
         let nextButton = try XCTUnwrap(viewController.view.descendant(withAccessibilityIdentifier: "questionNextButton") as? UIButton)
         XCTAssertTrue(nextButton.isEnabled)
+    }
+
+    func testRadarQuestionFeedbackKeepsCorrectAnswerBrightAndDimsOtherAnswers() throws {
+        UserDefaults.standard.set(AppDesignStyle.radar.rawValue, forKey: AppAppearanceStore.Keys.designStyle)
+        QuizFactory.shared.chosenTheme = makeQuestionTheme()
+        QuizFactory.shared.questionsCount = 1
+
+        let viewController = QuizQuestionViewController()
+        viewController.loadViewIfNeeded()
+
+        let appearance = currentAppearance()
+        let answerButtons = questionAnswerButtons(in: viewController)
+        let correctButton = try XCTUnwrap(answerButtons.first { $0.title(for: .normal) == "Правильный ответ" })
+        let wrongButtons = answerButtons.filter { $0 !== correctButton }
+
+        correctButton.sendActions(for: .touchUpInside)
+
+        XCTAssertEqual(correctButton.alpha, 1)
+        XCTAssertEqual(correctButton.backgroundColor, appearance.answerDefaultColor)
+        XCTAssertEqual(correctButton.layer.borderWidth, 4)
+        assertColor(UIColor(cgColor: correctButton.layer.borderColor ?? UIColor.clear.cgColor), equals: appearance.accentColor)
+        XCTAssertTrue(wrongButtons.allSatisfy { $0.alpha < 0.5 })
+        XCTAssertTrue(wrongButtons.allSatisfy { $0.backgroundColor == appearance.answerDefaultColor })
+
+        let timerBar = try XCTUnwrap(viewController.view.descendant(withAccessibilityIdentifier: "questionTimerProgressView") as? UIProgressView)
+        assertColor(timerBar.progressTintColor, equals: appearance.accentColor)
+        assertColor(timerBar.tintColor, equals: appearance.accentColor)
     }
 
     func testResultScreenExposesPolishedCurrentAttemptAnchorsAndPrimaryRestartControl() throws {
@@ -189,7 +230,7 @@ final class CrossScreenVisualStateTests: XCTestCase {
         XCTAssertEqual(descriptionLabel.numberOfLines, 0)
         XCTAssertEqual(restartButton.title(for: .normal), "Начать заново")
         XCTAssertTrue(restartButton.isEnabled)
-        XCTAssertEqual(restartButton.layer.cornerRadius, 22)
+        XCTAssertEqual(restartButton.layer.cornerRadius, 24)
         XCTAssertEqual(restartButton.layer.borderWidth, 1)
         XCTAssertGreaterThan(restartButton.layer.shadowOpacity, 0)
         XCTAssertFalse(viewController.view.hasAmbiguousLayout)
@@ -255,7 +296,7 @@ final class CrossScreenVisualStateTests: XCTestCase {
         XCTAssertEqual(cardView.layer.borderWidth, 1)
         XCTAssertGreaterThan(cardView.layer.shadowOpacity, 0)
         XCTAssertEqual(backButton.title(for: .normal), "Назад")
-        XCTAssertEqual(backButton.layer.cornerRadius, 20)
+        XCTAssertEqual(backButton.layer.cornerRadius, 22)
         XCTAssertEqual(backButton.layer.borderWidth, 1)
         XCTAssertFalse(viewController.view.hasAmbiguousLayout)
     }
@@ -357,6 +398,12 @@ final class CrossScreenVisualStateTests: XCTestCase {
         QuizFactory.shared.themes = []
         QuizFactory.shared.chosenTheme = nil
         QuizFactory.shared.questionsCount = 0
+        UserDefaults.standard.removeObject(forKey: AppAppearanceStore.Keys.designStyle)
+        UserDefaults.standard.removeObject(forKey: AppAppearanceStore.Keys.cleanColorScheme)
+    }
+
+    private func currentAppearance() -> AppAppearance {
+        AppAppearanceStore.shared.appearance(compatibleWith: UITraitCollection(userInterfaceStyle: .light))
     }
 
     private func makeQuestionTheme() -> ThemeModel {

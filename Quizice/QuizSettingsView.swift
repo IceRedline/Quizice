@@ -48,25 +48,6 @@ private enum Appearance {
 }
 
 struct QuizSettingsView: View {
-    private enum SettingsTheme: String, CaseIterable, Identifiable {
-        case system
-        case light
-        case dark
-
-        var id: String { rawValue }
-
-        var title: String {
-            switch self {
-            case .system:
-                return L10n.Settings.Theme.system
-            case .light:
-                return L10n.Settings.Theme.light
-            case .dark:
-                return L10n.Settings.Theme.dark
-            }
-        }
-    }
-
     private enum AppIcon: String, CaseIterable, Identifiable {
         case classic
         case dark
@@ -137,40 +118,71 @@ struct QuizSettingsView: View {
     }
 
     @Environment(\.dismiss) private var dismiss
-    @AppStorage("quizice.settings.theme") private var selectedThemeID = SettingsTheme.system.rawValue
+    @Environment(\.colorScheme) private var colorScheme
+    @AppStorage(AppAppearanceStore.Keys.cleanColorScheme) private var selectedThemeID = CleanColorSchemePreference.system.rawValue
+    @AppStorage(AppAppearanceStore.Keys.designStyle) private var selectedDesignStyleID = AppDesignStyle.defaultStyle.rawValue
     @AppStorage("quizice.settings.icon") private var selectedIconID = AppIcon.classic.rawValue
     @State private var activeAlert: SettingsAlert?
 
-    private var selectedTheme: SettingsTheme {
-        SettingsTheme(rawValue: selectedThemeID) ?? .system
+    private var selectedTheme: CleanColorSchemePreference {
+        CleanColorSchemePreference(rawValue: selectedThemeID) ?? .system
+    }
+
+    private var selectedDesignStyle: AppDesignStyle {
+        guard
+            let style = AppDesignStyle(rawValue: selectedDesignStyleID),
+            style.isSelectable
+        else { return AppDesignStyle.defaultStyle }
+        return style
     }
 
     private var selectedIcon: AppIcon {
         AppIcon(rawValue: selectedIconID) ?? .classic
     }
 
+    private var appearance: AppAppearance {
+        let traitCollection = UITraitCollection(userInterfaceStyle: selectedTheme.traitUserInterfaceStyle(fallback: colorScheme))
+        return AppAppearance(
+            designStyle: selectedDesignStyle,
+            cleanColorSchemePreference: selectedTheme,
+            traitCollection: traitCollection
+        )
+    }
+
     var body: some View {
         ZStack {
-            Image("backgroundImage")
-                .resizable()
-                .scaledToFill()
-                .ignoresSafeArea()
-
-            Color.black
-                .opacity(Appearance.backgroundOverlayOpacity)
-                .ignoresSafeArea()
+            settingsBackground
 
             ScrollView {
                 content
             }
         }
-        .tint(.white)
+        .environment(\.appAppearance, appearance)
+        .preferredColorScheme(appearance.swiftUIColorScheme)
+        .tint(Color(uiColor: appearance.screenTextColor))
         .alert(item: $activeAlert) { alert in
             Alert(
                 title: Text(alert.title),
                 message: Text(alert.message),
                 dismissButton: .default(Text(L10n.Settings.alertAction))
             )
+        }
+    }
+
+    @ViewBuilder
+    private var settingsBackground: some View {
+        if let imageName = appearance.backgroundImageName {
+            Image(imageName)
+                .resizable()
+                .scaledToFill()
+                .ignoresSafeArea()
+
+            Color(uiColor: appearance.overlayColor)
+                .opacity(Appearance.backgroundOverlayOpacity)
+                .ignoresSafeArea()
+        } else {
+            Color(uiColor: appearance.backgroundColor)
+                .ignoresSafeArea()
         }
     }
 
@@ -189,25 +201,25 @@ struct QuizSettingsView: View {
     private var settingsTitle: some View {
         HStack(spacing: Layout.titleRowSpacing) {
             Text(L10n.Settings.title)
-                .font(.largeTitle.weight(.bold))
-                .foregroundStyle(.white)
+                .font(appearance.typography.swiftUIFont(size: 38, weight: .bold))
+                .foregroundStyle(Color(uiColor: appearance.screenTextColor))
                 .frame(maxWidth: .infinity, alignment: .leading)
 
             Button {
                 dismiss()
             } label: {
                 Text(L10n.Settings.done)
-                    .font(.subheadline.weight(.semibold))
-                    .foregroundStyle(.white)
+                    .font(appearance.typography.swiftUIFont(size: 15, weight: .semibold))
+                    .foregroundStyle(Color(uiColor: appearance.screenTextColor))
                     .padding(.horizontal, Layout.doneButtonHorizontalInset)
                     .padding(.vertical, Layout.doneButtonVerticalInset)
                     .background(
-                        Color.white.opacity(Appearance.doneButtonBackgroundOpacity),
-                        in: RoundedRectangle(cornerRadius: Appearance.doneButtonCornerRadius, style: .continuous)
+                        Color(uiColor: appearance.iconButton.backgroundColor),
+                        in: RoundedRectangle(cornerRadius: appearance.iconButton.cornerRadius, style: .continuous)
                     )
                     .overlay(
-                        RoundedRectangle(cornerRadius: Appearance.doneButtonCornerRadius, style: .continuous)
-                            .stroke(.white.opacity(Appearance.doneButtonBorderOpacity), lineWidth: 1)
+                        RoundedRectangle(cornerRadius: appearance.iconButton.cornerRadius, style: .continuous)
+                            .stroke(Color(uiColor: appearance.iconButton.borderColor), lineWidth: appearance.iconButton.borderWidth)
                     )
             }
             .buttonStyle(.plain)
@@ -230,24 +242,47 @@ struct QuizSettingsView: View {
     private var appearanceSection: some View {
         SettingsSection(title: L10n.Settings.appearanceSectionTitle) {
             Menu {
-                ForEach(SettingsTheme.allCases) { theme in
-                    Button(theme.title) {
-                        selectedThemeID = theme.rawValue
-                        activeAlert = .restart(theme.title)
+                ForEach(AppDesignStyle.settingsOrder) { designStyle in
+                    Button(designStyle.title) {
+                        selectedDesignStyleID = designStyle.rawValue
+                        AppAppearanceStore.shared.notifyChange()
                     }
+                    .disabled(!designStyle.isSelectable)
                 }
             } label: {
                 SettingsValueRow(
                     systemImage: "paintpalette.fill",
-                    title: L10n.Settings.theme,
-                    subtitle: L10n.Settings.themeSubtitle,
-                    value: selectedTheme.title
+                    title: L10n.Settings.design,
+                    subtitle: L10n.Settings.designSubtitle,
+                    value: selectedDesignStyle.title
                 )
             }
             .buttonStyle(.plain)
 
+            if selectedDesignStyle == .clean {
+                Divider()
+                    .background(Color(uiColor: appearance.card.borderColor))
+
+                Menu {
+                    ForEach(CleanColorSchemePreference.allCases) { theme in
+                        Button(theme.title) {
+                            selectedThemeID = theme.rawValue
+                            AppAppearanceStore.shared.notifyChange()
+                        }
+                    }
+                } label: {
+                    SettingsValueRow(
+                        systemImage: "circle.lefthalf.filled",
+                        title: L10n.Settings.cleanThemeMode,
+                        subtitle: L10n.Settings.cleanThemeModeSubtitle,
+                        value: selectedTheme.title
+                    )
+                }
+                .buttonStyle(.plain)
+            }
+
             Divider()
-                .background(Color.white.opacity(Appearance.dividerOpacity))
+                .background(Color(uiColor: appearance.card.borderColor))
 
             VStack(alignment: .leading, spacing: Layout.rowSpacing) {
                 SettingsRowHeader(
@@ -258,10 +293,12 @@ struct QuizSettingsView: View {
 
                 HStack(spacing: Layout.iconChoicesSpacing) {
                     ForEach(AppIcon.allCases) { icon in
+                        let isEnabled = icon == .classic && selectedIcon != icon
                         IconChoiceButton(
                             title: icon.title,
                             systemImage: icon.systemImage,
-                            isSelected: selectedIcon == icon
+                            isSelected: selectedIcon == icon,
+                            isEnabled: isEnabled
                         ) {
                             selectedIconID = icon.rawValue
                             activeAlert = .restart(icon.title)
@@ -286,6 +323,8 @@ struct QuizSettingsView: View {
 }
 
 private struct SettingsSection<Content: View>: View {
+    @Environment(\.appAppearance) private var appearance
+
     let title: String
     private let content: Content
 
@@ -297,8 +336,8 @@ private struct SettingsSection<Content: View>: View {
     var body: some View {
         VStack(alignment: .leading, spacing: Layout.rowSpacing) {
             Text(title)
-                .font(.footnote.weight(.semibold))
-                .foregroundStyle(.white.opacity(Appearance.sectionTitleOpacity))
+                .font(appearance.typography.swiftUIFont(size: 13, weight: .semibold))
+                .foregroundStyle(Color(uiColor: appearance.secondaryScreenTextColor))
                 .textCase(.uppercase)
                 .padding(.horizontal, Layout.sectionTitleHorizontalInset)
 
@@ -307,18 +346,20 @@ private struct SettingsSection<Content: View>: View {
             }
             .padding(Layout.sectionContentPadding)
             .background(
-                .white.opacity(Appearance.sectionBackgroundOpacity),
-                in: RoundedRectangle(cornerRadius: Appearance.sectionCornerRadius, style: .continuous)
+                Color(uiColor: appearance.card.backgroundColor),
+                in: RoundedRectangle(cornerRadius: appearance.card.cornerRadius, style: .continuous)
             )
             .overlay(
-                RoundedRectangle(cornerRadius: Appearance.sectionCornerRadius, style: .continuous)
-                    .stroke(.white.opacity(Appearance.sectionBorderOpacity), lineWidth: 1)
+                RoundedRectangle(cornerRadius: appearance.card.cornerRadius, style: .continuous)
+                    .stroke(Color(uiColor: appearance.card.borderColor), lineWidth: appearance.card.borderWidth)
             )
         }
     }
 }
 
 private struct SettingsActionRow: View {
+    @Environment(\.appAppearance) private var appearance
+
     let systemImage: String
     let title: String
     let subtitle: String
@@ -332,8 +373,8 @@ private struct SettingsActionRow: View {
                 Spacer(minLength: Layout.rowAccessoryMinimumSpacing)
 
                 Image(systemName: "chevron.right")
-                    .font(.footnote.weight(.bold))
-                    .foregroundStyle(.white.opacity(Appearance.rowChevronOpacity))
+                    .font(appearance.typography.swiftUIFont(size: 13, weight: .bold))
+                    .foregroundStyle(Color(uiColor: appearance.secondarySurfaceTextColor))
             }
             .contentShape(Rectangle())
         }
@@ -342,6 +383,8 @@ private struct SettingsActionRow: View {
 }
 
 private struct SettingsValueRow: View {
+    @Environment(\.appAppearance) private var appearance
+
     let systemImage: String
     let title: String
     let subtitle: String
@@ -355,13 +398,13 @@ private struct SettingsValueRow: View {
 
             HStack(spacing: Layout.rowAccessorySpacing) {
                 Text(value)
-                    .font(.subheadline.weight(.semibold))
-                    .foregroundStyle(.white)
+                    .font(appearance.typography.swiftUIFont(size: 15, weight: .semibold))
+                    .foregroundStyle(Color(uiColor: appearance.surfaceTextColor))
                     .lineLimit(1)
 
                 Image(systemName: "chevron.down")
-                    .font(.caption.weight(.bold))
-                    .foregroundStyle(.white.opacity(Appearance.menuChevronOpacity))
+                    .font(appearance.typography.swiftUIFont(size: 12, weight: .bold))
+                    .foregroundStyle(Color(uiColor: appearance.secondarySurfaceTextColor))
             }
         }
         .contentShape(Rectangle())
@@ -369,6 +412,8 @@ private struct SettingsValueRow: View {
 }
 
 private struct SettingsRowHeader: View {
+    @Environment(\.appAppearance) private var appearance
+
     let systemImage: String
     let title: String
     let subtitle: String
@@ -376,75 +421,97 @@ private struct SettingsRowHeader: View {
     var body: some View {
         HStack(spacing: Layout.rowSpacing) {
             Image(systemName: systemImage)
-                .font(.title3.weight(.semibold))
-                .foregroundStyle(.white)
+                .font(appearance.typography.swiftUIFont(size: 20, weight: .semibold))
+                .foregroundStyle(Color(uiColor: settingsIconColor))
                 .frame(width: Layout.rowIconSize, height: Layout.rowIconSize)
                 .background(
-                    Color.white.opacity(Appearance.rowIconBackgroundOpacity),
-                    in: RoundedRectangle(cornerRadius: Appearance.rowIconCornerRadius, style: .continuous)
+                    Color(uiColor: appearance.row.backgroundColor),
+                    in: RoundedRectangle(cornerRadius: appearance.row.cornerRadius, style: .continuous)
                 )
 
             VStack(alignment: .leading, spacing: Layout.rowTextSpacing) {
                 Text(title)
-                    .font(.headline)
-                    .foregroundStyle(.white)
+                    .font(appearance.typography.swiftUIFont(size: 17, weight: .semibold))
+                    .foregroundStyle(Color(uiColor: appearance.surfaceTextColor))
 
                 Text(subtitle)
-                    .font(.caption)
-                    .foregroundStyle(.white.opacity(Appearance.rowSubtitleOpacity))
+                    .font(appearance.typography.swiftUIFont(size: 13, weight: .regular))
+                    .foregroundStyle(Color(uiColor: appearance.secondarySurfaceTextColor))
                     .lineLimit(2)
             }
         }
     }
+
+    private var settingsIconColor: UIColor {
+        appearance.designStyle == .classic ? .white : appearance.accentColor
+    }
 }
 
 private struct IconChoiceButton: View {
+    @Environment(\.appAppearance) private var appearance
+
     let title: String
     let systemImage: String
     let isSelected: Bool
+    let isEnabled: Bool
     let action: () -> Void
 
     var body: some View {
         Button(action: action) {
             VStack(spacing: Layout.iconChoiceContentSpacing) {
                 Image(systemName: systemImage)
-                    .font(.title2.weight(.semibold))
-                    .foregroundStyle(.white)
+                    .font(appearance.typography.swiftUIFont(size: 22, weight: .semibold))
+                    .foregroundStyle(Color(uiColor: settingsIconColor))
                     .frame(width: Layout.iconChoiceImageSize, height: Layout.iconChoiceImageSize)
                     .background(
-                        RoundedRectangle(cornerRadius: Appearance.iconChoiceCornerRadius, style: .continuous)
+                        RoundedRectangle(cornerRadius: appearance.row.cornerRadius, style: .continuous)
                             .fill(
                                 isSelected
-                                    ? Color.white.opacity(Appearance.selectedIconChoiceBackgroundOpacity)
-                                    : Color.white.opacity(Appearance.defaultIconChoiceBackgroundOpacity)
+                                    ? Color(uiColor: appearance.accentColor).opacity(0.22)
+                                    : Color(uiColor: appearance.row.backgroundColor)
                             )
                     )
                     .overlay(
-                        RoundedRectangle(cornerRadius: Appearance.iconChoiceCornerRadius, style: .continuous)
+                        RoundedRectangle(cornerRadius: appearance.row.cornerRadius, style: .continuous)
                             .stroke(
                                 isSelected
-                                    ? Color.white.opacity(Appearance.selectedIconChoiceBorderOpacity)
-                                    : Color.white.opacity(Appearance.defaultIconChoiceBorderOpacity),
-                                lineWidth: 1
+                                    ? Color(uiColor: appearance.accentColor)
+                                    : Color(uiColor: appearance.row.borderColor),
+                                lineWidth: appearance.row.borderWidth
                             )
                     )
 
                 Text(title)
-                    .font(.caption.weight(.semibold))
+                    .font(appearance.typography.swiftUIFont(size: 12, weight: .semibold))
                     .foregroundStyle(
-                        .white.opacity(
-                            isSelected
-                                ? Appearance.selectedIconChoiceTextOpacity
-                                : Appearance.defaultIconChoiceTextOpacity
-                        )
+                        Color(uiColor: isSelected ? appearance.surfaceTextColor : appearance.secondarySurfaceTextColor)
                     )
                     .lineLimit(1)
                     .minimumScaleFactor(Layout.iconChoiceTextMinimumScaleFactor)
             }
             .frame(maxWidth: .infinity)
             .contentShape(Rectangle())
+            .opacity(isEnabled ? 1 : 0.38)
         }
         .buttonStyle(.plain)
+        .disabled(!isEnabled)
+    }
+
+    private var settingsIconColor: UIColor {
+        appearance.designStyle == .classic ? .white : appearance.accentColor
+    }
+}
+
+private extension CleanColorSchemePreference {
+    func traitUserInterfaceStyle(fallback colorScheme: ColorScheme) -> UIUserInterfaceStyle {
+        switch self {
+        case .system:
+            return colorScheme == .dark ? .dark : .light
+        case .light:
+            return .light
+        case .dark:
+            return .dark
+        }
     }
 }
 
