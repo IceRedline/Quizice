@@ -80,6 +80,72 @@ final class HomeScreenVisualStateTests: XCTestCase {
         XCTAssertNotNil(statisticsCell.contentView.descendant(withAccessibilityIdentifier: "homeStatisticsCard"))
     }
 
+    func testCollectionServiceUsesTwoColumnThemeCardsAndWideStatisticsCard() {
+        QuizFactory.shared.themes = [makeTheme(name: "Музыка"), makeTheme(name: "Технологии")]
+        let service = ThemesCollectionService()
+        let collectionView = makeCollectionView()
+        let layout = collectionView.collectionViewLayout
+
+        let themeSize = service.collectionView(collectionView, layout: layout, sizeForItemAt: IndexPath(item: 0, section: 0))
+        let statisticsSize = service.collectionView(collectionView, layout: layout, sizeForItemAt: IndexPath(item: 2, section: 0))
+        let inset = service.collectionView(collectionView, layout: layout, insetForSectionAt: 0)
+        let lineSpacing = service.collectionView(collectionView, layout: layout, minimumLineSpacingForSectionAt: 0)
+        let interitemSpacing = service.collectionView(collectionView, layout: layout, minimumInteritemSpacingForSectionAt: 0)
+
+        XCTAssertEqual(themeSize.width, 163)
+        XCTAssertEqual(themeSize.height, 163)
+        XCTAssertEqual(statisticsSize.width, 342)
+        XCTAssertEqual(statisticsSize.height, 112)
+        XCTAssertEqual(inset.left, 24)
+        XCTAssertEqual(inset.right, 24)
+        XCTAssertEqual(inset.bottom, 32)
+        XCTAssertEqual(lineSpacing, 16)
+        XCTAssertEqual(interitemSpacing, 16)
+    }
+
+    func testCollectionServiceAppliesPolishedCardStylingWithoutChangingIdentifiers() {
+        QuizFactory.shared.themes = [makeTheme(name: "Музыка")]
+        let service = ThemesCollectionService()
+        let collectionView = makeCollectionView()
+
+        let themeCell = service.collectionView(collectionView, cellForItemAt: IndexPath(item: 0, section: 0))
+        let statisticsCell = service.collectionView(collectionView, cellForItemAt: IndexPath(item: 1, section: 0))
+        let themeButton = themeCell.contentView.descendant(withAccessibilityIdentifier: "Музыка") as? UIButton
+        let statisticsButton = statisticsCell.contentView.descendant(withAccessibilityIdentifier: "homeStatisticsCard") as? UIButton
+
+        XCTAssertEqual(themeButton?.accessibilityLabel, "Музыка theme card")
+        XCTAssertEqual(themeButton?.layer.cornerRadius, 28)
+        XCTAssertEqual(themeButton?.layer.borderWidth, 1)
+        XCTAssertTrue(themeButton?.clipsToBounds ?? false)
+        XCTAssertGreaterThan(themeCell.layer.shadowOpacity, 0)
+        XCTAssertEqual(statisticsButton?.accessibilityLabel, "Общая статистика")
+        XCTAssertEqual(statisticsButton?.layer.cornerRadius, 30)
+        XCTAssertEqual(statisticsButton?.layer.borderWidth, 1)
+        XCTAssertTrue(statisticsButton?.clipsToBounds ?? false)
+        XCTAssertGreaterThan(statisticsCell.layer.shadowOpacity, 0)
+    }
+
+    func testCollectionServiceKeepsSelectionContractsForThemeStatisticsAndUnknownButtons() {
+        QuizFactory.shared.themes = [makeTheme(name: "Музыка")]
+        let service = ThemesCollectionService()
+        let delegate = ThemeCollectionDelegateSpy()
+        service.delegate = delegate
+
+        let themeButton = UIButton(type: .custom)
+        themeButton.accessibilityIdentifier = "Музыка"
+        let unknownButton = UIButton(type: .custom)
+        unknownButton.accessibilityIdentifier = "Неизвестная тема"
+        let statisticsButton = UIButton(type: .system)
+        statisticsButton.accessibilityIdentifier = "homeStatisticsCard"
+
+        service.buttonTouchedUpInside(themeButton)
+        service.buttonTouchedUpInside(unknownButton)
+        service.statisticsButtonTouchedUpInside(statisticsButton)
+
+        XCTAssertEqual(delegate.selectedThemeNames, ["Музыка"])
+        XCTAssertEqual(delegate.statisticsTapCount, 1)
+    }
+
     func testCollectionServiceKeepsStatisticsCardSafeWhenThemesAreEmpty() {
         QuizFactory.shared.themes = []
         let service = ThemesCollectionService()
@@ -108,6 +174,23 @@ final class HomeScreenVisualStateTests: XCTestCase {
         QuizFactory.shared.chosenTheme = nil
         QuizFactory.shared.questionsCount = 5
         QuizFactory.shared.startup1st = false
+    }
+}
+
+private final class ThemeCollectionDelegateSpy: ThemeCollectionDelegate {
+    private(set) var selectedThemeNames: [String] = []
+    private(set) var statisticsTapCount = 0
+
+    func themeButtonTouchedDown(_ sender: UIButton) {}
+
+    func themeButtonTouchedUpInside(_ sender: UIButton, themeName: String) {
+        selectedThemeNames.append(themeName)
+    }
+
+    func themeButtonTouchedUpOutside(_ sender: UIButton) {}
+
+    func statisticsButtonTouchedUpInside(_ sender: UIButton) {
+        statisticsTapCount += 1
     }
 }
 
