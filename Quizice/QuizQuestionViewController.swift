@@ -186,7 +186,8 @@ final class QuizQuestionViewController: UIViewController, QuizQuestionViewContro
     private func colorAndDisableButtons() {
         questionButtons?.forEach() { button in
             button.isEnabled = false
-            if presenter!.checkAnswerButtonTitle(selectedAnswer: button) {
+            guard let presenter else { return }
+            if presenter.checkAnswerButtonTitle(selectedAnswer: button) {
                 button.setTitleColor(.white, for: .disabled)
                 animationsEngine.animateBackgroundColor(button, color: UIColor.correctAnswerButton.cgColor, duration: animationsDuration)
             } else {
@@ -208,18 +209,37 @@ final class QuizQuestionViewController: UIViewController, QuizQuestionViewContro
     func loadQuestionToView(themeName: String, questionText: String, questionNumberText: String, currentAnswers: [String]) {
         resetAllColors()
         
-        timerBar.progress = Float(presenter!.currentProgress)
+        timerBar.progress = presenter?.currentProgress ?? 0
         
         self.themeNameLabel.text = themeName
         self.questionLabel.text = questionText
         
-        for i in 0...3 {
-            questionButtons?[i].setTitle(currentAnswers[i], for: .normal)
+        let buttons = questionButtons ?? []
+        for (index, button) in buttons.enumerated() {
+            let answerTitle = currentAnswers.indices.contains(index) ? currentAnswers[index] : "Недоступно"
+            button.setTitle(answerTitle, for: .normal)
+            button.isEnabled = currentAnswers.indices.contains(index)
         }
         
         questionNumberLabel.text = questionNumberText
         nextButton.isEnabled = false
         presenter?.startTimer()
+    }
+    
+    func showQuestionUnavailable(themeName: String?, message: String) {
+        questionButtons = [answer1Button, answer2Button, answer3Button, answer4Button]
+        themeNameLabel.text = themeName ?? "Викторина"
+        questionNumberLabel.text = "Вопросы недоступны"
+        questionLabel.text = message
+        timerBar.progress = 0
+        timerBar.tintColor = .systemBlue
+        questionButtons?.forEach { button in
+            button.setTitle("—", for: .normal)
+            button.backgroundColor = .defaultButton
+            button.setTitleColor(.gray, for: .disabled)
+            button.isEnabled = false
+        }
+        nextButton.isEnabled = false
     }
     
     func correctAnswerTapped(isTrue: Bool) {
@@ -252,6 +272,8 @@ final class QuizQuestionViewController: UIViewController, QuizQuestionViewContro
     // MARK: - IBAction Methods
     
     @IBAction func answerChosen(_ sender: UIButton) {
+        guard sender.isEnabled else { return }
+        
         hapticFeedback.prepare()
         resetSoundPlayers()
         colorAndDisableButtons()
