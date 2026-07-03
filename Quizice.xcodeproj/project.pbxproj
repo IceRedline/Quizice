@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		99B400182E20000100B40001 /* CrossScreenVisualStateTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99B400192E20000100B40001 /* CrossScreenVisualStateTests.swift */; };
 		99B400162E20000100B40001 /* HomeScreenVisualStateTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99B400172E20000100B40001 /* HomeScreenVisualStateTests.swift */; };
 		99B400142E20000100B40001 /* QuizQuestionPresenterFailureStateTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99B400152E20000100B40001 /* QuizQuestionPresenterFailureStateTests.swift */; };
 		99B400102E20000100B40001 /* StatisticsSummaryTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99B400112E20000100B40001 /* StatisticsSummaryTests.swift */; };
@@ -60,6 +61,7 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		99B400192E20000100B40001 /* CrossScreenVisualStateTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CrossScreenVisualStateTests.swift; sourceTree = "<group>"; };
 		99B400172E20000100B40001 /* HomeScreenVisualStateTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeScreenVisualStateTests.swift; sourceTree = "<group>"; };
 		99B400152E20000100B40001 /* QuizQuestionPresenterFailureStateTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuizQuestionPresenterFailureStateTests.swift; sourceTree = "<group>"; };
 		99B400112E20000100B40001 /* StatisticsSummaryTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatisticsSummaryTests.swift; sourceTree = "<group>"; };
@@ -216,6 +218,7 @@
 				99B400132E20000100B40001 /* StatisticsStoreTests.swift */,
 				99B400152E20000100B40001 /* QuizQuestionPresenterFailureStateTests.swift */,
 				99B400172E20000100B40001 /* HomeScreenVisualStateTests.swift */,
+				99B400192E20000100B40001 /* CrossScreenVisualStateTests.swift */,
 			);
 			path = QuiziceTests;
 			sourceTree = "<group>";
@@ -334,6 +337,7 @@
 				99B400122E20000100B40001 /* StatisticsStoreTests.swift in Sources */,
 				99B400142E20000100B40001 /* QuizQuestionPresenterFailureStateTests.swift in Sources */,
 				99B400162E20000100B40001 /* HomeScreenVisualStateTests.swift in Sources */,
+				99B400182E20000100B40001 /* CrossScreenVisualStateTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

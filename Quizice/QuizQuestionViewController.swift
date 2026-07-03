@@ -15,12 +15,16 @@ final class QuizQuestionViewController: UIViewController, QuizQuestionViewContro
     private var themeNameLabel: UILabel!
     private var questionNumberLabel: UILabel!
     private var questionLabel: UILabel!
+    private var questionCardView: UIView!
+    private var timerContainerView: UIView!
     private var timerBar: UIProgressView!
+    private var answersStackView: UIStackView!
     private var answer1Button: UIButton!
     private var answer2Button: UIButton!
     private var answer3Button: UIButton!
     private var answer4Button: UIButton!
     private var nextButton: UIButton!
+    private var backButton: UIButton!
     
     // MARK: - Properties
     
@@ -38,6 +42,7 @@ final class QuizQuestionViewController: UIViewController, QuizQuestionViewContro
     override func loadView() {
         let rootView = UIView()
         rootView.backgroundColor = UIColor(patternImage: UIImage(named: "backgroundImage") ?? UIImage())
+        rootView.accessibilityIdentifier = "questionRootView"
         view = rootView
         configureProgrammaticSubviews(in: rootView)
     }
@@ -82,69 +87,110 @@ final class QuizQuestionViewController: UIViewController, QuizQuestionViewContro
     
     private func configureProgrammaticSubviews(in rootView: UIView) {
         themeNameLabel = makeLabel(font: .systemFont(ofSize: 24, weight: .semibold))
+        themeNameLabel.accessibilityIdentifier = "questionThemeLabel"
+        
         questionNumberLabel = makeLabel(font: .systemFont(ofSize: 18, weight: .medium))
+        questionNumberLabel.accessibilityIdentifier = "questionNumberLabel"
+        
+        questionCardView = UIView()
+        questionCardView.accessibilityIdentifier = "questionCardView"
+        questionCardView.backgroundColor = UIColor.black.withAlphaComponent(0.26)
+        questionCardView.layer.cornerRadius = 28
+        questionCardView.layer.borderWidth = 1
+        questionCardView.layer.borderColor = UIColor.white.withAlphaComponent(0.18).cgColor
+        questionCardView.layer.shadowColor = UIColor.black.cgColor
+        questionCardView.layer.shadowOpacity = 0.22
+        questionCardView.layer.shadowRadius = 16
+        questionCardView.layer.shadowOffset = CGSize(width: 0, height: 10)
+        questionCardView.translatesAutoresizingMaskIntoConstraints = false
+        
         questionLabel = makeLabel(font: .systemFont(ofSize: 26, weight: .bold))
+        questionLabel.accessibilityIdentifier = "questionTextLabel"
         questionLabel.numberOfLines = 0
         
+        timerContainerView = UIView()
+        timerContainerView.accessibilityIdentifier = "questionTimerContainerView"
+        timerContainerView.backgroundColor = UIColor.white.withAlphaComponent(0.14)
+        timerContainerView.layer.cornerRadius = 8
+        timerContainerView.translatesAutoresizingMaskIntoConstraints = false
+        
         timerBar = UIProgressView(progressViewStyle: .default)
+        timerBar.accessibilityIdentifier = "questionTimerProgressView"
         timerBar.translatesAutoresizingMaskIntoConstraints = false
         timerBar.progressTintColor = .systemBlue
         timerBar.trackTintColor = UIColor.white.withAlphaComponent(0.25)
+        timerBar.layer.cornerRadius = 4
+        timerBar.clipsToBounds = true
         
-        answer1Button = makeAnswerButton()
-        answer2Button = makeAnswerButton()
-        answer3Button = makeAnswerButton()
-        answer4Button = makeAnswerButton()
+        answer1Button = makeAnswerButton(accessibilityIdentifier: "questionAnswerButton1")
+        answer2Button = makeAnswerButton(accessibilityIdentifier: "questionAnswerButton2")
+        answer3Button = makeAnswerButton(accessibilityIdentifier: "questionAnswerButton3")
+        answer4Button = makeAnswerButton(accessibilityIdentifier: "questionAnswerButton4")
         [answer1Button, answer2Button, answer3Button, answer4Button].forEach { button in
             button.addTarget(self, action: #selector(answerChosen(_:)), for: .touchUpInside)
         }
+        questionButtons = [answer1Button, answer2Button, answer3Button, answer4Button]
         
-        nextButton = makeActionButton(title: "Далее")
-        nextButton.addTarget(self, action: #selector(nextButtonTapped), for: .touchUpInside)
-        
-        let backButton = makeActionButton(title: "Назад")
-        backButton.addTarget(self, action: #selector(backButtonTapped), for: .touchUpInside)
-        
-        let answersStackView = UIStackView(arrangedSubviews: [answer1Button, answer2Button, answer3Button, answer4Button])
+        answersStackView = UIStackView(arrangedSubviews: [answer1Button, answer2Button, answer3Button, answer4Button])
+        answersStackView.accessibilityIdentifier = "questionAnswersStackView"
         answersStackView.axis = .vertical
         answersStackView.spacing = 14
         answersStackView.distribution = .fillEqually
         answersStackView.translatesAutoresizingMaskIntoConstraints = false
         
-        [themeNameLabel, questionNumberLabel, timerBar, questionLabel, answersStackView, nextButton, backButton].forEach(rootView.addSubview)
+        nextButton = makeActionButton(title: "Далее", accessibilityIdentifier: "questionNextButton", isPrimary: true)
+        nextButton.addTarget(self, action: #selector(nextButtonTapped), for: .touchUpInside)
+        
+        backButton = makeActionButton(title: "Назад", accessibilityIdentifier: "questionBackButton", isPrimary: false)
+        backButton.addTarget(self, action: #selector(backButtonTapped), for: .touchUpInside)
+        
+        [themeNameLabel, questionNumberLabel, questionCardView, nextButton, backButton].forEach(rootView.addSubview)
+        [timerContainerView, questionLabel, answersStackView].forEach(questionCardView.addSubview)
+        timerContainerView.addSubview(timerBar)
         
         NSLayoutConstraint.activate([
-            themeNameLabel.topAnchor.constraint(equalTo: rootView.safeAreaLayoutGuide.topAnchor, constant: 28),
+            themeNameLabel.topAnchor.constraint(equalTo: rootView.safeAreaLayoutGuide.topAnchor, constant: 24),
             themeNameLabel.leadingAnchor.constraint(equalTo: rootView.leadingAnchor, constant: 24),
             themeNameLabel.trailingAnchor.constraint(equalTo: rootView.trailingAnchor, constant: -24),
             
-            questionNumberLabel.topAnchor.constraint(equalTo: themeNameLabel.bottomAnchor, constant: 12),
+            questionNumberLabel.topAnchor.constraint(equalTo: themeNameLabel.bottomAnchor, constant: 10),
             questionNumberLabel.leadingAnchor.constraint(equalTo: rootView.leadingAnchor, constant: 24),
             questionNumberLabel.trailingAnchor.constraint(equalTo: rootView.trailingAnchor, constant: -24),
             
-            timerBar.topAnchor.constraint(equalTo: questionNumberLabel.bottomAnchor, constant: 18),
-            timerBar.leadingAnchor.constraint(equalTo: rootView.leadingAnchor, constant: 32),
-            timerBar.trailingAnchor.constraint(equalTo: rootView.trailingAnchor, constant: -32),
+            questionCardView.topAnchor.constraint(equalTo: questionNumberLabel.bottomAnchor, constant: 18),
+            questionCardView.leadingAnchor.constraint(equalTo: rootView.leadingAnchor, constant: 20),
+            questionCardView.trailingAnchor.constraint(equalTo: rootView.trailingAnchor, constant: -20),
             
-            questionLabel.topAnchor.constraint(equalTo: timerBar.bottomAnchor, constant: 36),
-            questionLabel.leadingAnchor.constraint(equalTo: rootView.leadingAnchor, constant: 28),
-            questionLabel.trailingAnchor.constraint(equalTo: rootView.trailingAnchor, constant: -28),
+            timerContainerView.topAnchor.constraint(equalTo: questionCardView.topAnchor, constant: 22),
+            timerContainerView.leadingAnchor.constraint(equalTo: questionCardView.leadingAnchor, constant: 22),
+            timerContainerView.trailingAnchor.constraint(equalTo: questionCardView.trailingAnchor, constant: -22),
+            timerContainerView.heightAnchor.constraint(equalToConstant: 14),
             
-            answersStackView.topAnchor.constraint(greaterThanOrEqualTo: questionLabel.bottomAnchor, constant: 32),
-            answersStackView.leadingAnchor.constraint(equalTo: rootView.leadingAnchor, constant: 24),
-            answersStackView.trailingAnchor.constraint(equalTo: rootView.trailingAnchor, constant: -24),
-            answersStackView.heightAnchor.constraint(equalToConstant: 256),
+            timerBar.centerYAnchor.constraint(equalTo: timerContainerView.centerYAnchor),
+            timerBar.leadingAnchor.constraint(equalTo: timerContainerView.leadingAnchor, constant: 4),
+            timerBar.trailingAnchor.constraint(equalTo: timerContainerView.trailingAnchor, constant: -4),
+            timerBar.heightAnchor.constraint(equalToConstant: 8),
             
-            nextButton.topAnchor.constraint(equalTo: answersStackView.bottomAnchor, constant: 24),
+            questionLabel.topAnchor.constraint(equalTo: timerContainerView.bottomAnchor, constant: 24),
+            questionLabel.leadingAnchor.constraint(equalTo: questionCardView.leadingAnchor, constant: 22),
+            questionLabel.trailingAnchor.constraint(equalTo: questionCardView.trailingAnchor, constant: -22),
+            
+            answersStackView.topAnchor.constraint(greaterThanOrEqualTo: questionLabel.bottomAnchor, constant: 28),
+            answersStackView.leadingAnchor.constraint(equalTo: questionCardView.leadingAnchor, constant: 18),
+            answersStackView.trailingAnchor.constraint(equalTo: questionCardView.trailingAnchor, constant: -18),
+            answersStackView.heightAnchor.constraint(equalToConstant: 248),
+            answersStackView.bottomAnchor.constraint(equalTo: questionCardView.bottomAnchor, constant: -20),
+            
+            nextButton.topAnchor.constraint(equalTo: questionCardView.bottomAnchor, constant: 22),
             nextButton.centerXAnchor.constraint(equalTo: rootView.centerXAnchor),
-            nextButton.widthAnchor.constraint(equalToConstant: 220),
-            nextButton.heightAnchor.constraint(equalToConstant: 50),
+            nextButton.widthAnchor.constraint(equalToConstant: 238),
+            nextButton.heightAnchor.constraint(equalToConstant: 54),
             
             backButton.topAnchor.constraint(equalTo: nextButton.bottomAnchor, constant: 12),
             backButton.centerXAnchor.constraint(equalTo: rootView.centerXAnchor),
-            backButton.widthAnchor.constraint(equalToConstant: 220),
+            backButton.widthAnchor.constraint(equalToConstant: 238),
             backButton.heightAnchor.constraint(equalToConstant: 50),
-            backButton.bottomAnchor.constraint(lessThanOrEqualTo: rootView.safeAreaLayoutGuide.bottomAnchor, constant: -24)
+            backButton.bottomAnchor.constraint(lessThanOrEqualTo: rootView.safeAreaLayoutGuide.bottomAnchor, constant: -22)
         ])
     }
     
@@ -157,28 +203,38 @@ final class QuizQuestionViewController: UIViewController, QuizQuestionViewContro
         return label
     }
     
-    private func makeAnswerButton() -> UIButton {
+    private func makeAnswerButton(accessibilityIdentifier: String) -> UIButton {
         let button = UIButton(type: .system)
+        button.accessibilityIdentifier = accessibilityIdentifier
         button.setTitleColor(.white, for: .normal)
         button.setTitleColor(.gray, for: .disabled)
         button.titleLabel?.font = .systemFont(ofSize: 18, weight: .semibold)
         button.titleLabel?.numberOfLines = 2
         button.titleLabel?.textAlignment = .center
         button.backgroundColor = .defaultButton
-        button.layer.cornerRadius = 16
+        button.layer.cornerRadius = 18
+        button.layer.borderWidth = 1
+        button.layer.borderColor = UIColor.white.withAlphaComponent(0.2).cgColor
+        button.clipsToBounds = true
         button.translatesAutoresizingMaskIntoConstraints = false
         return button
     }
     
-    private func makeActionButton(title: String) -> UIButton {
+    private func makeActionButton(title: String, accessibilityIdentifier: String, isPrimary: Bool) -> UIButton {
         let button = UIButton(type: .system)
+        button.accessibilityIdentifier = accessibilityIdentifier
         button.setTitle(title, for: .normal)
         button.setTitleColor(.white, for: .normal)
+        button.setTitleColor(UIColor.white.withAlphaComponent(0.45), for: .disabled)
         button.titleLabel?.font = .systemFont(ofSize: 20, weight: .semibold)
-        button.backgroundColor = UIColor.white.withAlphaComponent(0.16)
-        button.layer.cornerRadius = 18
+        button.backgroundColor = isPrimary ? UIColor.white.withAlphaComponent(0.22) : UIColor.white.withAlphaComponent(0.12)
+        button.layer.cornerRadius = isPrimary ? 22 : 20
         button.layer.borderWidth = 1
-        button.layer.borderColor = UIColor.white.withAlphaComponent(0.4).cgColor
+        button.layer.borderColor = UIColor.white.withAlphaComponent(isPrimary ? 0.5 : 0.34).cgColor
+        button.layer.shadowColor = UIColor.black.cgColor
+        button.layer.shadowOpacity = isPrimary ? 0.2 : 0
+        button.layer.shadowRadius = 10
+        button.layer.shadowOffset = CGSize(width: 0, height: 6)
         button.translatesAutoresizingMaskIntoConstraints = false
         return button
     }
@@ -189,8 +245,10 @@ final class QuizQuestionViewController: UIViewController, QuizQuestionViewContro
             guard let presenter else { return }
             if presenter.checkAnswerButtonTitle(selectedAnswer: button) {
                 button.setTitleColor(.white, for: .disabled)
+                button.backgroundColor = .correctAnswerButton
                 animationsEngine.animateBackgroundColor(button, color: UIColor.correctAnswerButton.cgColor, duration: animationsDuration)
             } else {
+                button.backgroundColor = .wrongAnswerButton
                 animationsEngine.animateBackgroundColor(button, color: UIColor.wrongAnswerButton.cgColor, duration: animationsDuration)
             }
         }
