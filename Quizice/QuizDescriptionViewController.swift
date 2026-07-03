@@ -7,9 +7,6 @@ final class QuizDescriptionViewController: UIViewController, QuizDescriptionView
     private enum Content {
         static let backgroundImageName = "backgroundImage"
         static let pickerTextColorKey = "textColor"
-        static var pickerCaptionText: String { L10n.Description.questionCount }
-        static var startButtonTitle: String { L10n.Common.start }
-        static var backButtonTitle: String { L10n.Common.back }
     }
     
     private enum AccessibilityID {
@@ -207,7 +204,7 @@ final class QuizDescriptionViewController: UIViewController, QuizDescriptionView
         themeDescriptionLabel.textColor = UIColor.white.withAlphaComponent(Appearance.descriptionTextAlpha)
         
         pickerCaptionLabel = makeLabel(font: .systemFont(ofSize: Typography.pickerCaptionFontSize, weight: .semibold), accessibilityIdentifier: AccessibilityID.pickerCaptionLabel)
-        pickerCaptionLabel.text = Content.pickerCaptionText
+        pickerCaptionLabel.text = L10n.Description.questionCount
         pickerCaptionLabel.textColor = UIColor.white.withAlphaComponent(Appearance.pickerCaptionTextAlpha)
     }
     
@@ -222,10 +219,10 @@ final class QuizDescriptionViewController: UIViewController, QuizDescriptionView
     }
     
     private func configureButtons() {
-        startButton = makeActionButton(title: Content.startButtonTitle, accessibilityIdentifier: AccessibilityID.startButton, style: .primary)
+        startButton = makeActionButton(title: L10n.Common.start, accessibilityIdentifier: AccessibilityID.startButton, style: .primary)
         startButton.addTarget(self, action: #selector(startButtonTapped), for: .touchUpInside)
         
-        backButton = makeActionButton(title: Content.backButtonTitle, accessibilityIdentifier: AccessibilityID.backButton, style: .secondary)
+        backButton = makeActionButton(title: L10n.Common.back, accessibilityIdentifier: AccessibilityID.backButton, style: .secondary)
         backButton.addTarget(self, action: #selector(backButtonTapped), for: .touchUpInside)
     }
     

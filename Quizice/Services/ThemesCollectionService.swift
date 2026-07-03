@@ -3,14 +3,8 @@ import UIKit
 final class ThemesCollectionService: NSObject, UICollectionViewDelegate, UICollectionViewDataSource, UICollectionViewDelegateFlowLayout {
     private enum Content {
         static let themeCellReuseIdentifier = "themeCell"
-        static var feelingLuckyButtonTitle: String { L10n.Home.feelingLucky }
         static let feelingLuckyAccessibilityID = "homeFeelingLuckyButton"
-        static var feelingLuckyAccessibilityHint: String { L10n.Home.feelingLuckyAccessibilityHint }
-        static var statisticsTitle: String { L10n.Statistics.title }
-        static var statisticsDescription: String { L10n.Home.statisticsDescription }
         static let statisticsAccessibilityID = "homeStatisticsCard"
-        static var statisticsAccessibilityLabel: String { L10n.Home.statisticsAccessibilityLabel }
-        static var statisticsAccessibilityHint: String { L10n.Home.statisticsAccessibilityHint }
     }
 
     private enum Layout {
@@ -145,14 +139,14 @@ final class ThemesCollectionService: NSObject, UICollectionViewDelegate, UIColle
     private func configureFeelingLuckyCard(in cell: UICollectionViewCell) {
         let button = UIButton(type: .system)
         button.accessibilityIdentifier = Content.feelingLuckyAccessibilityID
-        button.accessibilityLabel = Content.feelingLuckyButtonTitle
-        button.accessibilityHint = Content.feelingLuckyAccessibilityHint
+        button.accessibilityLabel = L10n.Home.feelingLucky
+        button.accessibilityHint = L10n.Home.feelingLuckyAccessibilityHint
         button.backgroundColor = UIColor.white.withAlphaComponent(Appearance.feelingLuckyButtonBackgroundAlpha)
         button.layer.cornerRadius = Appearance.feelingLuckyButtonCornerRadius
         button.layer.borderWidth = Appearance.buttonBorderWidth
         button.layer.borderColor = UIColor.white.withAlphaComponent(Appearance.feelingLuckyButtonBorderAlpha).cgColor
         button.clipsToBounds = true
-        button.setTitle(Content.feelingLuckyButtonTitle, for: .normal)
+        button.setTitle(L10n.Home.feelingLucky, for: .normal)
         button.setTitleColor(.white, for: .normal)
         button.titleLabel?.font = .systemFont(ofSize: Appearance.luckyFontSize, weight: .semibold)
         button.titleLabel?.adjustsFontForContentSizeCategory = true
@@ -167,8 +161,8 @@ final class ThemesCollectionService: NSObject, UICollectionViewDelegate, UIColle
     private func configureStatisticsCard(in cell: UICollectionViewCell) {
         let button = UIButton(type: .system)
         button.accessibilityIdentifier = Content.statisticsAccessibilityID
-        button.accessibilityLabel = Content.statisticsAccessibilityLabel
-        button.accessibilityHint = Content.statisticsAccessibilityHint
+        button.accessibilityLabel = L10n.Home.statisticsAccessibilityLabel
+        button.accessibilityHint = L10n.Home.statisticsAccessibilityHint
         button.backgroundColor = UIColor.white.withAlphaComponent(Appearance.statisticsCardBackgroundAlpha)
         button.layer.cornerRadius = Appearance.statisticsCardCornerRadius
         button.layer.borderWidth = Appearance.buttonBorderWidth
@@ -180,14 +174,14 @@ final class ThemesCollectionService: NSObject, UICollectionViewDelegate, UIColle
         button.addTarget(self, action: #selector(buttonTouchedUpOutside(_:)), for: .touchUpOutside)
 
         let titleLabel = UILabel()
-        titleLabel.text = Content.statisticsTitle
+        titleLabel.text = L10n.Statistics.title
         titleLabel.textColor = .white
         titleLabel.font = .systemFont(ofSize: Appearance.titleFontSize, weight: .bold)
         titleLabel.textAlignment = .left
         titleLabel.translatesAutoresizingMaskIntoConstraints = false
 
         let descriptionLabel = UILabel()
-        descriptionLabel.text = Content.statisticsDescription
+        descriptionLabel.text = L10n.Home.statisticsDescription
         descriptionLabel.textColor = UIColor.white.withAlphaComponent(0.84)
         descriptionLabel.font = .systemFont(ofSize: Appearance.descriptionFontSize, weight: .semibold)
         descriptionLabel.textAlignment = .left

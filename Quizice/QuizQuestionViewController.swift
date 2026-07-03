@@ -10,13 +10,6 @@ final class QuizQuestionViewController: UIViewController, QuizQuestionViewContro
         static let correctSoundName = "Quizice Correct"
         static let incorrectSoundName = "Quizice Incorrect"
         static let soundExtension = "m4a"
-        static var audioLoadFailureMessage: String { L10n.Question.audioLoadFailure }
-
-        static var nextButtonTitle: String { L10n.Common.next }
-        static var backButtonTitle: String { L10n.Common.back }
-        static var fallbackThemeName: String { L10n.Question.fallbackTheme }
-        static var unavailableQuestionNumberText: String { L10n.Question.unavailableNumber }
-        static var unavailableAnswerTitle: String { L10n.Question.unavailableAnswer }
         static let disabledAnswerPlaceholder = "—"
     }
     
@@ -283,10 +276,10 @@ final class QuizQuestionViewController: UIViewController, QuizQuestionViewContro
     }
     
     private func configureActionButtons() {
-        nextButton = makeActionButton(title: Content.nextButtonTitle, accessibilityIdentifier: AccessibilityID.nextButton, style: .primary)
+        nextButton = makeActionButton(title: L10n.Common.next, accessibilityIdentifier: AccessibilityID.nextButton, style: .primary)
         nextButton.addTarget(self, action: #selector(nextButtonTapped), for: .touchUpInside)
         
-        backButton = makeActionButton(title: Content.backButtonTitle, accessibilityIdentifier: AccessibilityID.backButton, style: .secondary)
+        backButton = makeActionButton(title: L10n.Common.back, accessibilityIdentifier: AccessibilityID.backButton, style: .secondary)
         backButton.addTarget(self, action: #selector(backButtonTapped), for: .touchUpInside)
     }
     
@@ -350,7 +343,7 @@ final class QuizQuestionViewController: UIViewController, QuizQuestionViewContro
             soundOfCorrectAnswerPlayer = try? AVAudioPlayer(contentsOf: correctSoundURL)
             soundOfIncorrectAnswerPlayer = try? AVAudioPlayer(contentsOf: incorrectSoundURL)
         } else {
-            print(Content.audioLoadFailureMessage)
+            print(L10n.Question.audioLoadFailure)
         }
     }
     
@@ -442,14 +435,14 @@ final class QuizQuestionViewController: UIViewController, QuizQuestionViewContro
     private func applyAnswers(_ currentAnswers: [String]) {
         for (index, button) in answerButtons.enumerated() {
             let hasAnswer = currentAnswers.indices.contains(index)
-            button.setTitle(hasAnswer ? currentAnswers[index] : Content.unavailableAnswerTitle, for: .normal)
+            button.setTitle(hasAnswer ? currentAnswers[index] : L10n.Question.unavailableAnswer, for: .normal)
             button.isEnabled = hasAnswer
         }
     }
     
     func showQuestionUnavailable(themeName: String?, message: String) {
-        themeNameLabel.text = themeName ?? Content.fallbackThemeName
-        questionNumberLabel.text = Content.unavailableQuestionNumberText
+        themeNameLabel.text = themeName ?? L10n.Question.fallbackTheme
+        questionNumberLabel.text = L10n.Question.unavailableNumber
         questionLabel.text = message
         timerBar.progress = .zero
         timerBar.tintColor = .systemBlue
