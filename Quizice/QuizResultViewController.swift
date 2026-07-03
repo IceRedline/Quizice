@@ -9,6 +9,8 @@ import UIKit
 
 final class QuizResultViewController: UIViewController, QuizResultViewControllerProtocol {
     
+    private var resultCardView: UIView!
+    private var contentStackView: UIStackView!
     private var resultLabel: UILabel!
     private var resultDescription: UILabel!
     
@@ -19,6 +21,7 @@ final class QuizResultViewController: UIViewController, QuizResultViewController
     override func loadView() {
         let rootView = UIView()
         rootView.backgroundColor = UIColor(patternImage: UIImage(named: "backgroundImage") ?? UIImage())
+        rootView.accessibilityIdentifier = "resultRootView"
         view = rootView
         configureProgrammaticSubviews(in: rootView)
     }
@@ -39,34 +42,61 @@ final class QuizResultViewController: UIViewController, QuizResultViewController
     }
     
     private func configureProgrammaticSubviews(in rootView: UIView) {
-        resultLabel = makeLabel(font: .systemFont(ofSize: 36, weight: .bold))
-        resultDescription = makeLabel(font: .systemFont(ofSize: 22, weight: .regular))
-        resultDescription.numberOfLines = 0
+        resultCardView = UIView()
+        resultCardView.accessibilityIdentifier = "resultCardView"
+        resultCardView.backgroundColor = UIColor.black.withAlphaComponent(0.26)
+        resultCardView.layer.cornerRadius = 30
+        resultCardView.layer.borderWidth = 1
+        resultCardView.layer.borderColor = UIColor.white.withAlphaComponent(0.18).cgColor
+        resultCardView.layer.shadowColor = UIColor.black.cgColor
+        resultCardView.layer.shadowOpacity = 0.22
+        resultCardView.layer.shadowRadius = 16
+        resultCardView.layer.shadowOffset = CGSize(width: 0, height: 10)
+        resultCardView.translatesAutoresizingMaskIntoConstraints = false
         
-        restartButton = makeActionButton(title: "Начать заново")
+        resultLabel = makeLabel(font: .systemFont(ofSize: 38, weight: .bold), accessibilityIdentifier: "resultScoreLabel")
+        resultLabel.numberOfLines = 0
+        resultLabel.adjustsFontSizeToFitWidth = true
+        resultLabel.minimumScaleFactor = 0.82
+        
+        resultDescription = makeLabel(font: .systemFont(ofSize: 21, weight: .regular), accessibilityIdentifier: "resultDescriptionLabel")
+        resultDescription.numberOfLines = 0
+        resultDescription.textColor = UIColor.white.withAlphaComponent(0.9)
+        
+        restartButton = makeActionButton(title: "Начать заново", accessibilityIdentifier: "resultRestartButton")
         restartButton.addTarget(self, action: #selector(backButtonTapped), for: .touchUpInside)
         
-        [resultLabel, resultDescription, restartButton].forEach(rootView.addSubview)
+        contentStackView = UIStackView(arrangedSubviews: [resultLabel, resultDescription, restartButton])
+        contentStackView.accessibilityIdentifier = "resultContentStackView"
+        contentStackView.axis = .vertical
+        contentStackView.alignment = .fill
+        contentStackView.spacing = 22
+        contentStackView.setCustomSpacing(26, after: resultLabel)
+        contentStackView.setCustomSpacing(38, after: resultDescription)
+        contentStackView.translatesAutoresizingMaskIntoConstraints = false
+        
+        rootView.addSubview(resultCardView)
+        resultCardView.addSubview(contentStackView)
         
         NSLayoutConstraint.activate([
-            resultLabel.topAnchor.constraint(equalTo: rootView.safeAreaLayoutGuide.topAnchor, constant: 96),
-            resultLabel.leadingAnchor.constraint(equalTo: rootView.leadingAnchor, constant: 28),
-            resultLabel.trailingAnchor.constraint(equalTo: rootView.trailingAnchor, constant: -28),
+            resultCardView.centerYAnchor.constraint(equalTo: rootView.safeAreaLayoutGuide.centerYAnchor),
+            resultCardView.leadingAnchor.constraint(equalTo: rootView.leadingAnchor, constant: 20),
+            resultCardView.trailingAnchor.constraint(equalTo: rootView.trailingAnchor, constant: -20),
+            resultCardView.topAnchor.constraint(greaterThanOrEqualTo: rootView.safeAreaLayoutGuide.topAnchor, constant: 48),
+            resultCardView.bottomAnchor.constraint(lessThanOrEqualTo: rootView.safeAreaLayoutGuide.bottomAnchor, constant: -48),
             
-            resultDescription.topAnchor.constraint(equalTo: resultLabel.bottomAnchor, constant: 40),
-            resultDescription.leadingAnchor.constraint(equalTo: rootView.leadingAnchor, constant: 32),
-            resultDescription.trailingAnchor.constraint(equalTo: rootView.trailingAnchor, constant: -32),
+            contentStackView.topAnchor.constraint(equalTo: resultCardView.topAnchor, constant: 34),
+            contentStackView.leadingAnchor.constraint(equalTo: resultCardView.leadingAnchor, constant: 24),
+            contentStackView.trailingAnchor.constraint(equalTo: resultCardView.trailingAnchor, constant: -24),
+            contentStackView.bottomAnchor.constraint(equalTo: resultCardView.bottomAnchor, constant: -30),
             
-            restartButton.topAnchor.constraint(greaterThanOrEqualTo: resultDescription.bottomAnchor, constant: 52),
-            restartButton.centerXAnchor.constraint(equalTo: rootView.centerXAnchor),
-            restartButton.widthAnchor.constraint(equalToConstant: 240),
-            restartButton.heightAnchor.constraint(equalToConstant: 54),
-            restartButton.bottomAnchor.constraint(lessThanOrEqualTo: rootView.safeAreaLayoutGuide.bottomAnchor, constant: -48)
+            restartButton.heightAnchor.constraint(equalToConstant: 56)
         ])
     }
     
-    private func makeLabel(font: UIFont) -> UILabel {
+    private func makeLabel(font: UIFont, accessibilityIdentifier: String) -> UILabel {
         let label = UILabel()
+        label.accessibilityIdentifier = accessibilityIdentifier
         label.textColor = .white
         label.font = font
         label.textAlignment = .center
@@ -74,15 +104,22 @@ final class QuizResultViewController: UIViewController, QuizResultViewController
         return label
     }
     
-    private func makeActionButton(title: String) -> UIButton {
+    private func makeActionButton(title: String, accessibilityIdentifier: String) -> UIButton {
         let button = UIButton(type: .system)
+        button.accessibilityIdentifier = accessibilityIdentifier
         button.setTitle(title, for: .normal)
         button.setTitleColor(.white, for: .normal)
+        button.setTitleColor(UIColor.white.withAlphaComponent(0.45), for: .disabled)
         button.titleLabel?.font = .systemFont(ofSize: 20, weight: .semibold)
-        button.backgroundColor = UIColor.white.withAlphaComponent(0.16)
-        button.layer.cornerRadius = 18
+        button.titleLabel?.adjustsFontForContentSizeCategory = true
+        button.backgroundColor = UIColor.white.withAlphaComponent(0.22)
+        button.layer.cornerRadius = 22
         button.layer.borderWidth = 1
-        button.layer.borderColor = UIColor.white.withAlphaComponent(0.4).cgColor
+        button.layer.borderColor = UIColor.white.withAlphaComponent(0.5).cgColor
+        button.layer.shadowColor = UIColor.black.cgColor
+        button.layer.shadowOpacity = 0.2
+        button.layer.shadowRadius = 10
+        button.layer.shadowOffset = CGSize(width: 0, height: 6)
         button.translatesAutoresizingMaskIntoConstraints = false
         return button
     }

@@ -146,6 +146,62 @@ final class CrossScreenVisualStateTests: XCTestCase {
         XCTAssertTrue(nextButton.isEnabled)
     }
 
+    func testResultScreenExposesPolishedCurrentAttemptAnchorsAndPrimaryRestartControl() throws {
+        let viewController = QuizResultViewController()
+        viewController.loadViewIfNeeded()
+        viewController.updateResultLabels(
+            resultText: "Ваш результат: 4/5",
+            descriptionText: "Отличный текущий результат — можно начать новую попытку."
+        )
+        viewController.view.frame = CGRect(x: 0, y: 0, width: 390, height: 844)
+        viewController.view.setNeedsLayout()
+        viewController.view.layoutIfNeeded()
+
+        XCTAssertNotNil(viewController.view.descendant(withAccessibilityIdentifier: "resultRootView"))
+        XCTAssertNotNil(viewController.view.descendant(withAccessibilityIdentifier: "resultCardView"))
+        XCTAssertNotNil(viewController.view.descendant(withAccessibilityIdentifier: "resultScoreLabel"))
+        XCTAssertNotNil(viewController.view.descendant(withAccessibilityIdentifier: "resultDescriptionLabel"))
+        XCTAssertNotNil(viewController.view.descendant(withAccessibilityIdentifier: "resultRestartButton"))
+
+        let cardView = try XCTUnwrap(viewController.view.descendant(withAccessibilityIdentifier: "resultCardView"))
+        let resultLabel = try XCTUnwrap(viewController.view.descendant(withAccessibilityIdentifier: "resultScoreLabel") as? UILabel)
+        let descriptionLabel = try XCTUnwrap(viewController.view.descendant(withAccessibilityIdentifier: "resultDescriptionLabel") as? UILabel)
+        let restartButton = try XCTUnwrap(viewController.view.descendant(withAccessibilityIdentifier: "resultRestartButton") as? UIButton)
+
+        XCTAssertEqual(resultLabel.text, "Ваш результат: 4/5")
+        XCTAssertEqual(descriptionLabel.text, "Отличный текущий результат — можно начать новую попытку.")
+        XCTAssertEqual(cardView.layer.cornerRadius, 30)
+        XCTAssertEqual(cardView.layer.borderWidth, 1)
+        XCTAssertGreaterThan(cardView.layer.shadowOpacity, 0)
+        XCTAssertEqual(resultLabel.numberOfLines, 0)
+        XCTAssertEqual(descriptionLabel.numberOfLines, 0)
+        XCTAssertEqual(restartButton.title(for: .normal), "Начать заново")
+        XCTAssertTrue(restartButton.isEnabled)
+        XCTAssertEqual(restartButton.layer.cornerRadius, 22)
+        XCTAssertEqual(restartButton.layer.borderWidth, 1)
+        XCTAssertGreaterThan(restartButton.layer.shadowOpacity, 0)
+        XCTAssertFalse(viewController.view.hasAmbiguousLayout)
+    }
+
+    func testResultScreenLoadsWithoutStatisticsHistoryAndKeepsRestartActionSafelyInspectible() throws {
+        resetQuestionFactoryState()
+
+        let viewController = QuizResultViewController()
+        viewController.loadViewIfNeeded()
+        viewController.updateResultLabels(resultText: "0/0", descriptionText: "Нет данных текущей попытки")
+
+        let resultLabel = try XCTUnwrap(viewController.view.descendant(withAccessibilityIdentifier: "resultScoreLabel") as? UILabel)
+        let descriptionLabel = try XCTUnwrap(viewController.view.descendant(withAccessibilityIdentifier: "resultDescriptionLabel") as? UILabel)
+        let restartButton = try XCTUnwrap(viewController.view.descendant(withAccessibilityIdentifier: "resultRestartButton") as? UIButton)
+        let registeredActions = restartButton.actions(forTarget: viewController, forControlEvent: .touchUpInside) ?? []
+
+        XCTAssertEqual(resultLabel.text, "0/0")
+        XCTAssertEqual(descriptionLabel.text, "Нет данных текущей попытки")
+        XCTAssertTrue(QuizFactory.shared.themes?.isEmpty ?? true)
+        XCTAssertNil(QuizFactory.shared.chosenTheme)
+        XCTAssertTrue(registeredActions.contains("backButtonTapped"))
+    }
+
     private func questionAnswerButtons(in viewController: QuizQuestionViewController) -> [UIButton] {
         (1...4).compactMap { index in
             viewController.view.descendant(withAccessibilityIdentifier: "questionAnswerButton\(index)") as? UIButton
