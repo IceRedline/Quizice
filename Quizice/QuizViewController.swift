@@ -32,7 +32,11 @@ final class QuizViewController: UIViewController, QuizViewControllerProtocol, Th
     
     override func loadView() {
         let rootView = UIView()
-        rootView.backgroundColor = UIColor(patternImage: UIImage(named: "backgroundImage") ?? UIImage())
+        if let backgroundImage = UIImage(named: "backgroundImage") {
+            rootView.backgroundColor = UIColor(patternImage: backgroundImage)
+        } else {
+            rootView.backgroundColor = .systemBackground
+        }
         view = rootView
         configureProgrammaticSubviews(in: rootView)
     }

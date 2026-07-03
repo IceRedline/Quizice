@@ -14,12 +14,15 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
     func scene(_ scene: UIScene, willConnectTo session: UISceneSession, options connectionOptions: UIScene.ConnectionOptions) {
         guard let windowScene = scene as? UIWindowScene else { return }
 
-        let rootViewController = QuizViewController()
-        let navigationController = UINavigationController(rootViewController: rootViewController)
-        navigationController.setNavigationBarHidden(true, animated: false)
-
         let window = UIWindow(windowScene: windowScene)
-        window.rootViewController = navigationController
+        if ProcessInfo.processInfo.environment["QUIZICE_XCTEST_SMOKE_HOST"] == "1" || NSClassFromString("XCTestCase") != nil {
+            window.rootViewController = UIViewController()
+        } else {
+            let rootViewController = QuizViewController()
+            let navigationController = UINavigationController(rootViewController: rootViewController)
+            navigationController.setNavigationBarHidden(true, animated: false)
+            window.rootViewController = navigationController
+        }
         window.makeKeyAndVisible()
         self.window = window
     }
