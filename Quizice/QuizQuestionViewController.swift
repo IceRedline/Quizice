@@ -76,6 +76,9 @@ final class QuizQuestionViewController: UIViewController, QuizQuestionViewContro
         static let timerContainerCornerRadius: CGFloat = 8
         static let timerTrackAlpha: CGFloat = 0.25
         static let timerBarCornerRadius: CGFloat = 4
+        static let timerActiveColor = UIColor.defaultButton
+        static let timerCorrectColor = UIColor.correctAnswerBar
+        static let timerWrongColor = UIColor.wrongAnswerBar
         
         static let answerDisabledTitleColor = UIColor.gray
         static let answerCornerRadius: CGFloat = 18
@@ -189,6 +192,7 @@ final class QuizQuestionViewController: UIViewController, QuizQuestionViewContro
     
     func showTimeExpired() {
         colorAndDisableButtons()
+        animateTimerBarColor(Appearance.timerWrongColor)
         hapticFeedback.notificationOccurred(.error)
         nextButton.isEnabled = true
     }
@@ -249,7 +253,7 @@ final class QuizQuestionViewController: UIViewController, QuizQuestionViewContro
         timerBar = UIProgressView(progressViewStyle: .default)
         timerBar.accessibilityIdentifier = AccessibilityID.timerProgressView
         timerBar.translatesAutoresizingMaskIntoConstraints = false
-        timerBar.progressTintColor = .systemBlue
+        setTimerBarColor(Appearance.timerActiveColor)
         timerBar.trackTintColor = UIColor.white.withAlphaComponent(Appearance.timerTrackAlpha)
         timerBar.layer.cornerRadius = Appearance.timerBarCornerRadius
         timerBar.clipsToBounds = true
@@ -417,7 +421,7 @@ final class QuizQuestionViewController: UIViewController, QuizQuestionViewContro
             button.setTitleColor(Appearance.answerDisabledTitleColor, for: .disabled)
             button.isEnabled = true
         }
-        timerBar.tintColor = .systemBlue
+        setTimerBarColor(Appearance.timerActiveColor)
     }
     
     func loadQuestionToView(themeName: String, questionText: String, questionNumberText: String, currentAnswers: [String]) {
@@ -445,7 +449,7 @@ final class QuizQuestionViewController: UIViewController, QuizQuestionViewContro
         questionNumberLabel.text = L10n.Question.unavailableNumber
         questionLabel.text = message
         timerBar.progress = .zero
-        timerBar.tintColor = .systemBlue
+        setTimerBarColor(Appearance.timerActiveColor)
         answerButtons.forEach { button in
             button.setTitle(Content.disabledAnswerPlaceholder, for: .normal)
             button.backgroundColor = .defaultButton
@@ -459,12 +463,28 @@ final class QuizQuestionViewController: UIViewController, QuizQuestionViewContro
         if isTrue {
             soundOfCorrectAnswerPlayer?.play()
             hapticFeedback.notificationOccurred(.success)
-            animationsEngine.animateTintColor(timerBar, color: .correctAnswerBar, duration: AnimationTiming.answerFeedbackDuration)
+            animateTimerBarColor(Appearance.timerCorrectColor)
         } else {
             soundOfIncorrectAnswerPlayer?.play()
             hapticFeedback.notificationOccurred(.error)
-            animationsEngine.animateTintColor(timerBar, color: .wrongAnswerBar, duration: AnimationTiming.answerFeedbackDuration)
+            animateTimerBarColor(Appearance.timerWrongColor)
         }
+    }
+
+    private func setTimerBarColor(_ color: UIColor) {
+        timerBar.progressTintColor = color
+        timerBar.tintColor = color
+    }
+
+    private func animateTimerBarColor(_ color: UIColor) {
+        UIView.transition(
+            with: timerBar,
+            duration: AnimationTiming.answerFeedbackDuration,
+            options: [.transitionCrossDissolve, .allowUserInteraction],
+            animations: {
+                self.setTimerBarColor(color)
+            }
+        )
     }
     
     func showResults() {
