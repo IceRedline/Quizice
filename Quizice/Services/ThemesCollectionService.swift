@@ -1,162 +1,231 @@
-//
-//  File.swift
-//  Quizice
-//
-//  Created by Артем Табенский on 08.04.2025.
-//
-
 import UIKit
 
 final class ThemesCollectionService: NSObject, UICollectionViewDelegate, UICollectionViewDataSource, UICollectionViewDelegateFlowLayout {
-    
-    var delegate: ThemeCollectionDelegate?
-    
+    private enum Content {
+        static let themeCellReuseIdentifier = "themeCell"
+        static var feelingLuckyButtonTitle: String { L10n.Home.feelingLucky }
+        static let feelingLuckyAccessibilityID = "homeFeelingLuckyButton"
+        static var feelingLuckyAccessibilityHint: String { L10n.Home.feelingLuckyAccessibilityHint }
+        static var statisticsTitle: String { L10n.Statistics.title }
+        static var statisticsDescription: String { L10n.Home.statisticsDescription }
+        static let statisticsAccessibilityID = "homeStatisticsCard"
+        static var statisticsAccessibilityLabel: String { L10n.Home.statisticsAccessibilityLabel }
+        static var statisticsAccessibilityHint: String { L10n.Home.statisticsAccessibilityHint }
+    }
+
+    private enum Layout {
+        static let sectionInsets = UIEdgeInsets(top: 0, left: 24, bottom: 32, right: 24)
+        static let itemSpacing: CGFloat = 16
+        static let feelingLuckyButtonHeight: CGFloat = 54
+        static let statisticsCardHeight: CGFloat = 112
+        static let cardContentHorizontalInset: CGFloat = 24
+        static let statisticsStackSpacing: CGFloat = 6
+        static let themeImageInset: CGFloat = 18
+        static let cellShadowOffset = CGSize(width: 0, height: 12)
+        static let cellShadowRadius: CGFloat = 22
+    }
+
+    private enum Appearance {
+        static let themeCardBackgroundAlpha: CGFloat = 0.14
+        static let themeCardBorderAlpha: CGFloat = 0.28
+        static let themeCardCornerRadius: CGFloat = 28
+        static let statisticsCardBackgroundAlpha: CGFloat = 0.18
+        static let statisticsCardBorderAlpha: CGFloat = 0.40
+        static let statisticsCardCornerRadius: CGFloat = 30
+        static let feelingLuckyButtonBackgroundAlpha: CGFloat = 0.14
+        static let feelingLuckyButtonBorderAlpha: CGFloat = 0.36
+        static let feelingLuckyButtonCornerRadius: CGFloat = 20
+        static let buttonBorderWidth: CGFloat = 1
+        static let cellShadowOpacity: Float = 0.22
+        static let titleFontSize: CGFloat = 22
+        static let descriptionFontSize: CGFloat = 15
+        static let luckyFontSize: CGFloat = 19
+    }
+
+    weak var delegate: ThemeCollectionDelegate?
+
     private let quizFactory = QuizFactory.shared
-    private let sectionInsets = UIEdgeInsets(top: 0, left: 24, bottom: 32, right: 24)
-    private let itemSpacing: CGFloat = 16
-    private let themeCardCornerRadius: CGFloat = 28
-    private let statisticsCardCornerRadius: CGFloat = 30
-    
-    private var statisticsIndex: Int {
+
+    private var themeCount: Int {
         quizFactory.themes?.count ?? 0
     }
-    
-    func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-        statisticsIndex + 1
+
+    private var feelingLuckyIndex: Int {
+        themeCount
     }
-    
-    // MARK: - UICollectionViewDataSource
-    
+
+    private var statisticsIndex: Int {
+        themeCount + 1
+    }
+
+    func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
+        themeCount + 2
+    }
+
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
-        let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "themeCell", for: indexPath)
-        cell.contentView.subviews.forEach { $0.removeFromSuperview() }
-        cell.contentView.backgroundColor = .clear
-        cell.contentView.clipsToBounds = false
-        cell.backgroundColor = .clear
-        cell.layer.masksToBounds = false
-        cell.layer.shadowColor = UIColor.black.cgColor
-        cell.layer.shadowOffset = CGSize(width: 0, height: 12)
-        cell.layer.shadowRadius = 22
-        cell.layer.shadowOpacity = 0.22
-        
+        let cell = collectionView.dequeueReusableCell(withReuseIdentifier: Content.themeCellReuseIdentifier, for: indexPath)
+        prepare(cell)
+
         if indexPath.item == statisticsIndex {
             configureStatisticsCard(in: cell)
             return cell
         }
-        
+
+        if indexPath.item == feelingLuckyIndex {
+            configureFeelingLuckyCard(in: cell)
+            return cell
+        }
+
         guard let theme = quizFactory.themes?[safe: indexPath.item] else {
             return cell
         }
         configureThemeCard(in: cell, themeName: theme.theme)
         return cell
     }
-    
-    
-    // MARK: - UICollectionViewDelegateFlowLayout
 
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
-        let availableWidth = max(collectionView.bounds.width - sectionInsets.left - sectionInsets.right, 0)
+        let availableWidth = max(collectionView.bounds.width - Layout.sectionInsets.left - Layout.sectionInsets.right, 0)
         if indexPath.item == statisticsIndex {
-            return CGSize(width: availableWidth, height: 112)
+            return CGSize(width: availableWidth, height: Layout.statisticsCardHeight)
         }
-        
-        let twoColumnWidth = floor((availableWidth - itemSpacing) / 2)
+
+        if indexPath.item == feelingLuckyIndex {
+            return CGSize(width: availableWidth, height: Layout.feelingLuckyButtonHeight)
+        }
+
+        let twoColumnWidth = floor((availableWidth - Layout.itemSpacing) / 2)
         return CGSize(width: twoColumnWidth, height: twoColumnWidth)
     }
-    
-    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, minimumLineSpacingForSectionAt section: Int) -> CGFloat { itemSpacing }
-    
-    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, minimumInteritemSpacingForSectionAt section: Int) -> CGFloat { itemSpacing }
-    
-    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, insetForSectionAt section: Int) -> UIEdgeInsets { sectionInsets }
-    
-    // MARK: - Methods
-    
+
+    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, minimumLineSpacingForSectionAt section: Int) -> CGFloat { Layout.itemSpacing }
+
+    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, minimumInteritemSpacingForSectionAt section: Int) -> CGFloat { Layout.itemSpacing }
+
+    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, insetForSectionAt section: Int) -> UIEdgeInsets { Layout.sectionInsets }
+
+    private func prepare(_ cell: UICollectionViewCell) {
+        cell.contentView.subviews.forEach { $0.removeFromSuperview() }
+        cell.contentView.backgroundColor = .clear
+        cell.contentView.clipsToBounds = false
+        cell.backgroundColor = .clear
+        cell.layer.masksToBounds = false
+        cell.layer.shadowColor = UIColor.black.cgColor
+        cell.layer.shadowOffset = Layout.cellShadowOffset
+        cell.layer.shadowRadius = Layout.cellShadowRadius
+        cell.layer.shadowOpacity = Appearance.cellShadowOpacity
+    }
+
     private func configureThemeCard(in cell: UICollectionViewCell, themeName: String) {
         let button = UIButton(type: .custom)
-        
+
         button.addTarget(self, action: #selector(buttonTouchedDown(_:)), for: .touchDown)
         button.addTarget(self, action: #selector(buttonTouchedUpInside(_:)), for: .touchUpInside)
         button.addTarget(self, action: #selector(buttonTouchedUpOutside(_:)), for: .touchUpOutside)
         button.accessibilityIdentifier = themeName
         button.accessibilityLabel = L10n.ThemeCard.accessibilityLabel(themeName: themeName)
         button.accessibilityHint = L10n.ThemeCard.accessibilityHint
-        button.backgroundColor = UIColor.white.withAlphaComponent(0.14)
-        button.layer.cornerRadius = themeCardCornerRadius
-        button.layer.borderWidth = 1
-        button.layer.borderColor = UIColor.white.withAlphaComponent(0.28).cgColor
+        button.backgroundColor = UIColor.white.withAlphaComponent(Appearance.themeCardBackgroundAlpha)
+        button.layer.cornerRadius = Appearance.themeCardCornerRadius
+        button.layer.borderWidth = Appearance.buttonBorderWidth
+        button.layer.borderColor = UIColor.white.withAlphaComponent(Appearance.themeCardBorderAlpha).cgColor
         button.clipsToBounds = true
         button.adjustsImageWhenHighlighted = false
-        button.imageEdgeInsets = UIEdgeInsets(top: 18, left: 18, bottom: 18, right: 18)
+        button.imageEdgeInsets = UIEdgeInsets(
+            top: Layout.themeImageInset,
+            left: Layout.themeImageInset,
+            bottom: Layout.themeImageInset,
+            right: Layout.themeImageInset
+        )
         button.setImage(UIImage(named: themeName), for: .normal)
         button.imageView?.contentMode = .scaleAspectFit
         button.translatesAutoresizingMaskIntoConstraints = false
-        cell.contentView.addSubview(button)
-        
-        NSLayoutConstraint.activate([
-            button.leadingAnchor.constraint(equalTo: cell.contentView.leadingAnchor),
-            button.trailingAnchor.constraint(equalTo: cell.contentView.trailingAnchor),
-            button.topAnchor.constraint(equalTo: cell.contentView.topAnchor),
-            button.bottomAnchor.constraint(equalTo: cell.contentView.bottomAnchor),
-        ])
+        pin(button, to: cell.contentView)
     }
-    
+
+    private func configureFeelingLuckyCard(in cell: UICollectionViewCell) {
+        let button = UIButton(type: .system)
+        button.accessibilityIdentifier = Content.feelingLuckyAccessibilityID
+        button.accessibilityLabel = Content.feelingLuckyButtonTitle
+        button.accessibilityHint = Content.feelingLuckyAccessibilityHint
+        button.backgroundColor = UIColor.white.withAlphaComponent(Appearance.feelingLuckyButtonBackgroundAlpha)
+        button.layer.cornerRadius = Appearance.feelingLuckyButtonCornerRadius
+        button.layer.borderWidth = Appearance.buttonBorderWidth
+        button.layer.borderColor = UIColor.white.withAlphaComponent(Appearance.feelingLuckyButtonBorderAlpha).cgColor
+        button.clipsToBounds = true
+        button.setTitle(Content.feelingLuckyButtonTitle, for: .normal)
+        button.setTitleColor(.white, for: .normal)
+        button.titleLabel?.font = .systemFont(ofSize: Appearance.luckyFontSize, weight: .semibold)
+        button.titleLabel?.adjustsFontForContentSizeCategory = true
+        button.translatesAutoresizingMaskIntoConstraints = false
+        button.addTarget(self, action: #selector(buttonTouchedDown(_:)), for: .touchDown)
+        button.addTarget(self, action: #selector(feelingLuckyButtonTouchedUpInside(_:)), for: .touchUpInside)
+        button.addTarget(self, action: #selector(buttonTouchedUpOutside(_:)), for: .touchUpOutside)
+
+        pin(button, to: cell.contentView)
+    }
+
     private func configureStatisticsCard(in cell: UICollectionViewCell) {
         let button = UIButton(type: .system)
-        button.accessibilityIdentifier = "homeStatisticsCard"
-        button.accessibilityLabel = L10n.Home.statisticsAccessibilityLabel
-        button.accessibilityHint = L10n.Home.statisticsAccessibilityHint
-        button.backgroundColor = UIColor.white.withAlphaComponent(0.18)
-        button.layer.cornerRadius = statisticsCardCornerRadius
-        button.layer.borderWidth = 1
-        button.layer.borderColor = UIColor.white.withAlphaComponent(0.40).cgColor
+        button.accessibilityIdentifier = Content.statisticsAccessibilityID
+        button.accessibilityLabel = Content.statisticsAccessibilityLabel
+        button.accessibilityHint = Content.statisticsAccessibilityHint
+        button.backgroundColor = UIColor.white.withAlphaComponent(Appearance.statisticsCardBackgroundAlpha)
+        button.layer.cornerRadius = Appearance.statisticsCardCornerRadius
+        button.layer.borderWidth = Appearance.buttonBorderWidth
+        button.layer.borderColor = UIColor.white.withAlphaComponent(Appearance.statisticsCardBorderAlpha).cgColor
         button.clipsToBounds = true
         button.translatesAutoresizingMaskIntoConstraints = false
         button.addTarget(self, action: #selector(buttonTouchedDown(_:)), for: .touchDown)
         button.addTarget(self, action: #selector(statisticsButtonTouchedUpInside(_:)), for: .touchUpInside)
         button.addTarget(self, action: #selector(buttonTouchedUpOutside(_:)), for: .touchUpOutside)
-        
+
         let titleLabel = UILabel()
-        titleLabel.text = L10n.Statistics.title
+        titleLabel.text = Content.statisticsTitle
         titleLabel.textColor = .white
-        titleLabel.font = .systemFont(ofSize: 22, weight: .bold)
+        titleLabel.font = .systemFont(ofSize: Appearance.titleFontSize, weight: .bold)
         titleLabel.textAlignment = .left
         titleLabel.translatesAutoresizingMaskIntoConstraints = false
-        
+
         let descriptionLabel = UILabel()
-        descriptionLabel.text = L10n.Home.statisticsDescription
+        descriptionLabel.text = Content.statisticsDescription
         descriptionLabel.textColor = UIColor.white.withAlphaComponent(0.84)
-        descriptionLabel.font = .systemFont(ofSize: 15, weight: .semibold)
+        descriptionLabel.font = .systemFont(ofSize: Appearance.descriptionFontSize, weight: .semibold)
         descriptionLabel.textAlignment = .left
         descriptionLabel.numberOfLines = 2
         descriptionLabel.translatesAutoresizingMaskIntoConstraints = false
-        
+
         let stackView = UIStackView(arrangedSubviews: [titleLabel, descriptionLabel])
         stackView.axis = .vertical
         stackView.alignment = .leading
-        stackView.spacing = 6
+        stackView.spacing = Layout.statisticsStackSpacing
         stackView.isUserInteractionEnabled = false
         stackView.translatesAutoresizingMaskIntoConstraints = false
-        
-        cell.contentView.addSubview(button)
+
+        pin(button, to: cell.contentView)
         button.addSubview(stackView)
-        
+
         NSLayoutConstraint.activate([
-            button.leadingAnchor.constraint(equalTo: cell.contentView.leadingAnchor),
-            button.trailingAnchor.constraint(equalTo: cell.contentView.trailingAnchor),
-            button.topAnchor.constraint(equalTo: cell.contentView.topAnchor),
-            button.bottomAnchor.constraint(equalTo: cell.contentView.bottomAnchor),
-            
-            stackView.leadingAnchor.constraint(equalTo: button.leadingAnchor, constant: 24),
-            stackView.trailingAnchor.constraint(equalTo: button.trailingAnchor, constant: -24),
+            stackView.leadingAnchor.constraint(equalTo: button.leadingAnchor, constant: Layout.cardContentHorizontalInset),
+            stackView.trailingAnchor.constraint(equalTo: button.trailingAnchor, constant: -Layout.cardContentHorizontalInset),
             stackView.centerYAnchor.constraint(equalTo: button.centerYAnchor)
         ])
     }
-    
+
+    private func pin(_ view: UIView, to container: UIView) {
+        container.addSubview(view)
+
+        NSLayoutConstraint.activate([
+            view.leadingAnchor.constraint(equalTo: container.leadingAnchor),
+            view.trailingAnchor.constraint(equalTo: container.trailingAnchor),
+            view.topAnchor.constraint(equalTo: container.topAnchor),
+            view.bottomAnchor.constraint(equalTo: container.bottomAnchor)
+        ])
+    }
+
     @objc func buttonTouchedDown(_ sender: UIButton) {
         delegate?.themeButtonTouchedDown(sender)
     }
-    
+
     @objc func buttonTouchedUpInside(_ sender: UIButton) {
         guard
             let themeName = sender.accessibilityIdentifier,
@@ -164,15 +233,19 @@ final class ThemesCollectionService: NSObject, UICollectionViewDelegate, UIColle
         else { return }
         delegate?.themeButtonTouchedUpInside(sender, themeName: themeName)
     }
-    
+
     @objc func buttonTouchedUpOutside(_ sender: UIButton) {
         delegate?.themeButtonTouchedUpOutside(sender)
     }
-    
+
+    @objc func feelingLuckyButtonTouchedUpInside(_ sender: UIButton) {
+        delegate?.feelingLuckyButtonTouchedUpInside(sender)
+    }
+
     @objc func statisticsButtonTouchedUpInside(_ sender: UIButton) {
         delegate?.statisticsButtonTouchedUpInside(sender)
     }
-    
+
 }
 
 private extension Array {
