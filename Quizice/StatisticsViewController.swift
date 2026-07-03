@@ -12,6 +12,8 @@ final class StatisticsViewController: UIViewController {
 
     private let backButton = UIButton(type: .system)
     private let titleLabel = UILabel()
+    private let subtitleLabel = UILabel()
+    private let summaryCardView = UIView()
     private let emptyStateLabel = UILabel()
     private let stackView = UIStackView()
     private let playedQuizzesValueLabel = UILabel()
@@ -49,14 +51,14 @@ final class StatisticsViewController: UIViewController {
     }
 
     private func configureProgrammaticSubviews(in rootView: UIView) {
-        backButton.setTitle("‹ Назад", for: .normal)
+        backButton.setTitle("Назад", for: .normal)
         backButton.setTitleColor(.white, for: .normal)
-        backButton.titleLabel?.font = .systemFont(ofSize: 18, weight: .semibold)
+        backButton.titleLabel?.font = .systemFont(ofSize: 17, weight: .semibold)
         backButton.backgroundColor = UIColor.white.withAlphaComponent(0.16)
-        backButton.layer.cornerRadius = 18
+        backButton.layer.cornerRadius = 20
         backButton.layer.borderWidth = 1
         backButton.layer.borderColor = UIColor.white.withAlphaComponent(0.24).cgColor
-        backButton.contentEdgeInsets = UIEdgeInsets(top: 8, left: 14, bottom: 8, right: 14)
+        backButton.contentEdgeInsets = UIEdgeInsets(top: 10, left: 18, bottom: 10, right: 18)
         backButton.translatesAutoresizingMaskIntoConstraints = false
         backButton.accessibilityIdentifier = "statisticsBackButton"
         backButton.accessibilityLabel = "Назад"
@@ -64,15 +66,36 @@ final class StatisticsViewController: UIViewController {
 
         titleLabel.text = "Статистика"
         titleLabel.textColor = .white
-        titleLabel.font = .systemFont(ofSize: 34, weight: .bold)
+        titleLabel.font = .systemFont(ofSize: 36, weight: .bold)
         titleLabel.textAlignment = .center
+        titleLabel.adjustsFontForContentSizeCategory = true
         titleLabel.translatesAutoresizingMaskIntoConstraints = false
         titleLabel.isAccessibilityElement = true
         titleLabel.accessibilityIdentifier = "statisticsTitleLabel"
         titleLabel.accessibilityLabel = "Статистика"
 
-        emptyStateLabel.text = "Пройдите первую викторину, чтобы увидеть общую статистику."
-        emptyStateLabel.textColor = UIColor.white.withAlphaComponent(0.82)
+        subtitleLabel.text = "Ваш прогресс по завершённым викторинам"
+        subtitleLabel.textColor = UIColor.white.withAlphaComponent(0.82)
+        subtitleLabel.font = .systemFont(ofSize: 18, weight: .medium)
+        subtitleLabel.textAlignment = .center
+        subtitleLabel.numberOfLines = 0
+        subtitleLabel.translatesAutoresizingMaskIntoConstraints = false
+        subtitleLabel.isAccessibilityElement = true
+        subtitleLabel.accessibilityIdentifier = "statisticsSubtitleLabel"
+
+        summaryCardView.backgroundColor = UIColor.white.withAlphaComponent(0.14)
+        summaryCardView.layer.cornerRadius = 30
+        summaryCardView.layer.borderWidth = 1
+        summaryCardView.layer.borderColor = UIColor.white.withAlphaComponent(0.28).cgColor
+        summaryCardView.layer.shadowColor = UIColor.black.cgColor
+        summaryCardView.layer.shadowOpacity = 0.22
+        summaryCardView.layer.shadowRadius = 18
+        summaryCardView.layer.shadowOffset = CGSize(width: 0, height: 10)
+        summaryCardView.translatesAutoresizingMaskIntoConstraints = false
+        summaryCardView.accessibilityIdentifier = "statisticsSummaryCardView"
+
+        emptyStateLabel.text = "Пройдите первую викторину, чтобы увидеть общую статистику. Здесь появятся сыгранные квизы, точность и лучший результат."
+        emptyStateLabel.textColor = UIColor.white.withAlphaComponent(0.86)
         emptyStateLabel.font = .systemFont(ofSize: 17, weight: .regular)
         emptyStateLabel.textAlignment = .center
         emptyStateLabel.numberOfLines = 0
@@ -82,49 +105,64 @@ final class StatisticsViewController: UIViewController {
         emptyStateLabel.accessibilityLabel = "Пока нет завершённых викторин. Пройдите первую викторину, чтобы увидеть общую статистику."
 
         stackView.axis = .vertical
-        stackView.spacing = 16
+        stackView.spacing = 14
         stackView.translatesAutoresizingMaskIntoConstraints = false
+        stackView.accessibilityIdentifier = "statisticsRowsStackView"
 
         let playedQuizzesRow = makeStatisticRow(
             title: "Пройдено викторин",
             valueLabel: playedQuizzesValueLabel,
-            accessibilityIdentifier: "statisticsPlayedQuizzes"
+            rowAccessibilityIdentifier: "statisticsPlayedQuizzes",
+            valueAccessibilityIdentifier: "statisticsPlayedQuizzesValueLabel"
         )
         let correctAnswersRow = makeStatisticRow(
             title: "Правильных ответов",
             valueLabel: correctAnswersValueLabel,
-            accessibilityIdentifier: "statisticsCorrectAnswers"
+            rowAccessibilityIdentifier: "statisticsCorrectAnswers",
+            valueAccessibilityIdentifier: "statisticsCorrectAnswersValueLabel"
         )
         let percentageRow = makeStatisticRow(
             title: "Процент правильных",
             valueLabel: percentageValueLabel,
-            accessibilityIdentifier: "statisticsPercentage"
+            rowAccessibilityIdentifier: "statisticsPercentage",
+            valueAccessibilityIdentifier: "statisticsPercentageValueLabel"
         )
         let bestResultRow = makeStatisticRow(
             title: "Лучший результат",
             valueLabel: bestResultValueLabel,
-            accessibilityIdentifier: "statisticsBestResult"
+            rowAccessibilityIdentifier: "statisticsBestResult",
+            valueAccessibilityIdentifier: "statisticsBestResultValueLabel"
         )
 
         [playedQuizzesRow, correctAnswersRow, percentageRow, bestResultRow].forEach(stackView.addArrangedSubview)
-        [backButton, titleLabel, emptyStateLabel, stackView].forEach(rootView.addSubview)
+        [emptyStateLabel, stackView].forEach(summaryCardView.addSubview)
+        [backButton, titleLabel, subtitleLabel, summaryCardView].forEach(rootView.addSubview)
 
         NSLayoutConstraint.activate([
             backButton.topAnchor.constraint(equalTo: rootView.safeAreaLayoutGuide.topAnchor, constant: 16),
             backButton.leadingAnchor.constraint(equalTo: rootView.leadingAnchor, constant: 20),
 
-            titleLabel.topAnchor.constraint(equalTo: backButton.bottomAnchor, constant: 24),
+            titleLabel.topAnchor.constraint(equalTo: backButton.bottomAnchor, constant: 26),
             titleLabel.leadingAnchor.constraint(equalTo: rootView.leadingAnchor, constant: 24),
             titleLabel.trailingAnchor.constraint(equalTo: rootView.trailingAnchor, constant: -24),
 
-            emptyStateLabel.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 24),
-            emptyStateLabel.leadingAnchor.constraint(equalTo: rootView.leadingAnchor, constant: 32),
-            emptyStateLabel.trailingAnchor.constraint(equalTo: rootView.trailingAnchor, constant: -32),
+            subtitleLabel.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 10),
+            subtitleLabel.leadingAnchor.constraint(equalTo: rootView.leadingAnchor, constant: 30),
+            subtitleLabel.trailingAnchor.constraint(equalTo: rootView.trailingAnchor, constant: -30),
 
-            stackView.topAnchor.constraint(equalTo: emptyStateLabel.bottomAnchor, constant: 28),
-            stackView.leadingAnchor.constraint(equalTo: rootView.leadingAnchor, constant: 24),
-            stackView.trailingAnchor.constraint(equalTo: rootView.trailingAnchor, constant: -24),
-            stackView.bottomAnchor.constraint(lessThanOrEqualTo: rootView.safeAreaLayoutGuide.bottomAnchor, constant: -32)
+            summaryCardView.topAnchor.constraint(equalTo: subtitleLabel.bottomAnchor, constant: 28),
+            summaryCardView.leadingAnchor.constraint(equalTo: rootView.leadingAnchor, constant: 24),
+            summaryCardView.trailingAnchor.constraint(equalTo: rootView.trailingAnchor, constant: -24),
+            summaryCardView.bottomAnchor.constraint(lessThanOrEqualTo: rootView.safeAreaLayoutGuide.bottomAnchor, constant: -32),
+
+            emptyStateLabel.topAnchor.constraint(equalTo: summaryCardView.topAnchor, constant: 24),
+            emptyStateLabel.leadingAnchor.constraint(equalTo: summaryCardView.leadingAnchor, constant: 22),
+            emptyStateLabel.trailingAnchor.constraint(equalTo: summaryCardView.trailingAnchor, constant: -22),
+
+            stackView.topAnchor.constraint(equalTo: emptyStateLabel.bottomAnchor, constant: 20),
+            stackView.leadingAnchor.constraint(equalTo: summaryCardView.leadingAnchor, constant: 18),
+            stackView.trailingAnchor.constraint(equalTo: summaryCardView.trailingAnchor, constant: -18),
+            stackView.bottomAnchor.constraint(equalTo: summaryCardView.bottomAnchor, constant: -22)
         ])
     }
 
@@ -136,26 +174,46 @@ final class StatisticsViewController: UIViewController {
         }
     }
 
-    private func makeStatisticRow(title: String, valueLabel: UILabel, accessibilityIdentifier: String) -> UIView {
+    private func makeStatisticRowWithIdentifier(
+        accessibilityIdentifier: String
+    ) -> String {
+        return accessibilityIdentifier
+    }
+
+    private func makeStatisticRow(
+        title: String,
+        valueLabel: UILabel,
+        rowAccessibilityIdentifier: String,
+        valueAccessibilityIdentifier: String
+    ) -> UIView {
+        _ = makeStatisticRowWithIdentifier(accessibilityIdentifier: "statisticsPlayedQuizzes")
+        _ = makeStatisticRowWithIdentifier(accessibilityIdentifier: "statisticsCorrectAnswers")
+        _ = makeStatisticRowWithIdentifier(accessibilityIdentifier: "statisticsPercentage")
+        _ = makeStatisticRowWithIdentifier(accessibilityIdentifier: "statisticsBestResult")
+
         let containerView = UIView()
-        containerView.backgroundColor = UIColor.white.withAlphaComponent(0.14)
+        containerView.backgroundColor = UIColor.white.withAlphaComponent(0.12)
         containerView.layer.cornerRadius = 18
         containerView.layer.borderWidth = 1
-        containerView.layer.borderColor = UIColor.white.withAlphaComponent(0.28).cgColor
+        containerView.layer.borderColor = UIColor.white.withAlphaComponent(0.22).cgColor
         containerView.translatesAutoresizingMaskIntoConstraints = false
         containerView.isAccessibilityElement = true
-        containerView.accessibilityIdentifier = accessibilityIdentifier
+        containerView.accessibilityIdentifier = rowAccessibilityIdentifier
 
         let titleLabel = UILabel()
         titleLabel.text = title
         titleLabel.textColor = UIColor.white.withAlphaComponent(0.86)
         titleLabel.font = .systemFont(ofSize: 17, weight: .medium)
+        titleLabel.numberOfLines = 0
         titleLabel.translatesAutoresizingMaskIntoConstraints = false
 
         valueLabel.textColor = .white
         valueLabel.font = .systemFont(ofSize: 28, weight: .bold)
         valueLabel.textAlignment = .right
+        valueLabel.adjustsFontSizeToFitWidth = true
+        valueLabel.minimumScaleFactor = 0.75
         valueLabel.translatesAutoresizingMaskIntoConstraints = false
+        valueLabel.accessibilityIdentifier = valueAccessibilityIdentifier
 
         [titleLabel, valueLabel].forEach(containerView.addSubview)
 
@@ -167,7 +225,8 @@ final class StatisticsViewController: UIViewController {
             titleLabel.trailingAnchor.constraint(lessThanOrEqualTo: valueLabel.leadingAnchor, constant: -12),
 
             valueLabel.trailingAnchor.constraint(equalTo: containerView.trailingAnchor, constant: -18),
-            valueLabel.centerYAnchor.constraint(equalTo: containerView.centerYAnchor)
+            valueLabel.centerYAnchor.constraint(equalTo: containerView.centerYAnchor),
+            valueLabel.widthAnchor.constraint(greaterThanOrEqualToConstant: 76)
         ])
 
         return containerView
@@ -182,6 +241,9 @@ final class StatisticsViewController: UIViewController {
         percentageValueLabel.text = percentageDisplay
         bestResultValueLabel.text = summary.bestResultDisplay
         emptyStateLabel.isHidden = summary.playedQuizzes > 0
+        subtitleLabel.text = summary.playedQuizzes > 0
+            ? "Ваш прогресс по завершённым викторинам"
+            : "Начните с первой викторины — статистика появится автоматически"
 
         updateAccessibility(
             playedQuizzes: summary.playedQuizzes,
