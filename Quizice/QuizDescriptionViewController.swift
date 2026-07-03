@@ -9,9 +9,9 @@ import UIKit
 
 final class QuizDescriptionViewController: UIViewController, QuizDescriptionViewControllerProtocol {
     
-    @IBOutlet weak var themeNameLabel: UILabel!
-    @IBOutlet weak var themeDescriptionLabel: UILabel!
-    @IBOutlet weak var numberOfQuestionsPickerView: UIPickerView!
+    private var themeNameLabel: UILabel!
+    private var themeDescriptionLabel: UILabel!
+    private var numberOfQuestionsPickerView: UIPickerView!
     
     private var startButton: UIButton!
     private var backButton: UIButton!

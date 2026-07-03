@@ -10,19 +10,19 @@ import AVKit
 
 final class QuizViewController: UIViewController, QuizViewControllerProtocol, ThemeCollectionDelegate {
     
-    @IBOutlet weak var welcomeLabel: UILabel!
-    @IBOutlet weak var quiziceLabel: UIImageView!
-    @IBOutlet weak var chooseThemeLabel: UILabel!
+    private var welcomeLabel: UILabel!
+    private var quiziceLabel: UIImageView!
+    private var chooseThemeLabel: UILabel!
     
-    @IBOutlet weak var musicThemeButton: UIButton!
-    @IBOutlet weak var techThemeButton: UIButton!
-    @IBOutlet weak var historyAndCultureThemeButton: UIButton!
-    @IBOutlet weak var politicsAndBusinessThemeButton: UIButton!
+    private var musicThemeButton: UIButton!
+    private var techThemeButton: UIButton!
+    private var historyAndCultureThemeButton: UIButton!
+    private var politicsAndBusinessThemeButton: UIButton!
     
-    @IBOutlet weak var exitButton: UIButton!
-    @IBOutlet weak var feelingLuckyButton: UIButton!
+    private var exitButton: UIButton!
+    private var feelingLuckyButton: UIButton!
     
-    @IBOutlet weak var themesCollectionView: UICollectionView!
+    private var themesCollectionView: UICollectionView!
     
     private let animationsEngine = Animations()
     private var soundPlayer: AVAudioPlayer!
@@ -90,13 +90,13 @@ final class QuizViewController: UIViewController, QuizViewControllerProtocol, Th
         feelingLuckyButton.addTarget(self, action: #selector(randomButtonTapped), for: .touchUpInside)
         
         let layout = UICollectionViewFlowLayout()
-        layout.scrollDirection = .horizontal
-        layout.itemSize = CGSize(width: 160, height: 160)
-        layout.minimumLineSpacing = 20
-        layout.minimumInteritemSpacing = 20
-        layout.sectionInset = UIEdgeInsets(top: 0, left: 24, bottom: 0, right: 24)
+        layout.scrollDirection = .vertical
+        layout.minimumLineSpacing = 16
+        layout.minimumInteritemSpacing = 16
+        layout.sectionInset = UIEdgeInsets(top: 0, left: 24, bottom: 24, right: 24)
         themesCollectionView = UICollectionView(frame: .zero, collectionViewLayout: layout)
-        themesCollectionView.showsHorizontalScrollIndicator = false
+        themesCollectionView.alwaysBounceVertical = true
+        themesCollectionView.showsVerticalScrollIndicator = false
         themesCollectionView.translatesAutoresizingMaskIntoConstraints = false
         
         [welcomeLabel, quiziceLabel, chooseThemeLabel, themesCollectionView, exitButton, feelingLuckyButton].forEach(rootView.addSubview)
@@ -124,9 +124,8 @@ final class QuizViewController: UIViewController, QuizViewControllerProtocol, Th
             themesCollectionView.topAnchor.constraint(equalTo: chooseThemeLabel.bottomAnchor, constant: 24),
             themesCollectionView.leadingAnchor.constraint(equalTo: rootView.leadingAnchor),
             themesCollectionView.trailingAnchor.constraint(equalTo: rootView.trailingAnchor),
-            themesCollectionView.heightAnchor.constraint(equalToConstant: 180),
+            themesCollectionView.bottomAnchor.constraint(equalTo: feelingLuckyButton.topAnchor, constant: -24),
             
-            feelingLuckyButton.topAnchor.constraint(greaterThanOrEqualTo: themesCollectionView.bottomAnchor, constant: 32),
             feelingLuckyButton.centerXAnchor.constraint(equalTo: rootView.centerXAnchor),
             feelingLuckyButton.widthAnchor.constraint(equalToConstant: 220),
             feelingLuckyButton.heightAnchor.constraint(equalToConstant: 52),
@@ -135,7 +134,7 @@ final class QuizViewController: UIViewController, QuizViewControllerProtocol, Th
             exitButton.centerXAnchor.constraint(equalTo: rootView.centerXAnchor),
             exitButton.widthAnchor.constraint(equalToConstant: 220),
             exitButton.heightAnchor.constraint(equalToConstant: 52),
-            exitButton.bottomAnchor.constraint(lessThanOrEqualTo: rootView.safeAreaLayoutGuide.bottomAnchor, constant: -32)
+            exitButton.bottomAnchor.constraint(equalTo: rootView.safeAreaLayoutGuide.bottomAnchor, constant: -32)
         ])
     }
     

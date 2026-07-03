@@ -10,17 +10,17 @@ import AVKit
 
 final class QuizQuestionViewController: UIViewController, QuizQuestionViewControllerProtocol {
     
-    // MARK: - IBOutlet Properties
+    // MARK: - Programmatic UI Properties
     
-    @IBOutlet weak var themeNameLabel: UILabel!
-    @IBOutlet weak var questionNumberLabel: UILabel!
-    @IBOutlet weak var questionLabel: UILabel!
-    @IBOutlet weak var timerBar: UIProgressView!
-    @IBOutlet weak var answer1Button: UIButton!
-    @IBOutlet weak var answer2Button: UIButton!
-    @IBOutlet weak var answer3Button: UIButton!
-    @IBOutlet weak var answer4Button: UIButton!
-    @IBOutlet weak var nextButton: UIButton!
+    private var themeNameLabel: UILabel!
+    private var questionNumberLabel: UILabel!
+    private var questionLabel: UILabel!
+    private var timerBar: UIProgressView!
+    private var answer1Button: UIButton!
+    private var answer2Button: UIButton!
+    private var answer3Button: UIButton!
+    private var answer4Button: UIButton!
+    private var nextButton: UIButton!
     
     // MARK: - Properties
     

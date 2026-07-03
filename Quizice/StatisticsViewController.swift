@@ -10,6 +10,7 @@ import UIKit
 final class StatisticsViewController: UIViewController {
     private let statisticsStore: StatisticsStore
 
+    private let backButton = UIButton(type: .system)
     private let titleLabel = UILabel()
     private let emptyStateLabel = UILabel()
     private let stackView = UIStackView()
@@ -48,6 +49,19 @@ final class StatisticsViewController: UIViewController {
     }
 
     private func configureProgrammaticSubviews(in rootView: UIView) {
+        backButton.setTitle("‹ Назад", for: .normal)
+        backButton.setTitleColor(.white, for: .normal)
+        backButton.titleLabel?.font = .systemFont(ofSize: 18, weight: .semibold)
+        backButton.backgroundColor = UIColor.white.withAlphaComponent(0.16)
+        backButton.layer.cornerRadius = 18
+        backButton.layer.borderWidth = 1
+        backButton.layer.borderColor = UIColor.white.withAlphaComponent(0.24).cgColor
+        backButton.contentEdgeInsets = UIEdgeInsets(top: 8, left: 14, bottom: 8, right: 14)
+        backButton.translatesAutoresizingMaskIntoConstraints = false
+        backButton.accessibilityIdentifier = "statisticsBackButton"
+        backButton.accessibilityLabel = "Назад"
+        backButton.addTarget(self, action: #selector(backButtonTapped), for: .touchUpInside)
+
         titleLabel.text = "Статистика"
         titleLabel.textColor = .white
         titleLabel.font = .systemFont(ofSize: 34, weight: .bold)
@@ -93,10 +107,13 @@ final class StatisticsViewController: UIViewController {
         )
 
         [playedQuizzesRow, correctAnswersRow, percentageRow, bestResultRow].forEach(stackView.addArrangedSubview)
-        [titleLabel, emptyStateLabel, stackView].forEach(rootView.addSubview)
+        [backButton, titleLabel, emptyStateLabel, stackView].forEach(rootView.addSubview)
 
         NSLayoutConstraint.activate([
-            titleLabel.topAnchor.constraint(equalTo: rootView.safeAreaLayoutGuide.topAnchor, constant: 56),
+            backButton.topAnchor.constraint(equalTo: rootView.safeAreaLayoutGuide.topAnchor, constant: 16),
+            backButton.leadingAnchor.constraint(equalTo: rootView.leadingAnchor, constant: 20),
+
+            titleLabel.topAnchor.constraint(equalTo: backButton.bottomAnchor, constant: 24),
             titleLabel.leadingAnchor.constraint(equalTo: rootView.leadingAnchor, constant: 24),
             titleLabel.trailingAnchor.constraint(equalTo: rootView.trailingAnchor, constant: -24),
 
@@ -109,6 +126,14 @@ final class StatisticsViewController: UIViewController {
             stackView.trailingAnchor.constraint(equalTo: rootView.trailingAnchor, constant: -24),
             stackView.bottomAnchor.constraint(lessThanOrEqualTo: rootView.safeAreaLayoutGuide.bottomAnchor, constant: -32)
         ])
+    }
+
+    @objc private func backButtonTapped() {
+        if let navigationController {
+            navigationController.popViewController(animated: true)
+        } else {
+            dismiss(animated: true)
+        }
     }
 
     private func makeStatisticRow(title: String, valueLabel: UILabel, accessibilityIdentifier: String) -> UIView {

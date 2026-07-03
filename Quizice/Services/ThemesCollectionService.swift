@@ -12,9 +12,15 @@ final class ThemesCollectionService: NSObject, UICollectionViewDelegate, UIColle
     var delegate: ThemeCollectionDelegate?
     
     private let quizFactory = QuizFactory.shared
+    private let sectionInsets = UIEdgeInsets(top: 0, left: 24, bottom: 24, right: 24)
+    private let itemSpacing: CGFloat = 16
+    
+    private var statisticsIndex: Int {
+        quizFactory.themes?.count ?? 0
+    }
     
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-        (quizFactory.themes?.count ?? 0) + 1
+        statisticsIndex + 1
     }
     
     // MARK: - UICollectionViewDataSource
@@ -25,13 +31,12 @@ final class ThemesCollectionService: NSObject, UICollectionViewDelegate, UIColle
         cell.contentView.backgroundColor = .clear
         cell.backgroundColor = .clear
         
-        if indexPath.item == 0 {
+        if indexPath.item == statisticsIndex {
             configureStatisticsCard(in: cell)
             return cell
         }
         
-        let themeIndex = indexPath.item - 1
-        guard let theme = quizFactory.themes?[safe: themeIndex] else {
+        guard let theme = quizFactory.themes?[safe: indexPath.item] else {
             return cell
         }
         configureThemeCard(in: cell, themeName: theme.theme)
@@ -41,11 +46,21 @@ final class ThemesCollectionService: NSObject, UICollectionViewDelegate, UIColle
     
     // MARK: - UICollectionViewDelegateFlowLayout
 
-    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize { CGSize(width: 160, height: 160) }
+    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
+        let availableWidth = max(collectionView.bounds.width - sectionInsets.left - sectionInsets.right, 0)
+        if indexPath.item == statisticsIndex {
+            return CGSize(width: availableWidth, height: 112)
+        }
+        
+        let twoColumnWidth = floor((availableWidth - itemSpacing) / 2)
+        return CGSize(width: twoColumnWidth, height: twoColumnWidth)
+    }
     
-    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, minimumLineSpacingForSectionAt section: Int) -> CGFloat { 20 }
+    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, minimumLineSpacingForSectionAt section: Int) -> CGFloat { itemSpacing }
     
-    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, minimumInteritemSpacingForSectionAt section: Int) -> CGFloat { 20 }
+    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, minimumInteritemSpacingForSectionAt section: Int) -> CGFloat { itemSpacing }
+    
+    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, insetForSectionAt section: Int) -> UIEdgeInsets { sectionInsets }
     
     // MARK: - Methods
     
@@ -62,10 +77,10 @@ final class ThemesCollectionService: NSObject, UICollectionViewDelegate, UIColle
         cell.contentView.addSubview(button)
         
         NSLayoutConstraint.activate([
-            button.widthAnchor.constraint(equalToConstant: 160),
-            button.heightAnchor.constraint(equalToConstant: 160),
-            button.centerXAnchor.constraint(equalTo: cell.contentView.centerXAnchor),
-            button.centerYAnchor.constraint(equalTo: cell.contentView.centerYAnchor),
+            button.leadingAnchor.constraint(equalTo: cell.contentView.leadingAnchor),
+            button.trailingAnchor.constraint(equalTo: cell.contentView.trailingAnchor),
+            button.topAnchor.constraint(equalTo: cell.contentView.topAnchor),
+            button.bottomAnchor.constraint(equalTo: cell.contentView.bottomAnchor),
         ])
     }
     
@@ -109,13 +124,13 @@ final class ThemesCollectionService: NSObject, UICollectionViewDelegate, UIColle
         button.addSubview(stackView)
         
         NSLayoutConstraint.activate([
-            button.widthAnchor.constraint(equalToConstant: 160),
-            button.heightAnchor.constraint(equalToConstant: 160),
-            button.centerXAnchor.constraint(equalTo: cell.contentView.centerXAnchor),
-            button.centerYAnchor.constraint(equalTo: cell.contentView.centerYAnchor),
+            button.leadingAnchor.constraint(equalTo: cell.contentView.leadingAnchor),
+            button.trailingAnchor.constraint(equalTo: cell.contentView.trailingAnchor),
+            button.topAnchor.constraint(equalTo: cell.contentView.topAnchor),
+            button.bottomAnchor.constraint(equalTo: cell.contentView.bottomAnchor),
             
-            stackView.leadingAnchor.constraint(equalTo: button.leadingAnchor, constant: 14),
-            stackView.trailingAnchor.constraint(equalTo: button.trailingAnchor, constant: -14),
+            stackView.leadingAnchor.constraint(equalTo: button.leadingAnchor, constant: 20),
+            stackView.trailingAnchor.constraint(equalTo: button.trailingAnchor, constant: -20),
             stackView.centerYAnchor.constraint(equalTo: button.centerYAnchor)
         ])
     }
