@@ -1,23 +1,141 @@
-//
-//  QuizViewController.swift
-//  My First App
-//
-//  Created by Артем Табенский on 01.10.2024.
-//
-
 import UIKit
 import AVKit
 
 final class QuizViewController: UIViewController, QuizViewControllerProtocol, ThemeCollectionDelegate {
+    private enum Content {
+        static let backgroundImageName = "backgroundImage"
+        static let logoImageName = "Quizice"
+        static let startupSoundName = "Quizice Enter"
+        static let startupSoundExtension = "m4a"
+        static let themeCellReuseIdentifier = "themeCell"
+        
+        static var welcomeText: String { L10n.Home.welcome }
+        static var chooseThemeText: String { L10n.Home.chooseTheme }
+        static var unavailableThemesText: String { L10n.Home.unavailableThemes }
+        static var feelingLuckyButtonTitle: String { L10n.Home.feelingLucky }
+        static var exitButtonTitle: String { L10n.Common.exit }
+        
+        static let logoAccessibilityLabel = "Quizice"
+        static var themesCollectionAccessibilityLabel: String { L10n.Home.themesCollectionAccessibilityLabel }
+
+        static var exitAlertTitle: String { L10n.Common.exit }
+        static var exitAlertMessage: String { L10n.Home.exitAlertMessage }
+        static var exitCancelTitle: String { L10n.Common.no }
+        static var exitConfirmTitle: String { L10n.Common.yes }
+    }
+    
+    private enum AccessibilityID {
+        static let rootView = "homeRootView"
+        static let welcomeLabel = "homeWelcomeLabel"
+        static let logoImageView = "homeLogoImageView"
+        static let chooseThemeLabel = "homeChooseThemeLabel"
+        static let headerStackView = "homeHeaderStackView"
+        static let themesCollectionView = "homeThemesCollectionView"
+        static let screenStackView = "homeScreenStackView"
+        static let actionButtonsStackView = "homeActionButtonsStackView"
+        static let feelingLuckyButton = "homeFeelingLuckyButton"
+        static let exitButton = "homeExitButton"
+    }
+    
+    private enum Layout {
+        static let headerStackSpacing: CGFloat = 0
+        static let headerHorizontalInset: CGFloat = 24
+        static let screenTopInset: CGFloat = 28
+        static let screenBottomInset: CGFloat = 24
+        static let screenStackSpacing: CGFloat = 0
+        static let headerToCollectionSpacing: CGFloat = 18
+        static let collectionToActionsSpacing: CGFloat = 24
+        static let actionHorizontalInset: CGFloat = 32
+        static let actionButtonSpacing: CGFloat = 12
+        static let collectionItemSpacing: CGFloat = 16
+        static let collectionHorizontalInset: CGFloat = 24
+        static let collectionTopInset: CGFloat = 0
+        static let collectionBottomInset: CGFloat = 24
+        static let logoWidthMultiplier: CGFloat = 0.7
+        static let logoHeight: CGFloat = 84
+        static let visibleCellRowSortingTolerance: CGFloat = 1
+        static let primaryActionButtonHeight: CGFloat = 54
+        static let secondaryActionButtonHeight: CGFloat = 50
+        
+        static var headerMargins: NSDirectionalEdgeInsets {
+            NSDirectionalEdgeInsets(
+                top: .zero,
+                leading: headerHorizontalInset,
+                bottom: .zero,
+                trailing: headerHorizontalInset
+            )
+        }
+        
+        static var actionButtonMargins: NSDirectionalEdgeInsets {
+            NSDirectionalEdgeInsets(
+                top: .zero,
+                leading: actionHorizontalInset,
+                bottom: .zero,
+                trailing: actionHorizontalInset
+            )
+        }
+        
+        static var collectionSectionInsets: UIEdgeInsets {
+            UIEdgeInsets(
+                top: collectionTopInset,
+                left: collectionHorizontalInset,
+                bottom: collectionBottomInset,
+                right: collectionHorizontalInset
+            )
+        }
+        
+        static var screenMargins: NSDirectionalEdgeInsets {
+            NSDirectionalEdgeInsets(
+                top: screenTopInset,
+                leading: .zero,
+                bottom: screenBottomInset,
+                trailing: .zero
+            )
+        }
+    }
+    
+    private enum Typography {
+        static let welcomeFontSize: CGFloat = 26
+        static let chooseThemeFontSize: CGFloat = 24
+        static let actionButtonFontSize: CGFloat = 19
+        static let unlimitedNumberOfLines = 0
+    }
+    
+    private enum Appearance {
+        static let hiddenAlpha: CGFloat = 0
+        static let visibleAlpha: CGFloat = 1
+        
+        static let primaryButtonBackgroundAlpha: CGFloat = 0.88
+        static let primaryButtonCornerRadius: CGFloat = 22
+        static let primaryButtonShadowOpacity: Float = 0.24
+        static let primaryButtonShadowRadius: CGFloat = 14
+        static let primaryButtonShadowOffset = CGSize(width: 0, height: 8)
+        
+        static let secondaryButtonBackgroundAlpha: CGFloat = 0.14
+        static let secondaryButtonCornerRadius: CGFloat = 20
+        static let secondaryButtonBorderWidth: CGFloat = 1
+        static let secondaryButtonBorderAlpha: CGFloat = 0.36
+    }
+    
+    private enum AnimationTiming {
+        static let welcomeFadeInDuration: TimeInterval = 1
+        static let logoFadeInDelay: TimeInterval = 1
+        static let logoFadeInDuration: TimeInterval = 2
+        static let controlsFadeInDelay: TimeInterval = 2
+        static let controlsFadeInDuration: TimeInterval = 1
+        static let cellFadeInDuration: TimeInterval = 1
+        static let cellFadeInStagger: TimeInterval = 0.15
+    }
+    
+    private enum ProcessExit {
+        static let userConfirmedExitCode: Int32 = -1
+    }
     
     private var welcomeLabel: UILabel!
     private var quiziceLabel: UIImageView!
     private var chooseThemeLabel: UILabel!
-    
-    private var musicThemeButton: UIButton!
-    private var techThemeButton: UIButton!
-    private var historyAndCultureThemeButton: UIButton!
-    private var politicsAndBusinessThemeButton: UIButton!
+    private var headerStackView: UIStackView!
+    private var screenStackView: UIStackView!
     
     private var exitButton: UIButton!
     private var feelingLuckyButton: UIButton!
@@ -28,17 +146,21 @@ final class QuizViewController: UIViewController, QuizViewControllerProtocol, Th
     private let animationsEngine = Animations()
     private var soundPlayer: AVAudioPlayer!
     
-    let themesCollectionService = ThemesCollectionService()
+    private let themesCollectionService = ThemesCollectionService()
     var presenter: QuizPresenterProtocol?
+    
+    private var startupAnimatedViews: [UIView] {
+        [welcomeLabel, quiziceLabel, themesCollectionView, chooseThemeLabel, actionButtonsStackView]
+    }
     
     override func loadView() {
         let rootView = UIView()
-        if let backgroundImage = UIImage(named: "backgroundImage") {
+        if let backgroundImage = UIImage(named: Content.backgroundImageName) {
             rootView.backgroundColor = UIColor(patternImage: backgroundImage)
         } else {
             rootView.backgroundColor = .systemBackground
         }
-        rootView.accessibilityIdentifier = "homeRootView"
+        rootView.accessibilityIdentifier = AccessibilityID.rootView
         view = rootView
         configureProgrammaticSubviews(in: rootView)
     }
@@ -52,11 +174,7 @@ final class QuizViewController: UIViewController, QuizViewControllerProtocol, Th
         
         configurePresenter(QuizPresenter())
         
-        themesCollectionView.backgroundColor = .clear
-        themesCollectionService.delegate = self
-        themesCollectionView.delegate = themesCollectionService
-        themesCollectionView.dataSource = themesCollectionService
-        themesCollectionView.register(UICollectionViewCell.self, forCellWithReuseIdentifier: "themeCell")
+        configureThemesCollectionService()
         updateThemeAvailabilityMessage()
     }
     
@@ -75,86 +193,120 @@ final class QuizViewController: UIViewController, QuizViewControllerProtocol, Th
     }
     
     private func configureProgrammaticSubviews(in rootView: UIView) {
-        welcomeLabel = makeLabel(text: L10n.Home.welcome, font: .systemFont(ofSize: 26, weight: .semibold))
-        welcomeLabel.accessibilityIdentifier = "homeWelcomeLabel"
+        configureHeaderViews()
+        configureActionButtons()
+        configureHeaderStack()
+        configureActionButtonsStack()
+        configureThemesCollectionView()
+        configureScreenStack()
+        
+        rootView.addSubview(screenStackView)
+        activateLayoutConstraints(in: rootView)
+    }
+    
+    private func configureThemesCollectionService() {
+        themesCollectionView.backgroundColor = .clear
+        themesCollectionService.delegate = self
+        themesCollectionView.delegate = themesCollectionService
+        themesCollectionView.dataSource = themesCollectionService
+        themesCollectionView.register(UICollectionViewCell.self, forCellWithReuseIdentifier: Content.themeCellReuseIdentifier)
+    }
+    
+    private func configureHeaderViews() {
+        welcomeLabel = makeLabel(text: Content.welcomeText, font: .systemFont(ofSize: Typography.welcomeFontSize, weight: .semibold))
+        welcomeLabel.accessibilityIdentifier = AccessibilityID.welcomeLabel
         welcomeLabel.adjustsFontForContentSizeCategory = true
-        quiziceLabel = UIImageView(image: UIImage(named: "Quizice"))
-        quiziceLabel.accessibilityIdentifier = "homeLogoImageView"
-        quiziceLabel.accessibilityLabel = "Quizice"
+        
+        quiziceLabel = UIImageView(image: UIImage(named: Content.logoImageName))
+        quiziceLabel.accessibilityIdentifier = AccessibilityID.logoImageView
+        quiziceLabel.accessibilityLabel = Content.logoAccessibilityLabel
         quiziceLabel.contentMode = .scaleAspectFit
         quiziceLabel.translatesAutoresizingMaskIntoConstraints = false
-        chooseThemeLabel = makeLabel(text: L10n.Home.chooseTheme, font: .systemFont(ofSize: 24, weight: .semibold))
-        chooseThemeLabel.accessibilityIdentifier = "homeChooseThemeLabel"
+        
+        chooseThemeLabel = makeLabel(text: Content.chooseThemeText, font: .systemFont(ofSize: Typography.chooseThemeFontSize, weight: .semibold))
+        chooseThemeLabel.accessibilityIdentifier = AccessibilityID.chooseThemeLabel
         chooseThemeLabel.adjustsFontForContentSizeCategory = true
-        
-        musicThemeButton = makeLegacyThemeButton(named: "Музыка")
-        techThemeButton = makeLegacyThemeButton(named: "Технологии")
-        historyAndCultureThemeButton = makeLegacyThemeButton(named: "История и культура")
-        politicsAndBusinessThemeButton = makeLegacyThemeButton(named: "Политика и бизнес")
-        
-        exitButton = makeSecondaryActionButton(title: L10n.Common.exit)
-        exitButton.accessibilityIdentifier = "homeExitButton"
-        exitButton.accessibilityLabel = L10n.Common.exit
+    }
+    
+    private func configureHeaderStack() {
+        headerStackView = UIStackView(arrangedSubviews: [welcomeLabel, quiziceLabel, chooseThemeLabel])
+        headerStackView.accessibilityIdentifier = AccessibilityID.headerStackView
+        headerStackView.axis = .vertical
+        headerStackView.alignment = .center
+        headerStackView.spacing = Layout.headerStackSpacing
+        headerStackView.isLayoutMarginsRelativeArrangement = true
+        headerStackView.directionalLayoutMargins = Layout.headerMargins
+        headerStackView.translatesAutoresizingMaskIntoConstraints = false
+    }
+    
+    private func configureActionButtons() {
+        exitButton = makeSecondaryActionButton(title: Content.exitButtonTitle)
+        exitButton.accessibilityIdentifier = AccessibilityID.exitButton
+        exitButton.accessibilityLabel = Content.exitButtonTitle
         exitButton.addTarget(self, action: #selector(backButtonTapped), for: .touchUpInside)
-        feelingLuckyButton = makePrimaryActionButton(title: L10n.Home.feelingLucky)
-        feelingLuckyButton.accessibilityIdentifier = "homeFeelingLuckyButton"
-        feelingLuckyButton.accessibilityLabel = L10n.Home.feelingLucky
+        
+        feelingLuckyButton = makePrimaryActionButton(title: Content.feelingLuckyButtonTitle)
+        feelingLuckyButton.accessibilityIdentifier = AccessibilityID.feelingLuckyButton
+        feelingLuckyButton.accessibilityLabel = Content.feelingLuckyButtonTitle
         feelingLuckyButton.addTarget(self, action: #selector(randomButtonTapped), for: .touchUpInside)
-        
+    }
+    
+    private func configureActionButtonsStack() {
         actionButtonsStackView = UIStackView(arrangedSubviews: [feelingLuckyButton, exitButton])
-        actionButtonsStackView.accessibilityIdentifier = "homeActionButtonsStackView"
+        actionButtonsStackView.accessibilityIdentifier = AccessibilityID.actionButtonsStackView
         actionButtonsStackView.axis = .vertical
-        actionButtonsStackView.spacing = 12
+        actionButtonsStackView.alignment = .fill
+        actionButtonsStackView.distribution = .fill
+        actionButtonsStackView.spacing = Layout.actionButtonSpacing
+        actionButtonsStackView.isLayoutMarginsRelativeArrangement = true
+        actionButtonsStackView.directionalLayoutMargins = Layout.actionButtonMargins
         actionButtonsStackView.translatesAutoresizingMaskIntoConstraints = false
-        
+    }
+    
+    private func configureThemesCollectionView() {
         let layout = UICollectionViewFlowLayout()
         layout.scrollDirection = .vertical
-        layout.minimumLineSpacing = 16
-        layout.minimumInteritemSpacing = 16
-        layout.sectionInset = UIEdgeInsets(top: 0, left: 24, bottom: 24, right: 24)
+        layout.minimumLineSpacing = Layout.collectionItemSpacing
+        layout.minimumInteritemSpacing = Layout.collectionItemSpacing
+        layout.sectionInset = Layout.collectionSectionInsets
+        
         themesCollectionView = UICollectionView(frame: .zero, collectionViewLayout: layout)
-        themesCollectionView.accessibilityIdentifier = "homeThemesCollectionView"
-        themesCollectionView.accessibilityLabel = L10n.Home.themesCollectionAccessibilityLabel
+        themesCollectionView.accessibilityIdentifier = AccessibilityID.themesCollectionView
+        themesCollectionView.accessibilityLabel = Content.themesCollectionAccessibilityLabel
         themesCollectionView.alwaysBounceVertical = true
         themesCollectionView.showsVerticalScrollIndicator = false
         themesCollectionView.translatesAutoresizingMaskIntoConstraints = false
-        
-        [welcomeLabel, quiziceLabel, chooseThemeLabel, themesCollectionView, actionButtonsStackView].forEach(rootView.addSubview)
-        [musicThemeButton, techThemeButton, historyAndCultureThemeButton, politicsAndBusinessThemeButton].forEach { button in
-            button.isHidden = true
-            rootView.addSubview(button)
-        }
-        
+        themesCollectionView.setContentHuggingPriority(.defaultLow, for: .vertical)
+        themesCollectionView.setContentCompressionResistancePriority(.defaultLow, for: .vertical)
+    }
+    
+    private func configureScreenStack() {
+        screenStackView = UIStackView(arrangedSubviews: [headerStackView, themesCollectionView, actionButtonsStackView])
+        screenStackView.accessibilityIdentifier = AccessibilityID.screenStackView
+        screenStackView.axis = .vertical
+        screenStackView.alignment = .fill
+        screenStackView.spacing = Layout.screenStackSpacing
+        screenStackView.isLayoutMarginsRelativeArrangement = true
+        screenStackView.directionalLayoutMargins = Layout.screenMargins
+        screenStackView.setCustomSpacing(Layout.headerToCollectionSpacing, after: headerStackView)
+        screenStackView.setCustomSpacing(Layout.collectionToActionsSpacing, after: themesCollectionView)
+        screenStackView.translatesAutoresizingMaskIntoConstraints = false
+    }
+    
+    private func activateLayoutConstraints(in rootView: UIView) {
         NSLayoutConstraint.activate([
-            welcomeLabel.topAnchor.constraint(equalTo: rootView.safeAreaLayoutGuide.topAnchor, constant: 28),
-            welcomeLabel.centerXAnchor.constraint(equalTo: rootView.centerXAnchor),
-            welcomeLabel.leadingAnchor.constraint(greaterThanOrEqualTo: rootView.leadingAnchor, constant: 24),
-            welcomeLabel.trailingAnchor.constraint(lessThanOrEqualTo: rootView.trailingAnchor, constant: -24),
+            screenStackView.topAnchor.constraint(equalTo: rootView.safeAreaLayoutGuide.topAnchor),
+            screenStackView.leadingAnchor.constraint(equalTo: rootView.leadingAnchor),
+            screenStackView.trailingAnchor.constraint(equalTo: rootView.trailingAnchor),
+            screenStackView.bottomAnchor.constraint(equalTo: rootView.safeAreaLayoutGuide.bottomAnchor),
             
-            quiziceLabel.topAnchor.constraint(equalTo: welcomeLabel.bottomAnchor, constant: 10),
-            quiziceLabel.centerXAnchor.constraint(equalTo: rootView.centerXAnchor),
-            quiziceLabel.widthAnchor.constraint(lessThanOrEqualTo: rootView.widthAnchor, multiplier: 0.7),
-            quiziceLabel.heightAnchor.constraint(equalToConstant: 84),
+            welcomeLabel.widthAnchor.constraint(lessThanOrEqualTo: headerStackView.layoutMarginsGuide.widthAnchor),
+            quiziceLabel.widthAnchor.constraint(lessThanOrEqualTo: rootView.widthAnchor, multiplier: Layout.logoWidthMultiplier),
+            quiziceLabel.heightAnchor.constraint(equalToConstant: Layout.logoHeight),
+            chooseThemeLabel.widthAnchor.constraint(lessThanOrEqualTo: headerStackView.layoutMarginsGuide.widthAnchor),
             
-            chooseThemeLabel.topAnchor.constraint(equalTo: quiziceLabel.bottomAnchor, constant: 24),
-            chooseThemeLabel.centerXAnchor.constraint(equalTo: rootView.centerXAnchor),
-            chooseThemeLabel.leadingAnchor.constraint(greaterThanOrEqualTo: rootView.leadingAnchor, constant: 24),
-            chooseThemeLabel.trailingAnchor.constraint(lessThanOrEqualTo: rootView.trailingAnchor, constant: -24),
-            
-            themesCollectionView.topAnchor.constraint(equalTo: chooseThemeLabel.bottomAnchor, constant: 18),
-            themesCollectionView.leadingAnchor.constraint(equalTo: rootView.leadingAnchor),
-            themesCollectionView.trailingAnchor.constraint(equalTo: rootView.trailingAnchor),
-            themesCollectionView.bottomAnchor.constraint(equalTo: feelingLuckyButton.topAnchor, constant: -24),
-            
-            actionButtonsStackView.centerXAnchor.constraint(equalTo: rootView.centerXAnchor),
-            actionButtonsStackView.leadingAnchor.constraint(greaterThanOrEqualTo: rootView.leadingAnchor, constant: 32),
-            actionButtonsStackView.trailingAnchor.constraint(lessThanOrEqualTo: rootView.trailingAnchor, constant: -32),
-            actionButtonsStackView.widthAnchor.constraint(greaterThanOrEqualToConstant: 220),
-            actionButtonsStackView.widthAnchor.constraint(lessThanOrEqualToConstant: 280),
-            actionButtonsStackView.bottomAnchor.constraint(equalTo: rootView.safeAreaLayoutGuide.bottomAnchor, constant: -24),
-            
-            feelingLuckyButton.heightAnchor.constraint(equalToConstant: 54),
-            exitButton.heightAnchor.constraint(equalToConstant: 50)
+            feelingLuckyButton.heightAnchor.constraint(equalToConstant: Layout.primaryActionButtonHeight),
+            exitButton.heightAnchor.constraint(equalToConstant: Layout.secondaryActionButtonHeight)
         ])
     }
     
@@ -164,28 +316,28 @@ final class QuizViewController: UIViewController, QuizViewControllerProtocol, Th
         label.textColor = .white
         label.font = font
         label.textAlignment = .center
-        label.numberOfLines = 0
+        label.numberOfLines = Typography.unlimitedNumberOfLines
         label.translatesAutoresizingMaskIntoConstraints = false
         return label
     }
     
     private func makePrimaryActionButton(title: String) -> UIButton {
         let button = makeBaseActionButton(title: title)
-        button.backgroundColor = UIColor.systemBlue.withAlphaComponent(0.88)
-        button.layer.cornerRadius = 22
+        button.backgroundColor = UIColor.systemBlue.withAlphaComponent(Appearance.primaryButtonBackgroundAlpha)
+        button.layer.cornerRadius = Appearance.primaryButtonCornerRadius
         button.layer.shadowColor = UIColor.black.cgColor
-        button.layer.shadowOpacity = 0.24
-        button.layer.shadowRadius = 14
-        button.layer.shadowOffset = CGSize(width: 0, height: 8)
+        button.layer.shadowOpacity = Appearance.primaryButtonShadowOpacity
+        button.layer.shadowRadius = Appearance.primaryButtonShadowRadius
+        button.layer.shadowOffset = Appearance.primaryButtonShadowOffset
         return button
     }
     
     private func makeSecondaryActionButton(title: String) -> UIButton {
         let button = makeBaseActionButton(title: title)
-        button.backgroundColor = UIColor.white.withAlphaComponent(0.14)
-        button.layer.cornerRadius = 20
-        button.layer.borderWidth = 1
-        button.layer.borderColor = UIColor.white.withAlphaComponent(0.36).cgColor
+        button.backgroundColor = UIColor.white.withAlphaComponent(Appearance.secondaryButtonBackgroundAlpha)
+        button.layer.cornerRadius = Appearance.secondaryButtonCornerRadius
+        button.layer.borderWidth = Appearance.secondaryButtonBorderWidth
+        button.layer.borderColor = UIColor.white.withAlphaComponent(Appearance.secondaryButtonBorderAlpha).cgColor
         return button
     }
     
@@ -193,67 +345,66 @@ final class QuizViewController: UIViewController, QuizViewControllerProtocol, Th
         let button = UIButton(type: .system)
         button.setTitle(title, for: .normal)
         button.setTitleColor(.white, for: .normal)
-        button.titleLabel?.font = .systemFont(ofSize: 19, weight: .semibold)
+        button.titleLabel?.font = .systemFont(ofSize: Typography.actionButtonFontSize, weight: .semibold)
         button.titleLabel?.adjustsFontForContentSizeCategory = true
         button.translatesAutoresizingMaskIntoConstraints = false
         return button
     }
     
-    private func makeLegacyThemeButton(named themeName: String) -> UIButton {
-        let button = UIButton(type: .custom)
-        button.accessibilityIdentifier = themeName
-        button.setImage(UIImage(named: themeName), for: .normal)
-        button.translatesAutoresizingMaskIntoConstraints = false
-        return button
-    }
-    
-    private func hideAllViews() {
-        let views = [welcomeLabel, quiziceLabel, themesCollectionView, chooseThemeLabel, actionButtonsStackView]
-        views.forEach { view in
-            view?.alpha = 0
-        }
-    }
-    
     private func animateViewsAndPlaySound() {
+        let visibleCells = sortedVisibleThemeCells()
+        prepareStartupAnimation(visibleCells: visibleCells)
+        loadStartupSound()
         
-        let views = [welcomeLabel, quiziceLabel, themesCollectionView, chooseThemeLabel, actionButtonsStackView]
-        let visibleCells = themesCollectionView.visibleCells.sorted { $0.frame.origin.x < $1.frame.origin.x }
+        welcomeLabel.fadeIn(duration: AnimationTiming.welcomeFadeInDuration)
         
-        views.forEach { view in
-            view?.alpha = 0
+        DispatchQueue.main.asyncAfter(deadline: .now() + AnimationTiming.logoFadeInDelay) { [weak self] in
+            guard let self else { return }
+            self.soundPlayer?.play()
+            self.quiziceLabel.fadeIn(duration: AnimationTiming.logoFadeInDuration)
+            self.themesCollectionView.alpha = Appearance.visibleAlpha
+            
+            DispatchQueue.main.asyncAfter(deadline: .now() + AnimationTiming.controlsFadeInDelay) { [weak self] in
+                guard let self else { return }
+                self.chooseThemeLabel.fadeIn(duration: AnimationTiming.controlsFadeInDuration)
+                self.actionButtonsStackView.fadeIn(duration: AnimationTiming.controlsFadeInDuration)
+                self.animateThemeCells(visibleCells)
+            }
+        }
+    }
+    
+    private func sortedVisibleThemeCells() -> [UICollectionViewCell] {
+        themesCollectionView.visibleCells.sorted { lhs, rhs in
+            let verticalDistance = abs(lhs.frame.minY - rhs.frame.minY)
+            if verticalDistance > Layout.visibleCellRowSortingTolerance {
+                return lhs.frame.minY < rhs.frame.minY
+            }
+            return lhs.frame.minX < rhs.frame.minX
+        }
+    }
+    
+    private func prepareStartupAnimation(visibleCells: [UICollectionViewCell]) {
+        startupAnimatedViews.forEach { view in
+            view.alpha = Appearance.hiddenAlpha
         }
         
         visibleCells.forEach { cell in
-            cell.alpha = 0
-        }
-        
-        visibleCells.forEach { cell in
+            cell.alpha = Appearance.hiddenAlpha
             cell.isUserInteractionEnabled = false
         }
-        
-        if let startupSoundURL = Bundle.main.url(forResource: "Quizice Enter", withExtension: "m4a") {
+    }
+    
+    private func loadStartupSound() {
+        if let startupSoundURL = Bundle.main.url(forResource: Content.startupSoundName, withExtension: Content.startupSoundExtension) {
             soundPlayer = try? AVAudioPlayer(contentsOf: startupSoundURL)
         }
-        
-        welcomeLabel.fadeIn(duration: 1)
-        
-        DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
-            
-            self.soundPlayer?.play()
-            self.quiziceLabel.fadeIn(duration: 2)
-            self.themesCollectionView.alpha = 1
-            
-            DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
-                
-                self.chooseThemeLabel.fadeIn(duration: 1)
-                self.actionButtonsStackView.fadeIn(duration: 1)
-               
-                for (index, cell) in visibleCells.enumerated() {
-                    DispatchQueue.main.asyncAfter(deadline: .now() + Double(index) * 0.15) {
-                        cell.fadeIn(duration: 1) {
-                            cell.isUserInteractionEnabled = true
-                        }
-                    }
+    }
+    
+    private func animateThemeCells(_ visibleCells: [UICollectionViewCell]) {
+        for (index, cell) in visibleCells.enumerated() {
+            DispatchQueue.main.asyncAfter(deadline: .now() + Double(index) * AnimationTiming.cellFadeInStagger) {
+                cell.fadeIn(duration: AnimationTiming.cellFadeInDuration) {
+                    cell.isUserInteractionEnabled = true
                 }
             }
         }
@@ -290,7 +441,7 @@ final class QuizViewController: UIViewController, QuizViewControllerProtocol, Th
     
     private func updateThemeAvailabilityMessage() {
         let hasThemes = QuizFactory.shared.themes?.isEmpty == false
-        chooseThemeLabel.text = hasThemes ? L10n.Home.chooseTheme : L10n.Home.unavailableThemes
+        chooseThemeLabel.text = hasThemes ? Content.chooseThemeText : Content.unavailableThemesText
     }
     
     @objc private func randomButtonTapped() {
@@ -306,13 +457,13 @@ final class QuizViewController: UIViewController, QuizViewControllerProtocol, Th
     
     @objc private func backButtonTapped() {
         let alert = UIAlertController(
-            title: L10n.Common.exit,
-            message: L10n.Home.exitAlertMessage,
+            title: Content.exitAlertTitle,
+            message: Content.exitAlertMessage,
             preferredStyle: .alert
         )
-        alert.addAction(UIAlertAction(title: L10n.Common.no, style: .cancel))
-        alert.addAction(UIAlertAction(title: L10n.Common.yes, style: .destructive, handler: { _ in
-            exit(-1)
+        alert.addAction(UIAlertAction(title: Content.exitCancelTitle, style: .cancel))
+        alert.addAction(UIAlertAction(title: Content.exitConfirmTitle, style: .destructive, handler: { _ in
+            exit(ProcessExit.userConfirmedExitCode)
         }))
         present(alert, animated: true)
     }

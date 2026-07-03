@@ -1,16 +1,150 @@
-//
-//  QuizQuestionViewController.swift
-//  My First App
-//
-//  Created by Артем Табенский on 02.10.2024.
-//
-
 import UIKit
 import AVKit
 
 final class QuizQuestionViewController: UIViewController, QuizQuestionViewControllerProtocol {
+    private enum Content {
+        static let backgroundImageName = "backgroundImage"
+        static let correctSoundName = "Quizice Correct"
+        static let incorrectSoundName = "Quizice Incorrect"
+        static let soundExtension = "m4a"
+        static var audioLoadFailureMessage: String { L10n.Question.audioLoadFailure }
+
+        static var nextButtonTitle: String { L10n.Common.next }
+        static var backButtonTitle: String { L10n.Common.back }
+        static var fallbackThemeName: String { L10n.Question.fallbackTheme }
+        static var unavailableQuestionNumberText: String { L10n.Question.unavailableNumber }
+        static var unavailableAnswerTitle: String { L10n.Question.unavailableAnswer }
+        static let disabledAnswerPlaceholder = "—"
+    }
     
-    // MARK: - Programmatic UI Properties
+    private enum AccessibilityID {
+        static let rootView = "questionRootView"
+        static let themeLabel = "questionThemeLabel"
+        static let questionNumberLabel = "questionNumberLabel"
+        static let questionCardView = "questionCardView"
+        static let questionTextLabel = "questionTextLabel"
+        static let timerContainerView = "questionTimerContainerView"
+        static let timerProgressView = "questionTimerProgressView"
+        static let answersStackView = "questionAnswersStackView"
+        static let answerButtonPrefix = "questionAnswerButton"
+        static let nextButton = "questionNextButton"
+        static let backButton = "questionBackButton"
+    }
+    
+    private enum Layout {
+        static let topInset: CGFloat = 24
+        static let rootHorizontalInset: CGFloat = 24
+        static let questionNumberTopSpacing: CGFloat = 10
+        static let cardTopSpacing: CGFloat = 18
+        static let cardHorizontalInset: CGFloat = 20
+        static let timerTopInset: CGFloat = 22
+        static let timerHorizontalInset: CGFloat = 22
+        static let timerContainerHeight: CGFloat = 14
+        static let timerBarHorizontalInset: CGFloat = 4
+        static let timerBarHeight: CGFloat = 8
+        static let questionTopSpacing: CGFloat = 24
+        static let questionHorizontalInset: CGFloat = 22
+        static let answersTopMinimumSpacing: CGFloat = 28
+        static let answersHorizontalInset: CGFloat = 18
+        static let answersHeight: CGFloat = 248
+        static let answersBottomInset: CGFloat = 20
+        static let actionTopSpacing: CGFloat = 22
+        static let actionButtonWidth: CGFloat = 238
+        static let primaryActionButtonHeight: CGFloat = 54
+        static let secondaryActionButtonHeight: CGFloat = 50
+        static let actionButtonSpacing: CGFloat = 12
+        static let bottomMaximumInset: CGFloat = 22
+        static let answersStackSpacing: CGFloat = 14
+    }
+    
+    private enum Typography {
+        static let themeFontSize: CGFloat = 24
+        static let questionNumberFontSize: CGFloat = 18
+        static let questionFontSize: CGFloat = 26
+        static let answerButtonFontSize: CGFloat = 18
+        static let actionButtonFontSize: CGFloat = 20
+        static let unlimitedNumberOfLines = 0
+        static let answerButtonNumberOfLines = 2
+    }
+    
+    private enum Appearance {
+        static let cardBackgroundAlpha: CGFloat = 0.26
+        static let cardCornerRadius: CGFloat = 28
+        static let cardBorderWidth: CGFloat = 1
+        static let cardBorderAlpha: CGFloat = 0.18
+        static let cardShadowOpacity: Float = 0.22
+        static let cardShadowRadius: CGFloat = 16
+        static let cardShadowOffset = CGSize(width: 0, height: 10)
+        
+        static let timerContainerBackgroundAlpha: CGFloat = 0.14
+        static let timerContainerCornerRadius: CGFloat = 8
+        static let timerTrackAlpha: CGFloat = 0.25
+        static let timerBarCornerRadius: CGFloat = 4
+        
+        static let answerDisabledTitleColor = UIColor.gray
+        static let answerCornerRadius: CGFloat = 18
+        static let answerBorderWidth: CGFloat = 1
+        static let answerBorderAlpha: CGFloat = 0.2
+        
+        static let disabledButtonTitleAlpha: CGFloat = 0.45
+        static let primaryButtonBackgroundAlpha: CGFloat = 0.22
+        static let secondaryButtonBackgroundAlpha: CGFloat = 0.12
+        static let primaryButtonCornerRadius: CGFloat = 22
+        static let secondaryButtonCornerRadius: CGFloat = 20
+        static let actionButtonBorderWidth: CGFloat = 1
+        static let primaryButtonBorderAlpha: CGFloat = 0.5
+        static let secondaryButtonBorderAlpha: CGFloat = 0.34
+        static let primaryButtonShadowOpacity: Float = 0.2
+        static let secondaryButtonShadowOpacity: Float = 0
+        static let actionButtonShadowRadius: CGFloat = 10
+        static let actionButtonShadowOffset = CGSize(width: 0, height: 6)
+    }
+    
+    private enum AnimationTiming {
+        static let answerFeedbackDuration: Double = 0.15
+        static let nextButtonEnableDuration: TimeInterval = 1
+    }
+    
+    private enum ActionButtonStyle {
+        case primary
+        case secondary
+        
+        var backgroundAlpha: CGFloat {
+            switch self {
+            case .primary:
+                return Appearance.primaryButtonBackgroundAlpha
+            case .secondary:
+                return Appearance.secondaryButtonBackgroundAlpha
+            }
+        }
+        
+        var cornerRadius: CGFloat {
+            switch self {
+            case .primary:
+                return Appearance.primaryButtonCornerRadius
+            case .secondary:
+                return Appearance.secondaryButtonCornerRadius
+            }
+        }
+        
+        var borderAlpha: CGFloat {
+            switch self {
+            case .primary:
+                return Appearance.primaryButtonBorderAlpha
+            case .secondary:
+                return Appearance.secondaryButtonBorderAlpha
+            }
+        }
+        
+        var shadowOpacity: Float {
+            switch self {
+            case .primary:
+                return Appearance.primaryButtonShadowOpacity
+            case .secondary:
+                return Appearance.secondaryButtonShadowOpacity
+            }
+        }
+    }
     
     private var themeNameLabel: UILabel!
     private var questionNumberLabel: UILabel!
@@ -26,47 +160,32 @@ final class QuizQuestionViewController: UIViewController, QuizQuestionViewContro
     private var nextButton: UIButton!
     private var backButton: UIButton!
     
-    // MARK: - Properties
-    
-    private var questionButtons: Array<UIButton>?
     private let hapticFeedback = UINotificationFeedbackGenerator()
     private let animationsEngine = Animations()
-    private let animationsDuration: Double = 0.15
     private var soundOfCorrectAnswerPlayer: AVAudioPlayer!
     private var soundOfIncorrectAnswerPlayer: AVAudioPlayer!
     
     var presenter: QuizQuestionPresenterProtocol?
     
-    // MARK: - viewDidLoad
+    private var answerButtons: [UIButton] {
+        [answer1Button, answer2Button, answer3Button, answer4Button]
+    }
     
     override func loadView() {
         let rootView = UIView()
-        rootView.backgroundColor = UIColor(patternImage: UIImage(named: "backgroundImage") ?? UIImage())
-        rootView.accessibilityIdentifier = "questionRootView"
+        rootView.backgroundColor = UIColor(patternImage: UIImage(named: Content.backgroundImageName) ?? UIImage())
+        rootView.accessibilityIdentifier = AccessibilityID.rootView
         view = rootView
         configureProgrammaticSubviews(in: rootView)
     }
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        questionLabel.adjustsFontSizeToFitWidth = true
-        
-        if
-            let correctSoundURL = Bundle.main.url(forResource: "Quizice Correct", withExtension: "m4a"),
-            let incorrectSoundURL = Bundle.main.url(forResource: "Quizice Incorrect", withExtension: "m4a") {
-            soundOfCorrectAnswerPlayer = try? AVAudioPlayer(contentsOf: correctSoundURL)
-            soundOfIncorrectAnswerPlayer = try? AVAudioPlayer(contentsOf: incorrectSoundURL)
-        } else {
-            print(L10n.Question.audioLoadFailure)
-        }
-        
+        loadAnswerSounds()
         configurePresenter(QuizQuestionPresenter())
         presenter?.viewDidLoad()
-        
         hapticFeedback.prepare()
     }
-    
-    // MARK: - Timer methods
     
     func updateProgress(_ progress: Float) {
         timerBar.progress = progress
@@ -78,120 +197,162 @@ final class QuizQuestionViewController: UIViewController, QuizQuestionViewContro
         nextButton.isEnabled = true
     }
     
-    // MARK: - Methods
-    
     private func configurePresenter(_ presenter: QuizQuestionPresenterProtocol) {
         self.presenter = presenter
         self.presenter?.view = self
     }
     
     private func configureProgrammaticSubviews(in rootView: UIView) {
-        themeNameLabel = makeLabel(font: .systemFont(ofSize: 24, weight: .semibold))
-        themeNameLabel.accessibilityIdentifier = "questionThemeLabel"
+        configureHeaderLabels()
+        configureQuestionCard()
+        configureQuestionContent()
+        configureTimerViews()
+        configureAnswerButtons()
+        configureAnswersStackView()
+        configureActionButtons()
+        addSubviews(to: rootView)
+        activateLayoutConstraints(in: rootView)
+    }
+    
+    private func configureHeaderLabels() {
+        themeNameLabel = makeLabel(font: .systemFont(ofSize: Typography.themeFontSize, weight: .semibold))
+        themeNameLabel.accessibilityIdentifier = AccessibilityID.themeLabel
         
-        questionNumberLabel = makeLabel(font: .systemFont(ofSize: 18, weight: .medium))
-        questionNumberLabel.accessibilityIdentifier = "questionNumberLabel"
-        
+        questionNumberLabel = makeLabel(font: .systemFont(ofSize: Typography.questionNumberFontSize, weight: .medium))
+        questionNumberLabel.accessibilityIdentifier = AccessibilityID.questionNumberLabel
+    }
+    
+    private func configureQuestionCard() {
         questionCardView = UIView()
-        questionCardView.accessibilityIdentifier = "questionCardView"
-        questionCardView.backgroundColor = UIColor.black.withAlphaComponent(0.26)
-        questionCardView.layer.cornerRadius = 28
-        questionCardView.layer.borderWidth = 1
-        questionCardView.layer.borderColor = UIColor.white.withAlphaComponent(0.18).cgColor
+        questionCardView.accessibilityIdentifier = AccessibilityID.questionCardView
+        questionCardView.backgroundColor = UIColor.black.withAlphaComponent(Appearance.cardBackgroundAlpha)
+        questionCardView.layer.cornerRadius = Appearance.cardCornerRadius
+        questionCardView.layer.borderWidth = Appearance.cardBorderWidth
+        questionCardView.layer.borderColor = UIColor.white.withAlphaComponent(Appearance.cardBorderAlpha).cgColor
         questionCardView.layer.shadowColor = UIColor.black.cgColor
-        questionCardView.layer.shadowOpacity = 0.22
-        questionCardView.layer.shadowRadius = 16
-        questionCardView.layer.shadowOffset = CGSize(width: 0, height: 10)
+        questionCardView.layer.shadowOpacity = Appearance.cardShadowOpacity
+        questionCardView.layer.shadowRadius = Appearance.cardShadowRadius
+        questionCardView.layer.shadowOffset = Appearance.cardShadowOffset
         questionCardView.translatesAutoresizingMaskIntoConstraints = false
-        
-        questionLabel = makeLabel(font: .systemFont(ofSize: 26, weight: .bold))
-        questionLabel.accessibilityIdentifier = "questionTextLabel"
-        questionLabel.numberOfLines = 0
-        
+    }
+    
+    private func configureQuestionContent() {
+        questionLabel = makeLabel(font: .systemFont(ofSize: Typography.questionFontSize, weight: .bold))
+        questionLabel.accessibilityIdentifier = AccessibilityID.questionTextLabel
+        questionLabel.adjustsFontSizeToFitWidth = true
+        questionLabel.numberOfLines = Typography.unlimitedNumberOfLines
+    }
+    
+    private func configureTimerViews() {
         timerContainerView = UIView()
-        timerContainerView.accessibilityIdentifier = "questionTimerContainerView"
-        timerContainerView.backgroundColor = UIColor.white.withAlphaComponent(0.14)
-        timerContainerView.layer.cornerRadius = 8
+        timerContainerView.accessibilityIdentifier = AccessibilityID.timerContainerView
+        timerContainerView.backgroundColor = UIColor.white.withAlphaComponent(Appearance.timerContainerBackgroundAlpha)
+        timerContainerView.layer.cornerRadius = Appearance.timerContainerCornerRadius
         timerContainerView.translatesAutoresizingMaskIntoConstraints = false
         
         timerBar = UIProgressView(progressViewStyle: .default)
-        timerBar.accessibilityIdentifier = "questionTimerProgressView"
+        timerBar.accessibilityIdentifier = AccessibilityID.timerProgressView
         timerBar.translatesAutoresizingMaskIntoConstraints = false
         timerBar.progressTintColor = .systemBlue
-        timerBar.trackTintColor = UIColor.white.withAlphaComponent(0.25)
-        timerBar.layer.cornerRadius = 4
+        timerBar.trackTintColor = UIColor.white.withAlphaComponent(Appearance.timerTrackAlpha)
+        timerBar.layer.cornerRadius = Appearance.timerBarCornerRadius
         timerBar.clipsToBounds = true
+    }
+    
+    private func configureAnswerButtons() {
+        answer1Button = makeAnswerButton(accessibilityIdentifier: answerButtonAccessibilityIdentifier(index: 1))
+        answer2Button = makeAnswerButton(accessibilityIdentifier: answerButtonAccessibilityIdentifier(index: 2))
+        answer3Button = makeAnswerButton(accessibilityIdentifier: answerButtonAccessibilityIdentifier(index: 3))
+        answer4Button = makeAnswerButton(accessibilityIdentifier: answerButtonAccessibilityIdentifier(index: 4))
         
-        answer1Button = makeAnswerButton(accessibilityIdentifier: "questionAnswerButton1")
-        answer2Button = makeAnswerButton(accessibilityIdentifier: "questionAnswerButton2")
-        answer3Button = makeAnswerButton(accessibilityIdentifier: "questionAnswerButton3")
-        answer4Button = makeAnswerButton(accessibilityIdentifier: "questionAnswerButton4")
-        [answer1Button, answer2Button, answer3Button, answer4Button].forEach { button in
+        answerButtons.forEach { button in
             button.addTarget(self, action: #selector(answerChosen(_:)), for: .touchUpInside)
         }
-        questionButtons = [answer1Button, answer2Button, answer3Button, answer4Button]
-        
-        answersStackView = UIStackView(arrangedSubviews: [answer1Button, answer2Button, answer3Button, answer4Button])
-        answersStackView.accessibilityIdentifier = "questionAnswersStackView"
+    }
+    
+    private func configureAnswersStackView() {
+        answersStackView = UIStackView(arrangedSubviews: answerButtons)
+        answersStackView.accessibilityIdentifier = AccessibilityID.answersStackView
         answersStackView.axis = .vertical
-        answersStackView.spacing = 14
+        answersStackView.spacing = Layout.answersStackSpacing
         answersStackView.distribution = .fillEqually
         answersStackView.translatesAutoresizingMaskIntoConstraints = false
-        
-        nextButton = makeActionButton(title: L10n.Common.next, accessibilityIdentifier: "questionNextButton", isPrimary: true)
+    }
+    
+    private func configureActionButtons() {
+        nextButton = makeActionButton(title: Content.nextButtonTitle, accessibilityIdentifier: AccessibilityID.nextButton, style: .primary)
         nextButton.addTarget(self, action: #selector(nextButtonTapped), for: .touchUpInside)
         
-        backButton = makeActionButton(title: L10n.Common.back, accessibilityIdentifier: "questionBackButton", isPrimary: false)
+        backButton = makeActionButton(title: Content.backButtonTitle, accessibilityIdentifier: AccessibilityID.backButton, style: .secondary)
         backButton.addTarget(self, action: #selector(backButtonTapped), for: .touchUpInside)
-        
+    }
+    
+    private func addSubviews(to rootView: UIView) {
         [themeNameLabel, questionNumberLabel, questionCardView, nextButton, backButton].forEach(rootView.addSubview)
         [timerContainerView, questionLabel, answersStackView].forEach(questionCardView.addSubview)
         timerContainerView.addSubview(timerBar)
-        
+    }
+    
+    private func activateLayoutConstraints(in rootView: UIView) {
         NSLayoutConstraint.activate([
-            themeNameLabel.topAnchor.constraint(equalTo: rootView.safeAreaLayoutGuide.topAnchor, constant: 24),
-            themeNameLabel.leadingAnchor.constraint(equalTo: rootView.leadingAnchor, constant: 24),
-            themeNameLabel.trailingAnchor.constraint(equalTo: rootView.trailingAnchor, constant: -24),
+            themeNameLabel.topAnchor.constraint(equalTo: rootView.safeAreaLayoutGuide.topAnchor, constant: Layout.topInset),
+            themeNameLabel.leadingAnchor.constraint(equalTo: rootView.leadingAnchor, constant: Layout.rootHorizontalInset),
+            themeNameLabel.trailingAnchor.constraint(equalTo: rootView.trailingAnchor, constant: -Layout.rootHorizontalInset),
             
-            questionNumberLabel.topAnchor.constraint(equalTo: themeNameLabel.bottomAnchor, constant: 10),
-            questionNumberLabel.leadingAnchor.constraint(equalTo: rootView.leadingAnchor, constant: 24),
-            questionNumberLabel.trailingAnchor.constraint(equalTo: rootView.trailingAnchor, constant: -24),
+            questionNumberLabel.topAnchor.constraint(equalTo: themeNameLabel.bottomAnchor, constant: Layout.questionNumberTopSpacing),
+            questionNumberLabel.leadingAnchor.constraint(equalTo: rootView.leadingAnchor, constant: Layout.rootHorizontalInset),
+            questionNumberLabel.trailingAnchor.constraint(equalTo: rootView.trailingAnchor, constant: -Layout.rootHorizontalInset),
             
-            questionCardView.topAnchor.constraint(equalTo: questionNumberLabel.bottomAnchor, constant: 18),
-            questionCardView.leadingAnchor.constraint(equalTo: rootView.leadingAnchor, constant: 20),
-            questionCardView.trailingAnchor.constraint(equalTo: rootView.trailingAnchor, constant: -20),
+            questionCardView.topAnchor.constraint(equalTo: questionNumberLabel.bottomAnchor, constant: Layout.cardTopSpacing),
+            questionCardView.leadingAnchor.constraint(equalTo: rootView.leadingAnchor, constant: Layout.cardHorizontalInset),
+            questionCardView.trailingAnchor.constraint(equalTo: rootView.trailingAnchor, constant: -Layout.cardHorizontalInset),
             
-            timerContainerView.topAnchor.constraint(equalTo: questionCardView.topAnchor, constant: 22),
-            timerContainerView.leadingAnchor.constraint(equalTo: questionCardView.leadingAnchor, constant: 22),
-            timerContainerView.trailingAnchor.constraint(equalTo: questionCardView.trailingAnchor, constant: -22),
-            timerContainerView.heightAnchor.constraint(equalToConstant: 14),
+            timerContainerView.topAnchor.constraint(equalTo: questionCardView.topAnchor, constant: Layout.timerTopInset),
+            timerContainerView.leadingAnchor.constraint(equalTo: questionCardView.leadingAnchor, constant: Layout.timerHorizontalInset),
+            timerContainerView.trailingAnchor.constraint(equalTo: questionCardView.trailingAnchor, constant: -Layout.timerHorizontalInset),
+            timerContainerView.heightAnchor.constraint(equalToConstant: Layout.timerContainerHeight),
             
             timerBar.centerYAnchor.constraint(equalTo: timerContainerView.centerYAnchor),
-            timerBar.leadingAnchor.constraint(equalTo: timerContainerView.leadingAnchor, constant: 4),
-            timerBar.trailingAnchor.constraint(equalTo: timerContainerView.trailingAnchor, constant: -4),
-            timerBar.heightAnchor.constraint(equalToConstant: 8),
+            timerBar.leadingAnchor.constraint(equalTo: timerContainerView.leadingAnchor, constant: Layout.timerBarHorizontalInset),
+            timerBar.trailingAnchor.constraint(equalTo: timerContainerView.trailingAnchor, constant: -Layout.timerBarHorizontalInset),
+            timerBar.heightAnchor.constraint(equalToConstant: Layout.timerBarHeight),
             
-            questionLabel.topAnchor.constraint(equalTo: timerContainerView.bottomAnchor, constant: 24),
-            questionLabel.leadingAnchor.constraint(equalTo: questionCardView.leadingAnchor, constant: 22),
-            questionLabel.trailingAnchor.constraint(equalTo: questionCardView.trailingAnchor, constant: -22),
+            questionLabel.topAnchor.constraint(equalTo: timerContainerView.bottomAnchor, constant: Layout.questionTopSpacing),
+            questionLabel.leadingAnchor.constraint(equalTo: questionCardView.leadingAnchor, constant: Layout.questionHorizontalInset),
+            questionLabel.trailingAnchor.constraint(equalTo: questionCardView.trailingAnchor, constant: -Layout.questionHorizontalInset),
             
-            answersStackView.topAnchor.constraint(greaterThanOrEqualTo: questionLabel.bottomAnchor, constant: 28),
-            answersStackView.leadingAnchor.constraint(equalTo: questionCardView.leadingAnchor, constant: 18),
-            answersStackView.trailingAnchor.constraint(equalTo: questionCardView.trailingAnchor, constant: -18),
-            answersStackView.heightAnchor.constraint(equalToConstant: 248),
-            answersStackView.bottomAnchor.constraint(equalTo: questionCardView.bottomAnchor, constant: -20),
+            answersStackView.topAnchor.constraint(greaterThanOrEqualTo: questionLabel.bottomAnchor, constant: Layout.answersTopMinimumSpacing),
+            answersStackView.leadingAnchor.constraint(equalTo: questionCardView.leadingAnchor, constant: Layout.answersHorizontalInset),
+            answersStackView.trailingAnchor.constraint(equalTo: questionCardView.trailingAnchor, constant: -Layout.answersHorizontalInset),
+            answersStackView.heightAnchor.constraint(equalToConstant: Layout.answersHeight),
+            answersStackView.bottomAnchor.constraint(equalTo: questionCardView.bottomAnchor, constant: -Layout.answersBottomInset),
             
-            nextButton.topAnchor.constraint(equalTo: questionCardView.bottomAnchor, constant: 22),
+            nextButton.topAnchor.constraint(equalTo: questionCardView.bottomAnchor, constant: Layout.actionTopSpacing),
             nextButton.centerXAnchor.constraint(equalTo: rootView.centerXAnchor),
-            nextButton.widthAnchor.constraint(equalToConstant: 238),
-            nextButton.heightAnchor.constraint(equalToConstant: 54),
+            nextButton.widthAnchor.constraint(equalToConstant: Layout.actionButtonWidth),
+            nextButton.heightAnchor.constraint(equalToConstant: Layout.primaryActionButtonHeight),
             
-            backButton.topAnchor.constraint(equalTo: nextButton.bottomAnchor, constant: 12),
+            backButton.topAnchor.constraint(equalTo: nextButton.bottomAnchor, constant: Layout.actionButtonSpacing),
             backButton.centerXAnchor.constraint(equalTo: rootView.centerXAnchor),
-            backButton.widthAnchor.constraint(equalToConstant: 238),
-            backButton.heightAnchor.constraint(equalToConstant: 50),
-            backButton.bottomAnchor.constraint(lessThanOrEqualTo: rootView.safeAreaLayoutGuide.bottomAnchor, constant: -22)
+            backButton.widthAnchor.constraint(equalToConstant: Layout.actionButtonWidth),
+            backButton.heightAnchor.constraint(equalToConstant: Layout.secondaryActionButtonHeight),
+            backButton.bottomAnchor.constraint(lessThanOrEqualTo: rootView.safeAreaLayoutGuide.bottomAnchor, constant: -Layout.bottomMaximumInset)
         ])
+    }
+    
+    private func loadAnswerSounds() {
+        if
+            let correctSoundURL = Bundle.main.url(forResource: Content.correctSoundName, withExtension: Content.soundExtension),
+            let incorrectSoundURL = Bundle.main.url(forResource: Content.incorrectSoundName, withExtension: Content.soundExtension) {
+            soundOfCorrectAnswerPlayer = try? AVAudioPlayer(contentsOf: correctSoundURL)
+            soundOfIncorrectAnswerPlayer = try? AVAudioPlayer(contentsOf: incorrectSoundURL)
+        } else {
+            print(Content.audioLoadFailureMessage)
+        }
+    }
+    
+    private func answerButtonAccessibilityIdentifier(index: Int) -> String {
+        "\(AccessibilityID.answerButtonPrefix)\(index)"
     }
     
     private func makeLabel(font: UIFont) -> UILabel {
@@ -207,58 +368,57 @@ final class QuizQuestionViewController: UIViewController, QuizQuestionViewContro
         let button = UIButton(type: .system)
         button.accessibilityIdentifier = accessibilityIdentifier
         button.setTitleColor(.white, for: .normal)
-        button.setTitleColor(.gray, for: .disabled)
-        button.titleLabel?.font = .systemFont(ofSize: 18, weight: .semibold)
-        button.titleLabel?.numberOfLines = 2
+        button.setTitleColor(Appearance.answerDisabledTitleColor, for: .disabled)
+        button.titleLabel?.font = .systemFont(ofSize: Typography.answerButtonFontSize, weight: .semibold)
+        button.titleLabel?.numberOfLines = Typography.answerButtonNumberOfLines
         button.titleLabel?.textAlignment = .center
         button.backgroundColor = .defaultButton
-        button.layer.cornerRadius = 18
-        button.layer.borderWidth = 1
-        button.layer.borderColor = UIColor.white.withAlphaComponent(0.2).cgColor
+        button.layer.cornerRadius = Appearance.answerCornerRadius
+        button.layer.borderWidth = Appearance.answerBorderWidth
+        button.layer.borderColor = UIColor.white.withAlphaComponent(Appearance.answerBorderAlpha).cgColor
         button.clipsToBounds = true
         button.translatesAutoresizingMaskIntoConstraints = false
         return button
     }
     
-    private func makeActionButton(title: String, accessibilityIdentifier: String, isPrimary: Bool) -> UIButton {
+    private func makeActionButton(title: String, accessibilityIdentifier: String, style: ActionButtonStyle) -> UIButton {
         let button = UIButton(type: .system)
         button.accessibilityIdentifier = accessibilityIdentifier
         button.setTitle(title, for: .normal)
         button.setTitleColor(.white, for: .normal)
-        button.setTitleColor(UIColor.white.withAlphaComponent(0.45), for: .disabled)
-        button.titleLabel?.font = .systemFont(ofSize: 20, weight: .semibold)
-        button.backgroundColor = isPrimary ? UIColor.white.withAlphaComponent(0.22) : UIColor.white.withAlphaComponent(0.12)
-        button.layer.cornerRadius = isPrimary ? 22 : 20
-        button.layer.borderWidth = 1
-        button.layer.borderColor = UIColor.white.withAlphaComponent(isPrimary ? 0.5 : 0.34).cgColor
+        button.setTitleColor(UIColor.white.withAlphaComponent(Appearance.disabledButtonTitleAlpha), for: .disabled)
+        button.titleLabel?.font = .systemFont(ofSize: Typography.actionButtonFontSize, weight: .semibold)
+        button.backgroundColor = UIColor.white.withAlphaComponent(style.backgroundAlpha)
+        button.layer.cornerRadius = style.cornerRadius
+        button.layer.borderWidth = Appearance.actionButtonBorderWidth
+        button.layer.borderColor = UIColor.white.withAlphaComponent(style.borderAlpha).cgColor
         button.layer.shadowColor = UIColor.black.cgColor
-        button.layer.shadowOpacity = isPrimary ? 0.2 : 0
-        button.layer.shadowRadius = 10
-        button.layer.shadowOffset = CGSize(width: 0, height: 6)
+        button.layer.shadowOpacity = style.shadowOpacity
+        button.layer.shadowRadius = Appearance.actionButtonShadowRadius
+        button.layer.shadowOffset = Appearance.actionButtonShadowOffset
         button.translatesAutoresizingMaskIntoConstraints = false
         return button
     }
     
     private func colorAndDisableButtons() {
-        questionButtons?.forEach() { button in
+        answerButtons.forEach { button in
             button.isEnabled = false
             guard let presenter else { return }
             if presenter.checkAnswerButtonTitle(selectedAnswer: button) {
                 button.setTitleColor(.white, for: .disabled)
                 button.backgroundColor = .correctAnswerButton
-                animationsEngine.animateBackgroundColor(button, color: UIColor.correctAnswerButton.cgColor, duration: animationsDuration)
+                animationsEngine.animateBackgroundColor(button, color: UIColor.correctAnswerButton.cgColor, duration: AnimationTiming.answerFeedbackDuration)
             } else {
                 button.backgroundColor = .wrongAnswerButton
-                animationsEngine.animateBackgroundColor(button, color: UIColor.wrongAnswerButton.cgColor, duration: animationsDuration)
+                animationsEngine.animateBackgroundColor(button, color: UIColor.wrongAnswerButton.cgColor, duration: AnimationTiming.answerFeedbackDuration)
             }
         }
     }
     
     func resetAllColors() {
-        questionButtons = [answer1Button, answer2Button, answer3Button, answer4Button]
-        questionButtons?.forEach() { button in
+        answerButtons.forEach { button in
             button.backgroundColor = .defaultButton
-            button.setTitleColor(.gray, for: .disabled)
+            button.setTitleColor(Appearance.answerDisabledTitleColor, for: .disabled)
             button.isEnabled = true
         }
         timerBar.tintColor = .systemBlue
@@ -267,49 +427,47 @@ final class QuizQuestionViewController: UIViewController, QuizQuestionViewContro
     func loadQuestionToView(themeName: String, questionText: String, questionNumberText: String, currentAnswers: [String]) {
         resetAllColors()
         
-        timerBar.progress = presenter?.currentProgress ?? 0
-        
-        self.themeNameLabel.text = themeName
-        self.questionLabel.text = questionText
-        
-        let buttons = questionButtons ?? []
-        for (index, button) in buttons.enumerated() {
-            let answerTitle = currentAnswers.indices.contains(index) ? currentAnswers[index] : L10n.Question.unavailableAnswer
-            button.setTitle(answerTitle, for: .normal)
-            button.isEnabled = currentAnswers.indices.contains(index)
-        }
-        
+        timerBar.progress = presenter?.currentProgress ?? .zero
+        themeNameLabel.text = themeName
+        questionLabel.text = questionText
+        applyAnswers(currentAnswers)
         questionNumberLabel.text = questionNumberText
         nextButton.isEnabled = false
         presenter?.startTimer()
     }
     
+    private func applyAnswers(_ currentAnswers: [String]) {
+        for (index, button) in answerButtons.enumerated() {
+            let hasAnswer = currentAnswers.indices.contains(index)
+            button.setTitle(hasAnswer ? currentAnswers[index] : Content.unavailableAnswerTitle, for: .normal)
+            button.isEnabled = hasAnswer
+        }
+    }
+    
     func showQuestionUnavailable(themeName: String?, message: String) {
-        questionButtons = [answer1Button, answer2Button, answer3Button, answer4Button]
-        themeNameLabel.text = themeName ?? L10n.Question.fallbackTheme
-        questionNumberLabel.text = L10n.Question.unavailableNumber
+        themeNameLabel.text = themeName ?? Content.fallbackThemeName
+        questionNumberLabel.text = Content.unavailableQuestionNumberText
         questionLabel.text = message
-        timerBar.progress = 0
+        timerBar.progress = .zero
         timerBar.tintColor = .systemBlue
-        questionButtons?.forEach { button in
-            button.setTitle("—", for: .normal)
+        answerButtons.forEach { button in
+            button.setTitle(Content.disabledAnswerPlaceholder, for: .normal)
             button.backgroundColor = .defaultButton
-            button.setTitleColor(.gray, for: .disabled)
+            button.setTitleColor(Appearance.answerDisabledTitleColor, for: .disabled)
             button.isEnabled = false
         }
         nextButton.isEnabled = false
     }
     
     func correctAnswerTapped(isTrue: Bool) {
-        switch isTrue {
-        case true:
+        if isTrue {
             soundOfCorrectAnswerPlayer?.play()
             hapticFeedback.notificationOccurred(.success)
-            animationsEngine.animateTintColor(timerBar, color: .correctAnswerBar, duration: animationsDuration)
-        case false:
+            animationsEngine.animateTintColor(timerBar, color: .correctAnswerBar, duration: AnimationTiming.answerFeedbackDuration)
+        } else {
             soundOfIncorrectAnswerPlayer?.play()
             hapticFeedback.notificationOccurred(.error)
-            animationsEngine.animateTintColor(timerBar, color: .wrongAnswerBar, duration: animationsDuration)
+            animationsEngine.animateTintColor(timerBar, color: .wrongAnswerBar, duration: AnimationTiming.answerFeedbackDuration)
         }
     }
     
@@ -322,12 +480,10 @@ final class QuizQuestionViewController: UIViewController, QuizQuestionViewContro
     
     private func resetSoundPlayers() {
         soundOfCorrectAnswerPlayer?.stop()
-        soundOfCorrectAnswerPlayer?.currentTime = 0
+        soundOfCorrectAnswerPlayer?.currentTime = .zero
         soundOfIncorrectAnswerPlayer?.stop()
-        soundOfIncorrectAnswerPlayer?.currentTime = 0
+        soundOfIncorrectAnswerPlayer?.currentTime = .zero
     }
-    
-    // MARK: - IBAction Methods
     
     @IBAction func answerChosen(_ sender: UIButton) {
         guard sender.isEnabled else { return }
@@ -337,7 +493,7 @@ final class QuizQuestionViewController: UIViewController, QuizQuestionViewContro
         colorAndDisableButtons()
         presenter?.checkAnswer(sender)
         presenter?.stopTimer()
-        UIView.animate(withDuration: 1) {
+        UIView.animate(withDuration: AnimationTiming.nextButtonEnableDuration) {
             self.nextButton.isEnabled = true
         }
     }
