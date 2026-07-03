@@ -1,0 +1,54 @@
+"common.back" = "Назад";
+"common.exit" = "Выход";
+"common.next" = "Далее";
+"common.no" = "Нет";
+"common.start" = "Начать";
+"common.yes" = "Да";
+
+"description.default_theme_description" = "Описание темы недоступно";
+"description.default_theme_name" = "Без темы";
+"description.question_count" = "Количество вопросов";
+
+"home.choose_theme" = "Выберите тему";
+"home.exit_alert.message" = "Вы уверены что хотите выйти?";
+"home.feeling_lucky" = "Мне повезет";
+"home.feeling_lucky.accessibility_hint" = "Запускает случайную тему";
+"home.statistics.accessibility_hint" = "Открывает экран общей статистики по завершённым викторинам";
+"home.statistics.accessibility_label" = "Общая статистика";
+"home.statistics.description" = "Общие итоги квизов";
+"home.themes_collection.accessibility_label" = "Темы викторины";
+"home.unavailable_themes" = "Темы пока недоступны";
+"home.welcome" = "Добро пожаловать в";
+
+"question.audio_load_failure" = "Аудиофайлы не были загружены";
+"question.fallback_theme" = "Викторина";
+"question.number_format" = "Вопрос №%d";
+"question.unavailable.message" = "В этой теме пока нет доступных вопросов. Вернитесь назад и выберите другую тему.";
+"question.unavailable_answer" = "Недоступно";
+"question.unavailable_number" = "Вопросы недоступны";
+
+"result.description.fallback" = "Описание результата недоступно";
+"result.description.high_score" = "Ещё чуть-чуть и был бы как сам создатель квиза, молодец!";
+"result.description.invalid_score" = "Что-то пошло не так! Я не смог понять, сколько ответов правильные(";
+"result.description.low_score" = "Ты знаешь, могло быть и хуже! Не сильно... Но могло!";
+"result.description.medium_low_score" = "Да ладно, я знаю что ты не старался)";
+"result.description.medium_score" = "Нормально, сойдёт для сельской местности";
+"result.description.no_questions" = "В этой попытке не было доступных вопросов. Попробуй выбрать другую тему.";
+"result.description.perfect_score" = "Легенда, гений, соло легчайше для величайшего!";
+"result.description.very_low_score" = "Тебе точно стоит попробовать ещё раз!";
+"result.restart" = "Начать заново";
+"result.text_format" = "Твой результат:\n %d/%d";
+
+"statistics.accessibility_label" = "Экран общей статистики";
+"statistics.best_result" = "Лучший результат";
+"statistics.correct_answers" = "Правильных ответов";
+"statistics.empty_state.accessibility_label" = "Пока нет завершённых викторин. Пройдите первую викторину, чтобы увидеть общую статистику.";
+"statistics.empty_state.text" = "Пройдите первую викторину, чтобы увидеть общую статистику. Здесь появятся сыгранные квизы, точность и лучший результат.";
+"statistics.percentage" = "Процент правильных";
+"statistics.played_quizzes" = "Пройдено викторин";
+"statistics.subtitle.empty" = "Начните с первой викторины — статистика появится автоматически";
+"statistics.subtitle.with_stats" = "Ваш прогресс по завершённым викторинам";
+"statistics.title" = "Статистика";
+
+"theme.card.accessibility_hint" = "Запускает квиз по этой теме";
+"theme.card.accessibility_label_format" = "%@, тема викторины";

@@ -76,7 +76,7 @@ final class QuizDescriptionViewController: UIViewController, QuizDescriptionView
         themeDescriptionLabel.textColor = UIColor.white.withAlphaComponent(0.9)
         
         pickerCaptionLabel = makeLabel(font: .systemFont(ofSize: 17, weight: .semibold), accessibilityIdentifier: "descriptionPickerCaptionLabel")
-        pickerCaptionLabel.text = "Количество вопросов"
+        pickerCaptionLabel.text = L10n.Description.questionCount
         pickerCaptionLabel.textColor = UIColor.white.withAlphaComponent(0.82)
         
         numberOfQuestionsPickerView = UIPickerView()
@@ -87,10 +87,10 @@ final class QuizDescriptionViewController: UIViewController, QuizDescriptionView
         numberOfQuestionsPickerView.layer.borderColor = UIColor.white.withAlphaComponent(0.16).cgColor
         numberOfQuestionsPickerView.translatesAutoresizingMaskIntoConstraints = false
         
-        startButton = makeActionButton(title: "Начать", accessibilityIdentifier: "descriptionStartButton", isPrimary: true)
+        startButton = makeActionButton(title: L10n.Common.start, accessibilityIdentifier: "descriptionStartButton", isPrimary: true)
         startButton.addTarget(self, action: #selector(startButtonTapped), for: .touchUpInside)
         
-        backButton = makeActionButton(title: "Назад", accessibilityIdentifier: "descriptionBackButton", isPrimary: false)
+        backButton = makeActionButton(title: L10n.Common.back, accessibilityIdentifier: "descriptionBackButton", isPrimary: false)
         backButton.addTarget(self, action: #selector(backButtonTapped), for: .touchUpInside)
         
         contentStackView = UIStackView(arrangedSubviews: [

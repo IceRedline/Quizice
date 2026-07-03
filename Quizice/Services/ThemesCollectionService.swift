@@ -79,8 +79,8 @@ final class ThemesCollectionService: NSObject, UICollectionViewDelegate, UIColle
         button.addTarget(self, action: #selector(buttonTouchedUpInside(_:)), for: .touchUpInside)
         button.addTarget(self, action: #selector(buttonTouchedUpOutside(_:)), for: .touchUpOutside)
         button.accessibilityIdentifier = themeName
-        button.accessibilityLabel = "\(themeName) theme card"
-        button.accessibilityHint = "Starts a quiz in this theme"
+        button.accessibilityLabel = L10n.ThemeCard.accessibilityLabel(themeName: themeName)
+        button.accessibilityHint = L10n.ThemeCard.accessibilityHint
         button.backgroundColor = UIColor.white.withAlphaComponent(0.14)
         button.layer.cornerRadius = themeCardCornerRadius
         button.layer.borderWidth = 1
@@ -104,8 +104,8 @@ final class ThemesCollectionService: NSObject, UICollectionViewDelegate, UIColle
     private func configureStatisticsCard(in cell: UICollectionViewCell) {
         let button = UIButton(type: .system)
         button.accessibilityIdentifier = "homeStatisticsCard"
-        button.accessibilityLabel = "Общая статистика"
-        button.accessibilityHint = "Открывает экран общей статистики по завершённым викторинам"
+        button.accessibilityLabel = L10n.Home.statisticsAccessibilityLabel
+        button.accessibilityHint = L10n.Home.statisticsAccessibilityHint
         button.backgroundColor = UIColor.white.withAlphaComponent(0.18)
         button.layer.cornerRadius = statisticsCardCornerRadius
         button.layer.borderWidth = 1
@@ -117,14 +117,14 @@ final class ThemesCollectionService: NSObject, UICollectionViewDelegate, UIColle
         button.addTarget(self, action: #selector(buttonTouchedUpOutside(_:)), for: .touchUpOutside)
         
         let titleLabel = UILabel()
-        titleLabel.text = "Статистика"
+        titleLabel.text = L10n.Statistics.title
         titleLabel.textColor = .white
         titleLabel.font = .systemFont(ofSize: 22, weight: .bold)
         titleLabel.textAlignment = .left
         titleLabel.translatesAutoresizingMaskIntoConstraints = false
         
         let descriptionLabel = UILabel()
-        descriptionLabel.text = "Общие итоги квизов"
+        descriptionLabel.text = L10n.Home.statisticsDescription
         descriptionLabel.textColor = UIColor.white.withAlphaComponent(0.84)
         descriptionLabel.font = .systemFont(ofSize: 15, weight: .semibold)
         descriptionLabel.textAlignment = .left

@@ -113,7 +113,7 @@ final class HomeScreenVisualStateTests: XCTestCase {
         let themeButton = themeCell.contentView.descendant(withAccessibilityIdentifier: "Музыка") as? UIButton
         let statisticsButton = statisticsCell.contentView.descendant(withAccessibilityIdentifier: "homeStatisticsCard") as? UIButton
 
-        XCTAssertEqual(themeButton?.accessibilityLabel, "Музыка theme card")
+        XCTAssertEqual(themeButton?.accessibilityLabel, "Музыка, тема викторины")
         XCTAssertEqual(themeButton?.layer.cornerRadius, 28)
         XCTAssertEqual(themeButton?.layer.borderWidth, 1)
         XCTAssertTrue(themeButton?.clipsToBounds ?? false)
