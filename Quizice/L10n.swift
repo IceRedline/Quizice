@@ -67,6 +67,43 @@ enum L10n {
         }
     }
 
+    enum Settings {
+        static var alertAction: String { L10n.localized("settings.alert.action", comment: "Default settings alert action title") }
+        static var appearanceSectionTitle: String { L10n.localized("settings.section.appearance", comment: "Settings appearance section title") }
+        static var close: String { L10n.localized("settings.close", comment: "Settings close button title") }
+        static var feedback: String { L10n.localized("settings.feedback", comment: "Settings feedback row title") }
+        static var feedbackSubtitle: String { L10n.localized("settings.feedback.subtitle", comment: "Settings feedback row subtitle") }
+        static var feedbackUnavailableMessage: String { L10n.localized("settings.feedback.unavailable_message", comment: "Settings feedback unavailable alert message") }
+        static var done: String { L10n.localized("settings.done", comment: "Settings done button title") }
+        static var icon: String { L10n.localized("settings.icon", comment: "Settings app icon row title") }
+        static var iconSubtitle: String { L10n.localized("settings.icon.subtitle", comment: "Settings app icon row subtitle") }
+        static var profile: String { L10n.localized("settings.profile", comment: "Settings profile row title") }
+        static var profileSectionTitle: String { L10n.localized("settings.section.profile", comment: "Settings profile section title") }
+        static var profileSubtitle: String { L10n.localized("settings.profile.subtitle", comment: "Settings profile row subtitle") }
+        static var profileUnavailableMessage: String { L10n.localized("settings.profile.unavailable_message", comment: "Settings profile unavailable alert message") }
+        static var restartRequiredTitle: String { L10n.localized("settings.restart_required.title", comment: "Settings restart required alert title") }
+        static var supportSectionTitle: String { L10n.localized("settings.section.support", comment: "Settings support section title") }
+        static var theme: String { L10n.localized("settings.theme", comment: "Settings theme row title") }
+        static var themeSubtitle: String { L10n.localized("settings.theme.subtitle", comment: "Settings theme row subtitle") }
+        static var title: String { L10n.localized("settings.title", comment: "Settings screen title") }
+
+        static func restartRequiredMessage(selection: String) -> String {
+            L10n.formatted("settings.restart_required.message_format", comment: "Settings restart required alert message format", selection)
+        }
+
+        enum Icon {
+            static var classic: String { L10n.localized("settings.icon.classic", comment: "Classic app icon option title") }
+            static var dark: String { L10n.localized("settings.icon.dark", comment: "Dark app icon option title") }
+            static var ice: String { L10n.localized("settings.icon.ice", comment: "Ice app icon option title") }
+        }
+
+        enum Theme {
+            static var dark: String { L10n.localized("settings.theme.dark", comment: "Dark app theme option title") }
+            static var light: String { L10n.localized("settings.theme.light", comment: "Light app theme option title") }
+            static var system: String { L10n.localized("settings.theme.system", comment: "System app theme option title") }
+        }
+    }
+
     enum Statistics {
         static var accessibilityLabel: String { L10n.localized("statistics.accessibility_label", comment: "Statistics screen accessibility label") }
         static var bestResult: String { L10n.localized("statistics.best_result", comment: "Best result row title") }

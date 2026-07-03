@@ -1,13 +1,12 @@
 import UIKit
 import AVKit
-#if DEBUG
 import SwiftUI
-#endif
 
 final class QuizViewController: UIViewController, QuizViewControllerProtocol, ThemeCollectionDelegate {
     private enum Content {
         static let backgroundImageName = "backgroundImage"
         static let logoImageName = "Quizice"
+        static let settingsIconName = "gear"
         static let startupSoundName = "Quizice Enter"
         static let startupSoundExtension = "m4a"
         static let themeCellReuseIdentifier = "themeCell"
@@ -25,6 +24,7 @@ final class QuizViewController: UIViewController, QuizViewControllerProtocol, Th
         static let screenStackView = "homeScreenStackView"
         static let actionButtonsStackView = "homeActionButtonsStackView"
         static let exitButton = "homeExitButton"
+        static let settingsButton = "homeSettingsButton"
     }
 
     private enum Layout {
@@ -41,6 +41,9 @@ final class QuizViewController: UIViewController, QuizViewControllerProtocol, Th
         static let collectionBottomInset: CGFloat = 0
         static let logoWidthMultiplier: CGFloat = 0.7
         static let logoHeight: CGFloat = 84
+        static let settingsButtonTopInset: CGFloat = 12
+        static let settingsButtonTrailingInset: CGFloat = 18
+        static let settingsButtonSize: CGFloat = 44
         static let visibleCellRowSortingTolerance: CGFloat = 1
         static let scrollActivationTolerance: CGFloat = 1
         static let secondaryActionButtonHeight: CGFloat = 50
@@ -86,6 +89,7 @@ final class QuizViewController: UIViewController, QuizViewControllerProtocol, Th
         static let welcomeFontSize: CGFloat = 26
         static let chooseThemeFontSize: CGFloat = 24
         static let actionButtonFontSize: CGFloat = 19
+        static let settingsIconPointSize: CGFloat = 19
         static let unlimitedNumberOfLines = 0
     }
 
@@ -98,6 +102,11 @@ final class QuizViewController: UIViewController, QuizViewControllerProtocol, Th
         static let primaryButtonShadowOpacity: Float = 0.24
         static let primaryButtonShadowRadius: CGFloat = 14
         static let primaryButtonShadowOffset = CGSize(width: 0, height: 8)
+        static let settingsButtonBackgroundAlpha: CGFloat = 0.14
+        static let settingsButtonBorderAlpha: CGFloat = 0.22
+        static let settingsButtonShadowOpacity: Float = 0.18
+        static let settingsButtonShadowRadius: CGFloat = 12
+        static let settingsButtonShadowOffset = CGSize(width: 0, height: 6)
 
     }
 
@@ -120,6 +129,7 @@ final class QuizViewController: UIViewController, QuizViewControllerProtocol, Th
     private var chooseThemeLabel: UILabel!
     private var headerStackView: UIStackView!
     private var screenStackView: UIStackView!
+    private var settingsButton: UIButton!
 
     private var exitButton: UIButton!
     private var actionButtonsStackView: UIStackView!
@@ -133,7 +143,7 @@ final class QuizViewController: UIViewController, QuizViewControllerProtocol, Th
     var presenter: QuizPresenterProtocol?
 
     private var startupAnimatedViews: [UIView] {
-        [welcomeLabel, quiziceLabel, themesCollectionView, chooseThemeLabel]
+        [welcomeLabel, quiziceLabel, themesCollectionView, chooseThemeLabel, settingsButton]
     }
 
     override func loadView() {
@@ -182,6 +192,7 @@ final class QuizViewController: UIViewController, QuizViewControllerProtocol, Th
 
     private func configureProgrammaticSubviews(in rootView: UIView) {
         configureHeaderViews()
+        configureSettingsButton()
         configureActionButtons()
         configureHeaderStack()
         configureActionButtonsStack()
@@ -190,6 +201,7 @@ final class QuizViewController: UIViewController, QuizViewControllerProtocol, Th
         configureInitialStartupVisibilityIfNeeded()
 
         rootView.addSubview(screenStackView)
+        rootView.addSubview(settingsButton)
         activateLayoutConstraints(in: rootView)
     }
 
@@ -215,6 +227,28 @@ final class QuizViewController: UIViewController, QuizViewControllerProtocol, Th
         chooseThemeLabel = makeLabel(text: L10n.Home.chooseTheme, font: .systemFont(ofSize: Typography.chooseThemeFontSize, weight: .semibold))
         chooseThemeLabel.accessibilityIdentifier = AccessibilityID.chooseThemeLabel
         chooseThemeLabel.adjustsFontForContentSizeCategory = true
+    }
+
+    private func configureSettingsButton() {
+        settingsButton = UIButton(type: .system)
+        settingsButton.accessibilityIdentifier = AccessibilityID.settingsButton
+        settingsButton.accessibilityLabel = L10n.Settings.title
+        let settingsIcon = UIImage(
+            systemName: Content.settingsIconName,
+            withConfiguration: UIImage.SymbolConfiguration(pointSize: Typography.settingsIconPointSize, weight: .semibold)
+        )
+        settingsButton.setImage(settingsIcon, for: .normal)
+        settingsButton.tintColor = .white
+        settingsButton.backgroundColor = UIColor.white.withAlphaComponent(Appearance.settingsButtonBackgroundAlpha)
+        settingsButton.layer.cornerRadius = Layout.settingsButtonSize / 2
+        settingsButton.layer.borderWidth = 1
+        settingsButton.layer.borderColor = UIColor.white.withAlphaComponent(Appearance.settingsButtonBorderAlpha).cgColor
+        settingsButton.layer.shadowColor = UIColor.black.cgColor
+        settingsButton.layer.shadowOpacity = Appearance.settingsButtonShadowOpacity
+        settingsButton.layer.shadowRadius = Appearance.settingsButtonShadowRadius
+        settingsButton.layer.shadowOffset = Appearance.settingsButtonShadowOffset
+        settingsButton.translatesAutoresizingMaskIntoConstraints = false
+        settingsButton.addTarget(self, action: #selector(settingsButtonTapped), for: .touchUpInside)
     }
 
     private func configureHeaderStack() {
@@ -286,6 +320,11 @@ final class QuizViewController: UIViewController, QuizViewControllerProtocol, Th
             screenStackView.leadingAnchor.constraint(equalTo: rootView.leadingAnchor),
             screenStackView.trailingAnchor.constraint(equalTo: rootView.trailingAnchor),
             screenStackView.bottomAnchor.constraint(equalTo: rootView.safeAreaLayoutGuide.bottomAnchor),
+
+            settingsButton.topAnchor.constraint(equalTo: rootView.safeAreaLayoutGuide.topAnchor, constant: Layout.settingsButtonTopInset),
+            settingsButton.trailingAnchor.constraint(equalTo: rootView.trailingAnchor, constant: -Layout.settingsButtonTrailingInset),
+            settingsButton.widthAnchor.constraint(equalToConstant: Layout.settingsButtonSize),
+            settingsButton.heightAnchor.constraint(equalToConstant: Layout.settingsButtonSize),
 
             welcomeLabel.widthAnchor.constraint(lessThanOrEqualTo: headerStackView.layoutMarginsGuide.widthAnchor),
             quiziceLabel.widthAnchor.constraint(lessThanOrEqualTo: rootView.widthAnchor, multiplier: Layout.logoWidthMultiplier),
@@ -363,6 +402,7 @@ final class QuizViewController: UIViewController, QuizViewControllerProtocol, Th
             DispatchQueue.main.asyncAfter(deadline: .now() + AnimationTiming.controlsFadeInDelay) { [weak self] in
                 guard let self else { return }
                 self.chooseThemeLabel.fadeIn(duration: AnimationTiming.controlsFadeInDuration)
+                self.settingsButton.fadeIn(duration: AnimationTiming.controlsFadeInDuration)
                 self.animateThemeCells(visibleCells)
             }
         }
@@ -466,6 +506,16 @@ final class QuizViewController: UIViewController, QuizViewControllerProtocol, Th
             exit(ProcessExit.userConfirmedExitCode)
         }))
         present(alert, animated: true)
+    }
+
+    @objc private func settingsButtonTapped() {
+        let viewController = UIHostingController(rootView: QuizSettingsView())
+        viewController.modalPresentationStyle = .pageSheet
+        if let sheetPresentationController = viewController.sheetPresentationController {
+            sheetPresentationController.detents = [.large()]
+            sheetPresentationController.prefersGrabberVisible = true
+        }
+        present(viewController, animated: true)
     }
 }
 
