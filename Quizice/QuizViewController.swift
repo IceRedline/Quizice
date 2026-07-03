@@ -31,18 +31,18 @@ final class QuizViewController: UIViewController, QuizViewControllerProtocol, Th
         static let headerStackSpacing: CGFloat = 0
         static let headerHorizontalInset: CGFloat = 24
         static let screenTopInset: CGFloat = 28
-        static let screenBottomInset: CGFloat = 24
+        static let screenBottomInset: CGFloat = 0
         static let screenStackSpacing: CGFloat = 0
         static let headerToCollectionSpacing: CGFloat = 18
-        static let collectionToActionsSpacing: CGFloat = 24
         static let actionHorizontalInset: CGFloat = 32
         static let collectionItemSpacing: CGFloat = 16
         static let collectionHorizontalInset: CGFloat = 24
         static let collectionTopInset: CGFloat = 0
-        static let collectionBottomInset: CGFloat = 24
+        static let collectionBottomInset: CGFloat = 0
         static let logoWidthMultiplier: CGFloat = 0.7
         static let logoHeight: CGFloat = 84
         static let visibleCellRowSortingTolerance: CGFloat = 1
+        static let scrollActivationTolerance: CGFloat = 1
         static let secondaryActionButtonHeight: CGFloat = 50
 
         static var headerMargins: NSDirectionalEdgeInsets {
@@ -133,7 +133,7 @@ final class QuizViewController: UIViewController, QuizViewControllerProtocol, Th
     var presenter: QuizPresenterProtocol?
 
     private var startupAnimatedViews: [UIView] {
-        [welcomeLabel, quiziceLabel, themesCollectionView, chooseThemeLabel, actionButtonsStackView]
+        [welcomeLabel, quiziceLabel, themesCollectionView, chooseThemeLabel]
     }
 
     override func loadView() {
@@ -161,6 +161,11 @@ final class QuizViewController: UIViewController, QuizViewControllerProtocol, Th
         updateThemeAvailabilityMessage()
     }
 
+    override func viewDidLayoutSubviews() {
+        super.viewDidLayoutSubviews()
+        updateCollectionScrollAvailability()
+    }
+
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
 
@@ -182,6 +187,7 @@ final class QuizViewController: UIViewController, QuizViewControllerProtocol, Th
         configureActionButtonsStack()
         configureThemesCollectionView()
         configureScreenStack()
+        configureInitialStartupVisibilityIfNeeded()
 
         rootView.addSubview(screenStackView)
         activateLayoutConstraints(in: rootView)
@@ -226,6 +232,7 @@ final class QuizViewController: UIViewController, QuizViewControllerProtocol, Th
         exitButton = makePrimaryActionButton(title: L10n.Common.exit)
         exitButton.accessibilityIdentifier = AccessibilityID.exitButton
         exitButton.accessibilityLabel = L10n.Common.exit
+        exitButton.isHidden = true
         exitButton.addTarget(self, action: #selector(backButtonTapped), for: .touchUpInside)
     }
 
@@ -237,6 +244,7 @@ final class QuizViewController: UIViewController, QuizViewControllerProtocol, Th
         actionButtonsStackView.distribution = .fill
         actionButtonsStackView.isLayoutMarginsRelativeArrangement = true
         actionButtonsStackView.directionalLayoutMargins = Layout.actionButtonMargins
+        actionButtonsStackView.isHidden = true
         actionButtonsStackView.translatesAutoresizingMaskIntoConstraints = false
     }
 
@@ -250,8 +258,11 @@ final class QuizViewController: UIViewController, QuizViewControllerProtocol, Th
         themesCollectionView = UICollectionView(frame: .zero, collectionViewLayout: layout)
         themesCollectionView.accessibilityIdentifier = AccessibilityID.themesCollectionView
         themesCollectionView.accessibilityLabel = L10n.Home.themesCollectionAccessibilityLabel
-        themesCollectionView.alwaysBounceVertical = true
+        themesCollectionView.alwaysBounceVertical = false
+        themesCollectionView.bounces = false
+        themesCollectionView.delaysContentTouches = false
         themesCollectionView.showsVerticalScrollIndicator = false
+        themesCollectionView.isScrollEnabled = false
         themesCollectionView.translatesAutoresizingMaskIntoConstraints = false
         themesCollectionView.setContentHuggingPriority(.defaultLow, for: .vertical)
         themesCollectionView.setContentCompressionResistancePriority(.defaultLow, for: .vertical)
@@ -266,7 +277,6 @@ final class QuizViewController: UIViewController, QuizViewControllerProtocol, Th
         screenStackView.isLayoutMarginsRelativeArrangement = true
         screenStackView.directionalLayoutMargins = Layout.screenMargins
         screenStackView.setCustomSpacing(Layout.headerToCollectionSpacing, after: headerStackView)
-        screenStackView.setCustomSpacing(Layout.collectionToActionsSpacing, after: themesCollectionView)
         screenStackView.translatesAutoresizingMaskIntoConstraints = false
     }
 
@@ -318,6 +328,25 @@ final class QuizViewController: UIViewController, QuizViewControllerProtocol, Th
         return button
     }
 
+    private func configureInitialStartupVisibilityIfNeeded() {
+        guard QuizFactory.shared.startup1st else { return }
+        startupAnimatedViews.forEach { $0.alpha = Appearance.hiddenAlpha }
+    }
+
+    private func updateCollectionScrollAvailability() {
+        themesCollectionView.layoutIfNeeded()
+        let contentHeight = themesCollectionView.collectionViewLayout.collectionViewContentSize.height
+        let viewportHeight = max(
+            themesCollectionView.bounds.height - themesCollectionView.adjustedContentInset.top - themesCollectionView.adjustedContentInset.bottom,
+            .zero
+        )
+        let shouldScroll = contentHeight > viewportHeight + Layout.scrollActivationTolerance
+
+        themesCollectionView.isScrollEnabled = shouldScroll
+        themesCollectionView.alwaysBounceVertical = shouldScroll
+        themesCollectionView.bounces = shouldScroll
+    }
+
     private func animateViewsAndPlaySound() {
         let visibleCells = sortedVisibleThemeCells()
         prepareStartupAnimation(visibleCells: visibleCells)
@@ -334,7 +363,6 @@ final class QuizViewController: UIViewController, QuizViewControllerProtocol, Th
             DispatchQueue.main.asyncAfter(deadline: .now() + AnimationTiming.controlsFadeInDelay) { [weak self] in
                 guard let self else { return }
                 self.chooseThemeLabel.fadeIn(duration: AnimationTiming.controlsFadeInDuration)
-                self.actionButtonsStackView.fadeIn(duration: AnimationTiming.controlsFadeInDuration)
                 self.animateThemeCells(visibleCells)
             }
         }

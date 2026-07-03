@@ -3,25 +3,50 @@ import UIKit
 final class ThemesCollectionService: NSObject, UICollectionViewDelegate, UICollectionViewDataSource, UICollectionViewDelegateFlowLayout {
     private enum Content {
         static let themeCellReuseIdentifier = "themeCell"
+        static let themeImageAccessibilityIDPrefix = "homeThemeImageView"
+        static let themeTitleAccessibilityIDPrefix = "homeThemeTitleLabel"
         static let feelingLuckyAccessibilityID = "homeFeelingLuckyButton"
         static let statisticsAccessibilityID = "homeStatisticsCard"
+
+        static let musicThemeName = "Музыка"
+        static let technologyThemeName = "Технологии"
+        static let historyThemeName = "История"
+        static let cultureThemeName = "История и культура"
+        static let cultureThemeDisplayTitle = "Культура и история"
+        static let politicsThemeName = "Политика"
+        static let politicsBusinessThemeName = "Политика и бизнес"
+
+        static let musicThemeLogoImageName = "theme_logo_music"
+        static let technologyThemeLogoImageName = "theme_logo_tech.png"
+        static let cultureThemeLogoImageName = "theme_logo_culture.png"
+        static let politicsThemeLogoImageName = "theme_logo_politics"
+
+        static let musicThemeTintColorName = "themeMusicTint"
+        static let technologyThemeTintColorName = "themeTechnologyTint"
+        static let cultureThemeTintColorName = "themeCultureTint"
+        static let politicsThemeTintColorName = "themePoliticsTint"
     }
 
     private enum Layout {
-        static let sectionInsets = UIEdgeInsets(top: 0, left: 24, bottom: 32, right: 24)
+        static let sectionInsets = UIEdgeInsets(top: 0, left: 24, bottom: 0, right: 24)
         static let itemSpacing: CGFloat = 16
         static let feelingLuckyButtonHeight: CGFloat = 54
         static let statisticsCardHeight: CGFloat = 112
         static let cardContentHorizontalInset: CGFloat = 24
         static let statisticsStackSpacing: CGFloat = 6
-        static let themeImageInset: CGFloat = 18
+        static let themeImageTopInset: CGFloat = 14
+        static let themeImageHorizontalInset: CGFloat = 4
+        static let themeImageToTitleSpacing: CGFloat = 0
+        static let themeTitleHorizontalInset: CGFloat = 8
+        static let themeTitleBottomInset: CGFloat = 6
+        static let themeTitleHeight: CGFloat = 48
         static let cellShadowOffset = CGSize(width: 0, height: 12)
         static let cellShadowRadius: CGFloat = 22
     }
 
     private enum Appearance {
-        static let themeCardBackgroundAlpha: CGFloat = 0.14
-        static let themeCardBorderAlpha: CGFloat = 0.28
+        static let themeCardBackgroundAlpha: CGFloat = 0.20
+        static let themeCardBorderAlpha: CGFloat = 0.45
         static let themeCardCornerRadius: CGFloat = 28
         static let statisticsCardBackgroundAlpha: CGFloat = 0.18
         static let statisticsCardBorderAlpha: CGFloat = 0.40
@@ -31,30 +56,24 @@ final class ThemesCollectionService: NSObject, UICollectionViewDelegate, UIColle
         static let feelingLuckyButtonCornerRadius: CGFloat = 20
         static let buttonBorderWidth: CGFloat = 1
         static let cellShadowOpacity: Float = 0.22
-        static let titleFontSize: CGFloat = 22
+        static let titleFontSize: CGFloat = 24
         static let descriptionFontSize: CGFloat = 15
         static let luckyFontSize: CGFloat = 19
+        static let themeTitleFontSize: CGFloat = 18
+        static let themeTitleMinimumScaleFactor: CGFloat = 0.78
     }
 
     weak var delegate: ThemeCollectionDelegate?
 
     private let quizFactory = QuizFactory.shared
 
-    private var themeCount: Int {
-        quizFactory.themes?.count ?? 0
-    }
+    private var themeCount: Int { quizFactory.themes?.count ?? 0 }
 
-    private var feelingLuckyIndex: Int {
-        themeCount
-    }
+    private var feelingLuckyIndex: Int { themeCount }
 
-    private var statisticsIndex: Int {
-        themeCount + 1
-    }
+    private var statisticsIndex: Int { themeCount + 1 }
 
-    func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-        themeCount + 2
-    }
+    func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int { themeCount + 2 }
 
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
         let cell = collectionView.dequeueReusableCell(withReuseIdentifier: Content.themeCellReuseIdentifier, for: indexPath)
@@ -111,29 +130,57 @@ final class ThemesCollectionService: NSObject, UICollectionViewDelegate, UIColle
 
     private func configureThemeCard(in cell: UICollectionViewCell, themeName: String) {
         let button = UIButton(type: .custom)
+        let themeImageName = themeLogoImageName(for: themeName)
+        let themeDisplayTitle = themeDisplayTitle(for: themeName)
+        let themeTintColor = themeTintColor(for: themeName)
 
         button.addTarget(self, action: #selector(buttonTouchedDown(_:)), for: .touchDown)
         button.addTarget(self, action: #selector(buttonTouchedUpInside(_:)), for: .touchUpInside)
         button.addTarget(self, action: #selector(buttonTouchedUpOutside(_:)), for: .touchUpOutside)
         button.accessibilityIdentifier = themeName
-        button.accessibilityLabel = L10n.ThemeCard.accessibilityLabel(themeName: themeName)
+        button.accessibilityLabel = L10n.ThemeCard.accessibilityLabel(themeName: themeDisplayTitle)
         button.accessibilityHint = L10n.ThemeCard.accessibilityHint
-        button.backgroundColor = UIColor.white.withAlphaComponent(Appearance.themeCardBackgroundAlpha)
+        button.backgroundColor = themeTintColor.withAlphaComponent(Appearance.themeCardBackgroundAlpha)
         button.layer.cornerRadius = Appearance.themeCardCornerRadius
         button.layer.borderWidth = Appearance.buttonBorderWidth
-        button.layer.borderColor = UIColor.white.withAlphaComponent(Appearance.themeCardBorderAlpha).cgColor
+        button.layer.borderColor = themeTintColor.withAlphaComponent(Appearance.themeCardBorderAlpha).cgColor
         button.clipsToBounds = true
-        button.adjustsImageWhenHighlighted = false
-        button.imageEdgeInsets = UIEdgeInsets(
-            top: Layout.themeImageInset,
-            left: Layout.themeImageInset,
-            bottom: Layout.themeImageInset,
-            right: Layout.themeImageInset
-        )
-        button.setImage(UIImage(named: themeName), for: .normal)
-        button.imageView?.contentMode = .scaleAspectFit
         button.translatesAutoresizingMaskIntoConstraints = false
+
+        let imageView = UIImageView(image: UIImage(named: themeImageName))
+        imageView.accessibilityIdentifier = themeImageAccessibilityIdentifier(themeName: themeName)
+        imageView.contentMode = .scaleAspectFit
+        imageView.isUserInteractionEnabled = false
+        imageView.translatesAutoresizingMaskIntoConstraints = false
+
+        let titleLabel = UILabel()
+        titleLabel.accessibilityIdentifier = themeTitleAccessibilityIdentifier(themeName: themeName)
+        titleLabel.text = themeDisplayTitle
+        titleLabel.textColor = .white
+        titleLabel.font = .systemFont(ofSize: Appearance.themeTitleFontSize, weight: .semibold)
+        titleLabel.textAlignment = .center
+        titleLabel.numberOfLines = 2
+        titleLabel.lineBreakMode = .byWordWrapping
+        titleLabel.adjustsFontSizeToFitWidth = true
+        titleLabel.minimumScaleFactor = Appearance.themeTitleMinimumScaleFactor
+        titleLabel.isUserInteractionEnabled = false
+        titleLabel.translatesAutoresizingMaskIntoConstraints = false
+
         pin(button, to: cell.contentView)
+        button.addSubview(imageView)
+        button.addSubview(titleLabel)
+
+        NSLayoutConstraint.activate([
+            imageView.topAnchor.constraint(equalTo: button.topAnchor, constant: Layout.themeImageTopInset),
+            imageView.leadingAnchor.constraint(equalTo: button.leadingAnchor, constant: Layout.themeImageHorizontalInset),
+            imageView.trailingAnchor.constraint(equalTo: button.trailingAnchor, constant: -Layout.themeImageHorizontalInset),
+
+            titleLabel.topAnchor.constraint(equalTo: imageView.bottomAnchor, constant: Layout.themeImageToTitleSpacing),
+            titleLabel.leadingAnchor.constraint(equalTo: button.leadingAnchor, constant: Layout.themeTitleHorizontalInset),
+            titleLabel.trailingAnchor.constraint(equalTo: button.trailingAnchor, constant: -Layout.themeTitleHorizontalInset),
+            titleLabel.bottomAnchor.constraint(equalTo: button.bottomAnchor, constant: -Layout.themeTitleBottomInset),
+            titleLabel.heightAnchor.constraint(equalToConstant: Layout.themeTitleHeight)
+        ])
     }
 
     private func configureFeelingLuckyCard(in cell: UICollectionViewCell) {
@@ -214,6 +261,58 @@ final class ThemesCollectionService: NSObject, UICollectionViewDelegate, UIColle
             view.topAnchor.constraint(equalTo: container.topAnchor),
             view.bottomAnchor.constraint(equalTo: container.bottomAnchor)
         ])
+    }
+
+    private func themeImageAccessibilityIdentifier(themeName: String) -> String {
+        "\(Content.themeImageAccessibilityIDPrefix)-\(themeName)"
+    }
+
+    private func themeTitleAccessibilityIdentifier(themeName: String) -> String {
+        "\(Content.themeTitleAccessibilityIDPrefix)-\(themeName)"
+    }
+
+    private func themeDisplayTitle(for themeName: String) -> String {
+        switch themeName {
+        case Content.historyThemeName, Content.cultureThemeName:
+            return Content.cultureThemeDisplayTitle
+        case Content.politicsThemeName:
+            return Content.politicsBusinessThemeName
+        default:
+            return themeName
+        }
+    }
+
+    private func themeLogoImageName(for themeName: String) -> String {
+        switch themeName {
+        case Content.musicThemeName:
+            return Content.musicThemeLogoImageName
+        case Content.technologyThemeName:
+            return Content.technologyThemeLogoImageName
+        case Content.historyThemeName, Content.cultureThemeName, Content.cultureThemeDisplayTitle:
+            return Content.cultureThemeLogoImageName
+        case Content.politicsThemeName, Content.politicsBusinessThemeName:
+            return Content.politicsThemeLogoImageName
+        default:
+            return themeName
+        }
+    }
+
+    private func themeTintColor(for themeName: String) -> UIColor {
+        let colorName: String
+        switch themeName {
+        case Content.musicThemeName:
+            colorName = Content.musicThemeTintColorName
+        case Content.technologyThemeName:
+            colorName = Content.technologyThemeTintColorName
+        case Content.historyThemeName, Content.cultureThemeName, Content.cultureThemeDisplayTitle:
+            colorName = Content.cultureThemeTintColorName
+        case Content.politicsThemeName, Content.politicsBusinessThemeName:
+            colorName = Content.politicsThemeTintColorName
+        default:
+            return .white
+        }
+
+        return UIColor(named: colorName) ?? .white
     }
 
     @objc func buttonTouchedDown(_ sender: UIButton) {
