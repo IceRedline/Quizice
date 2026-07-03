@@ -18,6 +18,7 @@ final class QuizViewController: UIViewController, QuizViewControllerProtocol, Th
         static let rootView = "homeRootView"
         static let welcomeLabel = "homeWelcomeLabel"
         static let logoImageView = "homeLogoImageView"
+        static let logoTextLabel = "homeLogoTextLabel"
         static let chooseThemeLabel = "homeChooseThemeLabel"
         static let headerStackView = "homeHeaderStackView"
         static let themesCollectionView = "homeThemesCollectionView"
@@ -41,9 +42,9 @@ final class QuizViewController: UIViewController, QuizViewControllerProtocol, Th
         static let collectionBottomInset: CGFloat = 0
         static let logoWidthMultiplier: CGFloat = 0.7
         static let logoHeight: CGFloat = 84
-        static let settingsButtonTopInset: CGFloat = 12
-        static let settingsButtonTrailingInset: CGFloat = 18
-        static let settingsButtonSize: CGFloat = 44
+        static let settingsButtonTopInset: CGFloat = 8
+        static let settingsButtonTrailingInset: CGFloat = 14
+        static let settingsButtonSize: CGFloat = 36
         static let visibleCellRowSortingTolerance: CGFloat = 1
         static let scrollActivationTolerance: CGFloat = 1
         static let secondaryActionButtonHeight: CGFloat = 50
@@ -88,8 +89,9 @@ final class QuizViewController: UIViewController, QuizViewControllerProtocol, Th
     private enum Typography {
         static let welcomeFontSize: CGFloat = 26
         static let chooseThemeFontSize: CGFloat = 24
+        static let logoTextFontSize: CGFloat = 52
         static let actionButtonFontSize: CGFloat = 19
-        static let settingsIconPointSize: CGFloat = 19
+        static let settingsIconPointSize: CGFloat = 14
         static let unlimitedNumberOfLines = 0
     }
 
@@ -126,6 +128,7 @@ final class QuizViewController: UIViewController, QuizViewControllerProtocol, Th
 
     private var welcomeLabel: UILabel!
     private var quiziceLabel: UIImageView!
+    private var quiziceTextLabel: UILabel!
     private var chooseThemeLabel: UILabel!
     private var headerStackView: UIStackView!
     private var screenStackView: UIStackView!
@@ -138,12 +141,14 @@ final class QuizViewController: UIViewController, QuizViewControllerProtocol, Th
 
     private let animationsEngine = Animations()
     private var soundPlayer: AVAudioPlayer!
+    private let appearanceStore = AppAppearanceStore.shared
+    private var appearanceObserver: NSObjectProtocol?
 
     private let themesCollectionService = ThemesCollectionService()
     var presenter: QuizPresenterProtocol?
 
     private var startupAnimatedViews: [UIView] {
-        [welcomeLabel, quiziceLabel, themesCollectionView, chooseThemeLabel, settingsButton]
+        [welcomeLabel, quiziceLabel, quiziceTextLabel, themesCollectionView, chooseThemeLabel, settingsButton]
     }
 
     override func loadView() {
@@ -156,10 +161,13 @@ final class QuizViewController: UIViewController, QuizViewControllerProtocol, Th
         rootView.accessibilityIdentifier = AccessibilityID.rootView
         view = rootView
         configureProgrammaticSubviews(in: rootView)
+        applyAppearance()
     }
 
     override func viewDidLoad() {
         super.viewDidLoad()
+        installAppearanceObserver()
+        installAppearanceTraitObserver()
 
         if QuizFactory.shared.startup1st {
             QuizFactory.shared.loadData()
@@ -169,6 +177,12 @@ final class QuizViewController: UIViewController, QuizViewControllerProtocol, Th
 
         configureThemesCollectionService()
         updateThemeAvailabilityMessage()
+    }
+
+    deinit {
+        if let appearanceObserver {
+            NotificationCenter.default.removeObserver(appearanceObserver)
+        }
     }
 
     override func viewDidLayoutSubviews() {
@@ -214,7 +228,8 @@ final class QuizViewController: UIViewController, QuizViewControllerProtocol, Th
     }
 
     private func configureHeaderViews() {
-        welcomeLabel = makeLabel(text: L10n.Home.welcome, font: .systemFont(ofSize: Typography.welcomeFontSize, weight: .semibold))
+        let typography = currentAppearance().typography
+        welcomeLabel = makeLabel(text: L10n.Home.welcome, font: typography.font(size: Typography.welcomeFontSize, weight: .semibold))
         welcomeLabel.accessibilityIdentifier = AccessibilityID.welcomeLabel
         welcomeLabel.adjustsFontForContentSizeCategory = true
 
@@ -224,7 +239,12 @@ final class QuizViewController: UIViewController, QuizViewControllerProtocol, Th
         quiziceLabel.contentMode = .scaleAspectFit
         quiziceLabel.translatesAutoresizingMaskIntoConstraints = false
 
-        chooseThemeLabel = makeLabel(text: L10n.Home.chooseTheme, font: .systemFont(ofSize: Typography.chooseThemeFontSize, weight: .semibold))
+        quiziceTextLabel = makeLabel(text: Content.logoAccessibilityLabel, font: typography.font(size: Typography.logoTextFontSize, weight: .bold))
+        quiziceTextLabel.accessibilityIdentifier = AccessibilityID.logoTextLabel
+        quiziceTextLabel.accessibilityLabel = Content.logoAccessibilityLabel
+        quiziceTextLabel.adjustsFontForContentSizeCategory = true
+
+        chooseThemeLabel = makeLabel(text: L10n.Home.chooseTheme, font: typography.font(size: Typography.chooseThemeFontSize, weight: .semibold))
         chooseThemeLabel.accessibilityIdentifier = AccessibilityID.chooseThemeLabel
         chooseThemeLabel.adjustsFontForContentSizeCategory = true
     }
@@ -252,7 +272,7 @@ final class QuizViewController: UIViewController, QuizViewControllerProtocol, Th
     }
 
     private func configureHeaderStack() {
-        headerStackView = UIStackView(arrangedSubviews: [welcomeLabel, quiziceLabel, chooseThemeLabel])
+        headerStackView = UIStackView(arrangedSubviews: [welcomeLabel, quiziceLabel, quiziceTextLabel, chooseThemeLabel])
         headerStackView.accessibilityIdentifier = AccessibilityID.headerStackView
         headerStackView.axis = .vertical
         headerStackView.alignment = .center
@@ -315,6 +335,9 @@ final class QuizViewController: UIViewController, QuizViewControllerProtocol, Th
     }
 
     private func activateLayoutConstraints(in rootView: UIView) {
+        let logoHeightConstraint = quiziceLabel.heightAnchor.constraint(equalToConstant: Layout.logoHeight)
+        logoHeightConstraint.priority = .defaultHigh
+
         NSLayoutConstraint.activate([
             screenStackView.topAnchor.constraint(equalTo: rootView.safeAreaLayoutGuide.topAnchor),
             screenStackView.leadingAnchor.constraint(equalTo: rootView.leadingAnchor),
@@ -328,7 +351,8 @@ final class QuizViewController: UIViewController, QuizViewControllerProtocol, Th
 
             welcomeLabel.widthAnchor.constraint(lessThanOrEqualTo: headerStackView.layoutMarginsGuide.widthAnchor),
             quiziceLabel.widthAnchor.constraint(lessThanOrEqualTo: rootView.widthAnchor, multiplier: Layout.logoWidthMultiplier),
-            quiziceLabel.heightAnchor.constraint(equalToConstant: Layout.logoHeight),
+            logoHeightConstraint,
+            quiziceTextLabel.widthAnchor.constraint(lessThanOrEqualTo: headerStackView.layoutMarginsGuide.widthAnchor),
             chooseThemeLabel.widthAnchor.constraint(lessThanOrEqualTo: headerStackView.layoutMarginsGuide.widthAnchor),
 
             exitButton.heightAnchor.constraint(equalToConstant: Layout.secondaryActionButtonHeight)
@@ -348,12 +372,6 @@ final class QuizViewController: UIViewController, QuizViewControllerProtocol, Th
 
     private func makePrimaryActionButton(title: String) -> UIButton {
         let button = makeBaseActionButton(title: title)
-        button.backgroundColor = UIColor.systemBlue.withAlphaComponent(Appearance.primaryButtonBackgroundAlpha)
-        button.layer.cornerRadius = Appearance.primaryButtonCornerRadius
-        button.layer.shadowColor = UIColor.black.cgColor
-        button.layer.shadowOpacity = Appearance.primaryButtonShadowOpacity
-        button.layer.shadowRadius = Appearance.primaryButtonShadowRadius
-        button.layer.shadowOffset = Appearance.primaryButtonShadowOffset
         return button
     }
 
@@ -361,10 +379,85 @@ final class QuizViewController: UIViewController, QuizViewControllerProtocol, Th
         let button = UIButton(type: .system)
         button.setTitle(title, for: .normal)
         button.setTitleColor(.white, for: .normal)
-        button.titleLabel?.font = .systemFont(ofSize: Typography.actionButtonFontSize, weight: .semibold)
+        button.titleLabel?.font = currentAppearance().typography.font(size: Typography.actionButtonFontSize, weight: .semibold)
         button.titleLabel?.adjustsFontForContentSizeCategory = true
         button.translatesAutoresizingMaskIntoConstraints = false
         return button
+    }
+
+    private func installAppearanceObserver() {
+        appearanceObserver = NotificationCenter.default.addObserver(
+            forName: .appAppearanceDidChange,
+            object: nil,
+            queue: .main
+        ) { [weak self] _ in
+            self?.applyAppearance()
+        }
+    }
+
+    private func installAppearanceTraitObserver() {
+        registerForTraitChanges([UITraitUserInterfaceStyle.self]) { (viewController: QuizViewController, _: UITraitCollection) in
+            viewController.applyAppearance()
+        }
+    }
+
+    private func currentAppearance() -> AppAppearance {
+        appearanceStore.appearance(compatibleWith: traitCollection)
+    }
+
+    private func applyAppearance() {
+        guard isViewLoaded else { return }
+        let appearance = currentAppearance()
+        appearance.applyBackground(to: view)
+        overrideUserInterfaceStyle = appearance.resolvedInterfaceStyle
+
+        welcomeLabel?.textColor = appearance.screenTextColor
+        welcomeLabel?.font = appearance.typography.font(size: Typography.welcomeFontSize, weight: .semibold)
+        welcomeLabel?.textAlignment = homeHeaderTextAlignment(for: appearance)
+        quiziceTextLabel?.textColor = appearance.screenTextColor
+        quiziceTextLabel?.font = appearance.typography.font(size: Typography.logoTextFontSize, weight: .bold)
+        quiziceTextLabel?.textAlignment = homeHeaderTextAlignment(for: appearance)
+        updateLogoVisibility(for: appearance)
+        chooseThemeLabel?.textColor = appearance.screenTextColor
+        chooseThemeLabel?.font = appearance.typography.font(size: Typography.chooseThemeFontSize, weight: .semibold)
+        chooseThemeLabel?.textAlignment = homeHeaderTextAlignment(for: appearance)
+        headerStackView?.alignment = homeHeaderStackAlignment(for: appearance)
+
+        settingsButton?.applyActionAppearance(appearance.iconButton, appearance: appearance)
+        settingsButton?.layer.cornerRadius = Layout.settingsButtonSize / 2
+        settingsButton?.tintColor = appearance.screenTextColor
+
+        exitButton?.applyActionAppearance(appearance.primaryButton, appearance: appearance, textColor: primaryActionTextColor(appearance: appearance))
+        exitButton?.titleLabel?.font = appearance.typography.font(size: Typography.actionButtonFontSize, weight: .semibold)
+        themesCollectionView?.backgroundColor = .clear
+        themesCollectionView?.reloadData()
+    }
+
+    private func updateLogoVisibility(for appearance: AppAppearance) {
+        let usesImageLogo = appearance.designStyle == .classic
+        quiziceLabel?.isHidden = !usesImageLogo
+        quiziceTextLabel?.isHidden = usesImageLogo
+        if !QuizFactory.shared.startup1st {
+            activeLogoView()?.alpha = Appearance.visibleAlpha
+        }
+    }
+
+    private func homeHeaderTextAlignment(for appearance: AppAppearance) -> NSTextAlignment {
+        appearance.designStyle == .clean ? .left : .center
+    }
+
+    private func homeHeaderStackAlignment(for appearance: AppAppearance) -> UIStackView.Alignment {
+        appearance.designStyle == .clean ? .leading : .center
+    }
+
+    private func primaryActionTextColor(appearance: AppAppearance) -> UIColor {
+        if appearance.designStyle == .clean {
+            return appearance.resolvedInterfaceStyle == .dark ? appearance.screenTextColor : .black
+        }
+        if appearance.designStyle == .pixel {
+            return .black
+        }
+        return appearance.screenTextColor
     }
 
     private func configureInitialStartupVisibilityIfNeeded() {
@@ -396,7 +489,7 @@ final class QuizViewController: UIViewController, QuizViewControllerProtocol, Th
         DispatchQueue.main.asyncAfter(deadline: .now() + AnimationTiming.logoFadeInDelay) { [weak self] in
             guard let self else { return }
             self.soundPlayer?.play()
-            self.quiziceLabel.fadeIn(duration: AnimationTiming.logoFadeInDuration)
+            self.activeLogoView()?.fadeIn(duration: AnimationTiming.logoFadeInDuration)
             self.themesCollectionView.alpha = Appearance.visibleAlpha
 
             DispatchQueue.main.asyncAfter(deadline: .now() + AnimationTiming.controlsFadeInDelay) { [weak self] in
@@ -406,6 +499,10 @@ final class QuizViewController: UIViewController, QuizViewControllerProtocol, Th
                 self.animateThemeCells(visibleCells)
             }
         }
+    }
+
+    private func activeLogoView() -> UIView? {
+        quiziceLabel.isHidden ? quiziceTextLabel : quiziceLabel
     }
 
     private func sortedVisibleThemeCells() -> [UICollectionViewCell] {

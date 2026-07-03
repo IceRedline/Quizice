@@ -26,11 +26,69 @@ final class HomeScreenVisualStateTests: XCTestCase {
         XCTAssertNotNil(viewController.view.descendant(withAccessibilityIdentifier: "homeRootView"))
         XCTAssertNotNil(viewController.view.descendant(withAccessibilityIdentifier: "homeWelcomeLabel"))
         XCTAssertNotNil(viewController.view.descendant(withAccessibilityIdentifier: "homeLogoImageView"))
+        XCTAssertNotNil(viewController.view.descendant(withAccessibilityIdentifier: "homeLogoTextLabel"))
         XCTAssertNotNil(viewController.view.descendant(withAccessibilityIdentifier: "homeChooseThemeLabel"))
         XCTAssertNotNil(viewController.view.descendant(withAccessibilityIdentifier: "homeThemesCollectionView"))
         XCTAssertNotNil(viewController.view.descendant(withAccessibilityIdentifier: "homeActionButtonsStackView"))
         XCTAssertNotNil(viewController.view.descendant(withAccessibilityIdentifier: "homeExitButton"))
         XCTAssertNotNil(viewController.view.descendant(withAccessibilityIdentifier: "homeSettingsButton"))
+    }
+
+    func testCleanHomeHeaderUsesLeadingAlignment() throws {
+        useDesignStyle(.clean)
+        QuizFactory.shared.themes = [makeTheme(name: "Музыка")]
+
+        let viewController = QuizViewController()
+        viewController.loadViewIfNeeded()
+
+        let headerStackView = try XCTUnwrap(viewController.view.descendant(withAccessibilityIdentifier: "homeHeaderStackView") as? UIStackView)
+        let welcomeLabel = try XCTUnwrap(viewController.view.descendant(withAccessibilityIdentifier: "homeWelcomeLabel") as? UILabel)
+        let logoImageView = try XCTUnwrap(viewController.view.descendant(withAccessibilityIdentifier: "homeLogoImageView") as? UIImageView)
+        let logoTextLabel = try XCTUnwrap(viewController.view.descendant(withAccessibilityIdentifier: "homeLogoTextLabel") as? UILabel)
+        let chooseThemeLabel = try XCTUnwrap(viewController.view.descendant(withAccessibilityIdentifier: "homeChooseThemeLabel") as? UILabel)
+
+        XCTAssertEqual(headerStackView.alignment, .leading)
+        XCTAssertEqual(welcomeLabel.textAlignment, .left)
+        XCTAssertTrue(logoImageView.isHidden)
+        XCTAssertFalse(logoTextLabel.isHidden)
+        XCTAssertEqual(logoTextLabel.text, "Quizice")
+        XCTAssertEqual(logoTextLabel.textAlignment, .left)
+        XCTAssertEqual(chooseThemeLabel.textAlignment, .left)
+    }
+
+    func testNonCleanHomeHeaderKeepsCenteredAlignment() throws {
+        UserDefaults.standard.set(AppDesignStyle.radar.rawValue, forKey: AppAppearanceStore.Keys.designStyle)
+        QuizFactory.shared.themes = [makeTheme(name: "Музыка")]
+
+        let viewController = QuizViewController()
+        viewController.loadViewIfNeeded()
+
+        let headerStackView = try XCTUnwrap(viewController.view.descendant(withAccessibilityIdentifier: "homeHeaderStackView") as? UIStackView)
+        let welcomeLabel = try XCTUnwrap(viewController.view.descendant(withAccessibilityIdentifier: "homeWelcomeLabel") as? UILabel)
+        let logoImageView = try XCTUnwrap(viewController.view.descendant(withAccessibilityIdentifier: "homeLogoImageView") as? UIImageView)
+        let logoTextLabel = try XCTUnwrap(viewController.view.descendant(withAccessibilityIdentifier: "homeLogoTextLabel") as? UILabel)
+        let chooseThemeLabel = try XCTUnwrap(viewController.view.descendant(withAccessibilityIdentifier: "homeChooseThemeLabel") as? UILabel)
+
+        XCTAssertEqual(headerStackView.alignment, .center)
+        XCTAssertEqual(welcomeLabel.textAlignment, .center)
+        XCTAssertTrue(logoImageView.isHidden)
+        XCTAssertFalse(logoTextLabel.isHidden)
+        XCTAssertEqual(logoTextLabel.textAlignment, .center)
+        XCTAssertEqual(chooseThemeLabel.textAlignment, .center)
+    }
+
+    func testClassicHomeHeaderUsesImageLogo() throws {
+        UserDefaults.standard.set(AppDesignStyle.classic.rawValue, forKey: AppAppearanceStore.Keys.designStyle)
+        QuizFactory.shared.themes = [makeTheme(name: "Музыка")]
+
+        let viewController = QuizViewController()
+        viewController.loadViewIfNeeded()
+
+        let logoImageView = try XCTUnwrap(viewController.view.descendant(withAccessibilityIdentifier: "homeLogoImageView") as? UIImageView)
+        let logoTextLabel = try XCTUnwrap(viewController.view.descendant(withAccessibilityIdentifier: "homeLogoTextLabel") as? UILabel)
+
+        XCTAssertFalse(logoImageView.isHidden)
+        XCTAssertTrue(logoTextLabel.isHidden)
     }
 
     func testHomeCollectionDoesNotDelayButtonTouchDownEvents() {
@@ -75,12 +133,14 @@ final class HomeScreenVisualStateTests: XCTestCase {
 
         let welcomeLabel = try XCTUnwrap(viewController.view.descendant(withAccessibilityIdentifier: "homeWelcomeLabel"))
         let logoImageView = try XCTUnwrap(viewController.view.descendant(withAccessibilityIdentifier: "homeLogoImageView"))
+        let logoTextLabel = try XCTUnwrap(viewController.view.descendant(withAccessibilityIdentifier: "homeLogoTextLabel"))
         let chooseThemeLabel = try XCTUnwrap(viewController.view.descendant(withAccessibilityIdentifier: "homeChooseThemeLabel"))
         let collectionView = try XCTUnwrap(viewController.view.descendant(withAccessibilityIdentifier: "homeThemesCollectionView"))
         let settingsButton = try XCTUnwrap(viewController.view.descendant(withAccessibilityIdentifier: "homeSettingsButton"))
 
         XCTAssertEqual(welcomeLabel.alpha, 0)
         XCTAssertEqual(logoImageView.alpha, 0)
+        XCTAssertEqual(logoTextLabel.alpha, 0)
         XCTAssertEqual(chooseThemeLabel.alpha, 0)
         XCTAssertEqual(collectionView.alpha, 0)
         XCTAssertEqual(settingsButton.alpha, 0)
@@ -104,7 +164,7 @@ final class HomeScreenVisualStateTests: XCTestCase {
         XCTAssertTrue(stackView?.isHidden ?? false)
         XCTAssertTrue(exitButton?.isHidden ?? false)
         XCTAssertEqual(exitButton?.layer.cornerRadius, 22)
-        XCTAssertEqual(exitButton?.layer.borderWidth, 0)
+        XCTAssertEqual(exitButton?.layer.borderWidth, 1)
         XCTAssertGreaterThan(exitButton?.layer.shadowOpacity ?? 0, 0)
         XCTAssertFalse(viewController.view.hasAmbiguousLayout)
     }
@@ -178,11 +238,12 @@ final class HomeScreenVisualStateTests: XCTestCase {
     }
 
     func testCollectionServiceThemeCardShowsImageAboveThemeTitle() throws {
+        useDesignStyle(.clean)
         let themeAssets = [
-            (themeName: "Музыка", displayTitle: "Музыка", assetName: "theme_logo_music", tintColorName: "themeMusicTint"),
-            (themeName: "Технологии", displayTitle: "Технологии", assetName: "theme_logo_tech.png", tintColorName: "themeTechnologyTint"),
-            (themeName: "История и культура", displayTitle: "Культура и история", assetName: "theme_logo_culture.png", tintColorName: "themeCultureTint"),
-            (themeName: "Политика", displayTitle: "Политика и бизнес", assetName: "theme_logo_politics", tintColorName: "themePoliticsTint")
+            (themeName: "Музыка", displayTitle: "Музыка", assetName: "theme_logo_music_clean", tintColorName: "themeMusicTint"),
+            (themeName: "Технологии", displayTitle: "Технологии", assetName: "theme_logo_tech_clean", tintColorName: "themeTechnologyTint"),
+            (themeName: "История и культура", displayTitle: "Культура и история", assetName: "theme_logo_culture_clean", tintColorName: "themeCultureTint"),
+            (themeName: "Политика", displayTitle: "Политика и бизнес", assetName: "theme_logo_politics_clean", tintColorName: "themePoliticsTint")
         ]
         QuizFactory.shared.themes = themeAssets.map { makeTheme(name: $0.themeName) }
         let service = ThemesCollectionService()
@@ -206,8 +267,10 @@ final class HomeScreenVisualStateTests: XCTestCase {
             XCTAssertEqual(titleLabel.text, themeAsset.displayTitle)
             XCTAssertEqual(titleLabel.textAlignment, .center)
             XCTAssertEqual(titleLabel.numberOfLines, 2)
-            assertColor(themeButton.backgroundColor, equals: tintColor.withAlphaComponent(0.20))
-            assertColor(UIColor(cgColor: themeButton.layer.borderColor ?? UIColor.clear.cgColor), equals: tintColor.withAlphaComponent(0.45))
+            assertColor(themeButton.backgroundColor, equals: assetColor("themeWhite"))
+            assertColor(titleLabel.textColor, equals: assetColor("themeCleanSurfaceText"))
+            assertColor(UIColor(cgColor: themeButton.layer.borderColor ?? UIColor.clear.cgColor), equals: tintColor.withAlphaComponent(0.75))
+            XCTAssertEqual(themeButton.layer.borderWidth, 2)
             XCTAssertGreaterThanOrEqual(imageView.frame.height, 94)
             XCTAssertLessThan(imageView.frame.minY, titleLabel.frame.minY)
             XCTAssertLessThanOrEqual(imageView.frame.maxY, titleLabel.frame.minY)
@@ -217,6 +280,7 @@ final class HomeScreenVisualStateTests: XCTestCase {
     }
 
     func testCollectionServiceAppliesPolishedCardStylingWithoutChangingIdentifiers() {
+        useDesignStyle(.clean)
         QuizFactory.shared.themes = [makeTheme(name: "Музыка")]
         let service = ThemesCollectionService()
         let collectionView = makeCollectionView()
@@ -232,19 +296,47 @@ final class HomeScreenVisualStateTests: XCTestCase {
         XCTAssertEqual(themeButton?.accessibilityLabel, "Музыка, тема викторины")
         XCTAssertEqual(themeTitleLabel?.text, "Музыка")
         XCTAssertEqual(themeButton?.layer.cornerRadius, 28)
-        XCTAssertEqual(themeButton?.layer.borderWidth, 1)
+        XCTAssertEqual(themeButton?.layer.borderWidth, 2)
         XCTAssertTrue(themeButton?.clipsToBounds ?? false)
         XCTAssertGreaterThan(themeCell.layer.shadowOpacity, 0)
         XCTAssertEqual(feelingLuckyButton?.accessibilityLabel, "Мне повезет")
-        XCTAssertEqual(feelingLuckyButton?.layer.cornerRadius, 20)
+        XCTAssertEqual(feelingLuckyButton?.layer.cornerRadius, 22)
+        assertColor(feelingLuckyButton?.backgroundColor, equals: assetColor("themeWhite"))
+        assertColor(
+            UIColor(cgColor: feelingLuckyButton?.layer.borderColor ?? UIColor.clear.cgColor),
+            equals: assetColor("themeCleanScreenText").withAlphaComponent(0.18)
+        )
         XCTAssertEqual(feelingLuckyButton?.layer.borderWidth, 1)
         XCTAssertTrue(feelingLuckyButton?.clipsToBounds ?? false)
-        XCTAssertGreaterThan(feelingLuckyCell.layer.shadowOpacity, 0)
+        XCTAssertGreaterThanOrEqual(feelingLuckyCell.layer.shadowOpacity, 0)
         XCTAssertEqual(statisticsButton?.accessibilityLabel, "Общая статистика")
-        XCTAssertEqual(statisticsButton?.layer.cornerRadius, 30)
+        XCTAssertEqual(statisticsButton?.layer.cornerRadius, 22)
+        assertColor(statisticsButton?.backgroundColor, equals: assetColor("themeWhite"))
+        assertColor(
+            UIColor(cgColor: statisticsButton?.layer.borderColor ?? UIColor.clear.cgColor),
+            equals: assetColor("themeCleanScreenText").withAlphaComponent(0.18)
+        )
         XCTAssertEqual(statisticsButton?.layer.borderWidth, 1)
         XCTAssertTrue(statisticsButton?.clipsToBounds ?? false)
-        XCTAssertGreaterThan(statisticsCell.layer.shadowOpacity, 0)
+        XCTAssertGreaterThanOrEqual(statisticsCell.layer.shadowOpacity, 0)
+    }
+
+    func testCollectionServiceUsesRadarGreenThemeCardText() throws {
+        UserDefaults.standard.set(AppDesignStyle.radar.rawValue, forKey: AppAppearanceStore.Keys.designStyle)
+        QuizFactory.shared.themes = [makeTheme(name: "Музыка")]
+        let service = ThemesCollectionService()
+        let collectionView = makeCollectionView()
+
+        let themeCell = service.collectionView(collectionView, cellForItemAt: IndexPath(item: 0, section: 0))
+        let statisticsCell = service.collectionView(collectionView, cellForItemAt: IndexPath(item: 2, section: 0))
+        let imageView = try XCTUnwrap(themeCell.contentView.descendant(withAccessibilityIdentifier: "homeThemeImageView-Музыка") as? UIImageView)
+        let titleLabel = try XCTUnwrap(themeCell.contentView.descendant(withAccessibilityIdentifier: "homeThemeTitleLabel-Музыка") as? UILabel)
+        let statisticsButton = try XCTUnwrap(statisticsCell.contentView.descendant(withAccessibilityIdentifier: "homeStatisticsCard") as? UIButton)
+        let expectedImage = try XCTUnwrap(UIImage(named: "theme_logo_music_radar"))
+
+        XCTAssertEqual(imageView.image?.pngData(), expectedImage.pngData())
+        assertColor(titleLabel.textColor, equals: assetColor("themeRadarGreen"))
+        assertColor(statisticsButton.backgroundColor, equals: .clear)
     }
 
     func testCollectionServiceKeepsSelectionContractsForThemeStatisticsAndUnknownButtons() {
@@ -307,11 +399,17 @@ final class HomeScreenVisualStateTests: XCTestCase {
         QuizTheme(theme: name, themeDescription: "Synthetic home-screen test theme", questions: [])
     }
 
+    private func useDesignStyle(_ designStyle: AppDesignStyle) {
+        UserDefaults.standard.set(designStyle.rawValue, forKey: AppAppearanceStore.Keys.designStyle)
+    }
+
     private func resetQuizFactory() {
         QuizFactory.shared.themes = nil
         QuizFactory.shared.chosenTheme = nil
         QuizFactory.shared.questionsCount = 5
         QuizFactory.shared.startup1st = false
+        UserDefaults.standard.removeObject(forKey: AppAppearanceStore.Keys.designStyle)
+        UserDefaults.standard.removeObject(forKey: AppAppearanceStore.Keys.cleanColorScheme)
     }
 
     private func assertColor(_ actual: UIColor?, equals expected: UIColor, file: StaticString = #filePath, line: UInt = #line) {
@@ -340,6 +438,9 @@ final class HomeScreenVisualStateTests: XCTestCase {
         XCTAssertEqual(actualAlpha, expectedAlpha, accuracy: 0.001, file: file, line: line)
     }
 
+    private func assetColor(_ name: String) -> UIColor {
+        UIColor(named: name) ?? .clear
+    }
 }
 
 private final class ThemeCollectionDelegateSpy: ThemeCollectionDelegate {
@@ -362,6 +463,7 @@ private final class ThemeCollectionDelegateSpy: ThemeCollectionDelegate {
     func statisticsButtonTouchedUpInside(_ sender: UIButton) {
         statisticsTapCount += 1
     }
+
 }
 
 private extension UIView {

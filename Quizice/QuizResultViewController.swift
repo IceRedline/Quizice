@@ -63,6 +63,8 @@ final class QuizResultViewController: UIViewController, QuizResultViewController
     private var resultDescription: UILabel!
     
     private var restartButton: UIButton!
+    private let appearanceStore = AppAppearanceStore.shared
+    private var appearanceObserver: NSObjectProtocol?
     
     var presenter: QuizResultPresenterProtocol?
     
@@ -72,13 +74,22 @@ final class QuizResultViewController: UIViewController, QuizResultViewController
         rootView.accessibilityIdentifier = AccessibilityID.rootView
         view = rootView
         configureProgrammaticSubviews(in: rootView)
+        applyAppearance()
     }
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        installAppearanceObserver()
+        installAppearanceTraitObserver()
         presenter?.viewDidLoad()
     }
-    
+
+    deinit {
+        if let appearanceObserver {
+            NotificationCenter.default.removeObserver(appearanceObserver)
+        }
+    }
+
     func configurePresenter(_ presenter: QuizResultPresenterProtocol) {
         self.presenter = presenter
         self.presenter?.view = self
@@ -113,12 +124,13 @@ final class QuizResultViewController: UIViewController, QuizResultViewController
     }
     
     private func configureLabels() {
-        resultLabel = makeLabel(font: .systemFont(ofSize: Typography.resultFontSize, weight: .bold), accessibilityIdentifier: AccessibilityID.scoreLabel)
+        let typography = currentAppearance().typography
+        resultLabel = makeLabel(font: typography.font(size: Typography.resultFontSize, weight: .bold), accessibilityIdentifier: AccessibilityID.scoreLabel)
         resultLabel.numberOfLines = Typography.unlimitedNumberOfLines
         resultLabel.adjustsFontSizeToFitWidth = true
         resultLabel.minimumScaleFactor = Typography.resultMinimumScaleFactor
         
-        resultDescription = makeLabel(font: .systemFont(ofSize: Typography.descriptionFontSize, weight: .regular), accessibilityIdentifier: AccessibilityID.descriptionLabel)
+        resultDescription = makeLabel(font: typography.font(size: Typography.descriptionFontSize, weight: .regular), accessibilityIdentifier: AccessibilityID.descriptionLabel)
         resultDescription.numberOfLines = Typography.unlimitedNumberOfLines
         resultDescription.textColor = UIColor.white.withAlphaComponent(Appearance.descriptionTextAlpha)
     }
@@ -177,7 +189,7 @@ final class QuizResultViewController: UIViewController, QuizResultViewController
         button.setTitle(title, for: .normal)
         button.setTitleColor(.white, for: .normal)
         button.setTitleColor(UIColor.white.withAlphaComponent(Appearance.disabledButtonTitleAlpha), for: .disabled)
-        button.titleLabel?.font = .systemFont(ofSize: Typography.buttonFontSize, weight: .semibold)
+        button.titleLabel?.font = currentAppearance().typography.font(size: Typography.buttonFontSize, weight: .semibold)
         button.titleLabel?.adjustsFontForContentSizeCategory = true
         button.backgroundColor = UIColor.white.withAlphaComponent(Appearance.buttonBackgroundAlpha)
         button.layer.cornerRadius = Appearance.buttonCornerRadius
@@ -189,6 +201,51 @@ final class QuizResultViewController: UIViewController, QuizResultViewController
         button.layer.shadowOffset = Appearance.buttonShadowOffset
         button.translatesAutoresizingMaskIntoConstraints = false
         return button
+    }
+
+    private func installAppearanceObserver() {
+        appearanceObserver = NotificationCenter.default.addObserver(
+            forName: .appAppearanceDidChange,
+            object: nil,
+            queue: .main
+        ) { [weak self] _ in
+            self?.applyAppearance()
+        }
+    }
+
+    private func installAppearanceTraitObserver() {
+        registerForTraitChanges([UITraitUserInterfaceStyle.self]) { (viewController: QuizResultViewController, _: UITraitCollection) in
+            viewController.applyAppearance()
+        }
+    }
+
+    private func currentAppearance() -> AppAppearance {
+        appearanceStore.appearance(compatibleWith: traitCollection)
+    }
+
+    private func applyAppearance() {
+        guard isViewLoaded else { return }
+        let appearance = currentAppearance()
+        appearance.applyBackground(to: view)
+        overrideUserInterfaceStyle = appearance.resolvedInterfaceStyle
+
+        resultCardView?.applySurfaceStyle(appearance.card)
+        resultLabel?.textColor = appearance.surfaceTextColor
+        resultLabel?.font = appearance.typography.font(size: Typography.resultFontSize, weight: .bold)
+        resultDescription?.textColor = appearance.secondarySurfaceTextColor
+        resultDescription?.font = appearance.typography.font(size: Typography.descriptionFontSize, weight: .regular)
+        restartButton?.applyActionAppearance(appearance.primaryButton, appearance: appearance, textColor: actionTextColor(appearance: appearance))
+        restartButton?.titleLabel?.font = appearance.typography.font(size: Typography.buttonFontSize, weight: .semibold)
+    }
+
+    private func actionTextColor(appearance: AppAppearance) -> UIColor {
+        if appearance.designStyle == .clean {
+            return appearance.resolvedInterfaceStyle == .dark ? appearance.screenTextColor : .black
+        }
+        if appearance.designStyle == .pixel {
+            return .black
+        }
+        return appearance.screenTextColor
     }
     
     @IBAction func backButtonTapped() {

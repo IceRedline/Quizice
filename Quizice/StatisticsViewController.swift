@@ -99,6 +99,9 @@ final class StatisticsViewController: UIViewController {
     private let correctAnswersValueLabel = UILabel()
     private let percentageValueLabel = UILabel()
     private let bestResultValueLabel = UILabel()
+    private var rowTitleLabels: [UILabel] = []
+    private let appearanceStore = AppAppearanceStore.shared
+    private var appearanceObserver: NSObjectProtocol?
     
     private var playedQuizzesRow: UIView!
     private var correctAnswersRow: UIView!
@@ -122,11 +125,20 @@ final class StatisticsViewController: UIViewController {
         rootView.accessibilityLabel = L10n.Statistics.accessibilityLabel
         view = rootView
         configureProgrammaticSubviews(in: rootView)
+        applyAppearance()
     }
 
     override func viewDidLoad() {
         super.viewDidLoad()
+        installAppearanceObserver()
+        installAppearanceTraitObserver()
         title = L10n.Statistics.title
+    }
+
+    deinit {
+        if let appearanceObserver {
+            NotificationCenter.default.removeObserver(appearanceObserver)
+        }
     }
 
     override func viewWillAppear(_ animated: Bool) {
@@ -149,7 +161,7 @@ final class StatisticsViewController: UIViewController {
     private func configureBackButton() {
         backButton.setTitle(L10n.Common.back, for: .normal)
         backButton.setTitleColor(.white, for: .normal)
-        backButton.titleLabel?.font = .systemFont(ofSize: Typography.backButtonFontSize, weight: .semibold)
+        backButton.titleLabel?.font = currentAppearance().typography.font(size: Typography.backButtonFontSize, weight: .semibold)
         backButton.backgroundColor = UIColor.white.withAlphaComponent(Appearance.backButtonBackgroundAlpha)
         backButton.layer.cornerRadius = Appearance.backButtonCornerRadius
         backButton.layer.borderWidth = Appearance.backButtonBorderWidth
@@ -163,7 +175,7 @@ final class StatisticsViewController: UIViewController {
     private func configureTitleLabel() {
         titleLabel.text = L10n.Statistics.title
         titleLabel.textColor = .white
-        titleLabel.font = .systemFont(ofSize: Typography.titleFontSize, weight: .bold)
+        titleLabel.font = currentAppearance().typography.font(size: Typography.titleFontSize, weight: .bold)
         titleLabel.textAlignment = .center
         titleLabel.adjustsFontForContentSizeCategory = true
         titleLabel.translatesAutoresizingMaskIntoConstraints = false
@@ -175,7 +187,7 @@ final class StatisticsViewController: UIViewController {
     private func configureSubtitleLabel() {
         subtitleLabel.text = L10n.Statistics.subtitleWithStats
         subtitleLabel.textColor = UIColor.white.withAlphaComponent(Appearance.subtitleTextAlpha)
-        subtitleLabel.font = .systemFont(ofSize: Typography.subtitleFontSize, weight: .medium)
+        subtitleLabel.font = currentAppearance().typography.font(size: Typography.subtitleFontSize, weight: .medium)
         subtitleLabel.textAlignment = .center
         subtitleLabel.numberOfLines = Typography.unlimitedNumberOfLines
         subtitleLabel.translatesAutoresizingMaskIntoConstraints = false
@@ -199,7 +211,7 @@ final class StatisticsViewController: UIViewController {
     private func configureEmptyStateLabel() {
         emptyStateLabel.text = L10n.Statistics.emptyStateText
         emptyStateLabel.textColor = UIColor.white.withAlphaComponent(Appearance.emptyStateTextAlpha)
-        emptyStateLabel.font = .systemFont(ofSize: Typography.emptyStateFontSize, weight: .regular)
+        emptyStateLabel.font = currentAppearance().typography.font(size: Typography.emptyStateFontSize, weight: .regular)
         emptyStateLabel.textAlignment = .center
         emptyStateLabel.numberOfLines = Typography.unlimitedNumberOfLines
         emptyStateLabel.translatesAutoresizingMaskIntoConstraints = false
@@ -306,12 +318,13 @@ final class StatisticsViewController: UIViewController {
         let titleLabel = UILabel()
         titleLabel.text = title
         titleLabel.textColor = UIColor.white.withAlphaComponent(Appearance.rowTitleTextAlpha)
-        titleLabel.font = .systemFont(ofSize: Typography.rowTitleFontSize, weight: .medium)
+        titleLabel.font = currentAppearance().typography.font(size: Typography.rowTitleFontSize, weight: .medium)
         titleLabel.numberOfLines = Typography.unlimitedNumberOfLines
         titleLabel.translatesAutoresizingMaskIntoConstraints = false
+        rowTitleLabels.append(titleLabel)
 
         valueLabel.textColor = .white
-        valueLabel.font = .systemFont(ofSize: Typography.rowValueFontSize, weight: .bold)
+        valueLabel.font = currentAppearance().typography.font(size: Typography.rowValueFontSize, weight: .bold)
         valueLabel.textAlignment = .right
         valueLabel.adjustsFontSizeToFitWidth = true
         valueLabel.minimumScaleFactor = Typography.rowValueMinimumScaleFactor
@@ -333,6 +346,56 @@ final class StatisticsViewController: UIViewController {
         ])
 
         return containerView
+    }
+
+    private func installAppearanceObserver() {
+        appearanceObserver = NotificationCenter.default.addObserver(
+            forName: .appAppearanceDidChange,
+            object: nil,
+            queue: .main
+        ) { [weak self] _ in
+            self?.applyAppearance()
+        }
+    }
+
+    private func installAppearanceTraitObserver() {
+        registerForTraitChanges([UITraitUserInterfaceStyle.self]) { (viewController: StatisticsViewController, _: UITraitCollection) in
+            viewController.applyAppearance()
+        }
+    }
+
+    private func currentAppearance() -> AppAppearance {
+        appearanceStore.appearance(compatibleWith: traitCollection)
+    }
+
+    private func applyAppearance() {
+        guard isViewLoaded else { return }
+        let appearance = currentAppearance()
+        appearance.applyBackground(to: view)
+        overrideUserInterfaceStyle = appearance.resolvedInterfaceStyle
+
+        backButton.applyActionAppearance(appearance.secondaryButton, appearance: appearance)
+        backButton.titleLabel?.font = appearance.typography.font(size: Typography.backButtonFontSize, weight: .semibold)
+        titleLabel.textColor = appearance.screenTextColor
+        titleLabel.font = appearance.typography.font(size: Typography.titleFontSize, weight: .bold)
+        subtitleLabel.textColor = appearance.secondaryScreenTextColor
+        subtitleLabel.font = appearance.typography.font(size: Typography.subtitleFontSize, weight: .medium)
+
+        summaryCardView.applySurfaceStyle(appearance.card)
+        emptyStateLabel.textColor = appearance.secondarySurfaceTextColor
+        emptyStateLabel.font = appearance.typography.font(size: Typography.emptyStateFontSize, weight: .regular)
+
+        [playedQuizzesRow, correctAnswersRow, percentageRow, bestResultRow].forEach { row in
+            row?.applySurfaceStyle(appearance.row)
+        }
+        rowTitleLabels.forEach { label in
+            label.textColor = appearance.secondarySurfaceTextColor
+            label.font = appearance.typography.font(size: Typography.rowTitleFontSize, weight: .medium)
+        }
+        [playedQuizzesValueLabel, correctAnswersValueLabel, percentageValueLabel, bestResultValueLabel].forEach { label in
+            label.textColor = appearance.surfaceTextColor
+            label.font = appearance.typography.font(size: Typography.rowValueFontSize, weight: .bold)
+        }
     }
 
     private func render(summary: StatisticsSummary) {
