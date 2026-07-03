@@ -24,8 +24,34 @@ final class HomeScreenVisualStateTests: XCTestCase {
         XCTAssertNotNil(viewController.view.descendant(withAccessibilityIdentifier: "homeLogoImageView"))
         XCTAssertNotNil(viewController.view.descendant(withAccessibilityIdentifier: "homeChooseThemeLabel"))
         XCTAssertNotNil(viewController.view.descendant(withAccessibilityIdentifier: "homeThemesCollectionView"))
+        XCTAssertNotNil(viewController.view.descendant(withAccessibilityIdentifier: "homeActionButtonsStackView"))
         XCTAssertNotNil(viewController.view.descendant(withAccessibilityIdentifier: "homeFeelingLuckyButton"))
         XCTAssertNotNil(viewController.view.descendant(withAccessibilityIdentifier: "homeExitButton"))
+    }
+
+    func testHomeShellUsesPolishedActionStackStyling() {
+        QuizFactory.shared.themes = [makeTheme(name: "Музыка")]
+
+        let viewController = QuizViewController()
+        viewController.loadViewIfNeeded()
+        viewController.view.frame = CGRect(x: 0, y: 0, width: 390, height: 844)
+        viewController.view.setNeedsLayout()
+        viewController.view.layoutIfNeeded()
+
+        let stackView = viewController.view.descendant(withAccessibilityIdentifier: "homeActionButtonsStackView") as? UIStackView
+        let feelingLuckyButton = viewController.view.descendant(withAccessibilityIdentifier: "homeFeelingLuckyButton") as? UIButton
+        let exitButton = viewController.view.descendant(withAccessibilityIdentifier: "homeExitButton") as? UIButton
+
+        XCTAssertEqual(stackView?.axis, .vertical)
+        XCTAssertEqual(stackView?.spacing, 12)
+        XCTAssertEqual(stackView?.arrangedSubviews.first, feelingLuckyButton)
+        XCTAssertEqual(stackView?.arrangedSubviews.last, exitButton)
+        XCTAssertEqual(feelingLuckyButton?.layer.cornerRadius, 22)
+        XCTAssertGreaterThan(feelingLuckyButton?.layer.shadowOpacity ?? 0, 0)
+        XCTAssertEqual(exitButton?.layer.cornerRadius, 20)
+        XCTAssertEqual(exitButton?.layer.borderWidth, 1)
+        XCTAssertFalse(viewController.view.hasAmbiguousLayout)
+        XCTAssertFalse(stackView?.hasAmbiguousLayout ?? true)
     }
 
     func testHomeScreenShowsUnavailableCopyWhenThemesAreEmpty() {
