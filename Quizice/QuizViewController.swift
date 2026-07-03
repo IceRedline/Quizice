@@ -12,18 +12,7 @@ final class QuizViewController: UIViewController, QuizViewControllerProtocol, Th
         static let startupSoundExtension = "m4a"
         static let themeCellReuseIdentifier = "themeCell"
 
-        static var welcomeText: String { L10n.Home.welcome }
-        static var chooseThemeText: String { L10n.Home.chooseTheme }
-        static var unavailableThemesText: String { L10n.Home.unavailableThemes }
-        static var exitButtonTitle: String { L10n.Common.exit }
-
         static let logoAccessibilityLabel = "Quizice"
-        static var themesCollectionAccessibilityLabel: String { L10n.Home.themesCollectionAccessibilityLabel }
-
-        static var exitAlertTitle: String { L10n.Common.exit }
-        static var exitAlertMessage: String { L10n.Home.exitAlertMessage }
-        static var exitCancelTitle: String { L10n.Common.no }
-        static var exitConfirmTitle: String { L10n.Common.yes }
     }
 
     private enum AccessibilityID {
@@ -207,7 +196,7 @@ final class QuizViewController: UIViewController, QuizViewControllerProtocol, Th
     }
 
     private func configureHeaderViews() {
-        welcomeLabel = makeLabel(text: Content.welcomeText, font: .systemFont(ofSize: Typography.welcomeFontSize, weight: .semibold))
+        welcomeLabel = makeLabel(text: L10n.Home.welcome, font: .systemFont(ofSize: Typography.welcomeFontSize, weight: .semibold))
         welcomeLabel.accessibilityIdentifier = AccessibilityID.welcomeLabel
         welcomeLabel.adjustsFontForContentSizeCategory = true
 
@@ -217,7 +206,7 @@ final class QuizViewController: UIViewController, QuizViewControllerProtocol, Th
         quiziceLabel.contentMode = .scaleAspectFit
         quiziceLabel.translatesAutoresizingMaskIntoConstraints = false
 
-        chooseThemeLabel = makeLabel(text: Content.chooseThemeText, font: .systemFont(ofSize: Typography.chooseThemeFontSize, weight: .semibold))
+        chooseThemeLabel = makeLabel(text: L10n.Home.chooseTheme, font: .systemFont(ofSize: Typography.chooseThemeFontSize, weight: .semibold))
         chooseThemeLabel.accessibilityIdentifier = AccessibilityID.chooseThemeLabel
         chooseThemeLabel.adjustsFontForContentSizeCategory = true
     }
@@ -234,9 +223,9 @@ final class QuizViewController: UIViewController, QuizViewControllerProtocol, Th
     }
 
     private func configureActionButtons() {
-        exitButton = makePrimaryActionButton(title: Content.exitButtonTitle)
+        exitButton = makePrimaryActionButton(title: L10n.Common.exit)
         exitButton.accessibilityIdentifier = AccessibilityID.exitButton
-        exitButton.accessibilityLabel = Content.exitButtonTitle
+        exitButton.accessibilityLabel = L10n.Common.exit
         exitButton.addTarget(self, action: #selector(backButtonTapped), for: .touchUpInside)
     }
 
@@ -260,7 +249,7 @@ final class QuizViewController: UIViewController, QuizViewControllerProtocol, Th
 
         themesCollectionView = UICollectionView(frame: .zero, collectionViewLayout: layout)
         themesCollectionView.accessibilityIdentifier = AccessibilityID.themesCollectionView
-        themesCollectionView.accessibilityLabel = Content.themesCollectionAccessibilityLabel
+        themesCollectionView.accessibilityLabel = L10n.Home.themesCollectionAccessibilityLabel
         themesCollectionView.alwaysBounceVertical = true
         themesCollectionView.showsVerticalScrollIndicator = false
         themesCollectionView.translatesAutoresizingMaskIntoConstraints = false
@@ -424,7 +413,7 @@ final class QuizViewController: UIViewController, QuizViewControllerProtocol, Th
 
     private func updateThemeAvailabilityMessage() {
         let hasThemes = QuizFactory.shared.themes?.isEmpty == false
-        chooseThemeLabel.text = hasThemes ? Content.chooseThemeText : Content.unavailableThemesText
+        chooseThemeLabel.text = hasThemes ? L10n.Home.chooseTheme : L10n.Home.unavailableThemes
     }
 
     private func startRandomTheme() {
@@ -440,12 +429,12 @@ final class QuizViewController: UIViewController, QuizViewControllerProtocol, Th
 
     @objc private func backButtonTapped() {
         let alert = UIAlertController(
-            title: Content.exitAlertTitle,
-            message: Content.exitAlertMessage,
+            title: L10n.Common.exit,
+            message: L10n.Home.exitAlertMessage,
             preferredStyle: .alert
         )
-        alert.addAction(UIAlertAction(title: Content.exitCancelTitle, style: .cancel))
-        alert.addAction(UIAlertAction(title: Content.exitConfirmTitle, style: .destructive, handler: { _ in
+        alert.addAction(UIAlertAction(title: L10n.Common.no, style: .cancel))
+        alert.addAction(UIAlertAction(title: L10n.Common.yes, style: .destructive, handler: { _ in
             exit(ProcessExit.userConfirmedExitCode)
         }))
         present(alert, animated: true)

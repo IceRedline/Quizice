@@ -6,7 +6,6 @@ import SwiftUI
 final class QuizResultViewController: UIViewController, QuizResultViewControllerProtocol {
     private enum Content {
         static let backgroundImageName = "backgroundImage"
-        static var restartButtonTitle: String { L10n.Result.restart }
     }
     
     private enum AccessibilityID {
@@ -125,7 +124,7 @@ final class QuizResultViewController: UIViewController, QuizResultViewController
     }
     
     private func configureRestartButton() {
-        restartButton = makeActionButton(title: Content.restartButtonTitle, accessibilityIdentifier: AccessibilityID.restartButton)
+        restartButton = makeActionButton(title: L10n.Result.restart, accessibilityIdentifier: AccessibilityID.restartButton)
         restartButton.addTarget(self, action: #selector(backButtonTapped), for: .touchUpInside)
     }
     

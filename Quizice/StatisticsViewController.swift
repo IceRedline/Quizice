@@ -6,18 +6,6 @@ import SwiftUI
 final class StatisticsViewController: UIViewController {
     private enum Content {
         static let backgroundImageName = "backgroundImage"
-        static var screenTitle: String { L10n.Statistics.title }
-        static var screenAccessibilityLabel: String { L10n.Statistics.accessibilityLabel }
-        static var backButtonTitle: String { L10n.Common.back }
-        static var subtitleWithStats: String { L10n.Statistics.subtitleWithStats }
-        static var subtitleEmpty: String { L10n.Statistics.subtitleEmpty }
-        static var emptyStateText: String { L10n.Statistics.emptyStateText }
-        static var emptyStateAccessibilityLabel: String { L10n.Statistics.emptyStateAccessibilityLabel }
-
-        static var playedQuizzesTitle: String { L10n.Statistics.playedQuizzes }
-        static var correctAnswersTitle: String { L10n.Statistics.correctAnswers }
-        static var percentageTitle: String { L10n.Statistics.percentage }
-        static var bestResultTitle: String { L10n.Statistics.bestResult }
         static let percentageSuffix = "%"
     }
     
@@ -131,14 +119,14 @@ final class StatisticsViewController: UIViewController {
         let rootView = UIView()
         rootView.backgroundColor = UIColor(patternImage: UIImage(named: Content.backgroundImageName) ?? UIImage())
         rootView.accessibilityIdentifier = AccessibilityID.rootView
-        rootView.accessibilityLabel = Content.screenAccessibilityLabel
+        rootView.accessibilityLabel = L10n.Statistics.accessibilityLabel
         view = rootView
         configureProgrammaticSubviews(in: rootView)
     }
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        title = Content.screenTitle
+        title = L10n.Statistics.title
     }
 
     override func viewWillAppear(_ animated: Bool) {
@@ -159,7 +147,7 @@ final class StatisticsViewController: UIViewController {
     }
     
     private func configureBackButton() {
-        backButton.setTitle(Content.backButtonTitle, for: .normal)
+        backButton.setTitle(L10n.Common.back, for: .normal)
         backButton.setTitleColor(.white, for: .normal)
         backButton.titleLabel?.font = .systemFont(ofSize: Typography.backButtonFontSize, weight: .semibold)
         backButton.backgroundColor = UIColor.white.withAlphaComponent(Appearance.backButtonBackgroundAlpha)
@@ -168,12 +156,12 @@ final class StatisticsViewController: UIViewController {
         backButton.layer.borderColor = UIColor.white.withAlphaComponent(Appearance.backButtonBorderAlpha).cgColor
         backButton.translatesAutoresizingMaskIntoConstraints = false
         backButton.accessibilityIdentifier = AccessibilityID.backButton
-        backButton.accessibilityLabel = Content.backButtonTitle
+        backButton.accessibilityLabel = L10n.Common.back
         backButton.addTarget(self, action: #selector(backButtonTapped), for: .touchUpInside)
     }
     
     private func configureTitleLabel() {
-        titleLabel.text = Content.screenTitle
+        titleLabel.text = L10n.Statistics.title
         titleLabel.textColor = .white
         titleLabel.font = .systemFont(ofSize: Typography.titleFontSize, weight: .bold)
         titleLabel.textAlignment = .center
@@ -181,11 +169,11 @@ final class StatisticsViewController: UIViewController {
         titleLabel.translatesAutoresizingMaskIntoConstraints = false
         titleLabel.isAccessibilityElement = true
         titleLabel.accessibilityIdentifier = AccessibilityID.titleLabel
-        titleLabel.accessibilityLabel = Content.screenTitle
+        titleLabel.accessibilityLabel = L10n.Statistics.title
     }
     
     private func configureSubtitleLabel() {
-        subtitleLabel.text = Content.subtitleWithStats
+        subtitleLabel.text = L10n.Statistics.subtitleWithStats
         subtitleLabel.textColor = UIColor.white.withAlphaComponent(Appearance.subtitleTextAlpha)
         subtitleLabel.font = .systemFont(ofSize: Typography.subtitleFontSize, weight: .medium)
         subtitleLabel.textAlignment = .center
@@ -209,7 +197,7 @@ final class StatisticsViewController: UIViewController {
     }
     
     private func configureEmptyStateLabel() {
-        emptyStateLabel.text = Content.emptyStateText
+        emptyStateLabel.text = L10n.Statistics.emptyStateText
         emptyStateLabel.textColor = UIColor.white.withAlphaComponent(Appearance.emptyStateTextAlpha)
         emptyStateLabel.font = .systemFont(ofSize: Typography.emptyStateFontSize, weight: .regular)
         emptyStateLabel.textAlignment = .center
@@ -217,7 +205,7 @@ final class StatisticsViewController: UIViewController {
         emptyStateLabel.translatesAutoresizingMaskIntoConstraints = false
         emptyStateLabel.isAccessibilityElement = true
         emptyStateLabel.accessibilityIdentifier = AccessibilityID.emptyStateLabel
-        emptyStateLabel.accessibilityLabel = Content.emptyStateAccessibilityLabel
+        emptyStateLabel.accessibilityLabel = L10n.Statistics.emptyStateAccessibilityLabel
     }
     
     private func configureRowsStack() {
@@ -229,25 +217,25 @@ final class StatisticsViewController: UIViewController {
     
     private func configureStatisticRows() {
         playedQuizzesRow = makeStatisticRow(
-            title: Content.playedQuizzesTitle,
+            title: L10n.Statistics.playedQuizzes,
             valueLabel: playedQuizzesValueLabel,
             rowAccessibilityIdentifier: AccessibilityID.playedQuizzesRow,
             valueAccessibilityIdentifier: AccessibilityID.playedQuizzesValueLabel
         )
         correctAnswersRow = makeStatisticRow(
-            title: Content.correctAnswersTitle,
+            title: L10n.Statistics.correctAnswers,
             valueLabel: correctAnswersValueLabel,
             rowAccessibilityIdentifier: AccessibilityID.correctAnswersRow,
             valueAccessibilityIdentifier: AccessibilityID.correctAnswersValueLabel
         )
         percentageRow = makeStatisticRow(
-            title: Content.percentageTitle,
+            title: L10n.Statistics.percentage,
             valueLabel: percentageValueLabel,
             rowAccessibilityIdentifier: AccessibilityID.percentageRow,
             valueAccessibilityIdentifier: AccessibilityID.percentageValueLabel
         )
         bestResultRow = makeStatisticRow(
-            title: Content.bestResultTitle,
+            title: L10n.Statistics.bestResult,
             valueLabel: bestResultValueLabel,
             rowAccessibilityIdentifier: AccessibilityID.bestResultRow,
             valueAccessibilityIdentifier: AccessibilityID.bestResultValueLabel
@@ -356,7 +344,7 @@ final class StatisticsViewController: UIViewController {
         percentageValueLabel.text = percentageDisplay
         bestResultValueLabel.text = summary.bestResultDisplay
         emptyStateLabel.isHidden = summary.playedQuizzes > .zero
-        subtitleLabel.text = summary.playedQuizzes > .zero ? Content.subtitleWithStats : Content.subtitleEmpty
+        subtitleLabel.text = summary.playedQuizzes > .zero ? L10n.Statistics.subtitleWithStats : L10n.Statistics.subtitleEmpty
 
         updateAccessibility(
             playedQuizzes: summary.playedQuizzes,
@@ -372,13 +360,13 @@ final class StatisticsViewController: UIViewController {
         percentageDisplay: String,
         bestResultDisplay: String
     ) {
-        playedQuizzesRow.accessibilityLabel = Content.playedQuizzesTitle
+        playedQuizzesRow.accessibilityLabel = L10n.Statistics.playedQuizzes
         playedQuizzesRow.accessibilityValue = "\(playedQuizzes)"
-        correctAnswersRow.accessibilityLabel = Content.correctAnswersTitle
+        correctAnswersRow.accessibilityLabel = L10n.Statistics.correctAnswers
         correctAnswersRow.accessibilityValue = correctAnswersDisplay
-        percentageRow.accessibilityLabel = Content.percentageTitle
+        percentageRow.accessibilityLabel = L10n.Statistics.percentage
         percentageRow.accessibilityValue = percentageDisplay
-        bestResultRow.accessibilityLabel = Content.bestResultTitle
+        bestResultRow.accessibilityLabel = L10n.Statistics.bestResult
         bestResultRow.accessibilityValue = bestResultDisplay
     }
 }
