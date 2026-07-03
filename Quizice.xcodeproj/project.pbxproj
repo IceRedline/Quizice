@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		99B400102E20000100B40001 /* StatisticsSummaryTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99B400112E20000100B40001 /* StatisticsSummaryTests.swift */; };
+		99B400122E20000100B40001 /* StatisticsStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99B400132E20000100B40001 /* StatisticsStoreTests.swift */; };
 		99B400022E20000100B40001 /* QuiziceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99B400012E20000100B40001 /* QuiziceTests.swift */; };
 		99A000012E10000100A00001 /* StatisticsSummary.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99A000022E10000100A00001 /* StatisticsSummary.swift */; };
 		99A000032E10000100A00001 /* StatisticsStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99A000042E10000100A00001 /* StatisticsStore.swift */; };
@@ -57,6 +59,8 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		99B400112E20000100B40001 /* StatisticsSummaryTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatisticsSummaryTests.swift; sourceTree = "<group>"; };
+		99B400132E20000100B40001 /* StatisticsStoreTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatisticsStoreTests.swift; sourceTree = "<group>"; };
 		99B400012E20000100B40001 /* QuiziceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuiziceTests.swift; sourceTree = "<group>"; };
 		99B400032E20000100B40001 /* QuiziceTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = QuiziceTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		99A000022E10000100A00001 /* StatisticsSummary.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatisticsSummary.swift; sourceTree = "<group>"; };
@@ -207,6 +211,8 @@
 			isa = PBXGroup;
 			children = (
 				99B400012E20000100B40001 /* QuiziceTests.swift */,
+				99B400112E20000100B40001 /* StatisticsSummaryTests.swift */,
+				99B400132E20000100B40001 /* StatisticsStoreTests.swift */,
 			);
 			path = QuiziceTests;
 			sourceTree = "<group>";
@@ -322,6 +328,8 @@
 			buildActionMask = 2147483647;
 			files = (
 				99B400022E20000100B40001 /* QuiziceTests.swift in Sources */,
+				99B400102E20000100B40001 /* StatisticsSummaryTests.swift in Sources */,
+				99B400122E20000100B40001 /* StatisticsStoreTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
