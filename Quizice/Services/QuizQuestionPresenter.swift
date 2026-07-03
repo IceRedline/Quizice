@@ -10,6 +10,7 @@ import UIKit
 final class QuizQuestionPresenter: QuizQuestionPresenterProtocol {
     
     private let quizFactory = QuizFactory.shared
+    private let statisticsStore = StatisticsStore()
     
     var view: QuizQuestionViewControllerProtocol?
     
@@ -23,6 +24,7 @@ final class QuizQuestionPresenter: QuizQuestionPresenterProtocol {
     var currentQuestionIndex: Int = 0
     var correctAnswers: Int = 0
     var currentProgress: Float = 0.2
+    private var hasRecordedCompletedAttempt = false
     
     func viewDidLoad() {
         resetGameProgress()
@@ -151,6 +153,7 @@ final class QuizQuestionPresenter: QuizQuestionPresenterProtocol {
         }
         
         if currentQuestionIndex >= questionsTotalCount {
+            recordCompletedAttemptIfNeeded(totalQuestions: questionsTotalCount)
             view?.showResults()
         } else {
             loadQuestion()
@@ -171,6 +174,13 @@ final class QuizQuestionPresenter: QuizQuestionPresenterProtocol {
         currentQuestionIndex = 0
         correctAnswers = 0
         currentProgress = 0.2
+        hasRecordedCompletedAttempt = false
+    }
+    
+    private func recordCompletedAttemptIfNeeded(totalQuestions: Int) {
+        guard hasRecordedCompletedAttempt == false, totalQuestions > 0 else { return }
+        hasRecordedCompletedAttempt = true
+        statisticsStore.recordAttempt(correctAnswers: correctAnswers, totalQuestions: totalQuestions)
     }
     
     private var hasActiveQuestion: Bool {
