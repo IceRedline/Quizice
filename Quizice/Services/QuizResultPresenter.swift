@@ -20,11 +20,11 @@ final class QuizResultPresenter: QuizResultPresenterProtocol {
     func getResultText() {
         let normalizedCorrectAnswers = max(correctAnswers, 0)
         let normalizedTotalQuestions = max(totalQuestions, 0)
-        let resultText = "Твой результат:\n \(normalizedCorrectAnswers)/\(normalizedTotalQuestions)"
-        var descriptionText = "no description"
-        
+        let resultText = L10n.Result.text(correctAnswers: normalizedCorrectAnswers, totalQuestions: normalizedTotalQuestions)
+        var descriptionText = L10n.Result.fallbackDescription
+
         guard normalizedTotalQuestions > 0 else {
-            descriptionText = "В этой попытке не было доступных вопросов. Попробуй выбрать другую тему."
+            descriptionText = L10n.Result.noQuestionsDescription
             view?.updateResultLabels(resultText: resultText, descriptionText: descriptionText)
             return
         }
@@ -32,22 +32,21 @@ final class QuizResultPresenter: QuizResultPresenterProtocol {
         let resultPercentage = Float(normalizedCorrectAnswers) / Float(normalizedTotalQuestions)
         switch resultPercentage {
         case 0...0.15:
-            descriptionText = "Тебе точно стоит попробовать ещё раз!"
+            descriptionText = L10n.Result.veryLowScoreDescription
         case 0.15...0.3:
-            descriptionText = "Ты знаешь, могло быть и хуже! Не сильно... Но могло!"
+            descriptionText = L10n.Result.lowScoreDescription
         case 0.3...0.5:
-            descriptionText = "Да ладно, я знаю что ты не старался)"
+            descriptionText = L10n.Result.mediumLowScoreDescription
         case 0.5...0.75:
-            descriptionText = "Нормально, сойдёт для сельской местности"
+            descriptionText = L10n.Result.mediumScoreDescription
         case 0.75..<1:
-            descriptionText = "Ещё чуть-чуть и был бы как сам создатель квиза, молодец!"
+            descriptionText = L10n.Result.highScoreDescription
         case 1:
-            descriptionText = "Легенда, гений, соло легчайше для величайшего!"
+            descriptionText = L10n.Result.perfectScoreDescription
         default:
-            descriptionText = "Что-то пошло не так! Я не смог понять, сколько ответов правильные("
+            descriptionText = L10n.Result.invalidScoreDescription
         }
         
         view?.updateResultLabels(resultText: resultText, descriptionText: descriptionText)
     }
 }
-

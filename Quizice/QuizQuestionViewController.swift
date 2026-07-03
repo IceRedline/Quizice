@@ -57,7 +57,7 @@ final class QuizQuestionViewController: UIViewController, QuizQuestionViewContro
             soundOfCorrectAnswerPlayer = try? AVAudioPlayer(contentsOf: correctSoundURL)
             soundOfIncorrectAnswerPlayer = try? AVAudioPlayer(contentsOf: incorrectSoundURL)
         } else {
-            print("Аудиофайлы не были загружены")
+            print(L10n.Question.audioLoadFailure)
         }
         
         configurePresenter(QuizQuestionPresenter())
@@ -138,10 +138,10 @@ final class QuizQuestionViewController: UIViewController, QuizQuestionViewContro
         answersStackView.distribution = .fillEqually
         answersStackView.translatesAutoresizingMaskIntoConstraints = false
         
-        nextButton = makeActionButton(title: "Далее", accessibilityIdentifier: "questionNextButton", isPrimary: true)
+        nextButton = makeActionButton(title: L10n.Common.next, accessibilityIdentifier: "questionNextButton", isPrimary: true)
         nextButton.addTarget(self, action: #selector(nextButtonTapped), for: .touchUpInside)
         
-        backButton = makeActionButton(title: "Назад", accessibilityIdentifier: "questionBackButton", isPrimary: false)
+        backButton = makeActionButton(title: L10n.Common.back, accessibilityIdentifier: "questionBackButton", isPrimary: false)
         backButton.addTarget(self, action: #selector(backButtonTapped), for: .touchUpInside)
         
         [themeNameLabel, questionNumberLabel, questionCardView, nextButton, backButton].forEach(rootView.addSubview)
@@ -274,7 +274,7 @@ final class QuizQuestionViewController: UIViewController, QuizQuestionViewContro
         
         let buttons = questionButtons ?? []
         for (index, button) in buttons.enumerated() {
-            let answerTitle = currentAnswers.indices.contains(index) ? currentAnswers[index] : "Недоступно"
+            let answerTitle = currentAnswers.indices.contains(index) ? currentAnswers[index] : L10n.Question.unavailableAnswer
             button.setTitle(answerTitle, for: .normal)
             button.isEnabled = currentAnswers.indices.contains(index)
         }
@@ -286,8 +286,8 @@ final class QuizQuestionViewController: UIViewController, QuizQuestionViewContro
     
     func showQuestionUnavailable(themeName: String?, message: String) {
         questionButtons = [answer1Button, answer2Button, answer3Button, answer4Button]
-        themeNameLabel.text = themeName ?? "Викторина"
-        questionNumberLabel.text = "Вопросы недоступны"
+        themeNameLabel.text = themeName ?? L10n.Question.fallbackTheme
+        questionNumberLabel.text = L10n.Question.unavailableNumber
         questionLabel.text = message
         timerBar.progress = 0
         timerBar.tintColor = .systemBlue
@@ -351,4 +351,3 @@ final class QuizQuestionViewController: UIViewController, QuizQuestionViewContro
         presenter?.resetGameProgress()
     }
 }
-

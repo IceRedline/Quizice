@@ -63,7 +63,7 @@ final class QuizResultViewController: UIViewController, QuizResultViewController
         resultDescription.numberOfLines = 0
         resultDescription.textColor = UIColor.white.withAlphaComponent(0.9)
         
-        restartButton = makeActionButton(title: "Начать заново", accessibilityIdentifier: "resultRestartButton")
+        restartButton = makeActionButton(title: L10n.Result.restart, accessibilityIdentifier: "resultRestartButton")
         restartButton.addTarget(self, action: #selector(backButtonTapped), for: .touchUpInside)
         
         contentStackView = UIStackView(arrangedSubviews: [resultLabel, resultDescription, restartButton])
