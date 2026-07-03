@@ -103,6 +103,10 @@ final class CrossScreenVisualStateTests: XCTestCase {
         XCTAssertTrue(answerButtons.allSatisfy(\.isEnabled))
         XCTAssertTrue(answerButtons.allSatisfy { $0.layer.cornerRadius >= 16 })
         XCTAssertTrue(answerButtons.allSatisfy { $0.backgroundColor == .defaultButton })
+
+        let timerBar = viewController.view.descendant(withAccessibilityIdentifier: "questionTimerProgressView") as? UIProgressView
+        assertColor(timerBar?.progressTintColor, equals: .defaultButton)
+        assertColor(timerBar?.tintColor, equals: .defaultButton)
     }
 
     func testQuestionScreenPreservesPresenterDrivenAnswerFeedbackState() throws {
@@ -121,6 +125,10 @@ final class CrossScreenVisualStateTests: XCTestCase {
         XCTAssertTrue(answerButtons.allSatisfy { !$0.isEnabled })
         XCTAssertEqual(correctButton.backgroundColor, .correctAnswerButton)
         XCTAssertTrue(wrongButtons.allSatisfy { $0.backgroundColor == .wrongAnswerButton })
+
+        let timerBar = try XCTUnwrap(viewController.view.descendant(withAccessibilityIdentifier: "questionTimerProgressView") as? UIProgressView)
+        assertColor(timerBar.progressTintColor, equals: .correctAnswerBar)
+        assertColor(timerBar.tintColor, equals: .correctAnswerBar)
 
         let nextButton = try XCTUnwrap(viewController.view.descendant(withAccessibilityIdentifier: "questionNextButton") as? UIButton)
         XCTAssertTrue(nextButton.isEnabled)
@@ -141,6 +149,10 @@ final class CrossScreenVisualStateTests: XCTestCase {
         let correctButton = try XCTUnwrap(answerButtons.first { $0.title(for: .normal) == "Правильный ответ" })
         XCTAssertEqual(correctButton.backgroundColor, .correctAnswerButton)
         XCTAssertTrue(answerButtons.filter { $0 !== correctButton }.allSatisfy { $0.backgroundColor == .wrongAnswerButton })
+
+        let timerBar = try XCTUnwrap(viewController.view.descendant(withAccessibilityIdentifier: "questionTimerProgressView") as? UIProgressView)
+        assertColor(timerBar.progressTintColor, equals: .wrongAnswerBar)
+        assertColor(timerBar.tintColor, equals: .wrongAnswerBar)
 
         let nextButton = try XCTUnwrap(viewController.view.descendant(withAccessibilityIdentifier: "questionNextButton") as? UIButton)
         XCTAssertTrue(nextButton.isEnabled)
@@ -313,6 +325,32 @@ final class CrossScreenVisualStateTests: XCTestCase {
         (1...4).compactMap { index in
             viewController.view.descendant(withAccessibilityIdentifier: "questionAnswerButton\(index)") as? UIButton
         }
+    }
+
+    private func assertColor(_ actual: UIColor?, equals expected: UIColor, file: StaticString = #filePath, line: UInt = #line) {
+        guard let actual else {
+            XCTFail("Expected color, got nil", file: file, line: line)
+            return
+        }
+
+        let traitCollection = UITraitCollection(userInterfaceStyle: .light)
+        let actualColor = actual.resolvedColor(with: traitCollection)
+        let expectedColor = expected.resolvedColor(with: traitCollection)
+        var actualRed: CGFloat = 0
+        var actualGreen: CGFloat = 0
+        var actualBlue: CGFloat = 0
+        var actualAlpha: CGFloat = 0
+        var expectedRed: CGFloat = 0
+        var expectedGreen: CGFloat = 0
+        var expectedBlue: CGFloat = 0
+        var expectedAlpha: CGFloat = 0
+
+        XCTAssertTrue(actualColor.getRed(&actualRed, green: &actualGreen, blue: &actualBlue, alpha: &actualAlpha), file: file, line: line)
+        XCTAssertTrue(expectedColor.getRed(&expectedRed, green: &expectedGreen, blue: &expectedBlue, alpha: &expectedAlpha), file: file, line: line)
+        XCTAssertEqual(actualRed, expectedRed, accuracy: 0.001, file: file, line: line)
+        XCTAssertEqual(actualGreen, expectedGreen, accuracy: 0.001, file: file, line: line)
+        XCTAssertEqual(actualBlue, expectedBlue, accuracy: 0.001, file: file, line: line)
+        XCTAssertEqual(actualAlpha, expectedAlpha, accuracy: 0.001, file: file, line: line)
     }
 
     private func resetQuestionFactoryState() {
