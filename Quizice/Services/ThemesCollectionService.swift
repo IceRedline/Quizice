@@ -14,11 +14,7 @@ final class ThemesCollectionService: NSObject, UICollectionViewDelegate, UIColle
     private let quizFactory = QuizFactory.shared
     
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-        if let themesCount = quizFactory.themes?.count {
-            return themesCount
-        } else {
-            fatalError("Не удалось задать колчество ячеек коллекции")
-        }
+        quizFactory.themes?.count ?? 0
     }
     
     // MARK: - UICollectionViewDataSource
@@ -29,7 +25,10 @@ final class ThemesCollectionService: NSObject, UICollectionViewDelegate, UIColle
         cell.contentView.backgroundColor = .clear
         cell.backgroundColor = .clear
         
-        let themeName = quizFactory.themes?[indexPath.item].theme ?? "Музыка"
+        guard let theme = quizFactory.themes?[safe: indexPath.item] else {
+            return cell
+        }
+        let themeName = theme.theme
         let button = UIButton(type: .custom)
         
         button.addTarget(self, action: #selector(buttonTouchedDown(_:)), for: .touchDown)
@@ -66,11 +65,21 @@ final class ThemesCollectionService: NSObject, UICollectionViewDelegate, UIColle
     }
     
     @objc func buttonTouchedUpInside(_ sender: UIButton) {
-        delegate?.themeButtonTouchedUpInside(sender, themeName: sender.accessibilityIdentifier!)
+        guard
+            let themeName = sender.accessibilityIdentifier,
+            quizFactory.themes?.contains(where: { $0.theme == themeName }) == true
+        else { return }
+        delegate?.themeButtonTouchedUpInside(sender, themeName: themeName)
     }
     
     @objc func buttonTouchedUpOutside(_ sender: UIButton) {
         delegate?.themeButtonTouchedUpOutside(sender)
     }
     
+}
+
+private extension Array {
+    subscript(safe index: Index) -> Element? {
+        indices.contains(index) ? self[index] : nil
+    }
 }
