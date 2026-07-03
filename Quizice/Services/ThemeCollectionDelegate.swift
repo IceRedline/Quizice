@@ -11,4 +11,5 @@ protocol ThemeCollectionDelegate {
     func themeButtonTouchedDown(_ sender: UIButton)
     func themeButtonTouchedUpInside(_ sender: UIButton, themeName: String)
     func themeButtonTouchedUpOutside(_ sender: UIButton)
+    func statisticsButtonTouchedUpInside(_ sender: UIButton)
 }

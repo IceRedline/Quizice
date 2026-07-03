@@ -14,7 +14,7 @@ final class ThemesCollectionService: NSObject, UICollectionViewDelegate, UIColle
     private let quizFactory = QuizFactory.shared
     
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-        quizFactory.themes?.count ?? 0
+        (quizFactory.themes?.count ?? 0) + 1
     }
     
     // MARK: - UICollectionViewDataSource
@@ -25,10 +25,31 @@ final class ThemesCollectionService: NSObject, UICollectionViewDelegate, UIColle
         cell.contentView.backgroundColor = .clear
         cell.backgroundColor = .clear
         
-        guard let theme = quizFactory.themes?[safe: indexPath.item] else {
+        if indexPath.item == 0 {
+            configureStatisticsCard(in: cell)
             return cell
         }
-        let themeName = theme.theme
+        
+        let themeIndex = indexPath.item - 1
+        guard let theme = quizFactory.themes?[safe: themeIndex] else {
+            return cell
+        }
+        configureThemeCard(in: cell, themeName: theme.theme)
+        return cell
+    }
+    
+    
+    // MARK: - UICollectionViewDelegateFlowLayout
+
+    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize { CGSize(width: 160, height: 160) }
+    
+    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, minimumLineSpacingForSectionAt section: Int) -> CGFloat { 20 }
+    
+    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, minimumInteritemSpacingForSectionAt section: Int) -> CGFloat { 20 }
+    
+    // MARK: - Methods
+    
+    private func configureThemeCard(in cell: UICollectionViewCell, themeName: String) {
         let button = UIButton(type: .custom)
         
         button.addTarget(self, action: #selector(buttonTouchedDown(_:)), for: .touchDown)
@@ -46,19 +67,58 @@ final class ThemesCollectionService: NSObject, UICollectionViewDelegate, UIColle
             button.centerXAnchor.constraint(equalTo: cell.contentView.centerXAnchor),
             button.centerYAnchor.constraint(equalTo: cell.contentView.centerYAnchor),
         ])
-        return cell
     }
     
-    
-    // MARK: - UICollectionViewDelegateFlowLayout
-
-    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize { CGSize(width: 160, height: 160) }
-    
-    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, minimumLineSpacingForSectionAt section: Int) -> CGFloat { 20 }
-    
-    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, minimumInteritemSpacingForSectionAt section: Int) -> CGFloat { 20 }
-    
-    // MARK: - Methods
+    private func configureStatisticsCard(in cell: UICollectionViewCell) {
+        let button = UIButton(type: .system)
+        button.accessibilityIdentifier = "homeStatisticsCard"
+        button.accessibilityLabel = "Общая статистика"
+        button.accessibilityHint = "Открывает экран общей статистики по завершённым викторинам"
+        button.backgroundColor = UIColor.white.withAlphaComponent(0.16)
+        button.layer.cornerRadius = 24
+        button.layer.borderWidth = 1
+        button.layer.borderColor = UIColor.white.withAlphaComponent(0.36).cgColor
+        button.translatesAutoresizingMaskIntoConstraints = false
+        button.addTarget(self, action: #selector(buttonTouchedDown(_:)), for: .touchDown)
+        button.addTarget(self, action: #selector(statisticsButtonTouchedUpInside(_:)), for: .touchUpInside)
+        button.addTarget(self, action: #selector(buttonTouchedUpOutside(_:)), for: .touchUpOutside)
+        
+        let titleLabel = UILabel()
+        titleLabel.text = "Статистика"
+        titleLabel.textColor = .white
+        titleLabel.font = .systemFont(ofSize: 20, weight: .bold)
+        titleLabel.textAlignment = .center
+        titleLabel.translatesAutoresizingMaskIntoConstraints = false
+        
+        let descriptionLabel = UILabel()
+        descriptionLabel.text = "Общие итоги квизов"
+        descriptionLabel.textColor = UIColor.white.withAlphaComponent(0.84)
+        descriptionLabel.font = .systemFont(ofSize: 14, weight: .medium)
+        descriptionLabel.textAlignment = .center
+        descriptionLabel.numberOfLines = 2
+        descriptionLabel.translatesAutoresizingMaskIntoConstraints = false
+        
+        let stackView = UIStackView(arrangedSubviews: [titleLabel, descriptionLabel])
+        stackView.axis = .vertical
+        stackView.alignment = .center
+        stackView.spacing = 8
+        stackView.isUserInteractionEnabled = false
+        stackView.translatesAutoresizingMaskIntoConstraints = false
+        
+        cell.contentView.addSubview(button)
+        button.addSubview(stackView)
+        
+        NSLayoutConstraint.activate([
+            button.widthAnchor.constraint(equalToConstant: 160),
+            button.heightAnchor.constraint(equalToConstant: 160),
+            button.centerXAnchor.constraint(equalTo: cell.contentView.centerXAnchor),
+            button.centerYAnchor.constraint(equalTo: cell.contentView.centerYAnchor),
+            
+            stackView.leadingAnchor.constraint(equalTo: button.leadingAnchor, constant: 14),
+            stackView.trailingAnchor.constraint(equalTo: button.trailingAnchor, constant: -14),
+            stackView.centerYAnchor.constraint(equalTo: button.centerYAnchor)
+        ])
+    }
     
     @objc func buttonTouchedDown(_ sender: UIButton) {
         delegate?.themeButtonTouchedDown(sender)
@@ -74,6 +134,10 @@ final class ThemesCollectionService: NSObject, UICollectionViewDelegate, UIColle
     
     @objc func buttonTouchedUpOutside(_ sender: UIButton) {
         delegate?.themeButtonTouchedUpOutside(sender)
+    }
+    
+    @objc func statisticsButtonTouchedUpInside(_ sender: UIButton) {
+        delegate?.statisticsButtonTouchedUpInside(sender)
     }
     
 }
