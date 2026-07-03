@@ -25,22 +25,27 @@ final class ThemesCollectionService: NSObject, UICollectionViewDelegate, UIColle
     
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
         let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "themeCell", for: indexPath)
+        cell.contentView.subviews.forEach { $0.removeFromSuperview() }
+        cell.contentView.backgroundColor = .clear
+        cell.backgroundColor = .clear
+        
         let themeName = quizFactory.themes?[indexPath.item].theme ?? "Музыка"
-        let button = UIButton()
+        let button = UIButton(type: .custom)
         
         button.addTarget(self, action: #selector(buttonTouchedDown(_:)), for: .touchDown)
         button.addTarget(self, action: #selector(buttonTouchedUpInside(_:)), for: .touchUpInside)
         button.addTarget(self, action: #selector(buttonTouchedUpOutside(_:)), for: .touchUpOutside)
         button.accessibilityIdentifier = themeName
         button.setImage(UIImage(named: themeName), for: .normal)
+        button.imageView?.contentMode = .scaleAspectFit
         button.translatesAutoresizingMaskIntoConstraints = false
-        cell.addSubview(button)
+        cell.contentView.addSubview(button)
         
         NSLayoutConstraint.activate([
             button.widthAnchor.constraint(equalToConstant: 160),
             button.heightAnchor.constraint(equalToConstant: 160),
-            button.centerXAnchor.constraint(equalTo: cell.centerXAnchor),
-            button.centerYAnchor.constraint(equalTo: cell.centerYAnchor),
+            button.centerXAnchor.constraint(equalTo: cell.contentView.centerXAnchor),
+            button.centerYAnchor.constraint(equalTo: cell.contentView.centerYAnchor),
         ])
         return cell
     }

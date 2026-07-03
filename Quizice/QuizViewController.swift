@@ -30,6 +30,13 @@ final class QuizViewController: UIViewController, QuizViewControllerProtocol, Th
     let themesCollectionService = ThemesCollectionService()
     var presenter: QuizPresenterProtocol?
     
+    override func loadView() {
+        let rootView = UIView()
+        rootView.backgroundColor = UIColor(patternImage: UIImage(named: "backgroundImage") ?? UIImage())
+        view = rootView
+        configureProgrammaticSubviews(in: rootView)
+    }
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         
@@ -58,6 +65,105 @@ final class QuizViewController: UIViewController, QuizViewControllerProtocol, Th
     func configurePresenter(_ presenter: any QuizPresenterProtocol) {
         self.presenter = presenter
         self.presenter?.view = self
+    }
+    
+    private func configureProgrammaticSubviews(in rootView: UIView) {
+        welcomeLabel = makeLabel(text: "Добро пожаловать в", font: .systemFont(ofSize: 30, weight: .semibold))
+        quiziceLabel = UIImageView(image: UIImage(named: "Quizice"))
+        quiziceLabel.contentMode = .scaleAspectFit
+        quiziceLabel.translatesAutoresizingMaskIntoConstraints = false
+        chooseThemeLabel = makeLabel(text: "Выберите тему", font: .systemFont(ofSize: 28, weight: .semibold))
+        
+        musicThemeButton = makeLegacyThemeButton(named: "Музыка")
+        techThemeButton = makeLegacyThemeButton(named: "Технологии")
+        historyAndCultureThemeButton = makeLegacyThemeButton(named: "История и культура")
+        politicsAndBusinessThemeButton = makeLegacyThemeButton(named: "Политика и бизнес")
+        
+        exitButton = makeActionButton(title: "Выход")
+        exitButton.addTarget(self, action: #selector(backButtonTapped), for: .touchUpInside)
+        feelingLuckyButton = makeActionButton(title: "Мне повезет")
+        feelingLuckyButton.addTarget(self, action: #selector(randomButtonTapped), for: .touchUpInside)
+        
+        let layout = UICollectionViewFlowLayout()
+        layout.scrollDirection = .horizontal
+        layout.itemSize = CGSize(width: 160, height: 160)
+        layout.minimumLineSpacing = 20
+        layout.minimumInteritemSpacing = 20
+        layout.sectionInset = UIEdgeInsets(top: 0, left: 24, bottom: 0, right: 24)
+        themesCollectionView = UICollectionView(frame: .zero, collectionViewLayout: layout)
+        themesCollectionView.showsHorizontalScrollIndicator = false
+        themesCollectionView.translatesAutoresizingMaskIntoConstraints = false
+        
+        [welcomeLabel, quiziceLabel, chooseThemeLabel, themesCollectionView, exitButton, feelingLuckyButton].forEach(rootView.addSubview)
+        [musicThemeButton, techThemeButton, historyAndCultureThemeButton, politicsAndBusinessThemeButton].forEach { button in
+            button.isHidden = true
+            rootView.addSubview(button)
+        }
+        
+        NSLayoutConstraint.activate([
+            welcomeLabel.topAnchor.constraint(equalTo: rootView.safeAreaLayoutGuide.topAnchor, constant: 48),
+            welcomeLabel.centerXAnchor.constraint(equalTo: rootView.centerXAnchor),
+            welcomeLabel.leadingAnchor.constraint(greaterThanOrEqualTo: rootView.leadingAnchor, constant: 24),
+            welcomeLabel.trailingAnchor.constraint(lessThanOrEqualTo: rootView.trailingAnchor, constant: -24),
+            
+            quiziceLabel.topAnchor.constraint(equalTo: welcomeLabel.bottomAnchor, constant: 16),
+            quiziceLabel.centerXAnchor.constraint(equalTo: rootView.centerXAnchor),
+            quiziceLabel.widthAnchor.constraint(lessThanOrEqualTo: rootView.widthAnchor, multiplier: 0.78),
+            quiziceLabel.heightAnchor.constraint(equalToConstant: 96),
+            
+            chooseThemeLabel.topAnchor.constraint(equalTo: quiziceLabel.bottomAnchor, constant: 36),
+            chooseThemeLabel.centerXAnchor.constraint(equalTo: rootView.centerXAnchor),
+            chooseThemeLabel.leadingAnchor.constraint(greaterThanOrEqualTo: rootView.leadingAnchor, constant: 24),
+            chooseThemeLabel.trailingAnchor.constraint(lessThanOrEqualTo: rootView.trailingAnchor, constant: -24),
+            
+            themesCollectionView.topAnchor.constraint(equalTo: chooseThemeLabel.bottomAnchor, constant: 24),
+            themesCollectionView.leadingAnchor.constraint(equalTo: rootView.leadingAnchor),
+            themesCollectionView.trailingAnchor.constraint(equalTo: rootView.trailingAnchor),
+            themesCollectionView.heightAnchor.constraint(equalToConstant: 180),
+            
+            feelingLuckyButton.topAnchor.constraint(greaterThanOrEqualTo: themesCollectionView.bottomAnchor, constant: 32),
+            feelingLuckyButton.centerXAnchor.constraint(equalTo: rootView.centerXAnchor),
+            feelingLuckyButton.widthAnchor.constraint(equalToConstant: 220),
+            feelingLuckyButton.heightAnchor.constraint(equalToConstant: 52),
+            
+            exitButton.topAnchor.constraint(equalTo: feelingLuckyButton.bottomAnchor, constant: 16),
+            exitButton.centerXAnchor.constraint(equalTo: rootView.centerXAnchor),
+            exitButton.widthAnchor.constraint(equalToConstant: 220),
+            exitButton.heightAnchor.constraint(equalToConstant: 52),
+            exitButton.bottomAnchor.constraint(lessThanOrEqualTo: rootView.safeAreaLayoutGuide.bottomAnchor, constant: -32)
+        ])
+    }
+    
+    private func makeLabel(text: String, font: UIFont) -> UILabel {
+        let label = UILabel()
+        label.text = text
+        label.textColor = .white
+        label.font = font
+        label.textAlignment = .center
+        label.numberOfLines = 0
+        label.translatesAutoresizingMaskIntoConstraints = false
+        return label
+    }
+    
+    private func makeActionButton(title: String) -> UIButton {
+        let button = UIButton(type: .system)
+        button.setTitle(title, for: .normal)
+        button.setTitleColor(.white, for: .normal)
+        button.titleLabel?.font = .systemFont(ofSize: 20, weight: .semibold)
+        button.backgroundColor = UIColor.white.withAlphaComponent(0.16)
+        button.layer.cornerRadius = 18
+        button.layer.borderWidth = 1
+        button.layer.borderColor = UIColor.white.withAlphaComponent(0.4).cgColor
+        button.translatesAutoresizingMaskIntoConstraints = false
+        return button
+    }
+    
+    private func makeLegacyThemeButton(named themeName: String) -> UIButton {
+        let button = UIButton(type: .custom)
+        button.accessibilityIdentifier = themeName
+        button.setImage(UIImage(named: themeName), for: .normal)
+        button.translatesAutoresizingMaskIntoConstraints = false
+        return button
     }
     
     private func hideAllViews() {
@@ -92,7 +198,7 @@ final class QuizViewController: UIViewController, QuizViewControllerProtocol, Th
         
         DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
             
-            self.soundPlayer.play()
+            self.soundPlayer?.play()
             self.quiziceLabel.fadeIn(duration: 2)
             self.themesCollectionView.alpha = 1
             
@@ -102,8 +208,6 @@ final class QuizViewController: UIViewController, QuizViewControllerProtocol, Th
                 self.exitButton.fadeIn(duration: 1)
                 self.feelingLuckyButton.fadeIn(duration: 1)
                
-                
-                
                 for (index, cell) in visibleCells.enumerated() {
                     DispatchQueue.main.asyncAfter(deadline: .now() + Double(index) * 0.15) {
                         cell.fadeIn(duration: 1) {
@@ -130,19 +234,19 @@ final class QuizViewController: UIViewController, QuizViewControllerProtocol, Th
     }
     
     private func showDescriptionViewController() {
-        let storyboard = UIStoryboard(name: "Main", bundle: nil)
-        if let vc = storyboard.instantiateViewController(withIdentifier: "QuizDescriptionID") as? QuizDescriptionViewController {
-            presenter?.configureDescriptionPresenter(viewController: vc)
-            self.present(vc, animated: true)
+        let viewController = QuizDescriptionViewController()
+        presenter?.configureDescriptionPresenter(viewController: viewController)
+        navigationController?.pushViewController(viewController, animated: true)
+    }
+    
+    @objc private func randomButtonTapped() {
+        if let theme = QuizFactory.shared.themes?.randomElement()?.theme {
+            QuizFactory.shared.loadTheme(themeName: theme)
+            showDescriptionViewController()
         }
     }
     
-    @IBAction private func randomButtonTapped() {
-        QuizFactory.shared.loadTheme(themeName: (QuizFactory.shared.themes?.randomElement()!.theme)!)
-        showDescriptionViewController()
-    }
-    
-    @IBAction private func backButtonTapped() {
+    @objc private func backButtonTapped() {
         let alert = UIAlertController(
             title: "Выход",
             message: "Вы уверены что хотите выйти?",
