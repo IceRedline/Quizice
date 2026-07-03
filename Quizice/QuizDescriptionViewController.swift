@@ -132,6 +132,8 @@ final class QuizDescriptionViewController: UIViewController, QuizDescriptionView
     
     private var startButton: UIButton!
     private var backButton: UIButton!
+    private let appearanceStore = AppAppearanceStore.shared
+    private var appearanceObserver: NSObjectProtocol?
     
     var presenter: QuizDescriptionPresenterProtocol?
     
@@ -141,16 +143,25 @@ final class QuizDescriptionViewController: UIViewController, QuizDescriptionView
         rootView.accessibilityIdentifier = AccessibilityID.rootView
         view = rootView
         configureProgrammaticSubviews(in: rootView)
+        applyAppearance()
     }
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        installAppearanceObserver()
+        installAppearanceTraitObserver()
         presenter?.configurePickerView(numberOfQuestionsPickerView)
         presenter?.viewDidLoad()
         
-        numberOfQuestionsPickerView.setValue(UIColor.white, forKey: Content.pickerTextColorKey)
+        numberOfQuestionsPickerView.setValue(currentAppearance().surfaceTextColor, forKey: Content.pickerTextColorKey)
     }
-    
+
+    deinit {
+        if let appearanceObserver {
+            NotificationCenter.default.removeObserver(appearanceObserver)
+        }
+    }
+
     func updateLabels(themeName: String, themeDescription: String) {
         themeNameLabel.text = themeName
         themeDescriptionLabel.text = themeDescription
@@ -194,16 +205,17 @@ final class QuizDescriptionViewController: UIViewController, QuizDescriptionView
     }
     
     private func configureLabels() {
-        themeNameLabel = makeLabel(font: .systemFont(ofSize: Typography.themeNameFontSize, weight: .bold), accessibilityIdentifier: AccessibilityID.themeNameLabel)
+        let typography = currentAppearance().typography
+        themeNameLabel = makeLabel(font: typography.font(size: Typography.themeNameFontSize, weight: .bold), accessibilityIdentifier: AccessibilityID.themeNameLabel)
         themeNameLabel.numberOfLines = Typography.unlimitedNumberOfLines
         themeNameLabel.adjustsFontSizeToFitWidth = true
         themeNameLabel.minimumScaleFactor = Typography.themeNameMinimumScaleFactor
         
-        themeDescriptionLabel = makeLabel(font: .systemFont(ofSize: Typography.descriptionFontSize, weight: .regular), accessibilityIdentifier: AccessibilityID.textLabel)
+        themeDescriptionLabel = makeLabel(font: typography.font(size: Typography.descriptionFontSize, weight: .regular), accessibilityIdentifier: AccessibilityID.textLabel)
         themeDescriptionLabel.numberOfLines = Typography.unlimitedNumberOfLines
         themeDescriptionLabel.textColor = UIColor.white.withAlphaComponent(Appearance.descriptionTextAlpha)
         
-        pickerCaptionLabel = makeLabel(font: .systemFont(ofSize: Typography.pickerCaptionFontSize, weight: .semibold), accessibilityIdentifier: AccessibilityID.pickerCaptionLabel)
+        pickerCaptionLabel = makeLabel(font: typography.font(size: Typography.pickerCaptionFontSize, weight: .semibold), accessibilityIdentifier: AccessibilityID.pickerCaptionLabel)
         pickerCaptionLabel.text = L10n.Description.questionCount
         pickerCaptionLabel.textColor = UIColor.white.withAlphaComponent(Appearance.pickerCaptionTextAlpha)
     }
@@ -294,7 +306,7 @@ final class QuizDescriptionViewController: UIViewController, QuizDescriptionView
         button.setTitle(title, for: .normal)
         button.setTitleColor(.white, for: .normal)
         button.setTitleColor(UIColor.white.withAlphaComponent(Appearance.disabledButtonTitleAlpha), for: .disabled)
-        button.titleLabel?.font = .systemFont(ofSize: Typography.buttonFontSize, weight: .semibold)
+        button.titleLabel?.font = currentAppearance().typography.font(size: Typography.buttonFontSize, weight: .semibold)
         button.backgroundColor = UIColor.white.withAlphaComponent(style.backgroundAlpha)
         button.layer.cornerRadius = style.cornerRadius
         button.layer.borderWidth = Appearance.buttonBorderWidth
@@ -305,6 +317,63 @@ final class QuizDescriptionViewController: UIViewController, QuizDescriptionView
         button.layer.shadowOffset = Appearance.buttonShadowOffset
         button.translatesAutoresizingMaskIntoConstraints = false
         return button
+    }
+
+    private func installAppearanceObserver() {
+        appearanceObserver = NotificationCenter.default.addObserver(
+            forName: .appAppearanceDidChange,
+            object: nil,
+            queue: .main
+        ) { [weak self] _ in
+            self?.applyAppearance()
+        }
+    }
+
+    private func installAppearanceTraitObserver() {
+        registerForTraitChanges([UITraitUserInterfaceStyle.self]) { (viewController: QuizDescriptionViewController, _: UITraitCollection) in
+            viewController.applyAppearance()
+        }
+    }
+
+    private func currentAppearance() -> AppAppearance {
+        appearanceStore.appearance(compatibleWith: traitCollection)
+    }
+
+    private func applyAppearance() {
+        guard isViewLoaded else { return }
+        let appearance = currentAppearance()
+        appearance.applyBackground(to: view)
+        overrideUserInterfaceStyle = appearance.resolvedInterfaceStyle
+
+        contentCardView?.applySurfaceStyle(appearance.card)
+        themeNameLabel?.textColor = appearance.surfaceTextColor
+        themeNameLabel?.font = appearance.typography.font(size: Typography.themeNameFontSize, weight: .bold)
+        themeDescriptionLabel?.textColor = appearance.secondarySurfaceTextColor
+        themeDescriptionLabel?.font = appearance.typography.font(size: Typography.descriptionFontSize, weight: .regular)
+        pickerCaptionLabel?.textColor = appearance.secondarySurfaceTextColor
+        pickerCaptionLabel?.font = appearance.typography.font(size: Typography.pickerCaptionFontSize, weight: .semibold)
+
+        numberOfQuestionsPickerView?.backgroundColor = appearance.row.backgroundColor
+        numberOfQuestionsPickerView?.layer.cornerRadius = appearance.row.cornerRadius
+        numberOfQuestionsPickerView?.layer.borderWidth = appearance.row.borderWidth
+        numberOfQuestionsPickerView?.layer.borderColor = appearance.row.borderColor.cgColor
+        numberOfQuestionsPickerView?.setValue(appearance.surfaceTextColor, forKey: Content.pickerTextColorKey)
+
+        startButton?.applyActionAppearance(appearance.primaryButton, appearance: appearance, textColor: actionTextColor(for: .primary, appearance: appearance))
+        startButton?.titleLabel?.font = appearance.typography.font(size: Typography.buttonFontSize, weight: .semibold)
+        backButton?.applyActionAppearance(appearance.secondaryButton, appearance: appearance, textColor: actionTextColor(for: .secondary, appearance: appearance))
+        backButton?.titleLabel?.font = appearance.typography.font(size: Typography.buttonFontSize, weight: .semibold)
+    }
+
+    private func actionTextColor(for style: ActionButtonStyle, appearance: AppAppearance) -> UIColor {
+        switch (style, appearance.designStyle) {
+        case (.primary, .clean):
+            return appearance.resolvedInterfaceStyle == .dark ? appearance.screenTextColor : UIColor.black
+        case (.primary, .pixel):
+            return UIColor.black
+        default:
+            return appearance.screenTextColor
+        }
     }
     
     @objc private func startButtonTapped() {

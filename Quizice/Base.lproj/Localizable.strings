@@ -45,6 +45,12 @@
 "settings.feedback.subtitle" = "Расскажите, что улучшить в Quizice";
 "settings.feedback.unavailable_message" = "Форма отзыва появится позже.";
 "settings.done" = "Готово";
+"settings.design" = "Дизайн";
+"settings.design.subtitle" = "Классический, радар, минимализм или пиксель";
+"settings.design.clean" = "Минимализм";
+"settings.design.radar" = "Радар";
+"settings.design.pixel" = "Пиксель";
+"settings.design.classic" = "Классический";
 "settings.icon" = "Иконка приложения";
 "settings.icon.subtitle" = "Выберите стиль иконки";
 "settings.icon.classic" = "Классика";
@@ -58,6 +64,8 @@
 "settings.section.appearance" = "Внешний вид";
 "settings.section.profile" = "Аккаунт";
 "settings.section.support" = "Поддержка";
+"settings.clean_theme_mode" = "Тема Минимализм";
+"settings.clean_theme_mode.subtitle" = "Системная, светлая или темная";
 "settings.theme" = "Тема";
 "settings.theme.subtitle" = "Системная, светлая или темная";
 "settings.theme.dark" = "Темная";

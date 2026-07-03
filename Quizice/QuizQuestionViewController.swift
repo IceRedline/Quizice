@@ -84,6 +84,8 @@ final class QuizQuestionViewController: UIViewController, QuizQuestionViewContro
         static let answerCornerRadius: CGFloat = 18
         static let answerBorderWidth: CGFloat = 1
         static let answerBorderAlpha: CGFloat = 0.2
+        static let answerFeedbackBorderWidth: CGFloat = 4
+        static let radarDimmedAnswerAlpha: CGFloat = 0.34
         
         static let disabledButtonTitleAlpha: CGFloat = 0.45
         static let primaryButtonBackgroundAlpha: CGFloat = 0.22
@@ -101,6 +103,7 @@ final class QuizQuestionViewController: UIViewController, QuizQuestionViewContro
     
     private enum AnimationTiming {
         static let answerFeedbackDuration: Double = 0.15
+        static let answerFeedbackOptions: UIView.AnimationOptions = [.curveEaseInOut, .allowUserInteraction]
         static let nextButtonEnableDuration: TimeInterval = 1
     }
     
@@ -144,6 +147,12 @@ final class QuizQuestionViewController: UIViewController, QuizQuestionViewContro
             }
         }
     }
+
+    private enum AnswerFeedbackState {
+        case normal
+        case correct
+        case wrong
+    }
     
     private var themeNameLabel: UILabel!
     private var questionNumberLabel: UILabel!
@@ -163,6 +172,8 @@ final class QuizQuestionViewController: UIViewController, QuizQuestionViewContro
     private let animationsEngine = Animations()
     private var soundOfCorrectAnswerPlayer: AVAudioPlayer!
     private var soundOfIncorrectAnswerPlayer: AVAudioPlayer!
+    private let appearanceStore = AppAppearanceStore.shared
+    private var appearanceObserver: NSObjectProtocol?
     
     var presenter: QuizQuestionPresenterProtocol?
     
@@ -176,23 +187,33 @@ final class QuizQuestionViewController: UIViewController, QuizQuestionViewContro
         rootView.accessibilityIdentifier = AccessibilityID.rootView
         view = rootView
         configureProgrammaticSubviews(in: rootView)
+        applyAppearance()
     }
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        installAppearanceObserver()
+        installAppearanceTraitObserver()
         loadAnswerSounds()
         configurePresenter(QuizQuestionPresenter())
         presenter?.viewDidLoad()
         hapticFeedback.prepare()
     }
-    
+
+    deinit {
+        if let appearanceObserver {
+            NotificationCenter.default.removeObserver(appearanceObserver)
+        }
+    }
+
     func updateProgress(_ progress: Float) {
         timerBar.progress = progress
     }
     
     func showTimeExpired() {
+        let appearance = currentAppearance()
         colorAndDisableButtons()
-        animateTimerBarColor(Appearance.timerWrongColor)
+        animateTimerBarColor(timerFeedbackColor(isCorrect: false, appearance: appearance))
         hapticFeedback.notificationOccurred(.error)
         nextButton.isEnabled = true
     }
@@ -215,10 +236,11 @@ final class QuizQuestionViewController: UIViewController, QuizQuestionViewContro
     }
     
     private func configureHeaderLabels() {
-        themeNameLabel = makeLabel(font: .systemFont(ofSize: Typography.themeFontSize, weight: .semibold))
+        let typography = currentAppearance().typography
+        themeNameLabel = makeLabel(font: typography.font(size: Typography.themeFontSize, weight: .semibold))
         themeNameLabel.accessibilityIdentifier = AccessibilityID.themeLabel
         
-        questionNumberLabel = makeLabel(font: .systemFont(ofSize: Typography.questionNumberFontSize, weight: .medium))
+        questionNumberLabel = makeLabel(font: typography.font(size: Typography.questionNumberFontSize, weight: .medium))
         questionNumberLabel.accessibilityIdentifier = AccessibilityID.questionNumberLabel
     }
     
@@ -237,7 +259,7 @@ final class QuizQuestionViewController: UIViewController, QuizQuestionViewContro
     }
     
     private func configureQuestionContent() {
-        questionLabel = makeLabel(font: .systemFont(ofSize: Typography.questionFontSize, weight: .bold))
+        questionLabel = makeLabel(font: currentAppearance().typography.font(size: Typography.questionFontSize, weight: .bold))
         questionLabel.accessibilityIdentifier = AccessibilityID.questionTextLabel
         questionLabel.adjustsFontSizeToFitWidth = true
         questionLabel.numberOfLines = Typography.unlimitedNumberOfLines
@@ -369,7 +391,7 @@ final class QuizQuestionViewController: UIViewController, QuizQuestionViewContro
         button.accessibilityIdentifier = accessibilityIdentifier
         button.setTitleColor(.white, for: .normal)
         button.setTitleColor(Appearance.answerDisabledTitleColor, for: .disabled)
-        button.titleLabel?.font = .systemFont(ofSize: Typography.answerButtonFontSize, weight: .semibold)
+        button.titleLabel?.font = currentAppearance().typography.font(size: Typography.answerButtonFontSize, weight: .semibold)
         button.titleLabel?.numberOfLines = Typography.answerButtonNumberOfLines
         button.titleLabel?.textAlignment = .center
         button.backgroundColor = .defaultButton
@@ -387,7 +409,7 @@ final class QuizQuestionViewController: UIViewController, QuizQuestionViewContro
         button.setTitle(title, for: .normal)
         button.setTitleColor(.white, for: .normal)
         button.setTitleColor(UIColor.white.withAlphaComponent(Appearance.disabledButtonTitleAlpha), for: .disabled)
-        button.titleLabel?.font = .systemFont(ofSize: Typography.actionButtonFontSize, weight: .semibold)
+        button.titleLabel?.font = currentAppearance().typography.font(size: Typography.actionButtonFontSize, weight: .semibold)
         button.backgroundColor = UIColor.white.withAlphaComponent(style.backgroundAlpha)
         button.layer.cornerRadius = style.cornerRadius
         button.layer.borderWidth = Appearance.actionButtonBorderWidth
@@ -401,27 +423,25 @@ final class QuizQuestionViewController: UIViewController, QuizQuestionViewContro
     }
     
     private func colorAndDisableButtons() {
+        let appearance = currentAppearance()
         answerButtons.forEach { button in
             button.isEnabled = false
             guard let presenter else { return }
             if presenter.checkAnswerButtonTitle(selectedAnswer: button) {
-                button.setTitleColor(.white, for: .disabled)
-                button.backgroundColor = .correctAnswerButton
-                animationsEngine.animateBackgroundColor(button, color: UIColor.correctAnswerButton.cgColor, duration: AnimationTiming.answerFeedbackDuration)
+                applyAnswerFeedback(.correct, to: button, appearance: appearance, animated: true)
             } else {
-                button.backgroundColor = .wrongAnswerButton
-                animationsEngine.animateBackgroundColor(button, color: UIColor.wrongAnswerButton.cgColor, duration: AnimationTiming.answerFeedbackDuration)
+                applyAnswerFeedback(.wrong, to: button, appearance: appearance, animated: true)
             }
         }
     }
     
     func resetAllColors() {
+        let appearance = currentAppearance()
         answerButtons.forEach { button in
-            button.backgroundColor = .defaultButton
-            button.setTitleColor(Appearance.answerDisabledTitleColor, for: .disabled)
+            applyAnswerFeedback(.normal, to: button, appearance: appearance)
             button.isEnabled = true
         }
-        setTimerBarColor(Appearance.timerActiveColor)
+        setTimerBarColor(appearance.accentColor)
     }
     
     func loadQuestionToView(themeName: String, questionText: String, questionNumberText: String, currentAnswers: [String]) {
@@ -449,25 +469,136 @@ final class QuizQuestionViewController: UIViewController, QuizQuestionViewContro
         questionNumberLabel.text = L10n.Question.unavailableNumber
         questionLabel.text = message
         timerBar.progress = .zero
-        setTimerBarColor(Appearance.timerActiveColor)
+        let appearance = currentAppearance()
+        setTimerBarColor(appearance.accentColor)
         answerButtons.forEach { button in
             button.setTitle(Content.disabledAnswerPlaceholder, for: .normal)
-            button.backgroundColor = .defaultButton
-            button.setTitleColor(Appearance.answerDisabledTitleColor, for: .disabled)
+            applyAnswerFeedback(.normal, to: button, appearance: appearance)
             button.isEnabled = false
         }
         nextButton.isEnabled = false
     }
     
     func correctAnswerTapped(isTrue: Bool) {
+        let appearance = currentAppearance()
         if isTrue {
             soundOfCorrectAnswerPlayer?.play()
             hapticFeedback.notificationOccurred(.success)
-            animateTimerBarColor(Appearance.timerCorrectColor)
+            animateTimerBarColor(timerFeedbackColor(isCorrect: true, appearance: appearance))
         } else {
             soundOfIncorrectAnswerPlayer?.play()
             hapticFeedback.notificationOccurred(.error)
-            animateTimerBarColor(Appearance.timerWrongColor)
+            animateTimerBarColor(timerFeedbackColor(isCorrect: false, appearance: appearance))
+        }
+    }
+
+    private func applyAnswerFeedback(
+        _ state: AnswerFeedbackState,
+        to button: UIButton,
+        appearance: AppAppearance,
+        animated: Bool = false
+    ) {
+        let changes = answerFeedbackChanges(for: state, appearance: appearance)
+        button.setTitleColor(changes.normalTitleColor, for: .normal)
+        button.setTitleColor(changes.disabledTitleColor, for: .disabled)
+
+        let animations = {
+            button.alpha = changes.alpha
+            button.backgroundColor = changes.backgroundColor
+            button.layer.borderWidth = changes.borderWidth
+            button.layer.borderColor = changes.borderColor.cgColor
+        }
+
+        if animated {
+            UIView.animate(
+                withDuration: AnimationTiming.answerFeedbackDuration,
+                delay: 0,
+                options: AnimationTiming.answerFeedbackOptions,
+                animations: animations
+            )
+        } else {
+            animations()
+        }
+
+        if animated, changes.shouldAnimateLegacyBackground {
+            animationsEngine.animateBackgroundColor(
+                button,
+                color: changes.backgroundColor.cgColor,
+                duration: AnimationTiming.answerFeedbackDuration
+            )
+        }
+    }
+
+    private struct AnswerFeedbackChanges {
+        let alpha: CGFloat
+        let backgroundColor: UIColor
+        let borderWidth: CGFloat
+        let borderColor: UIColor
+        let normalTitleColor: UIColor
+        let disabledTitleColor: UIColor
+        let shouldAnimateLegacyBackground: Bool
+    }
+
+    private func answerFeedbackChanges(for state: AnswerFeedbackState, appearance: AppAppearance) -> AnswerFeedbackChanges {
+        var alpha: CGFloat = 1
+        var backgroundColor = appearance.answerDefaultColor
+        var borderWidth = appearance.row.borderWidth
+        var borderColor = appearance.row.borderColor
+        let normalTitleColor = appearance.surfaceTextColor
+        var disabledTitleColor = appearance.disabledTextColor
+        var shouldAnimateLegacyBackground = false
+
+        switch (appearance.designStyle, state) {
+        case (_, .normal):
+            break
+
+        case (.clean, .correct):
+            borderWidth = Appearance.answerFeedbackBorderWidth
+            borderColor = appearance.correctAnswerColor
+            disabledTitleColor = appearance.surfaceTextColor
+
+        case (.clean, .wrong):
+            borderWidth = Appearance.answerFeedbackBorderWidth
+            borderColor = appearance.wrongAnswerColor
+            disabledTitleColor = appearance.surfaceTextColor
+
+        case (.radar, .correct):
+            borderWidth = Appearance.answerFeedbackBorderWidth
+            borderColor = appearance.accentColor
+            disabledTitleColor = appearance.surfaceTextColor
+
+        case (.radar, .wrong):
+            borderColor = appearance.disabledTextColor
+            disabledTitleColor = appearance.disabledTextColor
+            alpha = Appearance.radarDimmedAnswerAlpha
+
+        case (_, .correct):
+            backgroundColor = appearance.correctAnswerColor
+            disabledTitleColor = appearance.surfaceTextColor
+            shouldAnimateLegacyBackground = true
+
+        case (_, .wrong):
+            backgroundColor = appearance.wrongAnswerColor
+            shouldAnimateLegacyBackground = true
+        }
+
+        return AnswerFeedbackChanges(
+            alpha: alpha,
+            backgroundColor: backgroundColor,
+            borderWidth: borderWidth,
+            borderColor: borderColor,
+            normalTitleColor: normalTitleColor,
+            disabledTitleColor: disabledTitleColor,
+            shouldAnimateLegacyBackground: shouldAnimateLegacyBackground
+        )
+    }
+
+    private func timerFeedbackColor(isCorrect: Bool, appearance: AppAppearance) -> UIColor {
+        switch appearance.designStyle {
+        case .radar:
+            return isCorrect ? appearance.accentColor : appearance.disabledTextColor
+        default:
+            return isCorrect ? appearance.correctAnswerColor : appearance.wrongAnswerColor
         }
     }
 
@@ -485,6 +616,68 @@ final class QuizQuestionViewController: UIViewController, QuizQuestionViewContro
                 self.setTimerBarColor(color)
             }
         )
+    }
+
+    private func installAppearanceObserver() {
+        appearanceObserver = NotificationCenter.default.addObserver(
+            forName: .appAppearanceDidChange,
+            object: nil,
+            queue: .main
+        ) { [weak self] _ in
+            self?.applyAppearance()
+        }
+    }
+
+    private func installAppearanceTraitObserver() {
+        registerForTraitChanges([UITraitUserInterfaceStyle.self]) { (viewController: QuizQuestionViewController, _: UITraitCollection) in
+            viewController.applyAppearance()
+        }
+    }
+
+    private func currentAppearance() -> AppAppearance {
+        appearanceStore.appearance(compatibleWith: traitCollection)
+    }
+
+    private func applyAppearance() {
+        guard isViewLoaded else { return }
+        let appearance = currentAppearance()
+        appearance.applyBackground(to: view)
+        overrideUserInterfaceStyle = appearance.resolvedInterfaceStyle
+
+        themeNameLabel?.textColor = appearance.screenTextColor
+        themeNameLabel?.font = appearance.typography.font(size: Typography.themeFontSize, weight: .semibold)
+        questionNumberLabel?.textColor = appearance.secondaryScreenTextColor
+        questionNumberLabel?.font = appearance.typography.font(size: Typography.questionNumberFontSize, weight: .medium)
+
+        questionCardView?.applySurfaceStyle(appearance.card)
+        questionLabel?.textColor = appearance.surfaceTextColor
+        questionLabel?.font = appearance.typography.font(size: Typography.questionFontSize, weight: .bold)
+
+        timerContainerView?.backgroundColor = appearance.progressTrackColor
+        timerContainerView?.layer.cornerRadius = min(appearance.card.cornerRadius, Appearance.timerContainerCornerRadius)
+        timerBar?.trackTintColor = appearance.progressTrackColor
+        setTimerBarColor(appearance.accentColor)
+
+        answerButtons.forEach { button in
+            button.titleLabel?.font = appearance.typography.font(size: Typography.answerButtonFontSize, weight: .semibold)
+            button.layer.cornerRadius = min(appearance.row.cornerRadius, Appearance.answerCornerRadius)
+            applyAnswerFeedback(.normal, to: button, appearance: appearance)
+        }
+
+        nextButton?.applyActionAppearance(appearance.primaryButton, appearance: appearance, textColor: actionTextColor(isPrimary: true, appearance: appearance))
+        nextButton?.titleLabel?.font = appearance.typography.font(size: Typography.actionButtonFontSize, weight: .semibold)
+        backButton?.applyActionAppearance(appearance.secondaryButton, appearance: appearance, textColor: actionTextColor(isPrimary: false, appearance: appearance))
+        backButton?.titleLabel?.font = appearance.typography.font(size: Typography.actionButtonFontSize, weight: .semibold)
+    }
+
+    private func actionTextColor(isPrimary: Bool, appearance: AppAppearance) -> UIColor {
+        if isPrimary && appearance.designStyle == .clean {
+            return appearance.resolvedInterfaceStyle == .dark ? appearance.screenTextColor : .black
+        }
+        if isPrimary && appearance.designStyle == .pixel {
+            return .black
+        }
+        return appearance.screenTextColor
     }
     
     func showResults() {

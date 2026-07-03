@@ -83,6 +83,10 @@ enum L10n {
         static var profileUnavailableMessage: String { L10n.localized("settings.profile.unavailable_message", comment: "Settings profile unavailable alert message") }
         static var restartRequiredTitle: String { L10n.localized("settings.restart_required.title", comment: "Settings restart required alert title") }
         static var supportSectionTitle: String { L10n.localized("settings.section.support", comment: "Settings support section title") }
+        static var design: String { L10n.localized("settings.design", comment: "Settings design row title") }
+        static var designSubtitle: String { L10n.localized("settings.design.subtitle", comment: "Settings design row subtitle") }
+        static var cleanThemeMode: String { L10n.localized("settings.clean_theme_mode", comment: "Settings clean theme mode row title") }
+        static var cleanThemeModeSubtitle: String { L10n.localized("settings.clean_theme_mode.subtitle", comment: "Settings clean theme mode row subtitle") }
         static var theme: String { L10n.localized("settings.theme", comment: "Settings theme row title") }
         static var themeSubtitle: String { L10n.localized("settings.theme.subtitle", comment: "Settings theme row subtitle") }
         static var title: String { L10n.localized("settings.title", comment: "Settings screen title") }
@@ -101,6 +105,13 @@ enum L10n {
             static var dark: String { L10n.localized("settings.theme.dark", comment: "Dark app theme option title") }
             static var light: String { L10n.localized("settings.theme.light", comment: "Light app theme option title") }
             static var system: String { L10n.localized("settings.theme.system", comment: "System app theme option title") }
+        }
+
+        enum Design {
+            static var classic: String { L10n.localized("settings.design.classic", comment: "Classic design option title") }
+            static var clean: String { L10n.localized("settings.design.clean", comment: "Clean design option title") }
+            static var pixel: String { L10n.localized("settings.design.pixel", comment: "Pixel design option title") }
+            static var radar: String { L10n.localized("settings.design.radar", comment: "Radar design option title") }
         }
     }
 
