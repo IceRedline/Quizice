@@ -51,6 +51,7 @@ final class QuizViewController: UIViewController, QuizViewControllerProtocol, Th
         themesCollectionView.delegate = themesCollectionService
         themesCollectionView.dataSource = themesCollectionService
         themesCollectionView.register(UICollectionViewCell.self, forCellWithReuseIdentifier: "themeCell")
+        updateThemeAvailabilityMessage()
     }
     
     override func viewDidAppear(_ animated: Bool) {
@@ -225,7 +226,10 @@ final class QuizViewController: UIViewController, QuizViewControllerProtocol, Th
     
     func themeButtonTouchedUpInside(_ sender: UIButton, themeName: String) {
         animationsEngine.animateUpFloat(sender)
-        QuizFactory.shared.loadTheme(themeName: themeName)
+        guard QuizFactory.shared.loadTheme(themeName: themeName) else {
+            updateThemeAvailabilityMessage()
+            return
+        }
         showDescriptionViewController()
     }
     
@@ -239,11 +243,20 @@ final class QuizViewController: UIViewController, QuizViewControllerProtocol, Th
         navigationController?.pushViewController(viewController, animated: true)
     }
     
+    private func updateThemeAvailabilityMessage() {
+        let hasThemes = QuizFactory.shared.themes?.isEmpty == false
+        chooseThemeLabel.text = hasThemes ? "Выберите тему" : "Темы пока недоступны"
+    }
+    
     @objc private func randomButtonTapped() {
-        if let theme = QuizFactory.shared.themes?.randomElement()?.theme {
+        guard
+            let theme = QuizFactory.shared.themes?.randomElement()?.theme,
             QuizFactory.shared.loadTheme(themeName: theme)
-            showDescriptionViewController()
+        else {
+            updateThemeAvailabilityMessage()
+            return
         }
+        showDescriptionViewController()
     }
     
     @objc private func backButtonTapped() {
