@@ -1,13 +1,126 @@
-//
-//  QuizDescriptionViewController.swift
-//  My First App
-//
-//  Created by Артем Табенский on 02.10.2024.
-//
-
 import UIKit
 
 final class QuizDescriptionViewController: UIViewController, QuizDescriptionViewControllerProtocol {
+    private enum Content {
+        static let backgroundImageName = "backgroundImage"
+        static let pickerTextColorKey = "textColor"
+        static var pickerCaptionText: String { L10n.Description.questionCount }
+        static var startButtonTitle: String { L10n.Common.start }
+        static var backButtonTitle: String { L10n.Common.back }
+    }
+    
+    private enum AccessibilityID {
+        static let rootView = "descriptionRootView"
+        static let scrollView = "descriptionScrollView"
+        static let contentCardView = "descriptionContentCardView"
+        static let themeNameLabel = "descriptionThemeNameLabel"
+        static let textLabel = "descriptionTextLabel"
+        static let pickerCaptionLabel = "descriptionPickerCaptionLabel"
+        static let questionCountPicker = "descriptionQuestionCountPicker"
+        static let startButton = "descriptionStartButton"
+        static let backButton = "descriptionBackButton"
+        static let contentStackView = "descriptionContentStackView"
+    }
+    
+    private enum Layout {
+        static let contentStackSpacing: CGFloat = 18
+        static let themeNameBottomSpacing: CGFloat = 24
+        static let descriptionBottomSpacing: CGFloat = 26
+        static let pickerCaptionBottomSpacing: CGFloat = 8
+        static let pickerBottomSpacing: CGFloat = 28
+        static let startButtonBottomSpacing: CGFloat = 12
+        
+        static let cardTopInset: CGFloat = 36
+        static let cardHorizontalInset: CGFloat = 20
+        static let cardBottomInset: CGFloat = 28
+        static let cardMinimumHeightReduction: CGFloat = 64
+        static let contentTopInset: CGFloat = 28
+        static let contentHorizontalInset: CGFloat = 22
+        static let contentBottomInset: CGFloat = 26
+        static let pickerHeight: CGFloat = 136
+        static let primaryButtonHeight: CGFloat = 54
+        static let secondaryButtonHeight: CGFloat = 50
+    }
+    
+    private enum Typography {
+        static let themeNameFontSize: CGFloat = 34
+        static let descriptionFontSize: CGFloat = 19
+        static let pickerCaptionFontSize: CGFloat = 17
+        static let buttonFontSize: CGFloat = 20
+        static let unlimitedNumberOfLines = 0
+        static let themeNameMinimumScaleFactor: CGFloat = 0.82
+    }
+    
+    private enum Appearance {
+        static let cardBackgroundAlpha: CGFloat = 0.26
+        static let cardCornerRadius: CGFloat = 30
+        static let cardBorderWidth: CGFloat = 1
+        static let cardBorderAlpha: CGFloat = 0.18
+        static let cardShadowOpacity: Float = 0.22
+        static let cardShadowRadius: CGFloat = 16
+        static let cardShadowOffset = CGSize(width: 0, height: 10)
+        
+        static let descriptionTextAlpha: CGFloat = 0.9
+        static let pickerCaptionTextAlpha: CGFloat = 0.82
+        static let pickerBackgroundAlpha: CGFloat = 0.08
+        static let pickerCornerRadius: CGFloat = 22
+        static let pickerBorderWidth: CGFloat = 1
+        static let pickerBorderAlpha: CGFloat = 0.16
+        
+        static let disabledButtonTitleAlpha: CGFloat = 0.45
+        static let primaryButtonBackgroundAlpha: CGFloat = 0.22
+        static let secondaryButtonBackgroundAlpha: CGFloat = 0.12
+        static let primaryButtonCornerRadius: CGFloat = 22
+        static let secondaryButtonCornerRadius: CGFloat = 20
+        static let buttonBorderWidth: CGFloat = 1
+        static let primaryButtonBorderAlpha: CGFloat = 0.5
+        static let secondaryButtonBorderAlpha: CGFloat = 0.34
+        static let primaryButtonShadowOpacity: Float = 0.2
+        static let secondaryButtonShadowOpacity: Float = 0
+        static let buttonShadowRadius: CGFloat = 10
+        static let buttonShadowOffset = CGSize(width: 0, height: 6)
+    }
+    
+    private enum ActionButtonStyle {
+        case primary
+        case secondary
+        
+        var backgroundAlpha: CGFloat {
+            switch self {
+            case .primary:
+                return Appearance.primaryButtonBackgroundAlpha
+            case .secondary:
+                return Appearance.secondaryButtonBackgroundAlpha
+            }
+        }
+        
+        var cornerRadius: CGFloat {
+            switch self {
+            case .primary:
+                return Appearance.primaryButtonCornerRadius
+            case .secondary:
+                return Appearance.secondaryButtonCornerRadius
+            }
+        }
+        
+        var borderAlpha: CGFloat {
+            switch self {
+            case .primary:
+                return Appearance.primaryButtonBorderAlpha
+            case .secondary:
+                return Appearance.secondaryButtonBorderAlpha
+            }
+        }
+        
+        var shadowOpacity: Float {
+            switch self {
+            case .primary:
+                return Appearance.primaryButtonShadowOpacity
+            case .secondary:
+                return Appearance.secondaryButtonShadowOpacity
+            }
+        }
+    }
     
     private var scrollView: UIScrollView!
     private var contentCardView: UIView!
@@ -24,8 +137,8 @@ final class QuizDescriptionViewController: UIViewController, QuizDescriptionView
     
     override func loadView() {
         let rootView = UIView()
-        rootView.backgroundColor = UIColor(patternImage: UIImage(named: "backgroundImage") ?? UIImage())
-        rootView.accessibilityIdentifier = "descriptionRootView"
+        rootView.backgroundColor = UIColor(patternImage: UIImage(named: Content.backgroundImageName) ?? UIImage())
+        rootView.accessibilityIdentifier = AccessibilityID.rootView
         view = rootView
         configureProgrammaticSubviews(in: rootView)
     }
@@ -35,7 +148,7 @@ final class QuizDescriptionViewController: UIViewController, QuizDescriptionView
         presenter?.configurePickerView(numberOfQuestionsPickerView)
         presenter?.viewDidLoad()
         
-        numberOfQuestionsPickerView.setValue(UIColor.white, forKey: "textColor")
+        numberOfQuestionsPickerView.setValue(UIColor.white, forKey: Content.pickerTextColorKey)
     }
     
     func updateLabels(themeName: String, themeDescription: String) {
@@ -49,50 +162,71 @@ final class QuizDescriptionViewController: UIViewController, QuizDescriptionView
     }
     
     private func configureProgrammaticSubviews(in rootView: UIView) {
+        configureScrollView()
+        configureContentCardView()
+        configureLabels()
+        configurePickerView()
+        configureButtons()
+        configureContentStackView()
+        addSubviews(to: rootView)
+        activateLayoutConstraints(in: rootView)
+    }
+    
+    private func configureScrollView() {
         scrollView = UIScrollView()
-        scrollView.accessibilityIdentifier = "descriptionScrollView"
+        scrollView.accessibilityIdentifier = AccessibilityID.scrollView
         scrollView.alwaysBounceVertical = true
         scrollView.translatesAutoresizingMaskIntoConstraints = false
-        
+    }
+    
+    private func configureContentCardView() {
         contentCardView = UIView()
-        contentCardView.accessibilityIdentifier = "descriptionContentCardView"
-        contentCardView.backgroundColor = UIColor.black.withAlphaComponent(0.26)
-        contentCardView.layer.cornerRadius = 30
-        contentCardView.layer.borderWidth = 1
-        contentCardView.layer.borderColor = UIColor.white.withAlphaComponent(0.18).cgColor
+        contentCardView.accessibilityIdentifier = AccessibilityID.contentCardView
+        contentCardView.backgroundColor = UIColor.black.withAlphaComponent(Appearance.cardBackgroundAlpha)
+        contentCardView.layer.cornerRadius = Appearance.cardCornerRadius
+        contentCardView.layer.borderWidth = Appearance.cardBorderWidth
+        contentCardView.layer.borderColor = UIColor.white.withAlphaComponent(Appearance.cardBorderAlpha).cgColor
         contentCardView.layer.shadowColor = UIColor.black.cgColor
-        contentCardView.layer.shadowOpacity = 0.22
-        contentCardView.layer.shadowRadius = 16
-        contentCardView.layer.shadowOffset = CGSize(width: 0, height: 10)
+        contentCardView.layer.shadowOpacity = Appearance.cardShadowOpacity
+        contentCardView.layer.shadowRadius = Appearance.cardShadowRadius
+        contentCardView.layer.shadowOffset = Appearance.cardShadowOffset
         contentCardView.translatesAutoresizingMaskIntoConstraints = false
-        
-        themeNameLabel = makeLabel(font: .systemFont(ofSize: 34, weight: .bold), accessibilityIdentifier: "descriptionThemeNameLabel")
-        themeNameLabel.numberOfLines = 0
+    }
+    
+    private func configureLabels() {
+        themeNameLabel = makeLabel(font: .systemFont(ofSize: Typography.themeNameFontSize, weight: .bold), accessibilityIdentifier: AccessibilityID.themeNameLabel)
+        themeNameLabel.numberOfLines = Typography.unlimitedNumberOfLines
         themeNameLabel.adjustsFontSizeToFitWidth = true
-        themeNameLabel.minimumScaleFactor = 0.82
+        themeNameLabel.minimumScaleFactor = Typography.themeNameMinimumScaleFactor
         
-        themeDescriptionLabel = makeLabel(font: .systemFont(ofSize: 19, weight: .regular), accessibilityIdentifier: "descriptionTextLabel")
-        themeDescriptionLabel.numberOfLines = 0
-        themeDescriptionLabel.textColor = UIColor.white.withAlphaComponent(0.9)
+        themeDescriptionLabel = makeLabel(font: .systemFont(ofSize: Typography.descriptionFontSize, weight: .regular), accessibilityIdentifier: AccessibilityID.textLabel)
+        themeDescriptionLabel.numberOfLines = Typography.unlimitedNumberOfLines
+        themeDescriptionLabel.textColor = UIColor.white.withAlphaComponent(Appearance.descriptionTextAlpha)
         
-        pickerCaptionLabel = makeLabel(font: .systemFont(ofSize: 17, weight: .semibold), accessibilityIdentifier: "descriptionPickerCaptionLabel")
-        pickerCaptionLabel.text = L10n.Description.questionCount
-        pickerCaptionLabel.textColor = UIColor.white.withAlphaComponent(0.82)
-        
+        pickerCaptionLabel = makeLabel(font: .systemFont(ofSize: Typography.pickerCaptionFontSize, weight: .semibold), accessibilityIdentifier: AccessibilityID.pickerCaptionLabel)
+        pickerCaptionLabel.text = Content.pickerCaptionText
+        pickerCaptionLabel.textColor = UIColor.white.withAlphaComponent(Appearance.pickerCaptionTextAlpha)
+    }
+    
+    private func configurePickerView() {
         numberOfQuestionsPickerView = UIPickerView()
-        numberOfQuestionsPickerView.accessibilityIdentifier = "descriptionQuestionCountPicker"
-        numberOfQuestionsPickerView.backgroundColor = UIColor.white.withAlphaComponent(0.08)
-        numberOfQuestionsPickerView.layer.cornerRadius = 22
-        numberOfQuestionsPickerView.layer.borderWidth = 1
-        numberOfQuestionsPickerView.layer.borderColor = UIColor.white.withAlphaComponent(0.16).cgColor
+        numberOfQuestionsPickerView.accessibilityIdentifier = AccessibilityID.questionCountPicker
+        numberOfQuestionsPickerView.backgroundColor = UIColor.white.withAlphaComponent(Appearance.pickerBackgroundAlpha)
+        numberOfQuestionsPickerView.layer.cornerRadius = Appearance.pickerCornerRadius
+        numberOfQuestionsPickerView.layer.borderWidth = Appearance.pickerBorderWidth
+        numberOfQuestionsPickerView.layer.borderColor = UIColor.white.withAlphaComponent(Appearance.pickerBorderAlpha).cgColor
         numberOfQuestionsPickerView.translatesAutoresizingMaskIntoConstraints = false
-        
-        startButton = makeActionButton(title: L10n.Common.start, accessibilityIdentifier: "descriptionStartButton", isPrimary: true)
+    }
+    
+    private func configureButtons() {
+        startButton = makeActionButton(title: Content.startButtonTitle, accessibilityIdentifier: AccessibilityID.startButton, style: .primary)
         startButton.addTarget(self, action: #selector(startButtonTapped), for: .touchUpInside)
         
-        backButton = makeActionButton(title: L10n.Common.back, accessibilityIdentifier: "descriptionBackButton", isPrimary: false)
+        backButton = makeActionButton(title: Content.backButtonTitle, accessibilityIdentifier: AccessibilityID.backButton, style: .secondary)
         backButton.addTarget(self, action: #selector(backButtonTapped), for: .touchUpInside)
-        
+    }
+    
+    private func configureContentStackView() {
         contentStackView = UIStackView(arrangedSubviews: [
             themeNameLabel,
             themeDescriptionLabel,
@@ -101,42 +235,46 @@ final class QuizDescriptionViewController: UIViewController, QuizDescriptionView
             startButton,
             backButton
         ])
-        contentStackView.accessibilityIdentifier = "descriptionContentStackView"
+        contentStackView.accessibilityIdentifier = AccessibilityID.contentStackView
         contentStackView.axis = .vertical
         contentStackView.alignment = .fill
-        contentStackView.spacing = 18
-        contentStackView.setCustomSpacing(24, after: themeNameLabel)
-        contentStackView.setCustomSpacing(26, after: themeDescriptionLabel)
-        contentStackView.setCustomSpacing(8, after: pickerCaptionLabel)
-        contentStackView.setCustomSpacing(28, after: numberOfQuestionsPickerView)
-        contentStackView.setCustomSpacing(12, after: startButton)
+        contentStackView.spacing = Layout.contentStackSpacing
+        contentStackView.setCustomSpacing(Layout.themeNameBottomSpacing, after: themeNameLabel)
+        contentStackView.setCustomSpacing(Layout.descriptionBottomSpacing, after: themeDescriptionLabel)
+        contentStackView.setCustomSpacing(Layout.pickerCaptionBottomSpacing, after: pickerCaptionLabel)
+        contentStackView.setCustomSpacing(Layout.pickerBottomSpacing, after: numberOfQuestionsPickerView)
+        contentStackView.setCustomSpacing(Layout.startButtonBottomSpacing, after: startButton)
         contentStackView.translatesAutoresizingMaskIntoConstraints = false
-        
+    }
+    
+    private func addSubviews(to rootView: UIView) {
         rootView.addSubview(scrollView)
         scrollView.addSubview(contentCardView)
         contentCardView.addSubview(contentStackView)
-        
+    }
+    
+    private func activateLayoutConstraints(in rootView: UIView) {
         NSLayoutConstraint.activate([
             scrollView.topAnchor.constraint(equalTo: rootView.safeAreaLayoutGuide.topAnchor),
             scrollView.leadingAnchor.constraint(equalTo: rootView.leadingAnchor),
             scrollView.trailingAnchor.constraint(equalTo: rootView.trailingAnchor),
             scrollView.bottomAnchor.constraint(equalTo: rootView.safeAreaLayoutGuide.bottomAnchor),
             
-            contentCardView.topAnchor.constraint(equalTo: scrollView.contentLayoutGuide.topAnchor, constant: 36),
-            contentCardView.leadingAnchor.constraint(equalTo: scrollView.frameLayoutGuide.leadingAnchor, constant: 20),
-            contentCardView.trailingAnchor.constraint(equalTo: scrollView.frameLayoutGuide.trailingAnchor, constant: -20),
-            contentCardView.bottomAnchor.constraint(equalTo: scrollView.contentLayoutGuide.bottomAnchor, constant: -28),
-            contentCardView.heightAnchor.constraint(greaterThanOrEqualTo: scrollView.frameLayoutGuide.heightAnchor, constant: -64),
+            contentCardView.topAnchor.constraint(equalTo: scrollView.contentLayoutGuide.topAnchor, constant: Layout.cardTopInset),
+            contentCardView.leadingAnchor.constraint(equalTo: scrollView.frameLayoutGuide.leadingAnchor, constant: Layout.cardHorizontalInset),
+            contentCardView.trailingAnchor.constraint(equalTo: scrollView.frameLayoutGuide.trailingAnchor, constant: -Layout.cardHorizontalInset),
+            contentCardView.bottomAnchor.constraint(equalTo: scrollView.contentLayoutGuide.bottomAnchor, constant: -Layout.cardBottomInset),
+            contentCardView.heightAnchor.constraint(greaterThanOrEqualTo: scrollView.frameLayoutGuide.heightAnchor, constant: -Layout.cardMinimumHeightReduction),
             
-            contentStackView.topAnchor.constraint(equalTo: contentCardView.topAnchor, constant: 28),
-            contentStackView.leadingAnchor.constraint(equalTo: contentCardView.leadingAnchor, constant: 22),
-            contentStackView.trailingAnchor.constraint(equalTo: contentCardView.trailingAnchor, constant: -22),
-            contentStackView.bottomAnchor.constraint(lessThanOrEqualTo: contentCardView.bottomAnchor, constant: -26),
+            contentStackView.topAnchor.constraint(equalTo: contentCardView.topAnchor, constant: Layout.contentTopInset),
+            contentStackView.leadingAnchor.constraint(equalTo: contentCardView.leadingAnchor, constant: Layout.contentHorizontalInset),
+            contentStackView.trailingAnchor.constraint(equalTo: contentCardView.trailingAnchor, constant: -Layout.contentHorizontalInset),
+            contentStackView.bottomAnchor.constraint(lessThanOrEqualTo: contentCardView.bottomAnchor, constant: -Layout.contentBottomInset),
             
-            numberOfQuestionsPickerView.heightAnchor.constraint(equalToConstant: 136),
-            startButton.heightAnchor.constraint(equalToConstant: 54),
-            backButton.heightAnchor.constraint(equalToConstant: 50),
-            backButton.bottomAnchor.constraint(equalTo: contentCardView.bottomAnchor, constant: -26)
+            numberOfQuestionsPickerView.heightAnchor.constraint(equalToConstant: Layout.pickerHeight),
+            startButton.heightAnchor.constraint(equalToConstant: Layout.primaryButtonHeight),
+            backButton.heightAnchor.constraint(equalToConstant: Layout.secondaryButtonHeight),
+            backButton.bottomAnchor.constraint(equalTo: contentCardView.bottomAnchor, constant: -Layout.contentBottomInset)
         ])
     }
     
@@ -150,27 +288,27 @@ final class QuizDescriptionViewController: UIViewController, QuizDescriptionView
         return label
     }
     
-    private func makeActionButton(title: String, accessibilityIdentifier: String, isPrimary: Bool) -> UIButton {
+    private func makeActionButton(title: String, accessibilityIdentifier: String, style: ActionButtonStyle) -> UIButton {
         let button = UIButton(type: .system)
         button.accessibilityIdentifier = accessibilityIdentifier
         button.setTitle(title, for: .normal)
         button.setTitleColor(.white, for: .normal)
-        button.setTitleColor(UIColor.white.withAlphaComponent(0.45), for: .disabled)
-        button.titleLabel?.font = .systemFont(ofSize: 20, weight: .semibold)
-        button.backgroundColor = isPrimary ? UIColor.white.withAlphaComponent(0.22) : UIColor.white.withAlphaComponent(0.12)
-        button.layer.cornerRadius = isPrimary ? 22 : 20
-        button.layer.borderWidth = 1
-        button.layer.borderColor = UIColor.white.withAlphaComponent(isPrimary ? 0.5 : 0.34).cgColor
+        button.setTitleColor(UIColor.white.withAlphaComponent(Appearance.disabledButtonTitleAlpha), for: .disabled)
+        button.titleLabel?.font = .systemFont(ofSize: Typography.buttonFontSize, weight: .semibold)
+        button.backgroundColor = UIColor.white.withAlphaComponent(style.backgroundAlpha)
+        button.layer.cornerRadius = style.cornerRadius
+        button.layer.borderWidth = Appearance.buttonBorderWidth
+        button.layer.borderColor = UIColor.white.withAlphaComponent(style.borderAlpha).cgColor
         button.layer.shadowColor = UIColor.black.cgColor
-        button.layer.shadowOpacity = isPrimary ? 0.2 : 0
-        button.layer.shadowRadius = 10
-        button.layer.shadowOffset = CGSize(width: 0, height: 6)
+        button.layer.shadowOpacity = style.shadowOpacity
+        button.layer.shadowRadius = Appearance.buttonShadowRadius
+        button.layer.shadowOffset = Appearance.buttonShadowOffset
         button.translatesAutoresizingMaskIntoConstraints = false
         return button
     }
     
     @objc private func startButtonTapped() {
-        presenter?.saveNumberOfQuestions(chosenRow: numberOfQuestionsPickerView.selectedRow(inComponent: 0))
+        presenter?.saveNumberOfQuestions(chosenRow: numberOfQuestionsPickerView.selectedRow(inComponent: .zero))
         
         let viewController = QuizQuestionViewController()
         viewController.modalPresentationStyle = .fullScreen
