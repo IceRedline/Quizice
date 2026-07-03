@@ -237,6 +237,12 @@ final class QuizViewController: UIViewController, QuizViewControllerProtocol, Th
         animationsEngine.animateUpFloat(sender)
     }
     
+    func statisticsButtonTouchedUpInside(_ sender: UIButton) {
+        animationsEngine.animateUpFloat(sender)
+        let viewController = StatisticsViewController()
+        navigationController?.pushViewController(viewController, animated: true)
+    }
+    
     private func showDescriptionViewController() {
         let viewController = QuizDescriptionViewController()
         presenter?.configureDescriptionPresenter(viewController: viewController)
