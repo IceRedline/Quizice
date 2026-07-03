@@ -37,6 +37,7 @@ final class QuizViewController: UIViewController, QuizViewControllerProtocol, Th
         } else {
             rootView.backgroundColor = .systemBackground
         }
+        rootView.accessibilityIdentifier = "homeRootView"
         view = rootView
         configureProgrammaticSubviews(in: rootView)
     }
@@ -74,10 +75,14 @@ final class QuizViewController: UIViewController, QuizViewControllerProtocol, Th
     
     private func configureProgrammaticSubviews(in rootView: UIView) {
         welcomeLabel = makeLabel(text: "Добро пожаловать в", font: .systemFont(ofSize: 30, weight: .semibold))
+        welcomeLabel.accessibilityIdentifier = "homeWelcomeLabel"
         quiziceLabel = UIImageView(image: UIImage(named: "Quizice"))
+        quiziceLabel.accessibilityIdentifier = "homeLogoImageView"
+        quiziceLabel.accessibilityLabel = "Quizice"
         quiziceLabel.contentMode = .scaleAspectFit
         quiziceLabel.translatesAutoresizingMaskIntoConstraints = false
         chooseThemeLabel = makeLabel(text: "Выберите тему", font: .systemFont(ofSize: 28, weight: .semibold))
+        chooseThemeLabel.accessibilityIdentifier = "homeChooseThemeLabel"
         
         musicThemeButton = makeLegacyThemeButton(named: "Музыка")
         techThemeButton = makeLegacyThemeButton(named: "Технологии")
@@ -85,8 +90,12 @@ final class QuizViewController: UIViewController, QuizViewControllerProtocol, Th
         politicsAndBusinessThemeButton = makeLegacyThemeButton(named: "Политика и бизнес")
         
         exitButton = makeActionButton(title: "Выход")
+        exitButton.accessibilityIdentifier = "homeExitButton"
+        exitButton.accessibilityLabel = "Выход"
         exitButton.addTarget(self, action: #selector(backButtonTapped), for: .touchUpInside)
         feelingLuckyButton = makeActionButton(title: "Мне повезет")
+        feelingLuckyButton.accessibilityIdentifier = "homeFeelingLuckyButton"
+        feelingLuckyButton.accessibilityLabel = "Мне повезет"
         feelingLuckyButton.addTarget(self, action: #selector(randomButtonTapped), for: .touchUpInside)
         
         let layout = UICollectionViewFlowLayout()
@@ -95,6 +104,8 @@ final class QuizViewController: UIViewController, QuizViewControllerProtocol, Th
         layout.minimumInteritemSpacing = 16
         layout.sectionInset = UIEdgeInsets(top: 0, left: 24, bottom: 24, right: 24)
         themesCollectionView = UICollectionView(frame: .zero, collectionViewLayout: layout)
+        themesCollectionView.accessibilityIdentifier = "homeThemesCollectionView"
+        themesCollectionView.accessibilityLabel = "Темы викторины"
         themesCollectionView.alwaysBounceVertical = true
         themesCollectionView.showsVerticalScrollIndicator = false
         themesCollectionView.translatesAutoresizingMaskIntoConstraints = false
