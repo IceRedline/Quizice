@@ -12,8 +12,10 @@ final class ThemesCollectionService: NSObject, UICollectionViewDelegate, UIColle
     var delegate: ThemeCollectionDelegate?
     
     private let quizFactory = QuizFactory.shared
-    private let sectionInsets = UIEdgeInsets(top: 0, left: 24, bottom: 24, right: 24)
+    private let sectionInsets = UIEdgeInsets(top: 0, left: 24, bottom: 32, right: 24)
     private let itemSpacing: CGFloat = 16
+    private let themeCardCornerRadius: CGFloat = 28
+    private let statisticsCardCornerRadius: CGFloat = 30
     
     private var statisticsIndex: Int {
         quizFactory.themes?.count ?? 0
@@ -29,7 +31,13 @@ final class ThemesCollectionService: NSObject, UICollectionViewDelegate, UIColle
         let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "themeCell", for: indexPath)
         cell.contentView.subviews.forEach { $0.removeFromSuperview() }
         cell.contentView.backgroundColor = .clear
+        cell.contentView.clipsToBounds = false
         cell.backgroundColor = .clear
+        cell.layer.masksToBounds = false
+        cell.layer.shadowColor = UIColor.black.cgColor
+        cell.layer.shadowOffset = CGSize(width: 0, height: 12)
+        cell.layer.shadowRadius = 22
+        cell.layer.shadowOpacity = 0.22
         
         if indexPath.item == statisticsIndex {
             configureStatisticsCard(in: cell)
@@ -71,6 +79,15 @@ final class ThemesCollectionService: NSObject, UICollectionViewDelegate, UIColle
         button.addTarget(self, action: #selector(buttonTouchedUpInside(_:)), for: .touchUpInside)
         button.addTarget(self, action: #selector(buttonTouchedUpOutside(_:)), for: .touchUpOutside)
         button.accessibilityIdentifier = themeName
+        button.accessibilityLabel = "\(themeName) theme card"
+        button.accessibilityHint = "Starts a quiz in this theme"
+        button.backgroundColor = UIColor.white.withAlphaComponent(0.14)
+        button.layer.cornerRadius = themeCardCornerRadius
+        button.layer.borderWidth = 1
+        button.layer.borderColor = UIColor.white.withAlphaComponent(0.28).cgColor
+        button.clipsToBounds = true
+        button.adjustsImageWhenHighlighted = false
+        button.imageEdgeInsets = UIEdgeInsets(top: 18, left: 18, bottom: 18, right: 18)
         button.setImage(UIImage(named: themeName), for: .normal)
         button.imageView?.contentMode = .scaleAspectFit
         button.translatesAutoresizingMaskIntoConstraints = false
@@ -89,10 +106,11 @@ final class ThemesCollectionService: NSObject, UICollectionViewDelegate, UIColle
         button.accessibilityIdentifier = "homeStatisticsCard"
         button.accessibilityLabel = "Общая статистика"
         button.accessibilityHint = "Открывает экран общей статистики по завершённым викторинам"
-        button.backgroundColor = UIColor.white.withAlphaComponent(0.16)
-        button.layer.cornerRadius = 24
+        button.backgroundColor = UIColor.white.withAlphaComponent(0.18)
+        button.layer.cornerRadius = statisticsCardCornerRadius
         button.layer.borderWidth = 1
-        button.layer.borderColor = UIColor.white.withAlphaComponent(0.36).cgColor
+        button.layer.borderColor = UIColor.white.withAlphaComponent(0.40).cgColor
+        button.clipsToBounds = true
         button.translatesAutoresizingMaskIntoConstraints = false
         button.addTarget(self, action: #selector(buttonTouchedDown(_:)), for: .touchDown)
         button.addTarget(self, action: #selector(statisticsButtonTouchedUpInside(_:)), for: .touchUpInside)
@@ -101,22 +119,22 @@ final class ThemesCollectionService: NSObject, UICollectionViewDelegate, UIColle
         let titleLabel = UILabel()
         titleLabel.text = "Статистика"
         titleLabel.textColor = .white
-        titleLabel.font = .systemFont(ofSize: 20, weight: .bold)
-        titleLabel.textAlignment = .center
+        titleLabel.font = .systemFont(ofSize: 22, weight: .bold)
+        titleLabel.textAlignment = .left
         titleLabel.translatesAutoresizingMaskIntoConstraints = false
         
         let descriptionLabel = UILabel()
         descriptionLabel.text = "Общие итоги квизов"
         descriptionLabel.textColor = UIColor.white.withAlphaComponent(0.84)
-        descriptionLabel.font = .systemFont(ofSize: 14, weight: .medium)
-        descriptionLabel.textAlignment = .center
+        descriptionLabel.font = .systemFont(ofSize: 15, weight: .semibold)
+        descriptionLabel.textAlignment = .left
         descriptionLabel.numberOfLines = 2
         descriptionLabel.translatesAutoresizingMaskIntoConstraints = false
         
         let stackView = UIStackView(arrangedSubviews: [titleLabel, descriptionLabel])
         stackView.axis = .vertical
-        stackView.alignment = .center
-        stackView.spacing = 8
+        stackView.alignment = .leading
+        stackView.spacing = 6
         stackView.isUserInteractionEnabled = false
         stackView.translatesAutoresizingMaskIntoConstraints = false
         
@@ -129,8 +147,8 @@ final class ThemesCollectionService: NSObject, UICollectionViewDelegate, UIColle
             button.topAnchor.constraint(equalTo: cell.contentView.topAnchor),
             button.bottomAnchor.constraint(equalTo: cell.contentView.bottomAnchor),
             
-            stackView.leadingAnchor.constraint(equalTo: button.leadingAnchor, constant: 20),
-            stackView.trailingAnchor.constraint(equalTo: button.trailingAnchor, constant: -20),
+            stackView.leadingAnchor.constraint(equalTo: button.leadingAnchor, constant: 24),
+            stackView.trailingAnchor.constraint(equalTo: button.trailingAnchor, constant: -24),
             stackView.centerYAnchor.constraint(equalTo: button.centerYAnchor)
         ])
     }
