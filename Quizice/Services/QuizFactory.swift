@@ -27,15 +27,17 @@ final class QuizFactory {
         self.modelContext = context
     }
     
-    func loadTheme(themeName: String) {
+    @discardableResult
+    func loadTheme(themeName: String) -> Bool {
         guard
             let loadedThemes = themes,
             let chosenTheme = loadedThemes.first(where: { $0.theme == themeName})
         else {
             print("не удалось определить выбранную тему, переданный текст: \(themeName)")
-            return
+            return false
         }
         self.chosenTheme = ThemeModel(quizTheme: chosenTheme)
+        return true
     }
     
     func loadData() {

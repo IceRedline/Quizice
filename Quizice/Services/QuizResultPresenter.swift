@@ -18,11 +18,18 @@ final class QuizResultPresenter: QuizResultPresenterProtocol {
     }
     
     func getResultText() {
-        let resultPercentage: Float = Float(correctAnswers) / Float(totalQuestions)
-        var resultText = "no result"
+        let normalizedCorrectAnswers = max(correctAnswers, 0)
+        let normalizedTotalQuestions = max(totalQuestions, 0)
+        let resultText = "Твой результат:\n \(normalizedCorrectAnswers)/\(normalizedTotalQuestions)"
         var descriptionText = "no description"
         
-        resultText = "Твой результат:\n \(correctAnswers)/\(totalQuestions)"
+        guard normalizedTotalQuestions > 0 else {
+            descriptionText = "В этой попытке не было доступных вопросов. Попробуй выбрать другую тему."
+            view?.updateResultLabels(resultText: resultText, descriptionText: descriptionText)
+            return
+        }
+        
+        let resultPercentage = Float(normalizedCorrectAnswers) / Float(normalizedTotalQuestions)
         switch resultPercentage {
         case 0...0.15:
             descriptionText = "Тебе точно стоит попробовать ещё раз!"

@@ -10,17 +10,17 @@ import AVKit
 
 final class QuizQuestionViewController: UIViewController, QuizQuestionViewControllerProtocol {
     
-    // MARK: - IBOutlet Properties
+    // MARK: - Programmatic UI Properties
     
-    @IBOutlet weak var themeNameLabel: UILabel!
-    @IBOutlet weak var questionNumberLabel: UILabel!
-    @IBOutlet weak var questionLabel: UILabel!
-    @IBOutlet weak var timerBar: UIProgressView!
-    @IBOutlet weak var answer1Button: UIButton!
-    @IBOutlet weak var answer2Button: UIButton!
-    @IBOutlet weak var answer3Button: UIButton!
-    @IBOutlet weak var answer4Button: UIButton!
-    @IBOutlet weak var nextButton: UIButton!
+    private var themeNameLabel: UILabel!
+    private var questionNumberLabel: UILabel!
+    private var questionLabel: UILabel!
+    private var timerBar: UIProgressView!
+    private var answer1Button: UIButton!
+    private var answer2Button: UIButton!
+    private var answer3Button: UIButton!
+    private var answer4Button: UIButton!
+    private var nextButton: UIButton!
     
     // MARK: - Properties
     
@@ -34,6 +34,13 @@ final class QuizQuestionViewController: UIViewController, QuizQuestionViewContro
     var presenter: QuizQuestionPresenterProtocol?
     
     // MARK: - viewDidLoad
+    
+    override func loadView() {
+        let rootView = UIView()
+        rootView.backgroundColor = UIColor(patternImage: UIImage(named: "backgroundImage") ?? UIImage())
+        view = rootView
+        configureProgrammaticSubviews(in: rootView)
+    }
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -73,10 +80,114 @@ final class QuizQuestionViewController: UIViewController, QuizQuestionViewContro
         self.presenter?.view = self
     }
     
+    private func configureProgrammaticSubviews(in rootView: UIView) {
+        themeNameLabel = makeLabel(font: .systemFont(ofSize: 24, weight: .semibold))
+        questionNumberLabel = makeLabel(font: .systemFont(ofSize: 18, weight: .medium))
+        questionLabel = makeLabel(font: .systemFont(ofSize: 26, weight: .bold))
+        questionLabel.numberOfLines = 0
+        
+        timerBar = UIProgressView(progressViewStyle: .default)
+        timerBar.translatesAutoresizingMaskIntoConstraints = false
+        timerBar.progressTintColor = .systemBlue
+        timerBar.trackTintColor = UIColor.white.withAlphaComponent(0.25)
+        
+        answer1Button = makeAnswerButton()
+        answer2Button = makeAnswerButton()
+        answer3Button = makeAnswerButton()
+        answer4Button = makeAnswerButton()
+        [answer1Button, answer2Button, answer3Button, answer4Button].forEach { button in
+            button.addTarget(self, action: #selector(answerChosen(_:)), for: .touchUpInside)
+        }
+        
+        nextButton = makeActionButton(title: "Далее")
+        nextButton.addTarget(self, action: #selector(nextButtonTapped), for: .touchUpInside)
+        
+        let backButton = makeActionButton(title: "Назад")
+        backButton.addTarget(self, action: #selector(backButtonTapped), for: .touchUpInside)
+        
+        let answersStackView = UIStackView(arrangedSubviews: [answer1Button, answer2Button, answer3Button, answer4Button])
+        answersStackView.axis = .vertical
+        answersStackView.spacing = 14
+        answersStackView.distribution = .fillEqually
+        answersStackView.translatesAutoresizingMaskIntoConstraints = false
+        
+        [themeNameLabel, questionNumberLabel, timerBar, questionLabel, answersStackView, nextButton, backButton].forEach(rootView.addSubview)
+        
+        NSLayoutConstraint.activate([
+            themeNameLabel.topAnchor.constraint(equalTo: rootView.safeAreaLayoutGuide.topAnchor, constant: 28),
+            themeNameLabel.leadingAnchor.constraint(equalTo: rootView.leadingAnchor, constant: 24),
+            themeNameLabel.trailingAnchor.constraint(equalTo: rootView.trailingAnchor, constant: -24),
+            
+            questionNumberLabel.topAnchor.constraint(equalTo: themeNameLabel.bottomAnchor, constant: 12),
+            questionNumberLabel.leadingAnchor.constraint(equalTo: rootView.leadingAnchor, constant: 24),
+            questionNumberLabel.trailingAnchor.constraint(equalTo: rootView.trailingAnchor, constant: -24),
+            
+            timerBar.topAnchor.constraint(equalTo: questionNumberLabel.bottomAnchor, constant: 18),
+            timerBar.leadingAnchor.constraint(equalTo: rootView.leadingAnchor, constant: 32),
+            timerBar.trailingAnchor.constraint(equalTo: rootView.trailingAnchor, constant: -32),
+            
+            questionLabel.topAnchor.constraint(equalTo: timerBar.bottomAnchor, constant: 36),
+            questionLabel.leadingAnchor.constraint(equalTo: rootView.leadingAnchor, constant: 28),
+            questionLabel.trailingAnchor.constraint(equalTo: rootView.trailingAnchor, constant: -28),
+            
+            answersStackView.topAnchor.constraint(greaterThanOrEqualTo: questionLabel.bottomAnchor, constant: 32),
+            answersStackView.leadingAnchor.constraint(equalTo: rootView.leadingAnchor, constant: 24),
+            answersStackView.trailingAnchor.constraint(equalTo: rootView.trailingAnchor, constant: -24),
+            answersStackView.heightAnchor.constraint(equalToConstant: 256),
+            
+            nextButton.topAnchor.constraint(equalTo: answersStackView.bottomAnchor, constant: 24),
+            nextButton.centerXAnchor.constraint(equalTo: rootView.centerXAnchor),
+            nextButton.widthAnchor.constraint(equalToConstant: 220),
+            nextButton.heightAnchor.constraint(equalToConstant: 50),
+            
+            backButton.topAnchor.constraint(equalTo: nextButton.bottomAnchor, constant: 12),
+            backButton.centerXAnchor.constraint(equalTo: rootView.centerXAnchor),
+            backButton.widthAnchor.constraint(equalToConstant: 220),
+            backButton.heightAnchor.constraint(equalToConstant: 50),
+            backButton.bottomAnchor.constraint(lessThanOrEqualTo: rootView.safeAreaLayoutGuide.bottomAnchor, constant: -24)
+        ])
+    }
+    
+    private func makeLabel(font: UIFont) -> UILabel {
+        let label = UILabel()
+        label.textColor = .white
+        label.font = font
+        label.textAlignment = .center
+        label.translatesAutoresizingMaskIntoConstraints = false
+        return label
+    }
+    
+    private func makeAnswerButton() -> UIButton {
+        let button = UIButton(type: .system)
+        button.setTitleColor(.white, for: .normal)
+        button.setTitleColor(.gray, for: .disabled)
+        button.titleLabel?.font = .systemFont(ofSize: 18, weight: .semibold)
+        button.titleLabel?.numberOfLines = 2
+        button.titleLabel?.textAlignment = .center
+        button.backgroundColor = .defaultButton
+        button.layer.cornerRadius = 16
+        button.translatesAutoresizingMaskIntoConstraints = false
+        return button
+    }
+    
+    private func makeActionButton(title: String) -> UIButton {
+        let button = UIButton(type: .system)
+        button.setTitle(title, for: .normal)
+        button.setTitleColor(.white, for: .normal)
+        button.titleLabel?.font = .systemFont(ofSize: 20, weight: .semibold)
+        button.backgroundColor = UIColor.white.withAlphaComponent(0.16)
+        button.layer.cornerRadius = 18
+        button.layer.borderWidth = 1
+        button.layer.borderColor = UIColor.white.withAlphaComponent(0.4).cgColor
+        button.translatesAutoresizingMaskIntoConstraints = false
+        return button
+    }
+    
     private func colorAndDisableButtons() {
         questionButtons?.forEach() { button in
             button.isEnabled = false
-            if presenter!.checkAnswerButtonTitle(selectedAnswer: button) {
+            guard let presenter else { return }
+            if presenter.checkAnswerButtonTitle(selectedAnswer: button) {
                 button.setTitleColor(.white, for: .disabled)
                 animationsEngine.animateBackgroundColor(button, color: UIColor.correctAnswerButton.cgColor, duration: animationsDuration)
             } else {
@@ -98,13 +209,16 @@ final class QuizQuestionViewController: UIViewController, QuizQuestionViewContro
     func loadQuestionToView(themeName: String, questionText: String, questionNumberText: String, currentAnswers: [String]) {
         resetAllColors()
         
-        timerBar.progress = Float(presenter!.currentProgress)
+        timerBar.progress = presenter?.currentProgress ?? 0
         
         self.themeNameLabel.text = themeName
         self.questionLabel.text = questionText
         
-        for i in 0...3 {
-            questionButtons?[i].setTitle(currentAnswers[i], for: .normal)
+        let buttons = questionButtons ?? []
+        for (index, button) in buttons.enumerated() {
+            let answerTitle = currentAnswers.indices.contains(index) ? currentAnswers[index] : "Недоступно"
+            button.setTitle(answerTitle, for: .normal)
+            button.isEnabled = currentAnswers.indices.contains(index)
         }
         
         questionNumberLabel.text = questionNumberText
@@ -112,25 +226,40 @@ final class QuizQuestionViewController: UIViewController, QuizQuestionViewContro
         presenter?.startTimer()
     }
     
+    func showQuestionUnavailable(themeName: String?, message: String) {
+        questionButtons = [answer1Button, answer2Button, answer3Button, answer4Button]
+        themeNameLabel.text = themeName ?? "Викторина"
+        questionNumberLabel.text = "Вопросы недоступны"
+        questionLabel.text = message
+        timerBar.progress = 0
+        timerBar.tintColor = .systemBlue
+        questionButtons?.forEach { button in
+            button.setTitle("—", for: .normal)
+            button.backgroundColor = .defaultButton
+            button.setTitleColor(.gray, for: .disabled)
+            button.isEnabled = false
+        }
+        nextButton.isEnabled = false
+    }
+    
     func correctAnswerTapped(isTrue: Bool) {
         switch isTrue {
         case true:
-            soundOfCorrectAnswerPlayer.play()
+            soundOfCorrectAnswerPlayer?.play()
             hapticFeedback.notificationOccurred(.success)
             animationsEngine.animateTintColor(timerBar, color: .correctAnswerBar, duration: animationsDuration)
         case false:
-            soundOfIncorrectAnswerPlayer.play()
+            soundOfIncorrectAnswerPlayer?.play()
             hapticFeedback.notificationOccurred(.error)
             animationsEngine.animateTintColor(timerBar, color: .wrongAnswerBar, duration: animationsDuration)
         }
     }
     
     func showResults() {
-        let storyboard = UIStoryboard(name: "Main", bundle: nil)
-        if let vc = storyboard.instantiateViewController(withIdentifier: "QuizResultID") as? QuizResultViewController {
-            presenter?.configureResultPresenter(viewController: vc)
-            self.present(vc, animated: true)
-        }
+        let viewController = QuizResultViewController()
+        viewController.modalPresentationStyle = .fullScreen
+        presenter?.configureResultPresenter(viewController: viewController)
+        present(viewController, animated: true)
     }
     
     private func resetSoundPlayers() {
@@ -143,6 +272,8 @@ final class QuizQuestionViewController: UIViewController, QuizQuestionViewContro
     // MARK: - IBAction Methods
     
     @IBAction func answerChosen(_ sender: UIButton) {
+        guard sender.isEnabled else { return }
+        
         hapticFeedback.prepare()
         resetSoundPlayers()
         colorAndDisableButtons()

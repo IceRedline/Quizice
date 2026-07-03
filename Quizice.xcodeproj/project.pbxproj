@@ -7,6 +7,13 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		99B400142E20000100B40001 /* QuizQuestionPresenterFailureStateTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99B400152E20000100B40001 /* QuizQuestionPresenterFailureStateTests.swift */; };
+		99B400102E20000100B40001 /* StatisticsSummaryTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99B400112E20000100B40001 /* StatisticsSummaryTests.swift */; };
+		99B400122E20000100B40001 /* StatisticsStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99B400132E20000100B40001 /* StatisticsStoreTests.swift */; };
+		99B400022E20000100B40001 /* QuiziceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99B400012E20000100B40001 /* QuiziceTests.swift */; };
+		99A000012E10000100A00001 /* StatisticsSummary.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99A000022E10000100A00001 /* StatisticsSummary.swift */; };
+		99A000032E10000100A00001 /* StatisticsStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99A000042E10000100A00001 /* StatisticsStore.swift */; };
+		99A000052E10000100A00001 /* StatisticsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99A000062E10000100A00001 /* StatisticsViewController.swift */; };
 		993C1BCB2D8D5EC200AD9BE4 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 993C1BC12D8D5EC200AD9BE4 /* AppDelegate.swift */; };
 		993C1BCC2D8D5EC200AD9BE4 /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 993C1BC82D8D5EC200AD9BE4 /* SceneDelegate.swift */; };
 		993C1BCE2D8D5EC200AD9BE4 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 993C1BC22D8D5EC200AD9BE4 /* Assets.xcassets */; };
@@ -42,7 +49,25 @@
 		99FCF02F2D96A569006341F4 /* QuizDescriptionViewControllerProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99FCF02E2D96A569006341F4 /* QuizDescriptionViewControllerProtocol.swift */; };
 /* End PBXBuildFile section */
 
+/* Begin PBXContainerItemProxy section */
+		99B4000B2E20000100B40001 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 993C1BA12D8D5E8900AD9BE4 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 993C1BA82D8D5E8900AD9BE4;
+			remoteInfo = Quizice;
+		};
+/* End PBXContainerItemProxy section */
+
 /* Begin PBXFileReference section */
+		99B400152E20000100B40001 /* QuizQuestionPresenterFailureStateTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuizQuestionPresenterFailureStateTests.swift; sourceTree = "<group>"; };
+		99B400112E20000100B40001 /* StatisticsSummaryTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatisticsSummaryTests.swift; sourceTree = "<group>"; };
+		99B400132E20000100B40001 /* StatisticsStoreTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatisticsStoreTests.swift; sourceTree = "<group>"; };
+		99B400012E20000100B40001 /* QuiziceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuiziceTests.swift; sourceTree = "<group>"; };
+		99B400032E20000100B40001 /* QuiziceTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = QuiziceTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		99A000022E10000100A00001 /* StatisticsSummary.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatisticsSummary.swift; sourceTree = "<group>"; };
+		99A000042E10000100A00001 /* StatisticsStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatisticsStore.swift; sourceTree = "<group>"; };
+		99A000062E10000100A00001 /* StatisticsViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatisticsViewController.swift; sourceTree = "<group>"; };
 		993C1BA92D8D5E8900AD9BE4 /* Quizice.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Quizice.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		993C1BC12D8D5EC200AD9BE4 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		993C1BC22D8D5EC200AD9BE4 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
@@ -88,6 +113,13 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		99B400052E20000100B40001 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
@@ -95,6 +127,7 @@
 			isa = PBXGroup;
 			children = (
 				993C1BCA2D8D5EC200AD9BE4 /* Quizice */,
+				99B400002E20000100B40001 /* QuiziceTests */,
 				993C1BAA2D8D5E8900AD9BE4 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -103,6 +136,7 @@
 			isa = PBXGroup;
 			children = (
 				993C1BA92D8D5E8900AD9BE4 /* Quizice.app */,
+				99B400032E20000100B40001 /* QuiziceTests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -119,6 +153,7 @@
 				993C1BD22D8D600E00AD9BE4 /* QuizDescriptionViewController.swift */,
 				993C1BD42D8D600E00AD9BE4 /* QuizQuestionViewController.swift */,
 				993C1BD52D8D600E00AD9BE4 /* QuizResultViewController.swift */,
+				99A000062E10000100A00001 /* StatisticsViewController.swift */,
 				993C1BC72D8D5EC200AD9BE4 /* Main.storyboard */,
 				993C1BC22D8D5EC200AD9BE4 /* Assets.xcassets */,
 				993C1C042D8F0A5B00AD9BE4 /* data.json */,
@@ -133,6 +168,7 @@
 			children = (
 				993C1BD72D8D600E00AD9BE4 /* ThemeModel.swift */,
 				99ADC9622D907844006DDC18 /* QuestionModel.swift */,
+				99A000022E10000100A00001 /* StatisticsSummary.swift */,
 				9945AFA32DA5C34200B15A77 /* QuizViewControllerProtocol.swift */,
 				9945AFA12DA5C2EF00B15A77 /* QuizPresenterProtocol.swift */,
 				99FCF02C2D96A544006341F4 /* QuizDescriptionPresenterProtocol.swift */,
@@ -158,6 +194,7 @@
 				99FCF02A2D96A522006341F4 /* QuizDescriptionPresenter.swift */,
 				993C1BE42D8D668700AD9BE4 /* QuizQuestionPresenter.swift */,
 				99FCF0262D969B96006341F4 /* QuizResultPresenter.swift */,
+				99A000042E10000100A00001 /* StatisticsStore.swift */,
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -170,6 +207,17 @@
 				99722CB92D9427480028758D /* Quizice Incorrect.m4a */,
 			);
 			path = Sounds;
+			sourceTree = "<group>";
+		};
+		99B400002E20000100B40001 /* QuiziceTests */ = {
+			isa = PBXGroup;
+			children = (
+				99B400012E20000100B40001 /* QuiziceTests.swift */,
+				99B400112E20000100B40001 /* StatisticsSummaryTests.swift */,
+				99B400132E20000100B40001 /* StatisticsStoreTests.swift */,
+				99B400152E20000100B40001 /* QuizQuestionPresenterFailureStateTests.swift */,
+			);
+			path = QuiziceTests;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -194,6 +242,26 @@
 			productReference = 993C1BA92D8D5E8900AD9BE4 /* Quizice.app */;
 			productType = "com.apple.product-type.application";
 		};
+		99B400082E20000100B40001 /* QuiziceTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 99B4000E2E20000100B40001 /* Build configuration list for PBXNativeTarget "QuiziceTests" */;
+			buildPhases = (
+				99B400042E20000100B40001 /* Sources */,
+				99B400052E20000100B40001 /* Frameworks */,
+				99B400062E20000100B40001 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				99B4000C2E20000100B40001 /* PBXTargetDependency */,
+			);
+			name = QuiziceTests;
+			packageProductDependencies = (
+			);
+			productName = QuiziceTests;
+			productReference = 99B400032E20000100B40001 /* QuiziceTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -206,6 +274,10 @@
 				TargetAttributes = {
 					993C1BA82D8D5E8900AD9BE4 = {
 						CreatedOnToolsVersion = 16.2;
+					};
+					99B400082E20000100B40001 = {
+						CreatedOnToolsVersion = 16.2;
+						TestTargetID = 993C1BA82D8D5E8900AD9BE4;
 					};
 				};
 			};
@@ -224,6 +296,7 @@
 			projectRoot = "";
 			targets = (
 				993C1BA82D8D5E8900AD9BE4 /* Quizice */,
+				99B400082E20000100B40001 /* QuiziceTests */,
 			);
 		};
 /* End PBXProject section */
@@ -243,9 +316,27 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		99B400062E20000100B40001 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
+		99B400042E20000100B40001 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				99B400022E20000100B40001 /* QuiziceTests.swift in Sources */,
+				99B400102E20000100B40001 /* StatisticsSummaryTests.swift in Sources */,
+				99B400122E20000100B40001 /* StatisticsStoreTests.swift in Sources */,
+				99B400142E20000100B40001 /* QuizQuestionPresenterFailureStateTests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		993C1BA52D8D5E8900AD9BE4 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -267,6 +358,9 @@
 				99FCF02F2D96A569006341F4 /* QuizDescriptionViewControllerProtocol.swift in Sources */,
 				993C1BE22D8D606100AD9BE4 /* Animations.swift in Sources */,
 				99ADC9632D907844006DDC18 /* QuestionModel.swift in Sources */,
+				99A000012E10000100A00001 /* StatisticsSummary.swift in Sources */,
+				99A000032E10000100A00001 /* StatisticsStore.swift in Sources */,
+				99A000052E10000100A00001 /* StatisticsViewController.swift in Sources */,
 				9945AF322DA50F6A00B15A77 /* ThemeCollectionDelegate.swift in Sources */,
 				99FCF0252D969B7F006341F4 /* QuizResultPresenterProtocol.swift in Sources */,
 				993C1C232D8F0F6900AD9BE4 /* QuizTheme.swift in Sources */,
@@ -301,6 +395,64 @@
 /* End PBXVariantGroup section */
 
 /* Begin XCBuildConfiguration section */
+		99B4000D2E20000100B40001 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = V459R55R59;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.6;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = ru.avtabenskiy.QuiziceTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 1;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Quizice.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Quizice";
+			};
+			name = Debug;
+		};
+		99B4000F2E20000100B40001 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = V459R55R59;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.6;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = ru.avtabenskiy.QuiziceTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 1;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Quizice.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Quizice";
+			};
+			name = Release;
+		};
 		993C1BBD2D8D5E8A00AD9BE4 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -488,6 +640,14 @@
 		};
 /* End XCBuildConfiguration section */
 
+/* Begin PBXTargetDependency section */
+		99B4000C2E20000100B40001 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 993C1BA82D8D5E8900AD9BE4 /* Quizice */;
+			targetProxy = 99B4000B2E20000100B40001 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
 /* Begin XCConfigurationList section */
 		993C1BA42D8D5E8900AD9BE4 /* Build configuration list for PBXProject "Quizice" */ = {
 			isa = XCConfigurationList;
@@ -503,6 +663,15 @@
 			buildConfigurations = (
 				993C1BBD2D8D5E8A00AD9BE4 /* Debug */,
 				993C1BBE2D8D5E8A00AD9BE4 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		99B4000E2E20000100B40001 /* Build configuration list for PBXNativeTarget "QuiziceTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				99B4000D2E20000100B40001 /* Debug */,
+				99B4000F2E20000100B40001 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
