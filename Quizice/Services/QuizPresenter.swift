@@ -9,11 +9,11 @@ import Foundation
 
 final class QuizPresenter: QuizPresenterProtocol {
     var view: QuizViewControllerProtocol?
-    
+
     func configureDescriptionPresenter(viewController: QuizDescriptionViewController) {
         viewController.configurePresenter(QuizDescriptionPresenter())
-        viewController.presenter?.themeName = QuizFactory.shared.chosenTheme?.themeName ?? "no themeName"
-        viewController.presenter?.themeDescription = QuizFactory.shared.chosenTheme?.description ?? "no description"
+        viewController.presenter?.themeName = QuizFactory.shared.chosenTheme?.themeName ?? L10n.Description.defaultThemeName
+        viewController.presenter?.themeDescription = QuizFactory.shared.chosenTheme?.description ?? L10n.Description.defaultThemeDescription
     }
     
 }

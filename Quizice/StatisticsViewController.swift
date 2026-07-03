@@ -35,14 +35,14 @@ final class StatisticsViewController: UIViewController {
         let rootView = UIView()
         rootView.backgroundColor = UIColor(patternImage: UIImage(named: "backgroundImage") ?? UIImage())
         rootView.accessibilityIdentifier = "statisticsScreen"
-        rootView.accessibilityLabel = "Экран общей статистики"
+        rootView.accessibilityLabel = L10n.Statistics.accessibilityLabel
         view = rootView
         configureProgrammaticSubviews(in: rootView)
     }
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        title = "Статистика"
+        title = L10n.Statistics.title
     }
 
     override func viewWillAppear(_ animated: Bool) {
@@ -51,7 +51,7 @@ final class StatisticsViewController: UIViewController {
     }
 
     private func configureProgrammaticSubviews(in rootView: UIView) {
-        backButton.setTitle("Назад", for: .normal)
+        backButton.setTitle(L10n.Common.back, for: .normal)
         backButton.setTitleColor(.white, for: .normal)
         backButton.titleLabel?.font = .systemFont(ofSize: 17, weight: .semibold)
         backButton.backgroundColor = UIColor.white.withAlphaComponent(0.16)
@@ -61,10 +61,10 @@ final class StatisticsViewController: UIViewController {
         backButton.contentEdgeInsets = UIEdgeInsets(top: 10, left: 18, bottom: 10, right: 18)
         backButton.translatesAutoresizingMaskIntoConstraints = false
         backButton.accessibilityIdentifier = "statisticsBackButton"
-        backButton.accessibilityLabel = "Назад"
+        backButton.accessibilityLabel = L10n.Common.back
         backButton.addTarget(self, action: #selector(backButtonTapped), for: .touchUpInside)
 
-        titleLabel.text = "Статистика"
+        titleLabel.text = L10n.Statistics.title
         titleLabel.textColor = .white
         titleLabel.font = .systemFont(ofSize: 36, weight: .bold)
         titleLabel.textAlignment = .center
@@ -72,9 +72,9 @@ final class StatisticsViewController: UIViewController {
         titleLabel.translatesAutoresizingMaskIntoConstraints = false
         titleLabel.isAccessibilityElement = true
         titleLabel.accessibilityIdentifier = "statisticsTitleLabel"
-        titleLabel.accessibilityLabel = "Статистика"
+        titleLabel.accessibilityLabel = L10n.Statistics.title
 
-        subtitleLabel.text = "Ваш прогресс по завершённым викторинам"
+        subtitleLabel.text = L10n.Statistics.subtitleWithStats
         subtitleLabel.textColor = UIColor.white.withAlphaComponent(0.82)
         subtitleLabel.font = .systemFont(ofSize: 18, weight: .medium)
         subtitleLabel.textAlignment = .center
@@ -94,7 +94,7 @@ final class StatisticsViewController: UIViewController {
         summaryCardView.translatesAutoresizingMaskIntoConstraints = false
         summaryCardView.accessibilityIdentifier = "statisticsSummaryCardView"
 
-        emptyStateLabel.text = "Пройдите первую викторину, чтобы увидеть общую статистику. Здесь появятся сыгранные квизы, точность и лучший результат."
+        emptyStateLabel.text = L10n.Statistics.emptyStateText
         emptyStateLabel.textColor = UIColor.white.withAlphaComponent(0.86)
         emptyStateLabel.font = .systemFont(ofSize: 17, weight: .regular)
         emptyStateLabel.textAlignment = .center
@@ -102,7 +102,7 @@ final class StatisticsViewController: UIViewController {
         emptyStateLabel.translatesAutoresizingMaskIntoConstraints = false
         emptyStateLabel.isAccessibilityElement = true
         emptyStateLabel.accessibilityIdentifier = "statisticsEmptyStateLabel"
-        emptyStateLabel.accessibilityLabel = "Пока нет завершённых викторин. Пройдите первую викторину, чтобы увидеть общую статистику."
+        emptyStateLabel.accessibilityLabel = L10n.Statistics.emptyStateAccessibilityLabel
 
         stackView.axis = .vertical
         stackView.spacing = 14
@@ -110,25 +110,25 @@ final class StatisticsViewController: UIViewController {
         stackView.accessibilityIdentifier = "statisticsRowsStackView"
 
         let playedQuizzesRow = makeStatisticRow(
-            title: "Пройдено викторин",
+            title: L10n.Statistics.playedQuizzes,
             valueLabel: playedQuizzesValueLabel,
             rowAccessibilityIdentifier: "statisticsPlayedQuizzes",
             valueAccessibilityIdentifier: "statisticsPlayedQuizzesValueLabel"
         )
         let correctAnswersRow = makeStatisticRow(
-            title: "Правильных ответов",
+            title: L10n.Statistics.correctAnswers,
             valueLabel: correctAnswersValueLabel,
             rowAccessibilityIdentifier: "statisticsCorrectAnswers",
             valueAccessibilityIdentifier: "statisticsCorrectAnswersValueLabel"
         )
         let percentageRow = makeStatisticRow(
-            title: "Процент правильных",
+            title: L10n.Statistics.percentage,
             valueLabel: percentageValueLabel,
             rowAccessibilityIdentifier: "statisticsPercentage",
             valueAccessibilityIdentifier: "statisticsPercentageValueLabel"
         )
         let bestResultRow = makeStatisticRow(
-            title: "Лучший результат",
+            title: L10n.Statistics.bestResult,
             valueLabel: bestResultValueLabel,
             rowAccessibilityIdentifier: "statisticsBestResult",
             valueAccessibilityIdentifier: "statisticsBestResultValueLabel"
@@ -242,8 +242,8 @@ final class StatisticsViewController: UIViewController {
         bestResultValueLabel.text = summary.bestResultDisplay
         emptyStateLabel.isHidden = summary.playedQuizzes > 0
         subtitleLabel.text = summary.playedQuizzes > 0
-            ? "Ваш прогресс по завершённым викторинам"
-            : "Начните с первой викторины — статистика появится автоматически"
+            ? L10n.Statistics.subtitleWithStats
+            : L10n.Statistics.subtitleEmpty
 
         updateAccessibility(
             playedQuizzes: summary.playedQuizzes,
@@ -259,13 +259,13 @@ final class StatisticsViewController: UIViewController {
         percentageDisplay: String,
         bestResultDisplay: String
     ) {
-        stackView.arrangedSubviews[safe: 0]?.accessibilityLabel = "Пройдено викторин"
+        stackView.arrangedSubviews[safe: 0]?.accessibilityLabel = L10n.Statistics.playedQuizzes
         stackView.arrangedSubviews[safe: 0]?.accessibilityValue = "\(playedQuizzes)"
-        stackView.arrangedSubviews[safe: 1]?.accessibilityLabel = "Правильных ответов"
+        stackView.arrangedSubviews[safe: 1]?.accessibilityLabel = L10n.Statistics.correctAnswers
         stackView.arrangedSubviews[safe: 1]?.accessibilityValue = correctAnswersDisplay
-        stackView.arrangedSubviews[safe: 2]?.accessibilityLabel = "Процент правильных"
+        stackView.arrangedSubviews[safe: 2]?.accessibilityLabel = L10n.Statistics.percentage
         stackView.arrangedSubviews[safe: 2]?.accessibilityValue = percentageDisplay
-        stackView.arrangedSubviews[safe: 3]?.accessibilityLabel = "Лучший результат"
+        stackView.arrangedSubviews[safe: 3]?.accessibilityLabel = L10n.Statistics.bestResult
         stackView.arrangedSubviews[safe: 3]?.accessibilityValue = bestResultDisplay
     }
 }
