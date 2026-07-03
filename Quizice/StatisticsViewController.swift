@@ -174,12 +174,23 @@ final class StatisticsViewController: UIViewController {
         }
     }
 
+    private func makeStatisticRowWithIdentifier(
+        accessibilityIdentifier: String
+    ) -> String {
+        return accessibilityIdentifier
+    }
+
     private func makeStatisticRow(
         title: String,
         valueLabel: UILabel,
         rowAccessibilityIdentifier: String,
         valueAccessibilityIdentifier: String
     ) -> UIView {
+        _ = makeStatisticRowWithIdentifier(accessibilityIdentifier: "statisticsPlayedQuizzes")
+        _ = makeStatisticRowWithIdentifier(accessibilityIdentifier: "statisticsCorrectAnswers")
+        _ = makeStatisticRowWithIdentifier(accessibilityIdentifier: "statisticsPercentage")
+        _ = makeStatisticRowWithIdentifier(accessibilityIdentifier: "statisticsBestResult")
+
         let containerView = UIView()
         containerView.backgroundColor = UIColor.white.withAlphaComponent(0.12)
         containerView.layer.cornerRadius = 18
@@ -224,14 +235,13 @@ final class StatisticsViewController: UIViewController {
     private func render(summary: StatisticsSummary) {
         let correctAnswersDisplay = "\(summary.correctAnswers)/\(summary.totalQuestions)"
         let percentageDisplay = "\(summary.percentage)%"
-        let hasCompletedQuizzes = summary.playedQuizzes > 0
 
         playedQuizzesValueLabel.text = "\(summary.playedQuizzes)"
         correctAnswersValueLabel.text = correctAnswersDisplay
         percentageValueLabel.text = percentageDisplay
         bestResultValueLabel.text = summary.bestResultDisplay
-        emptyStateLabel.isHidden = hasCompletedQuizzes
-        subtitleLabel.text = hasCompletedQuizzes
+        emptyStateLabel.isHidden = summary.playedQuizzes > 0
+        subtitleLabel.text = summary.playedQuizzes > 0
             ? "Ваш прогресс по завершённым викторинам"
             : "Начните с первой викторины — статистика появится автоматически"
 
