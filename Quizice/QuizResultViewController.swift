@@ -1,4 +1,7 @@
 import UIKit
+#if DEBUG
+import SwiftUI
+#endif
 
 final class QuizResultViewController: UIViewController, QuizResultViewControllerProtocol {
     private enum Content {
@@ -197,3 +200,15 @@ final class QuizResultViewController: UIViewController, QuizResultViewController
         view.window?.makeKeyAndVisible()
     }
 }
+
+#if DEBUG
+#Preview("Result") {
+    let viewController = QuizResultViewController()
+    viewController.loadViewIfNeeded()
+    viewController.updateResultLabels(
+        resultText: "Твой результат:\n 8/10",
+        descriptionText: "Ещё чуть-чуть и был бы как сам создатель квиза, молодец!"
+    )
+    return viewController
+}
+#endif

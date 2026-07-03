@@ -1,4 +1,7 @@
 import UIKit
+#if DEBUG
+import SwiftUI
+#endif
 
 final class QuizDescriptionViewController: UIViewController, QuizDescriptionViewControllerProtocol {
     private enum Content {
@@ -323,3 +326,15 @@ final class QuizDescriptionViewController: UIViewController, QuizDescriptionView
         }
     }
 }
+
+#if DEBUG
+#Preview("Description") {
+    let presenter = QuizDescriptionPresenter()
+    presenter.themeName = "Технологии"
+    presenter.themeDescription = "Проверь, насколько уверенно ты ориентируешься в гаджетах, IT-компаниях, цифровой культуре и технологических продуктах последних лет."
+
+    let viewController = QuizDescriptionViewController()
+    viewController.configurePresenter(presenter)
+    return viewController
+}
+#endif

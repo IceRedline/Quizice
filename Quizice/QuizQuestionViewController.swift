@@ -1,5 +1,8 @@
 import UIKit
 import AVKit
+#if DEBUG
+import SwiftUI
+#endif
 
 final class QuizQuestionViewController: UIViewController, QuizQuestionViewControllerProtocol {
     private enum Content {
@@ -507,3 +510,18 @@ final class QuizQuestionViewController: UIViewController, QuizQuestionViewContro
         presenter?.resetGameProgress()
     }
 }
+
+#if DEBUG
+#Preview("Question") {
+    let viewController = QuizQuestionViewController()
+    viewController.loadViewIfNeeded()
+    viewController.loadQuestionToView(
+        themeName: "История и культура",
+        questionText: "Какой город был столицей Российской империи большую часть XVIII века?",
+        questionNumberText: "Вопрос №3",
+        currentAnswers: ["Москва", "Санкт-Петербург", "Казань", "Новгород"]
+    )
+    viewController.updateProgress(0.62)
+    return viewController
+}
+#endif

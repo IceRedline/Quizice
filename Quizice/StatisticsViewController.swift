@@ -1,4 +1,7 @@
 import UIKit
+#if DEBUG
+import SwiftUI
+#endif
 
 final class StatisticsViewController: UIViewController {
     private enum Content {
@@ -379,3 +382,21 @@ final class StatisticsViewController: UIViewController {
         bestResultRow.accessibilityValue = bestResultDisplay
     }
 }
+
+#if DEBUG
+#Preview("Statistics") {
+    let suiteName = "quizice.preview.statistics"
+    let userDefaults = UserDefaults(suiteName: suiteName) ?? .standard
+    userDefaults.removePersistentDomain(forName: suiteName)
+
+    let store = StatisticsStore(userDefaults: userDefaults, key: "preview.attempts")
+    store.recordAttempt(correctAnswers: 8, totalQuestions: 10)
+    store.recordAttempt(correctAnswers: 4, totalQuestions: 5)
+    store.recordAttempt(correctAnswers: 6, totalQuestions: 10)
+
+    let viewController = StatisticsViewController(statisticsStore: store)
+    viewController.loadViewIfNeeded()
+    viewController.viewWillAppear(false)
+    return viewController
+}
+#endif

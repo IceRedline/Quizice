@@ -1,5 +1,8 @@
 import UIKit
 import AVKit
+#if DEBUG
+import SwiftUI
+#endif
 
 final class QuizViewController: UIViewController, QuizViewControllerProtocol, ThemeCollectionDelegate {
     private enum Content {
@@ -448,3 +451,20 @@ final class QuizViewController: UIViewController, QuizViewControllerProtocol, Th
         present(alert, animated: true)
     }
 }
+
+#if DEBUG
+#Preview("Quiz") {
+    QuizFactory.shared.startup1st = false
+    QuizFactory.shared.themes = [
+        QuizTheme(theme: "Музыка", themeDescription: "Вопросы о треках, артистах и музыкальных эпохах.", questions: []),
+        QuizTheme(theme: "Технологии", themeDescription: "Гаджеты, IT-компании и цифровая культура.", questions: []),
+        QuizTheme(theme: "История и культура", themeDescription: "Исторические события, искусство и традиции.", questions: []),
+        QuizTheme(theme: "Политика и бизнес", themeDescription: "Лидеры, компании и громкие решения.", questions: [])
+    ]
+
+    let viewController = QuizViewController()
+    let navigationController = UINavigationController(rootViewController: viewController)
+    navigationController.setNavigationBarHidden(true, animated: false)
+    return navigationController
+}
+#endif
