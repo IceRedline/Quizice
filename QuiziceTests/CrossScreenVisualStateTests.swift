@@ -202,6 +202,113 @@ final class CrossScreenVisualStateTests: XCTestCase {
         XCTAssertTrue(registeredActions.contains("backButtonTapped"))
     }
 
+    func testStatisticsScreenExposesPolishedEmptyStateAndSafeRows() throws {
+        let harness = makeStatisticsHarness()
+        let viewController = StatisticsViewController(statisticsStore: harness.store)
+        viewController.loadViewIfNeeded()
+        viewController.viewWillAppear(false)
+        viewController.view.frame = CGRect(x: 0, y: 0, width: 390, height: 844)
+        viewController.view.setNeedsLayout()
+        viewController.view.layoutIfNeeded()
+
+        XCTAssertNotNil(viewController.view.descendant(withAccessibilityIdentifier: "statisticsScreen"))
+        XCTAssertNotNil(viewController.view.descendant(withAccessibilityIdentifier: "statisticsTitleLabel"))
+        XCTAssertNotNil(viewController.view.descendant(withAccessibilityIdentifier: "statisticsSubtitleLabel"))
+        XCTAssertNotNil(viewController.view.descendant(withAccessibilityIdentifier: "statisticsSummaryCardView"))
+        XCTAssertNotNil(viewController.view.descendant(withAccessibilityIdentifier: "statisticsRowsStackView"))
+        XCTAssertNotNil(viewController.view.descendant(withAccessibilityIdentifier: "statisticsBackButton"))
+
+        let cardView = try XCTUnwrap(viewController.view.descendant(withAccessibilityIdentifier: "statisticsSummaryCardView"))
+        let emptyStateLabel = try XCTUnwrap(viewController.view.descendant(withAccessibilityIdentifier: "statisticsEmptyStateLabel") as? UILabel)
+        let playedRow = try XCTUnwrap(viewController.view.descendant(withAccessibilityIdentifier: "statisticsPlayedQuizzes"))
+        let correctRow = try XCTUnwrap(viewController.view.descendant(withAccessibilityIdentifier: "statisticsCorrectAnswers"))
+        let percentageRow = try XCTUnwrap(viewController.view.descendant(withAccessibilityIdentifier: "statisticsPercentage"))
+        let bestResultRow = try XCTUnwrap(viewController.view.descendant(withAccessibilityIdentifier: "statisticsBestResult"))
+        let playedValueLabel = try XCTUnwrap(viewController.view.descendant(withAccessibilityIdentifier: "statisticsPlayedQuizzesValueLabel") as? UILabel)
+        let correctValueLabel = try XCTUnwrap(viewController.view.descendant(withAccessibilityIdentifier: "statisticsCorrectAnswersValueLabel") as? UILabel)
+        let percentageValueLabel = try XCTUnwrap(viewController.view.descendant(withAccessibilityIdentifier: "statisticsPercentageValueLabel") as? UILabel)
+        let bestResultValueLabel = try XCTUnwrap(viewController.view.descendant(withAccessibilityIdentifier: "statisticsBestResultValueLabel") as? UILabel)
+        let backButton = try XCTUnwrap(viewController.view.descendant(withAccessibilityIdentifier: "statisticsBackButton") as? UIButton)
+
+        XCTAssertFalse(emptyStateLabel.isHidden)
+        XCTAssertEqual(playedValueLabel.text, "0")
+        XCTAssertEqual(correctValueLabel.text, "0/0")
+        XCTAssertEqual(percentageValueLabel.text, "0%")
+        XCTAssertEqual(bestResultValueLabel.text, "0/0")
+        XCTAssertEqual(playedRow.accessibilityValue, "0")
+        XCTAssertEqual(correctRow.accessibilityValue, "0/0")
+        XCTAssertEqual(percentageRow.accessibilityValue, "0%")
+        XCTAssertEqual(bestResultRow.accessibilityValue, "0/0")
+        XCTAssertEqual(cardView.layer.cornerRadius, 30)
+        XCTAssertEqual(cardView.layer.borderWidth, 1)
+        XCTAssertGreaterThan(cardView.layer.shadowOpacity, 0)
+        XCTAssertEqual(backButton.title(for: .normal), "Назад")
+        XCTAssertEqual(backButton.layer.cornerRadius, 20)
+        XCTAssertEqual(backButton.layer.borderWidth, 1)
+        XCTAssertFalse(viewController.view.hasAmbiguousLayout)
+    }
+
+    func testStatisticsScreenRendersRecordedSummaryAndHidesEmptyCopy() throws {
+        let harness = makeStatisticsHarness()
+        harness.store.recordAttempt(correctAnswers: 3, totalQuestions: 5)
+        harness.store.recordAttempt(correctAnswers: 5, totalQuestions: 5)
+
+        let viewController = StatisticsViewController(statisticsStore: harness.store)
+        viewController.loadViewIfNeeded()
+        viewController.viewWillAppear(false)
+
+        let emptyStateLabel = try XCTUnwrap(viewController.view.descendant(withAccessibilityIdentifier: "statisticsEmptyStateLabel") as? UILabel)
+        let playedRow = try XCTUnwrap(viewController.view.descendant(withAccessibilityIdentifier: "statisticsPlayedQuizzes"))
+        let correctRow = try XCTUnwrap(viewController.view.descendant(withAccessibilityIdentifier: "statisticsCorrectAnswers"))
+        let percentageRow = try XCTUnwrap(viewController.view.descendant(withAccessibilityIdentifier: "statisticsPercentage"))
+        let bestResultRow = try XCTUnwrap(viewController.view.descendant(withAccessibilityIdentifier: "statisticsBestResult"))
+        let playedValueLabel = try XCTUnwrap(viewController.view.descendant(withAccessibilityIdentifier: "statisticsPlayedQuizzesValueLabel") as? UILabel)
+        let correctValueLabel = try XCTUnwrap(viewController.view.descendant(withAccessibilityIdentifier: "statisticsCorrectAnswersValueLabel") as? UILabel)
+        let percentageValueLabel = try XCTUnwrap(viewController.view.descendant(withAccessibilityIdentifier: "statisticsPercentageValueLabel") as? UILabel)
+        let bestResultValueLabel = try XCTUnwrap(viewController.view.descendant(withAccessibilityIdentifier: "statisticsBestResultValueLabel") as? UILabel)
+
+        XCTAssertTrue(emptyStateLabel.isHidden)
+        XCTAssertEqual(playedValueLabel.text, "2")
+        XCTAssertEqual(correctValueLabel.text, "8/10")
+        XCTAssertEqual(percentageValueLabel.text, "80%")
+        XCTAssertEqual(bestResultValueLabel.text, "5/5")
+        XCTAssertEqual(playedRow.accessibilityValue, "2")
+        XCTAssertEqual(correctRow.accessibilityValue, "8/10")
+        XCTAssertEqual(percentageRow.accessibilityValue, "80%")
+        XCTAssertEqual(bestResultRow.accessibilityValue, "5/5")
+    }
+
+    func testAllPolishedS03ScreensExposeCoreAnchorsAndControlSurfaces() throws {
+        let descriptionViewController = QuizDescriptionViewController()
+        descriptionViewController.loadViewIfNeeded()
+        descriptionViewController.updateLabels(themeName: "Музыка", themeDescription: "Описание")
+
+        QuizFactory.shared.chosenTheme = makeQuestionTheme()
+        QuizFactory.shared.questionsCount = 1
+        let questionViewController = QuizQuestionViewController()
+        questionViewController.loadViewIfNeeded()
+
+        let resultViewController = QuizResultViewController()
+        resultViewController.loadViewIfNeeded()
+        resultViewController.updateResultLabels(resultText: "Ваш результат: 1/1", descriptionText: "Готово")
+
+        let statisticsHarness = makeStatisticsHarness()
+        let statisticsViewController = StatisticsViewController(statisticsStore: statisticsHarness.store)
+        statisticsViewController.loadViewIfNeeded()
+        statisticsViewController.viewWillAppear(false)
+
+        XCTAssertNotNil(descriptionViewController.view.descendant(withAccessibilityIdentifier: "descriptionContentCardView"))
+        XCTAssertNotNil(descriptionViewController.view.descendant(withAccessibilityIdentifier: "descriptionStartButton"))
+        XCTAssertNotNil(descriptionViewController.view.descendant(withAccessibilityIdentifier: "descriptionBackButton"))
+        XCTAssertNotNil(questionViewController.view.descendant(withAccessibilityIdentifier: "questionCardView"))
+        XCTAssertNotNil(questionViewController.view.descendant(withAccessibilityIdentifier: "questionNextButton"))
+        XCTAssertNotNil(questionViewController.view.descendant(withAccessibilityIdentifier: "questionBackButton"))
+        XCTAssertNotNil(resultViewController.view.descendant(withAccessibilityIdentifier: "resultCardView"))
+        XCTAssertNotNil(resultViewController.view.descendant(withAccessibilityIdentifier: "resultRestartButton"))
+        XCTAssertNotNil(statisticsViewController.view.descendant(withAccessibilityIdentifier: "statisticsSummaryCardView"))
+        XCTAssertNotNil(statisticsViewController.view.descendant(withAccessibilityIdentifier: "statisticsBackButton"))
+    }
+
     private func questionAnswerButtons(in viewController: QuizQuestionViewController) -> [UIButton] {
         (1...4).compactMap { index in
             viewController.view.descendant(withAccessibilityIdentifier: "questionAnswerButton\(index)") as? UIButton
@@ -229,6 +336,13 @@ final class CrossScreenVisualStateTests: XCTestCase {
                 questions: [question]
             )
         )
+    }
+
+    private func makeStatisticsHarness() -> (store: StatisticsStore, defaults: UserDefaults, suiteName: String) {
+        let suiteName = "CrossScreenVisualStateTests.\(UUID().uuidString)"
+        let defaults = UserDefaults(suiteName: suiteName)!
+        defaults.removePersistentDomain(forName: suiteName)
+        return (StatisticsStore(userDefaults: defaults), defaults, suiteName)
     }
 }
 
