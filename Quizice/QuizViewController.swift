@@ -144,7 +144,7 @@ final class QuizViewController: UIViewController, QuizViewControllerProtocol, Th
             themesCollectionView.topAnchor.constraint(equalTo: chooseThemeLabel.bottomAnchor, constant: 18),
             themesCollectionView.leadingAnchor.constraint(equalTo: rootView.leadingAnchor),
             themesCollectionView.trailingAnchor.constraint(equalTo: rootView.trailingAnchor),
-            themesCollectionView.bottomAnchor.constraint(equalTo: actionButtonsStackView.topAnchor, constant: -20),
+            themesCollectionView.bottomAnchor.constraint(equalTo: feelingLuckyButton.topAnchor, constant: -24),
             
             actionButtonsStackView.centerXAnchor.constraint(equalTo: rootView.centerXAnchor),
             actionButtonsStackView.leadingAnchor.constraint(greaterThanOrEqualTo: rootView.leadingAnchor, constant: 32),
