@@ -9,8 +9,8 @@ import UIKit
 
 final class QuizResultViewController: UIViewController, QuizResultViewControllerProtocol {
     
-    @IBOutlet weak var resultLabel: UILabel!
-    @IBOutlet weak var resultDescription: UILabel!
+    private var resultLabel: UILabel!
+    private var resultDescription: UILabel!
     
     private var restartButton: UIButton!
     
