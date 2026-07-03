@@ -1,3 +1,4 @@
+import SwiftUI
 import XCTest
 @testable import Quizice
 
@@ -29,6 +30,7 @@ final class HomeScreenVisualStateTests: XCTestCase {
         XCTAssertNotNil(viewController.view.descendant(withAccessibilityIdentifier: "homeThemesCollectionView"))
         XCTAssertNotNil(viewController.view.descendant(withAccessibilityIdentifier: "homeActionButtonsStackView"))
         XCTAssertNotNil(viewController.view.descendant(withAccessibilityIdentifier: "homeExitButton"))
+        XCTAssertNotNil(viewController.view.descendant(withAccessibilityIdentifier: "homeSettingsButton"))
     }
 
     func testHomeCollectionDoesNotDelayButtonTouchDownEvents() {
@@ -75,11 +77,13 @@ final class HomeScreenVisualStateTests: XCTestCase {
         let logoImageView = try XCTUnwrap(viewController.view.descendant(withAccessibilityIdentifier: "homeLogoImageView"))
         let chooseThemeLabel = try XCTUnwrap(viewController.view.descendant(withAccessibilityIdentifier: "homeChooseThemeLabel"))
         let collectionView = try XCTUnwrap(viewController.view.descendant(withAccessibilityIdentifier: "homeThemesCollectionView"))
+        let settingsButton = try XCTUnwrap(viewController.view.descendant(withAccessibilityIdentifier: "homeSettingsButton"))
 
         XCTAssertEqual(welcomeLabel.alpha, 0)
         XCTAssertEqual(logoImageView.alpha, 0)
         XCTAssertEqual(chooseThemeLabel.alpha, 0)
         XCTAssertEqual(collectionView.alpha, 0)
+        XCTAssertEqual(settingsButton.alpha, 0)
     }
 
     func testHomeShellKeepsExitButtonHiddenOutsideCollection() {
@@ -103,6 +107,20 @@ final class HomeScreenVisualStateTests: XCTestCase {
         XCTAssertEqual(exitButton?.layer.borderWidth, 0)
         XCTAssertGreaterThan(exitButton?.layer.shadowOpacity ?? 0, 0)
         XCTAssertFalse(viewController.view.hasAmbiguousLayout)
+    }
+
+    func testHomeSettingsButtonPresentsSettingsScreen() throws {
+        QuizFactory.shared.themes = [makeTheme(name: "Музыка")]
+
+        let viewController = makeHomeViewController(in: CGRect(x: 0, y: 0, width: 390, height: 844))
+        let settingsButton = try XCTUnwrap(viewController.view.descendant(withAccessibilityIdentifier: "homeSettingsButton") as? UIButton)
+
+        XCTAssertNotNil(settingsButton.image(for: .normal))
+
+        settingsButton.sendActions(for: .touchUpInside)
+
+        let hostingController = try XCTUnwrap(viewController.presentedViewController as? UIHostingController<QuizSettingsView>)
+        XCTAssertEqual(hostingController.modalPresentationStyle, .pageSheet)
     }
 
     func testHomeScreenShowsUnavailableCopyWhenThemesAreEmpty() {

@@ -39,6 +39,32 @@
 "result.restart" = "Начать заново";
 "result.text_format" = "Твой результат:\n %d/%d";
 
+"settings.alert.action" = "Понятно";
+"settings.close" = "Закрыть";
+"settings.feedback" = "Оставить отзыв";
+"settings.feedback.subtitle" = "Расскажите, что улучшить в Quizice";
+"settings.feedback.unavailable_message" = "Форма отзыва появится позже.";
+"settings.done" = "Готово";
+"settings.icon" = "Иконка приложения";
+"settings.icon.subtitle" = "Выберите стиль иконки";
+"settings.icon.classic" = "Классика";
+"settings.icon.dark" = "Темная";
+"settings.icon.ice" = "Лед";
+"settings.profile" = "Профиль";
+"settings.profile.subtitle" = "Имя, прогресс и личные настройки";
+"settings.profile.unavailable_message" = "Профиль появится в следующей итерации.";
+"settings.restart_required.title" = "Нужен перезапуск";
+"settings.restart_required.message_format" = "Чтобы применить «%@», перезапустите приложение.";
+"settings.section.appearance" = "Внешний вид";
+"settings.section.profile" = "Аккаунт";
+"settings.section.support" = "Поддержка";
+"settings.theme" = "Тема";
+"settings.theme.subtitle" = "Системная, светлая или темная";
+"settings.theme.dark" = "Темная";
+"settings.theme.light" = "Светлая";
+"settings.theme.system" = "Системная";
+"settings.title" = "Настройки";
+
 "statistics.accessibility_label" = "Экран общей статистики";
 "statistics.best_result" = "Лучший результат";
 "statistics.correct_answers" = "Правильных ответов";
