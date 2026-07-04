@@ -23,8 +23,6 @@ final class QuizViewController: UIViewController, QuizViewControllerProtocol, Th
         static let headerStackView = "homeHeaderStackView"
         static let themesCollectionView = "homeThemesCollectionView"
         static let screenStackView = "homeScreenStackView"
-        static let actionButtonsStackView = "homeActionButtonsStackView"
-        static let exitButton = "homeExitButton"
         static let settingsButton = "homeSettingsButton"
     }
 
@@ -35,7 +33,6 @@ final class QuizViewController: UIViewController, QuizViewControllerProtocol, Th
         static let screenBottomInset: CGFloat = 0
         static let screenStackSpacing: CGFloat = 0
         static let headerToCollectionSpacing: CGFloat = 18
-        static let actionHorizontalInset: CGFloat = 32
         static let collectionItemSpacing: CGFloat = 16
         static let collectionHorizontalInset: CGFloat = 24
         static let collectionTopInset: CGFloat = 0
@@ -47,7 +44,6 @@ final class QuizViewController: UIViewController, QuizViewControllerProtocol, Th
         static let settingsButtonSize: CGFloat = 36
         static let visibleCellRowSortingTolerance: CGFloat = 1
         static let scrollActivationTolerance: CGFloat = 1
-        static let secondaryActionButtonHeight: CGFloat = 50
 
         static var headerMargins: NSDirectionalEdgeInsets {
             NSDirectionalEdgeInsets(
@@ -55,15 +51,6 @@ final class QuizViewController: UIViewController, QuizViewControllerProtocol, Th
                 leading: headerHorizontalInset,
                 bottom: .zero,
                 trailing: headerHorizontalInset
-            )
-        }
-
-        static var actionButtonMargins: NSDirectionalEdgeInsets {
-            NSDirectionalEdgeInsets(
-                top: .zero,
-                leading: actionHorizontalInset,
-                bottom: .zero,
-                trailing: actionHorizontalInset
             )
         }
 
@@ -122,10 +109,6 @@ final class QuizViewController: UIViewController, QuizViewControllerProtocol, Th
         static let cellFadeInStagger: TimeInterval = 0.15
     }
 
-    private enum ProcessExit {
-        static let userConfirmedExitCode: Int32 = -1
-    }
-
     private var welcomeLabel: UILabel!
     private var quiziceLabel: UIImageView!
     private var quiziceTextLabel: UILabel!
@@ -133,9 +116,6 @@ final class QuizViewController: UIViewController, QuizViewControllerProtocol, Th
     private var headerStackView: UIStackView!
     private var screenStackView: UIStackView!
     private var settingsButton: UIButton!
-
-    private var exitButton: UIButton!
-    private var actionButtonsStackView: UIStackView!
 
     private var themesCollectionView: UICollectionView!
 
@@ -212,9 +192,7 @@ final class QuizViewController: UIViewController, QuizViewControllerProtocol, Th
     private func configureProgrammaticSubviews(in rootView: UIView) {
         configureHeaderViews()
         configureSettingsButton()
-        configureActionButtons()
         configureHeaderStack()
-        configureActionButtonsStack()
         configureThemesCollectionView()
         configureScreenStack()
         configureInitialStartupVisibilityIfNeeded()
@@ -287,26 +265,6 @@ final class QuizViewController: UIViewController, QuizViewControllerProtocol, Th
         headerStackView.translatesAutoresizingMaskIntoConstraints = false
     }
 
-    private func configureActionButtons() {
-        exitButton = makePrimaryActionButton(title: L10n.Common.exit)
-        exitButton.accessibilityIdentifier = AccessibilityID.exitButton
-        exitButton.accessibilityLabel = L10n.Common.exit
-        exitButton.isHidden = true
-        exitButton.addTarget(self, action: #selector(backButtonTapped), for: .touchUpInside)
-    }
-
-    private func configureActionButtonsStack() {
-        actionButtonsStackView = UIStackView(arrangedSubviews: [exitButton])
-        actionButtonsStackView.accessibilityIdentifier = AccessibilityID.actionButtonsStackView
-        actionButtonsStackView.axis = .vertical
-        actionButtonsStackView.alignment = .fill
-        actionButtonsStackView.distribution = .fill
-        actionButtonsStackView.isLayoutMarginsRelativeArrangement = true
-        actionButtonsStackView.directionalLayoutMargins = Layout.actionButtonMargins
-        actionButtonsStackView.isHidden = true
-        actionButtonsStackView.translatesAutoresizingMaskIntoConstraints = false
-    }
-
     private func configureThemesCollectionView() {
         let layout = UICollectionViewFlowLayout()
         layout.scrollDirection = .vertical
@@ -328,7 +286,7 @@ final class QuizViewController: UIViewController, QuizViewControllerProtocol, Th
     }
 
     private func configureScreenStack() {
-        screenStackView = UIStackView(arrangedSubviews: [headerStackView, themesCollectionView, actionButtonsStackView])
+        screenStackView = UIStackView(arrangedSubviews: [headerStackView, themesCollectionView])
         screenStackView.accessibilityIdentifier = AccessibilityID.screenStackView
         screenStackView.axis = .vertical
         screenStackView.alignment = .fill
@@ -358,9 +316,7 @@ final class QuizViewController: UIViewController, QuizViewControllerProtocol, Th
             quiziceLabel.widthAnchor.constraint(lessThanOrEqualTo: rootView.widthAnchor, multiplier: Layout.logoWidthMultiplier),
             logoHeightConstraint,
             quiziceTextLabel.widthAnchor.constraint(lessThanOrEqualTo: headerStackView.layoutMarginsGuide.widthAnchor),
-            chooseThemeLabel.widthAnchor.constraint(lessThanOrEqualTo: headerStackView.layoutMarginsGuide.widthAnchor),
-
-            exitButton.heightAnchor.constraint(equalToConstant: Layout.secondaryActionButtonHeight)
+            chooseThemeLabel.widthAnchor.constraint(lessThanOrEqualTo: headerStackView.layoutMarginsGuide.widthAnchor)
         ])
     }
 
@@ -373,21 +329,6 @@ final class QuizViewController: UIViewController, QuizViewControllerProtocol, Th
         label.numberOfLines = Typography.unlimitedNumberOfLines
         label.translatesAutoresizingMaskIntoConstraints = false
         return label
-    }
-
-    private func makePrimaryActionButton(title: String) -> UIButton {
-        let button = makeBaseActionButton(title: title)
-        return button
-    }
-
-    private func makeBaseActionButton(title: String) -> UIButton {
-        let button = UIButton(type: .system)
-        button.setTitle(title, for: .normal)
-        button.setTitleColor(.white, for: .normal)
-        button.titleLabel?.font = currentAppearance().typography.font(size: Typography.actionButtonFontSize, weight: .semibold)
-        button.titleLabel?.adjustsFontForContentSizeCategory = true
-        button.translatesAutoresizingMaskIntoConstraints = false
-        return button
     }
 
     private func installAppearanceObserver() {
@@ -432,8 +373,6 @@ final class QuizViewController: UIViewController, QuizViewControllerProtocol, Th
         settingsButton?.layer.cornerRadius = Layout.settingsButtonSize / 2
         settingsButton?.tintColor = appearance.screenTextColor
 
-        exitButton?.applyActionAppearance(appearance.primaryButton, appearance: appearance, textColor: primaryActionTextColor(appearance: appearance))
-        exitButton?.titleLabel?.font = appearance.typography.font(size: Typography.actionButtonFontSize, weight: .semibold)
         themesCollectionView?.backgroundColor = .clear
         themesCollectionView?.reloadData()
     }
@@ -453,16 +392,6 @@ final class QuizViewController: UIViewController, QuizViewControllerProtocol, Th
 
     private func homeHeaderStackAlignment(for appearance: AppAppearance) -> UIStackView.Alignment {
         appearance.designStyle == .clean ? .leading : .center
-    }
-
-    private func primaryActionTextColor(appearance: AppAppearance) -> UIColor {
-        if appearance.designStyle == .clean {
-            return appearance.resolvedInterfaceStyle == .dark ? appearance.screenTextColor : .black
-        }
-        if appearance.designStyle == .pixel {
-            return .black
-        }
-        return appearance.screenTextColor
     }
 
     private func configureInitialStartupVisibilityIfNeeded() {
@@ -612,19 +541,6 @@ final class QuizViewController: UIViewController, QuizViewControllerProtocol, Th
         present(viewController, animated: true)
     }
 
-    @objc private func backButtonTapped() {
-        let alert = UIAlertController(
-            title: L10n.Common.exit,
-            message: L10n.Home.exitAlertMessage,
-            preferredStyle: .alert
-        )
-        alert.addAction(UIAlertAction(title: L10n.Common.no, style: .cancel))
-        alert.addAction(UIAlertAction(title: L10n.Common.yes, style: .destructive, handler: { _ in
-            exit(ProcessExit.userConfirmedExitCode)
-        }))
-        present(alert, animated: true)
-    }
-
     @objc private func settingsButtonTapped() {
         let viewController = UIHostingController(rootView: QuizSettingsView())
         viewController.modalPresentationStyle = .pageSheet
@@ -648,8 +564,6 @@ final class QuizViewController: UIViewController, QuizViewControllerProtocol, Th
     private func applyLocalizedStrings() {
         guard isViewLoaded else { return }
         welcomeLabel.text = L10n.Home.welcome
-        exitButton.setTitle(L10n.Common.exit, for: .normal)
-        exitButton.accessibilityLabel = L10n.Common.exit
         settingsButton.accessibilityLabel = L10n.Settings.title
         themesCollectionView.accessibilityLabel = L10n.Home.themesCollectionAccessibilityLabel
         updateThemeAvailabilityMessage()
