@@ -8,6 +8,9 @@ final class CrossScreenVisualStateTests: XCTestCase {
         AppLocalizationStore.shared.languagePreference = .russian
         resetQuestionFactoryState()
         UserDefaults.standard.set(AppDesignStyle.clean.rawValue, forKey: AppAppearanceStore.Keys.designStyle)
+        // Pin the clean color scheme so shadow/surface assertions are deterministic
+        // regardless of the host simulator's system light/dark appearance.
+        UserDefaults.standard.set(CleanColorSchemePreference.light.rawValue, forKey: AppAppearanceStore.Keys.cleanColorScheme)
         UIView.setAnimationsEnabled(false)
     }
 
