@@ -1,0 +1,22 @@
+import Foundation
+
+protocol AIQuizThemeServiceProtocol: AnyObject {
+    func generateQuizTheme(for prompt: String, locale: Locale) async throws -> QuizTheme
+}
+
+final class MockAIQuizThemeService: AIQuizThemeServiceProtocol {
+    private(set) var generatedPrompts: [String] = []
+    private(set) var generatedLocaleIdentifiers: [String] = []
+
+    func generateQuizTheme(for prompt: String, locale: Locale) async throws -> QuizTheme {
+        let trimmedPrompt = prompt.trimmingCharacters(in: .whitespacesAndNewlines)
+        generatedPrompts.append(trimmedPrompt)
+        generatedLocaleIdentifiers.append(locale.identifier)
+        print("AI quiz theme prompt: \(trimmedPrompt), locale: \(locale.identifier)")
+        return QuizTheme(
+            theme: trimmedPrompt,
+            themeDescription: "AI generated quiz placeholder",
+            questions: []
+        )
+    }
+}

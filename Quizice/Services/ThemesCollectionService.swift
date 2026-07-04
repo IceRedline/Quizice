@@ -5,6 +5,9 @@ final class ThemesCollectionService: NSObject, UICollectionViewDelegate, UIColle
         static let themeCellReuseIdentifier = "themeCell"
         static let themeImageAccessibilityIDPrefix = "homeThemeImageView"
         static let themeTitleAccessibilityIDPrefix = "homeThemeTitleLabel"
+        static let aiThemeAccessibilityID = "homeCreateWithAIButton"
+        static let aiThemeBetaBadgeAccessibilityID = "homeCreateWithAIBetaBadge"
+        static let aiThemeGradientBorderAccessibilityID = "homeCreateWithAIGradientBorder"
         static let feelingLuckyAccessibilityID = "homeFeelingLuckyButton"
         static let statisticsAccessibilityID = "homeStatisticsCard"
 
@@ -37,9 +40,13 @@ final class ThemesCollectionService: NSObject, UICollectionViewDelegate, UIColle
     private enum Layout {
         static let sectionInsets = UIEdgeInsets(top: 0, left: 24, bottom: 0, right: 24)
         static let itemSpacing: CGFloat = 16
-        static let feelingLuckyButtonHeight: CGFloat = 54
+        static let secondaryActionButtonHeight: CGFloat = 54
         static let statisticsCardHeight: CGFloat = 112
         static let cardContentHorizontalInset: CGFloat = 24
+        static let aiThemeBadgeTrailingInset: CGFloat = 16
+        static let aiThemeBadgeHorizontalInset: CGFloat = 10
+        static let aiThemeBadgeVerticalInset: CGFloat = 5
+        static let aiThemeBadgeMinimumWidth: CGFloat = 48
         static let statisticsStackSpacing: CGFloat = 6
         static let themeImageTopInset: CGFloat = 14
         static let themeImageHorizontalInset: CGFloat = 4
@@ -62,10 +69,17 @@ final class ThemesCollectionService: NSObject, UICollectionViewDelegate, UIColle
         static let feelingLuckyButtonBorderAlpha: CGFloat = 0.36
         static let feelingLuckyButtonCornerRadius: CGFloat = 20
         static let buttonBorderWidth: CGFloat = 1
+        static let aiThemeGradientBorderWidth: CGFloat = 1.6
+        static let aiThemeGradientPink = UIColor(hex: 0xFF4FD8)
+        static let aiThemeGradientBlue = UIColor(hex: 0x36A3FF)
+        static let aiThemeBadgeBackgroundAlpha: CGFloat = 0.18
+        static let aiThemeBadgeBorderAlpha: CGFloat = 0.52
+        static let aiThemeBadgeCornerRadius: CGFloat = 11
         static let cellShadowOpacity: Float = 0.22
         static let titleFontSize: CGFloat = 24
         static let descriptionFontSize: CGFloat = 15
         static let luckyFontSize: CGFloat = 19
+        static let betaBadgeFontSize: CGFloat = 12
         static let themeTitleFontSize: CGFloat = 18
     }
 
@@ -76,11 +90,13 @@ final class ThemesCollectionService: NSObject, UICollectionViewDelegate, UIColle
 
     private var themeCount: Int { quizFactory.themes?.count ?? 0 }
 
-    private var feelingLuckyIndex: Int { themeCount }
+    private var aiThemeIndex: Int { themeCount }
 
-    private var statisticsIndex: Int { themeCount + 1 }
+    private var feelingLuckyIndex: Int { themeCount + 1 }
 
-    func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int { themeCount + 2 }
+    private var statisticsIndex: Int { themeCount + 2 }
+
+    func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int { themeCount + 3 }
 
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
         let cell = collectionView.dequeueReusableCell(withReuseIdentifier: Content.themeCellReuseIdentifier, for: indexPath)
@@ -97,6 +113,11 @@ final class ThemesCollectionService: NSObject, UICollectionViewDelegate, UIColle
             return cell
         }
 
+        if indexPath.item == aiThemeIndex {
+            configureAIThemeCard(in: cell, appearance: appearance)
+            return cell
+        }
+
         guard let theme = quizFactory.themes?[safe: indexPath.item] else {
             return cell
         }
@@ -110,8 +131,8 @@ final class ThemesCollectionService: NSObject, UICollectionViewDelegate, UIColle
             return CGSize(width: availableWidth, height: Layout.statisticsCardHeight)
         }
 
-        if indexPath.item == feelingLuckyIndex {
-            return CGSize(width: availableWidth, height: Layout.feelingLuckyButtonHeight)
+        if indexPath.item == aiThemeIndex || indexPath.item == feelingLuckyIndex {
+            return CGSize(width: availableWidth, height: Layout.secondaryActionButtonHeight)
         }
 
         let twoColumnWidth = floor((availableWidth - Layout.itemSpacing) / 2)
@@ -190,10 +211,108 @@ final class ThemesCollectionService: NSObject, UICollectionViewDelegate, UIColle
     }
 
     private func configureFeelingLuckyCard(in cell: UICollectionViewCell, appearance: AppAppearance) {
+        configureSecondaryActionCard(
+            in: cell,
+            accessibilityIdentifier: Content.feelingLuckyAccessibilityID,
+            accessibilityLabel: L10n.Home.feelingLucky,
+            accessibilityHint: L10n.Home.feelingLuckyAccessibilityHint,
+            title: L10n.Home.feelingLucky,
+            action: #selector(feelingLuckyButtonTouchedUpInside(_:)),
+            appearance: appearance
+        )
+    }
+
+    private func configureAIThemeCard(in cell: UICollectionViewCell, appearance: AppAppearance) {
+        let button = makeSecondaryActionButton(
+            accessibilityIdentifier: Content.aiThemeAccessibilityID,
+            accessibilityLabel: L10n.Home.createWithAI,
+            accessibilityHint: L10n.Home.createWithAIAccessibilityHint,
+            title: L10n.Home.createWithAI,
+            action: #selector(aiThemeButtonTouchedUpInside(_:)),
+            appearance: appearance
+        )
+        button.layer.borderWidth = 0
+        button.layer.borderColor = UIColor.clear.cgColor
+
+        let betaBadge = InsetLabel(
+            contentInsets: UIEdgeInsets(
+                top: Layout.aiThemeBadgeVerticalInset,
+                left: Layout.aiThemeBadgeHorizontalInset,
+                bottom: Layout.aiThemeBadgeVerticalInset,
+                right: Layout.aiThemeBadgeHorizontalInset
+            )
+        )
+        betaBadge.accessibilityIdentifier = Content.aiThemeBetaBadgeAccessibilityID
+        betaBadge.text = L10n.Home.createWithAIBetaBadge
+        betaBadge.textColor = appearance.screenTextColor
+        betaBadge.font = appearance.typography.font(size: Appearance.betaBadgeFontSize, weight: .bold)
+        betaBadge.textAlignment = .center
+        betaBadge.backgroundColor = appearance.screenTextColor.withAlphaComponent(Appearance.aiThemeBadgeBackgroundAlpha)
+        betaBadge.layer.cornerRadius = Appearance.aiThemeBadgeCornerRadius
+        betaBadge.layer.borderWidth = Appearance.buttonBorderWidth
+        betaBadge.layer.borderColor = appearance.screenTextColor.withAlphaComponent(Appearance.aiThemeBadgeBorderAlpha).cgColor
+        betaBadge.clipsToBounds = true
+        betaBadge.isUserInteractionEnabled = false
+        betaBadge.translatesAutoresizingMaskIntoConstraints = false
+
+        let gradientBorderView = GradientBorderView(
+            colors: [Appearance.aiThemeGradientPink, Appearance.aiThemeGradientBlue],
+            lineWidth: Appearance.aiThemeGradientBorderWidth
+        )
+        gradientBorderView.accessibilityIdentifier = Content.aiThemeGradientBorderAccessibilityID
+        gradientBorderView.translatesAutoresizingMaskIntoConstraints = false
+
+        pin(button, to: cell.contentView)
+        button.addSubview(betaBadge)
+        button.addSubview(gradientBorderView)
+
+        NSLayoutConstraint.activate([
+            betaBadge.trailingAnchor.constraint(equalTo: button.trailingAnchor, constant: -Layout.aiThemeBadgeTrailingInset),
+            betaBadge.centerYAnchor.constraint(equalTo: button.centerYAnchor),
+
+            betaBadge.leadingAnchor.constraint(greaterThanOrEqualTo: button.centerXAnchor),
+            betaBadge.widthAnchor.constraint(greaterThanOrEqualToConstant: Layout.aiThemeBadgeMinimumWidth),
+
+            gradientBorderView.leadingAnchor.constraint(equalTo: button.leadingAnchor),
+            gradientBorderView.trailingAnchor.constraint(equalTo: button.trailingAnchor),
+            gradientBorderView.topAnchor.constraint(equalTo: button.topAnchor),
+            gradientBorderView.bottomAnchor.constraint(equalTo: button.bottomAnchor)
+        ])
+    }
+
+    private func configureSecondaryActionCard(
+        in cell: UICollectionViewCell,
+        accessibilityIdentifier: String,
+        accessibilityLabel: String,
+        accessibilityHint: String,
+        title: String,
+        action: Selector,
+        appearance: AppAppearance
+    ) {
+        let button = makeSecondaryActionButton(
+            accessibilityIdentifier: accessibilityIdentifier,
+            accessibilityLabel: accessibilityLabel,
+            accessibilityHint: accessibilityHint,
+            title: title,
+            action: action,
+            appearance: appearance
+        )
+
+        pin(button, to: cell.contentView)
+    }
+
+    private func makeSecondaryActionButton(
+        accessibilityIdentifier: String,
+        accessibilityLabel: String,
+        accessibilityHint: String,
+        title: String,
+        action: Selector,
+        appearance: AppAppearance
+    ) -> UIButton {
         let button = UIButton(type: .system)
-        button.accessibilityIdentifier = Content.feelingLuckyAccessibilityID
-        button.accessibilityLabel = L10n.Home.feelingLucky
-        button.accessibilityHint = L10n.Home.feelingLuckyAccessibilityHint
+        button.accessibilityIdentifier = accessibilityIdentifier
+        button.accessibilityLabel = accessibilityLabel
+        button.accessibilityHint = accessibilityHint
         button.applyActionAppearance(appearance.secondaryButton, appearance: appearance)
         applyCleanOutlineStyleIfNeeded(
             to: button,
@@ -201,16 +320,15 @@ final class ThemesCollectionService: NSObject, UICollectionViewDelegate, UIColle
             borderColor: appearance.screenTextColor.withAlphaComponent(0.18)
         )
         button.clipsToBounds = true
-        button.setTitle(L10n.Home.feelingLucky, for: .normal)
+        button.setTitle(title, for: .normal)
         button.setTitleColor(appearance.screenTextColor, for: .normal)
         button.titleLabel?.font = appearance.typography.font(size: Appearance.luckyFontSize, weight: .semibold)
         button.titleLabel?.adjustsFontForContentSizeCategory = true
         button.translatesAutoresizingMaskIntoConstraints = false
         button.addTarget(self, action: #selector(buttonTouchedDown(_:)), for: .touchDown)
-        button.addTarget(self, action: #selector(feelingLuckyButtonTouchedUpInside(_:)), for: .touchUpInside)
+        button.addTarget(self, action: action, for: .touchUpInside)
         button.addTarget(self, action: #selector(buttonTouchedUpOutside(_:)), for: .touchUpOutside)
-
-        pin(button, to: cell.contentView)
+        return button
     }
 
     private func configureStatisticsCard(in cell: UICollectionViewCell, appearance: AppAppearance) {
@@ -388,6 +506,10 @@ final class ThemesCollectionService: NSObject, UICollectionViewDelegate, UIColle
         delegate?.feelingLuckyButtonTouchedUpInside(sender)
     }
 
+    @objc func aiThemeButtonTouchedUpInside(_ sender: UIButton) {
+        delegate?.aiThemeButtonTouchedUpInside(sender)
+    }
+
     @objc func statisticsButtonTouchedUpInside(_ sender: UIButton) {
         delegate?.statisticsButtonTouchedUpInside(sender)
     }
@@ -397,5 +519,69 @@ final class ThemesCollectionService: NSObject, UICollectionViewDelegate, UIColle
 private extension Array {
     subscript(safe index: Index) -> Element? {
         indices.contains(index) ? self[index] : nil
+    }
+}
+
+private final class InsetLabel: UILabel {
+    private let contentInsets: UIEdgeInsets
+
+    init(contentInsets: UIEdgeInsets) {
+        self.contentInsets = contentInsets
+        super.init(frame: .zero)
+    }
+
+    @available(*, unavailable)
+    required init?(coder: NSCoder) {
+        nil
+    }
+
+    override var intrinsicContentSize: CGSize {
+        let size = super.intrinsicContentSize
+        return CGSize(
+            width: size.width + contentInsets.left + contentInsets.right,
+            height: size.height + contentInsets.top + contentInsets.bottom
+        )
+    }
+
+    override func drawText(in rect: CGRect) {
+        super.drawText(in: rect.inset(by: contentInsets))
+    }
+}
+
+private final class GradientBorderView: UIView {
+    private let gradientLayer = CAGradientLayer()
+    private let borderMaskLayer = CAShapeLayer()
+    private let lineWidth: CGFloat
+
+    init(colors: [UIColor], lineWidth: CGFloat) {
+        self.lineWidth = lineWidth
+        super.init(frame: .zero)
+        isUserInteractionEnabled = false
+        backgroundColor = .clear
+        gradientLayer.colors = colors.map(\.cgColor)
+        gradientLayer.startPoint = CGPoint(x: 0, y: 0.5)
+        gradientLayer.endPoint = CGPoint(x: 1, y: 0.5)
+        gradientLayer.mask = borderMaskLayer
+        layer.addSublayer(gradientLayer)
+    }
+
+    @available(*, unavailable)
+    required init?(coder: NSCoder) {
+        nil
+    }
+
+    override func layoutSubviews() {
+        super.layoutSubviews()
+        gradientLayer.frame = bounds
+        let inset = lineWidth / 2
+        let cornerRadius = max((superview?.layer.cornerRadius ?? 0) - inset, 0)
+        borderMaskLayer.frame = bounds
+        borderMaskLayer.fillColor = UIColor.clear.cgColor
+        borderMaskLayer.strokeColor = UIColor.black.cgColor
+        borderMaskLayer.lineWidth = lineWidth
+        borderMaskLayer.path = UIBezierPath(
+            roundedRect: bounds.insetBy(dx: inset, dy: inset),
+            cornerRadius: cornerRadius
+        ).cgPath
     }
 }
