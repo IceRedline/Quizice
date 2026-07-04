@@ -11,27 +11,40 @@ import SwiftData
 @main
 class AppDelegate: UIResponder, UIApplicationDelegate {
     var window: UIWindow?
-    var modelContainer: ModelContainer!
+    var modelContainer: ModelContainer?
     
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
-        
-        do {
-            let schema = Schema([QuizTheme.self, QuizQuestion.self])
-            modelContainer = try ModelContainer(for: schema)
-            
+        modelContainer = makeModelContainer()
+        if let modelContainer {
             QuizFactory.shared.setModelContext(modelContainer.mainContext)
-        } catch {
-            fatalError("Ошибка создания ModelContainer: \(error)")
         }
-        
         return true
+    }
+
+    /// Attempts to build a persistent SwiftData container and, if that fails
+    /// (e.g. an incompatible store on disk), falls back to an in-memory one so
+    /// the app still launches in a degraded but usable state instead of crashing.
+    private func makeModelContainer() -> ModelContainer? {
+        let schema = Schema([QuizTheme.self, QuizQuestion.self])
+        do {
+            return try ModelContainer(for: schema)
+        } catch {
+            AppLog.persistence.error("Persistent ModelContainer creation failed: \(error, privacy: .public)")
+        }
+
+        do {
+            let inMemoryConfiguration = ModelConfiguration(isStoredInMemoryOnly: true)
+            return try ModelContainer(for: schema, configurations: inMemoryConfiguration)
+        } catch {
+            AppLog.persistence.error("In-memory ModelContainer creation failed: \(error, privacy: .public)")
+            return nil
+        }
     }
     
     // MARK: UISceneSession Lifecycle
     
     func application(_ application: UIApplication, configurationForConnecting connectingSceneSession: UISceneSession, options: UIScene.ConnectionOptions) -> UISceneConfiguration {
-        sleep(1)
-        return UISceneConfiguration(name: "Default Configuration", sessionRole: connectingSceneSession.role)
+        UISceneConfiguration(name: "Default Configuration", sessionRole: connectingSceneSession.role)
     }
     
     func application(_ application: UIApplication, didDiscardSceneSessions sceneSessions: Set<UISceneSession>) {
@@ -41,5 +54,17 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     }
     
     
+}
+
+import OSLog
+
+/// Centralized logging so we never ship `print` calls to production.
+enum AppLog {
+    private static let subsystem = Bundle.main.bundleIdentifier ?? "com.quizice.app"
+
+    static let persistence = Logger(subsystem: subsystem, category: "persistence")
+    static let content = Logger(subsystem: subsystem, category: "content")
+    static let quiz = Logger(subsystem: subsystem, category: "quiz")
+    static let audio = Logger(subsystem: subsystem, category: "audio")
 }
 
