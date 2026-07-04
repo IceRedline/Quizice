@@ -7,7 +7,7 @@
 
 import Foundation
 
-protocol QuizQuestionViewControllerProtocol {
+protocol QuizQuestionViewControllerProtocol: AnyObject {
     var presenter: QuizQuestionPresenterProtocol? { get set }
     
     func updateProgress(_ progress: Float)

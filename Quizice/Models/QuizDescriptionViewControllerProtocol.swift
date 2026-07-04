@@ -7,7 +7,7 @@
 
 import UIKit
 
-protocol QuizDescriptionViewControllerProtocol {
+protocol QuizDescriptionViewControllerProtocol: AnyObject {
     var presenter: QuizDescriptionPresenterProtocol? { get set }
     
     func configurePresenter(_ presenter: QuizDescriptionPresenterProtocol)

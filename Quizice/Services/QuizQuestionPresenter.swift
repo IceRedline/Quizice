@@ -11,7 +11,7 @@ final class QuizQuestionPresenter: QuizQuestionPresenterProtocol {
     private let quizFactory = QuizFactory.shared
     private let statisticsStore = StatisticsStore()
     
-    var view: QuizQuestionViewControllerProtocol?
+    weak var view: QuizQuestionViewControllerProtocol?
     
     private var timer: Timer?
     private var remainingTime: TimeInterval = 20

@@ -8,7 +8,7 @@
 import Foundation
 
 final class QuizResultPresenter: QuizResultPresenterProtocol {
-    var view: QuizResultViewControllerProtocol?
+    weak var view: QuizResultViewControllerProtocol?
     
     var correctAnswers: Int = 0
     var totalQuestions: Int = 0

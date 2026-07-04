@@ -10,7 +10,7 @@ import UIKit
 final class QuizDescriptionPresenter: NSObject, QuizDescriptionPresenterProtocol {
     private let numberOfQuestionsOptions: [Int] = [5, 10, 15]
 
-    var view: QuizDescriptionViewControllerProtocol?
+    weak var view: QuizDescriptionViewControllerProtocol?
 
     var themeName: String = L10n.Description.defaultThemeName
     var themeDescription: String = L10n.Description.defaultThemeDescription

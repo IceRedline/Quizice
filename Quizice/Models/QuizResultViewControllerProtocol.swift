@@ -7,7 +7,7 @@
 
 import Foundation
 
-protocol QuizResultViewControllerProtocol {
+protocol QuizResultViewControllerProtocol: AnyObject {
     var presenter: QuizResultPresenterProtocol? { get set }
     
     func updateResultLabels(resultText: String, descriptionText: String)
