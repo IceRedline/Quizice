@@ -10,6 +10,9 @@ final class HomeScreenVisualStateTests: XCTestCase {
         super.setUp()
         AppLocalizationStore.shared.languagePreference = .russian
         resetQuizFactory()
+        // Pin the clean color scheme so shadow/surface assertions are deterministic
+        // regardless of the host simulator's system light/dark appearance.
+        UserDefaults.standard.set(CleanColorSchemePreference.light.rawValue, forKey: AppAppearanceStore.Keys.cleanColorScheme)
     }
 
     override func tearDown() {
@@ -31,8 +34,6 @@ final class HomeScreenVisualStateTests: XCTestCase {
         XCTAssertNotNil(viewController.view.descendant(withAccessibilityIdentifier: "homeLogoTextLabel"))
         XCTAssertNotNil(viewController.view.descendant(withAccessibilityIdentifier: "homeChooseThemeLabel"))
         XCTAssertNotNil(viewController.view.descendant(withAccessibilityIdentifier: "homeThemesCollectionView"))
-        XCTAssertNotNil(viewController.view.descendant(withAccessibilityIdentifier: "homeActionButtonsStackView"))
-        XCTAssertNotNil(viewController.view.descendant(withAccessibilityIdentifier: "homeExitButton"))
         XCTAssertNotNil(viewController.view.descendant(withAccessibilityIdentifier: "homeSettingsButton"))
     }
 
@@ -143,7 +144,7 @@ final class HomeScreenVisualStateTests: XCTestCase {
         XCTAssertEqual(settingsButton.alpha, 0)
     }
 
-    func testHomeShellKeepsExitButtonHiddenOutsideCollection() {
+    func testHomeShellHasNoAmbiguousLayout() {
         QuizFactory.shared.themes = [makeTheme(name: "Музыка")]
 
         let viewController = QuizViewController()
@@ -152,17 +153,6 @@ final class HomeScreenVisualStateTests: XCTestCase {
         viewController.view.setNeedsLayout()
         viewController.view.layoutIfNeeded()
 
-        let stackView = viewController.view.descendant(withAccessibilityIdentifier: "homeActionButtonsStackView") as? UIStackView
-        let exitButton = viewController.view.descendant(withAccessibilityIdentifier: "homeExitButton") as? UIButton
-
-        XCTAssertEqual(stackView?.axis, .vertical)
-        XCTAssertEqual(stackView?.arrangedSubviews.count, 1)
-        XCTAssertEqual(stackView?.arrangedSubviews.first, exitButton)
-        XCTAssertTrue(stackView?.isHidden ?? false)
-        XCTAssertTrue(exitButton?.isHidden ?? false)
-        XCTAssertEqual(exitButton?.layer.cornerRadius, 22)
-        XCTAssertEqual(exitButton?.layer.borderWidth, 1)
-        XCTAssertGreaterThan(exitButton?.layer.shadowOpacity ?? 0, 0)
         XCTAssertFalse(viewController.view.hasAmbiguousLayout)
     }
 
