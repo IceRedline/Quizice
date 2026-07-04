@@ -7,12 +7,14 @@
 "description.default_theme_description" = "Описание темы недоступно";
 "description.default_theme_name" = "Без темы";
 "description.question_count" = "Количество вопросов";
+
 "ai_theme.error_message" = "Не удалось отправить тему. Попробуйте еще раз.";
 "ai_theme.error_title" = "Тема не отправлена";
 "ai_theme.prompt_placeholder" = "Например: космос, маркетинг, Гарри Поттер или история Японии";
 "ai_theme.submit" = "Отправить тему";
 "ai_theme.subtitle" = "Введите любую тему, и ИИ подготовит под нее вопросы для квиза.";
 "ai_theme.title" = "Создать с ИИ";
+
 "home.choose_theme" = "Выберите тему";
 "home.create_with_ai" = "Создать с ИИ";
 "home.create_with_ai.accessibility_hint" = "Открывает экран создания темы квиза с ИИ";

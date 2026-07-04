@@ -52,6 +52,8 @@
 		99D1000B2E70000100D10001 /* JetBrainsMono.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 99D100072E70000100D10001 /* JetBrainsMono.ttf */; };
 		99D1000C2E70000100D10001 /* RubikPixels-Regular.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 99D100082E70000100D10001 /* RubikPixels-Regular.ttf */; };
 		99D1000D2E70000100D10001 /* Manrope.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 99D100092E70000100D10001 /* Manrope.ttf */; };
+		99E200012E90000100E20001 /* QuizAIThemeCreationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99E200022E90000100E20001 /* QuizAIThemeCreationView.swift */; };
+		99E200032E90000100E20001 /* AIQuizThemeService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99E200042E90000100E20001 /* AIQuizThemeService.swift */; };
 		99FCF0252D969B7F006341F4 /* QuizResultPresenterProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99FCF0242D969B7F006341F4 /* QuizResultPresenterProtocol.swift */; };
 		99FCF0272D969B96006341F4 /* QuizResultPresenter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99FCF0262D969B96006341F4 /* QuizResultPresenter.swift */; };
 		99FCF0292D969CDF006341F4 /* QuizResultViewControllerProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99FCF0282D969CDF006341F4 /* QuizResultViewControllerProtocol.swift */; };
@@ -130,6 +132,8 @@
 		99D100072E70000100D10001 /* JetBrainsMono.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = JetBrainsMono.ttf; sourceTree = "<group>"; };
 		99D100082E70000100D10001 /* RubikPixels-Regular.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "RubikPixels-Regular.ttf"; sourceTree = "<group>"; };
 		99D100092E70000100D10001 /* Manrope.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = Manrope.ttf; sourceTree = "<group>"; };
+		99E200022E90000100E20001 /* QuizAIThemeCreationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuizAIThemeCreationView.swift; sourceTree = "<group>"; };
+		99E200042E90000100E20001 /* AIQuizThemeService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AIQuizThemeService.swift; sourceTree = "<group>"; };
 		99FCF0242D969B7F006341F4 /* QuizResultPresenterProtocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuizResultPresenterProtocol.swift; sourceTree = "<group>"; };
 		99FCF0262D969B96006341F4 /* QuizResultPresenter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuizResultPresenter.swift; sourceTree = "<group>"; };
 		99FCF0282D969CDF006341F4 /* QuizResultViewControllerProtocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuizResultViewControllerProtocol.swift; sourceTree = "<group>"; };
@@ -188,6 +192,7 @@
 				99D100012E70000100D10001 /* AppAppearance.swift */,
 				993C1BD62D8D600E00AD9BE4 /* QuizViewController.swift */,
 				993C1BDF2D8D600E00AD9BE4 /* QuizSettingsView.swift */,
+				99E200022E90000100E20001 /* QuizAIThemeCreationView.swift */,
 				993C1BD22D8D600E00AD9BE4 /* QuizDescriptionViewController.swift */,
 				993C1BD42D8D600E00AD9BE4 /* QuizQuestionViewController.swift */,
 				993C1BD52D8D600E00AD9BE4 /* QuizResultViewController.swift */,
@@ -247,6 +252,7 @@
 				9945AF2D2DA4F27D00B15A77 /* ThemesCollectionService.swift */,
 				9945AF312DA50F6A00B15A77 /* ThemeCollectionDelegate.swift */,
 				993C1BD32D8D600E00AD9BE4 /* QuizFactory.swift */,
+				99E200042E90000100E20001 /* AIQuizThemeService.swift */,
 				9945AF9F2DA5C2CC00B15A77 /* QuizPresenter.swift */,
 				99FCF02A2D96A522006341F4 /* QuizDescriptionPresenter.swift */,
 				993C1BE42D8D668700AD9BE4 /* QuizQuestionPresenter.swift */,
@@ -418,10 +424,12 @@
 				99FCF0272D969B96006341F4 /* QuizResultPresenter.swift in Sources */,
 				99FCF02F2D96A569006341F4 /* QuizDescriptionViewControllerProtocol.swift in Sources */,
 				993C1BE22D8D606100AD9BE4 /* Animations.swift in Sources */,
+				99E200012E90000100E20001 /* QuizAIThemeCreationView.swift in Sources */,
 				99ADC9632D907844006DDC18 /* QuestionModel.swift in Sources */,
 				99A000012E10000100A00001 /* StatisticsSummary.swift in Sources */,
 				99A000032E10000100A00001 /* StatisticsStore.swift in Sources */,
 				99A000052E10000100A00001 /* StatisticsViewController.swift in Sources */,
+				99E200032E90000100E20001 /* AIQuizThemeService.swift in Sources */,
 				9945AF322DA50F6A00B15A77 /* ThemeCollectionDelegate.swift in Sources */,
 				99FCF0252D969B7F006341F4 /* QuizResultPresenterProtocol.swift in Sources */,
 				993C1C232D8F0F6900AD9BE4 /* QuizTheme.swift in Sources */,
