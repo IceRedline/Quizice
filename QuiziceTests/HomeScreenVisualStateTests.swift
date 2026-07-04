@@ -423,10 +423,12 @@ final class HomeScreenVisualStateTests: XCTestCase {
 
     func testMockAIQuizThemeServiceTrimsPromptAndReturnsEmptyQuestions() async throws {
         let service = MockAIQuizThemeService()
+        let locale = Locale(identifier: "ru")
 
-        let theme = try await service.generateQuizTheme(for: "  Космос  \n")
+        let theme = try await service.generateQuizTheme(for: "  Космос  \n", locale: locale)
 
         XCTAssertEqual(service.generatedPrompts, ["Космос"])
+        XCTAssertEqual(service.generatedLocaleIdentifiers, ["ru"])
         XCTAssertEqual(theme.theme, "Космос")
         XCTAssertEqual(theme.themeDescription, "AI generated quiz placeholder")
         XCTAssertTrue(theme.questions.isEmpty)
