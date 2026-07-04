@@ -8,14 +8,6 @@ final class ThemesCollectionService: NSObject, UICollectionViewDelegate, UIColle
         static let feelingLuckyAccessibilityID = "homeFeelingLuckyButton"
         static let statisticsAccessibilityID = "homeStatisticsCard"
 
-        static let musicThemeName = "Музыка"
-        static let technologyThemeName = "Технологии"
-        static let historyThemeName = "История"
-        static let cultureThemeName = "История и культура"
-        static let cultureThemeDisplayTitle = "Культура и история"
-        static let politicsThemeName = "Политика"
-        static let politicsBusinessThemeName = "Политика и бизнес"
-
         static let musicThemeLogoImageName = "theme_logo_music"
         static let technologyThemeLogoImageName = "theme_logo_tech.png"
         static let cultureThemeLogoImageName = "theme_logo_culture.png"
@@ -35,6 +27,13 @@ final class ThemesCollectionService: NSObject, UICollectionViewDelegate, UIColle
         static let politicsThemeTintColorName = "themePoliticsTint"
     }
 
+    private enum ThemeID {
+        static let music = "music"
+        static let technology = "technology"
+        static let historyCulture = "history_culture"
+        static let politicsBusiness = "politics_business"
+    }
+
     private enum Layout {
         static let sectionInsets = UIEdgeInsets(top: 0, left: 24, bottom: 0, right: 24)
         static let itemSpacing: CGFloat = 16
@@ -47,7 +46,7 @@ final class ThemesCollectionService: NSObject, UICollectionViewDelegate, UIColle
         static let themeImageToTitleSpacing: CGFloat = 0
         static let themeTitleHorizontalInset: CGFloat = 8
         static let themeTitleBottomInset: CGFloat = 6
-        static let themeTitleHeight: CGFloat = 48
+        static let themeTitleHeight: CGFloat = 56
         static let cellShadowOffset = CGSize(width: 0, height: 12)
         static let cellShadowRadius: CGFloat = 22
     }
@@ -68,7 +67,6 @@ final class ThemesCollectionService: NSObject, UICollectionViewDelegate, UIColle
         static let descriptionFontSize: CGFloat = 15
         static let luckyFontSize: CGFloat = 19
         static let themeTitleFontSize: CGFloat = 18
-        static let themeTitleMinimumScaleFactor: CGFloat = 0.78
     }
 
     weak var delegate: ThemeCollectionDelegate?
@@ -102,7 +100,7 @@ final class ThemesCollectionService: NSObject, UICollectionViewDelegate, UIColle
         guard let theme = quizFactory.themes?[safe: indexPath.item] else {
             return cell
         }
-        configureThemeCard(in: cell, themeName: theme.theme, appearance: appearance)
+        configureThemeCard(in: cell, theme: theme, appearance: appearance)
         return cell
     }
 
@@ -135,41 +133,42 @@ final class ThemesCollectionService: NSObject, UICollectionViewDelegate, UIColle
         cell.applyShadow(appearance.themeCardShadow)
     }
 
-    private func configureThemeCard(in cell: UICollectionViewCell, themeName: String, appearance: AppAppearance) {
+    private func configureThemeCard(in cell: UICollectionViewCell, theme: QuizTheme, appearance: AppAppearance) {
         let button = UIButton(type: .custom)
-        let themeImageName = themeLogoImageName(for: themeName, appearance: appearance)
-        let themeDisplayTitle = themeDisplayTitle(for: themeName)
-        let themeTintColor = themeTintColor(for: themeName)
+        let themeID = theme.stableID
+        let themeName = theme.theme
+        let themeImageName = themeLogoImageName(for: themeID, appearance: appearance)
+        let themeTintColor = themeTintColor(for: themeID)
 
         button.addTarget(self, action: #selector(buttonTouchedDown(_:)), for: .touchDown)
         button.addTarget(self, action: #selector(buttonTouchedUpInside(_:)), for: .touchUpInside)
         button.addTarget(self, action: #selector(buttonTouchedUpOutside(_:)), for: .touchUpOutside)
-        button.accessibilityIdentifier = themeName
-        button.accessibilityLabel = L10n.ThemeCard.accessibilityLabel(themeName: themeDisplayTitle)
+        button.accessibilityIdentifier = themeID
+        button.accessibilityLabel = L10n.ThemeCard.accessibilityLabel(themeName: themeName)
         button.accessibilityHint = L10n.ThemeCard.accessibilityHint
         button.backgroundColor = appearance.themeCardBackground(baseColor: themeTintColor)
         button.layer.cornerRadius = appearance.themeCardCornerRadius
         button.layer.borderWidth = appearance.themeCardBorderWidth
         button.layer.borderColor = appearance.themeCardBorder(baseColor: themeTintColor).cgColor
         button.clipsToBounds = true
+        button.adjustsImageWhenHighlighted = false
         button.translatesAutoresizingMaskIntoConstraints = false
 
         let imageView = UIImageView(image: UIImage(named: themeImageName))
-        imageView.accessibilityIdentifier = themeImageAccessibilityIdentifier(themeName: themeName)
+        imageView.accessibilityIdentifier = themeImageAccessibilityIdentifier(themeID: themeID)
         imageView.contentMode = .scaleAspectFit
         imageView.isUserInteractionEnabled = false
         imageView.translatesAutoresizingMaskIntoConstraints = false
 
         let titleLabel = UILabel()
-        titleLabel.accessibilityIdentifier = themeTitleAccessibilityIdentifier(themeName: themeName)
-        titleLabel.text = themeDisplayTitle
+        titleLabel.accessibilityIdentifier = themeTitleAccessibilityIdentifier(themeID: themeID)
+        titleLabel.text = themeName
         titleLabel.textColor = appearance.themeCardTextColor(baseColor: themeTintColor)
         titleLabel.font = appearance.typography.font(size: Appearance.themeTitleFontSize, weight: .semibold)
         titleLabel.textAlignment = .center
         titleLabel.numberOfLines = 2
         titleLabel.lineBreakMode = .byWordWrapping
-        titleLabel.adjustsFontSizeToFitWidth = true
-        titleLabel.minimumScaleFactor = Appearance.themeTitleMinimumScaleFactor
+        titleLabel.adjustsFontSizeToFitWidth = false
         titleLabel.isUserInteractionEnabled = false
         titleLabel.translatesAutoresizingMaskIntoConstraints = false
 
@@ -287,91 +286,80 @@ final class ThemesCollectionService: NSObject, UICollectionViewDelegate, UIColle
         ])
     }
 
-    private func themeImageAccessibilityIdentifier(themeName: String) -> String {
-        "\(Content.themeImageAccessibilityIDPrefix)-\(themeName)"
+    private func themeImageAccessibilityIdentifier(themeID: String) -> String {
+        "\(Content.themeImageAccessibilityIDPrefix)-\(themeID)"
     }
 
-    private func themeTitleAccessibilityIdentifier(themeName: String) -> String {
-        "\(Content.themeTitleAccessibilityIDPrefix)-\(themeName)"
+    private func themeTitleAccessibilityIdentifier(themeID: String) -> String {
+        "\(Content.themeTitleAccessibilityIDPrefix)-\(themeID)"
     }
 
-    private func themeDisplayTitle(for themeName: String) -> String {
-        switch themeName {
-        case Content.historyThemeName, Content.cultureThemeName:
-            return Content.cultureThemeDisplayTitle
-        case Content.politicsThemeName:
-            return Content.politicsBusinessThemeName
-        default:
-            return themeName
-        }
-    }
-
-    private func themeLogoImageName(for themeName: String, appearance: AppAppearance) -> String {
+    private func themeLogoImageName(for themeID: String, appearance: AppAppearance) -> String {
         switch appearance.designStyle {
         case .clean:
-            return cleanThemeLogoImageName(for: themeName)
+            return cleanThemeLogoImageName(for: themeID)
         case .radar:
-            return radarThemeLogoImageName(for: themeName)
+            return radarThemeLogoImageName(for: themeID)
         case .pixel, .classic:
-            return classicThemeLogoImageName(for: themeName)
+            return classicThemeLogoImageName(for: themeID)
         }
     }
 
-    private func cleanThemeLogoImageName(for themeName: String) -> String {
-        switch themeName {
-        case Content.musicThemeName:
+    private func cleanThemeLogoImageName(for themeID: String) -> String {
+        switch themeID {
+        case ThemeID.music:
             return Content.musicThemeLogoCleanImageName
-        case Content.technologyThemeName:
+        case ThemeID.technology:
             return Content.technologyThemeLogoCleanImageName
-        case Content.historyThemeName, Content.cultureThemeName, Content.cultureThemeDisplayTitle:
+        case ThemeID.historyCulture:
             return Content.cultureThemeLogoCleanImageName
-        case Content.politicsThemeName, Content.politicsBusinessThemeName:
+        case ThemeID.politicsBusiness:
             return Content.politicsThemeLogoCleanImageName
         default:
-            return themeName
+            return themeID
         }
     }
 
-    private func radarThemeLogoImageName(for themeName: String) -> String {
-        switch themeName {
-        case Content.musicThemeName:
+    private func radarThemeLogoImageName(for themeID: String) -> String {
+        switch themeID {
+        case ThemeID.music:
             return Content.musicThemeLogoRadarImageName
-        case Content.technologyThemeName:
+        case ThemeID.technology:
             return Content.technologyThemeLogoRadarImageName
-        case Content.historyThemeName, Content.cultureThemeName, Content.cultureThemeDisplayTitle:
+        case ThemeID.historyCulture:
             return Content.cultureThemeLogoRadarImageName
-        case Content.politicsThemeName, Content.politicsBusinessThemeName:
+        case ThemeID.politicsBusiness:
             return Content.politicsThemeLogoRadarImageName
         default:
-            return themeName
+            return themeID
         }
     }
 
-    private func classicThemeLogoImageName(for themeName: String) -> String {
-        switch themeName {
-        case Content.musicThemeName:
+    private func classicThemeLogoImageName(for themeID: String) -> String {
+        switch themeID {
+        case ThemeID.music:
             return Content.musicThemeLogoImageName
-        case Content.technologyThemeName:
+        case ThemeID.technology:
             return Content.technologyThemeLogoImageName
-        case Content.historyThemeName, Content.cultureThemeName, Content.cultureThemeDisplayTitle:
+        case ThemeID.historyCulture:
             return Content.cultureThemeLogoImageName
-        case Content.politicsThemeName, Content.politicsBusinessThemeName:
+        case ThemeID.politicsBusiness:
             return Content.politicsThemeLogoImageName
         default:
-            return themeName
+            return themeID
         }
     }
 
-    private func themeTintColor(for themeName: String) -> UIColor {
+    private func themeTintColor(for themeID: String) -> UIColor {
         let colorName: String
-        switch themeName {
-        case Content.musicThemeName:
+        switch themeID {
+        case ThemeID.music:
             colorName = Content.musicThemeTintColorName
-        case Content.technologyThemeName:
+        case ThemeID.technology:
             colorName = Content.technologyThemeTintColorName
-        case Content.historyThemeName, Content.cultureThemeName, Content.cultureThemeDisplayTitle:
+        case ThemeID.historyCulture:
             colorName = Content.cultureThemeTintColorName
-        case Content.politicsThemeName, Content.politicsBusinessThemeName:
+        case ThemeID.politicsBusiness:
             colorName = Content.politicsThemeTintColorName
         default:
             return .white
@@ -386,10 +374,10 @@ final class ThemesCollectionService: NSObject, UICollectionViewDelegate, UIColle
 
     @objc func buttonTouchedUpInside(_ sender: UIButton) {
         guard
-            let themeName = sender.accessibilityIdentifier,
-            quizFactory.themes?.contains(where: { $0.theme == themeName }) == true
+            let themeID = sender.accessibilityIdentifier,
+            quizFactory.themes?.contains(where: { $0.stableID == themeID }) == true
         else { return }
-        delegate?.themeButtonTouchedUpInside(sender, themeName: themeName)
+        delegate?.themeButtonTouchedUpInside(sender, themeID: themeID)
     }
 
     @objc func buttonTouchedUpOutside(_ sender: UIButton) {

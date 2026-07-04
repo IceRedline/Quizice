@@ -102,6 +102,7 @@ final class StatisticsViewController: UIViewController {
     private var rowTitleLabels: [UILabel] = []
     private let appearanceStore = AppAppearanceStore.shared
     private var appearanceObserver: NSObjectProtocol?
+    private var localizationObserver: NSObjectProtocol?
     
     private var playedQuizzesRow: UIView!
     private var correctAnswersRow: UIView!
@@ -133,11 +134,15 @@ final class StatisticsViewController: UIViewController {
         installAppearanceObserver()
         installAppearanceTraitObserver()
         title = L10n.Statistics.title
+        installLocalizationObserver()
     }
 
     deinit {
         if let appearanceObserver {
             NotificationCenter.default.removeObserver(appearanceObserver)
+        }
+        if let localizationObserver {
+            NotificationCenter.default.removeObserver(localizationObserver)
         }
     }
 
@@ -431,6 +436,39 @@ final class StatisticsViewController: UIViewController {
         percentageRow.accessibilityValue = percentageDisplay
         bestResultRow.accessibilityLabel = L10n.Statistics.bestResult
         bestResultRow.accessibilityValue = bestResultDisplay
+    }
+
+    private func installLocalizationObserver() {
+        localizationObserver = NotificationCenter.default.addObserver(
+            forName: .appLocalizationDidChange,
+            object: nil,
+            queue: .main
+        ) { [weak self] _ in
+            self?.applyLocalizedStrings()
+        }
+    }
+
+    private func applyLocalizedStrings() {
+        guard isViewLoaded else { return }
+        title = L10n.Statistics.title
+        view.accessibilityLabel = L10n.Statistics.accessibilityLabel
+        backButton.setTitle(L10n.Common.back, for: .normal)
+        backButton.accessibilityLabel = L10n.Common.back
+        titleLabel.text = L10n.Statistics.title
+        titleLabel.accessibilityLabel = L10n.Statistics.title
+        emptyStateLabel.text = L10n.Statistics.emptyStateText
+        emptyStateLabel.accessibilityLabel = L10n.Statistics.emptyStateAccessibilityLabel
+
+        let titles = [
+            L10n.Statistics.playedQuizzes,
+            L10n.Statistics.correctAnswers,
+            L10n.Statistics.percentage,
+            L10n.Statistics.bestResult
+        ]
+        for (index, label) in rowTitleLabels.enumerated() where titles.indices.contains(index) {
+            label.text = titles[index]
+        }
+        render(summary: statisticsStore.loadSummary())
     }
 }
 

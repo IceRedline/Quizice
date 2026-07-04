@@ -5,6 +5,7 @@ import XCTest
 final class CrossScreenVisualStateTests: XCTestCase {
     override func setUp() {
         super.setUp()
+        AppLocalizationStore.shared.languagePreference = .russian
         resetQuestionFactoryState()
         UserDefaults.standard.set(AppDesignStyle.clean.rawValue, forKey: AppAppearanceStore.Keys.designStyle)
         UIView.setAnimationsEnabled(false)
@@ -13,6 +14,7 @@ final class CrossScreenVisualStateTests: XCTestCase {
     override func tearDown() {
         UIView.setAnimationsEnabled(true)
         resetQuestionFactoryState()
+        UserDefaults.standard.removeObject(forKey: AppLocalizationStore.Keys.language)
         super.tearDown()
     }
 
@@ -47,10 +49,10 @@ final class CrossScreenVisualStateTests: XCTestCase {
         XCTAssertGreaterThan(cardView.layer.shadowOpacity, 0)
         XCTAssertEqual(descriptionLabel.numberOfLines, 0)
         XCTAssertEqual(pickerView.layer.cornerRadius, 22)
-        XCTAssertEqual(startButton.title(for: .normal), "Начать")
+        XCTAssertEqual(startButton.title(for: .normal), L10n.Common.start)
         XCTAssertEqual(startButton.layer.cornerRadius, 24)
         XCTAssertGreaterThan(startButton.layer.shadowOpacity, 0)
-        XCTAssertEqual(backButton.title(for: .normal), "Назад")
+        XCTAssertEqual(backButton.title(for: .normal), L10n.Common.back)
         XCTAssertEqual(backButton.layer.cornerRadius, 22)
         XCTAssertEqual(backButton.layer.borderWidth, 1)
     }
@@ -228,7 +230,7 @@ final class CrossScreenVisualStateTests: XCTestCase {
         XCTAssertGreaterThan(cardView.layer.shadowOpacity, 0)
         XCTAssertEqual(resultLabel.numberOfLines, 0)
         XCTAssertEqual(descriptionLabel.numberOfLines, 0)
-        XCTAssertEqual(restartButton.title(for: .normal), "Начать заново")
+        XCTAssertEqual(restartButton.title(for: .normal), L10n.Result.restart)
         XCTAssertTrue(restartButton.isEnabled)
         XCTAssertEqual(restartButton.layer.cornerRadius, 24)
         XCTAssertEqual(restartButton.layer.borderWidth, 1)
@@ -295,7 +297,7 @@ final class CrossScreenVisualStateTests: XCTestCase {
         XCTAssertEqual(cardView.layer.cornerRadius, 30)
         XCTAssertEqual(cardView.layer.borderWidth, 1)
         XCTAssertGreaterThan(cardView.layer.shadowOpacity, 0)
-        XCTAssertEqual(backButton.title(for: .normal), "Назад")
+        XCTAssertEqual(backButton.title(for: .normal), L10n.Common.back)
         XCTAssertEqual(backButton.layer.cornerRadius, 22)
         XCTAssertEqual(backButton.layer.borderWidth, 1)
         XCTAssertFalse(viewController.view.hasAmbiguousLayout)
