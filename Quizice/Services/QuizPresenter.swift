@@ -8,7 +8,7 @@
 import Foundation
 
 final class QuizPresenter: QuizPresenterProtocol {
-    var view: QuizViewControllerProtocol?
+    weak var view: QuizViewControllerProtocol?
 
     func configureDescriptionPresenter(viewController: QuizDescriptionViewController) {
         viewController.configurePresenter(QuizDescriptionPresenter())
