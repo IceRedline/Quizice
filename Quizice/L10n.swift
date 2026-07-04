@@ -2,12 +2,12 @@ import Foundation
 
 enum L10n {
     private static func localized(_ key: String, comment: String) -> String {
-        NSLocalizedString(key, comment: comment)
+        AppLocalizationStore.shared.localizedBundle.localizedString(forKey: key, value: nil, table: "Localizable")
     }
 
     private static func formatted(_ key: String, comment: String, _ arguments: CVarArg...) -> String {
         let format = localized(key, comment: comment)
-        return String(format: format, locale: Locale.current, arguments: arguments)
+        return String(format: format, locale: AppLocalizationStore.shared.resolvedLocale, arguments: arguments)
     }
 
     enum Common {
@@ -27,6 +27,9 @@ enum L10n {
 
     enum Home {
         static var chooseTheme: String { L10n.localized("home.choose_theme", comment: "Home screen theme selection title") }
+        static var createWithAI: String { L10n.localized("home.create_with_ai", comment: "Create quiz theme with AI button title") }
+        static var createWithAIAccessibilityHint: String { L10n.localized("home.create_with_ai.accessibility_hint", comment: "Create quiz theme with AI accessibility hint") }
+        static var createWithAIBetaBadge: String { L10n.localized("home.create_with_ai.beta_badge", comment: "Create quiz theme with AI beta badge") }
         static var exitAlertMessage: String { L10n.localized("home.exit_alert.message", comment: "Exit confirmation message") }
         static var feelingLucky: String { L10n.localized("home.feeling_lucky", comment: "Feeling lucky random theme button title") }
         static var feelingLuckyAccessibilityHint: String { L10n.localized("home.feeling_lucky.accessibility_hint", comment: "Feeling lucky button accessibility hint") }
@@ -36,6 +39,15 @@ enum L10n {
         static var themesCollectionAccessibilityLabel: String { L10n.localized("home.themes_collection.accessibility_label", comment: "Home themes collection accessibility label") }
         static var unavailableThemes: String { L10n.localized("home.unavailable_themes", comment: "Home screen empty themes title") }
         static var welcome: String { L10n.localized("home.welcome", comment: "Home screen welcome text") }
+    }
+
+    enum AITheme {
+        static var errorMessage: String { L10n.localized("ai_theme.error_message", comment: "AI theme creation error message") }
+        static var errorTitle: String { L10n.localized("ai_theme.error_title", comment: "AI theme creation error title") }
+        static var promptPlaceholder: String { L10n.localized("ai_theme.prompt_placeholder", comment: "AI theme prompt placeholder") }
+        static var submit: String { L10n.localized("ai_theme.submit", comment: "AI theme creation submit button title") }
+        static var subtitle: String { L10n.localized("ai_theme.subtitle", comment: "AI theme creation subtitle") }
+        static var title: String { L10n.localized("ai_theme.title", comment: "AI theme creation screen title") }
     }
 
     enum Question {
@@ -77,6 +89,8 @@ enum L10n {
         static var done: String { L10n.localized("settings.done", comment: "Settings done button title") }
         static var icon: String { L10n.localized("settings.icon", comment: "Settings app icon row title") }
         static var iconSubtitle: String { L10n.localized("settings.icon.subtitle", comment: "Settings app icon row subtitle") }
+        static var language: String { L10n.localized("settings.language", comment: "Settings app language row title") }
+        static var languageSubtitle: String { L10n.localized("settings.language.subtitle", comment: "Settings app language row subtitle") }
         static var profile: String { L10n.localized("settings.profile", comment: "Settings profile row title") }
         static var profileSectionTitle: String { L10n.localized("settings.section.profile", comment: "Settings profile section title") }
         static var profileSubtitle: String { L10n.localized("settings.profile.subtitle", comment: "Settings profile row subtitle") }
@@ -105,6 +119,10 @@ enum L10n {
             static var dark: String { L10n.localized("settings.theme.dark", comment: "Dark app theme option title") }
             static var light: String { L10n.localized("settings.theme.light", comment: "Light app theme option title") }
             static var system: String { L10n.localized("settings.theme.system", comment: "System app theme option title") }
+        }
+
+        enum Language {
+            static var system: String { L10n.localized("settings.language.system", comment: "System app language option title") }
         }
 
         enum Design {

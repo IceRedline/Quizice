@@ -121,6 +121,7 @@ struct QuizSettingsView: View {
     @Environment(\.colorScheme) private var colorScheme
     @AppStorage(AppAppearanceStore.Keys.cleanColorScheme) private var selectedThemeID = CleanColorSchemePreference.system.rawValue
     @AppStorage(AppAppearanceStore.Keys.designStyle) private var selectedDesignStyleID = AppDesignStyle.defaultStyle.rawValue
+    @AppStorage(AppLocalizationStore.Keys.language) private var selectedLanguageID = AppLanguagePreference.system.rawValue
     @AppStorage("quizice.settings.icon") private var selectedIconID = AppIcon.classic.rawValue
     @State private var activeAlert: SettingsAlert?
 
@@ -134,6 +135,10 @@ struct QuizSettingsView: View {
             style.isSelectable
         else { return AppDesignStyle.defaultStyle }
         return style
+    }
+
+    private var selectedLanguage: AppLanguagePreference {
+        AppLanguagePreference(rawValue: selectedLanguageID) ?? .system
     }
 
     private var selectedIcon: AppIcon {
@@ -255,6 +260,25 @@ struct QuizSettingsView: View {
                     title: L10n.Settings.design,
                     subtitle: L10n.Settings.designSubtitle,
                     value: selectedDesignStyle.title
+                )
+            }
+            .buttonStyle(.plain)
+
+            Divider()
+                .background(Color(uiColor: appearance.card.borderColor))
+
+            Menu {
+                ForEach(AppLanguagePreference.allCases) { language in
+                    Button(language.title) {
+                        AppLocalizationStore.shared.languagePreference = language
+                    }
+                }
+            } label: {
+                SettingsValueRow(
+                    systemImage: "globe",
+                    title: L10n.Settings.language,
+                    subtitle: L10n.Settings.languageSubtitle,
+                    value: selectedLanguage.title
                 )
             }
             .buttonStyle(.plain)

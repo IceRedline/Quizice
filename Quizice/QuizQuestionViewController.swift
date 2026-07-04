@@ -174,6 +174,7 @@ final class QuizQuestionViewController: UIViewController, QuizQuestionViewContro
     private var soundOfIncorrectAnswerPlayer: AVAudioPlayer!
     private let appearanceStore = AppAppearanceStore.shared
     private var appearanceObserver: NSObjectProtocol?
+    private var localizationObserver: NSObjectProtocol?
     
     var presenter: QuizQuestionPresenterProtocol?
     
@@ -197,6 +198,8 @@ final class QuizQuestionViewController: UIViewController, QuizQuestionViewContro
         loadAnswerSounds()
         configurePresenter(QuizQuestionPresenter())
         presenter?.viewDidLoad()
+        installLocalizationObserver()
+
         hapticFeedback.prepare()
     }
 
@@ -204,7 +207,12 @@ final class QuizQuestionViewController: UIViewController, QuizQuestionViewContro
         if let appearanceObserver {
             NotificationCenter.default.removeObserver(appearanceObserver)
         }
+        if let localizationObserver {
+            NotificationCenter.default.removeObserver(localizationObserver)
+        }
     }
+
+    // MARK: - Timer methods
 
     func updateProgress(_ progress: Float) {
         timerBar.progress = progress
@@ -714,6 +722,22 @@ final class QuizQuestionViewController: UIViewController, QuizQuestionViewContro
     @IBAction func backButtonTapped() {
         dismiss(animated: true)
         presenter?.resetGameProgress()
+    }
+
+    private func installLocalizationObserver() {
+        localizationObserver = NotificationCenter.default.addObserver(
+            forName: .appLocalizationDidChange,
+            object: nil,
+            queue: .main
+        ) { [weak self] _ in
+            self?.applyLocalizedStrings()
+        }
+    }
+
+    private func applyLocalizedStrings() {
+        guard isViewLoaded else { return }
+        nextButton.setTitle(L10n.Common.next, for: .normal)
+        backButton.setTitle(L10n.Common.back, for: .normal)
     }
 }
 

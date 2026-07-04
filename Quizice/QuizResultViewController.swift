@@ -65,6 +65,7 @@ final class QuizResultViewController: UIViewController, QuizResultViewController
     private var restartButton: UIButton!
     private let appearanceStore = AppAppearanceStore.shared
     private var appearanceObserver: NSObjectProtocol?
+    private var localizationObserver: NSObjectProtocol?
     
     var presenter: QuizResultPresenterProtocol?
     
@@ -82,11 +83,15 @@ final class QuizResultViewController: UIViewController, QuizResultViewController
         installAppearanceObserver()
         installAppearanceTraitObserver()
         presenter?.viewDidLoad()
+        installLocalizationObserver()
     }
 
     deinit {
         if let appearanceObserver {
             NotificationCenter.default.removeObserver(appearanceObserver)
+        }
+        if let localizationObserver {
+            NotificationCenter.default.removeObserver(localizationObserver)
         }
     }
 
@@ -254,6 +259,22 @@ final class QuizResultViewController: UIViewController, QuizResultViewController
         navigationController.setNavigationBarHidden(true, animated: false)
         view.window?.rootViewController = navigationController
         view.window?.makeKeyAndVisible()
+    }
+
+    private func installLocalizationObserver() {
+        localizationObserver = NotificationCenter.default.addObserver(
+            forName: .appLocalizationDidChange,
+            object: nil,
+            queue: .main
+        ) { [weak self] _ in
+            self?.applyLocalizedStrings()
+        }
+    }
+
+    private func applyLocalizedStrings() {
+        guard isViewLoaded else { return }
+        restartButton.setTitle(L10n.Result.restart, for: .normal)
+        presenter?.viewDidLoad()
     }
 }
 
