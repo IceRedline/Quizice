@@ -143,6 +143,7 @@ final class QuizViewController: UIViewController, QuizViewControllerProtocol, Th
     private var soundPlayer: AVAudioPlayer!
     private let appearanceStore = AppAppearanceStore.shared
     private var appearanceObserver: NSObjectProtocol?
+    private var localizationObserver: NSObjectProtocol?
 
     private let themesCollectionService = ThemesCollectionService()
     var presenter: QuizPresenterProtocol?
@@ -176,12 +177,16 @@ final class QuizViewController: UIViewController, QuizViewControllerProtocol, Th
         configurePresenter(QuizPresenter())
 
         configureThemesCollectionService()
+        installLocalizationObserver()
         updateThemeAvailabilityMessage()
     }
 
     deinit {
         if let appearanceObserver {
             NotificationCenter.default.removeObserver(appearanceObserver)
+        }
+        if let localizationObserver {
+            NotificationCenter.default.removeObserver(localizationObserver)
         }
     }
 
@@ -546,9 +551,9 @@ final class QuizViewController: UIViewController, QuizViewControllerProtocol, Th
         animationsEngine.animateDownFloat(sender)
     }
 
-    func themeButtonTouchedUpInside(_ sender: UIButton, themeName: String) {
+    func themeButtonTouchedUpInside(_ sender: UIButton, themeID: String) {
         animationsEngine.animateUpFloat(sender)
-        guard QuizFactory.shared.loadTheme(themeName: themeName) else {
+        guard QuizFactory.shared.loadTheme(themeID: themeID) else {
             updateThemeAvailabilityMessage()
             return
         }
@@ -583,8 +588,8 @@ final class QuizViewController: UIViewController, QuizViewControllerProtocol, Th
 
     private func startRandomTheme() {
         guard
-            let theme = QuizFactory.shared.themes?.randomElement()?.theme,
-            QuizFactory.shared.loadTheme(themeName: theme)
+            let themeID = QuizFactory.shared.themes?.randomElement()?.stableID,
+            QuizFactory.shared.loadTheme(themeID: themeID)
         else {
             updateThemeAvailabilityMessage()
             return
@@ -613,6 +618,27 @@ final class QuizViewController: UIViewController, QuizViewControllerProtocol, Th
             sheetPresentationController.prefersGrabberVisible = true
         }
         present(viewController, animated: true)
+    }
+
+    private func installLocalizationObserver() {
+        localizationObserver = NotificationCenter.default.addObserver(
+            forName: .appLocalizationDidChange,
+            object: nil,
+            queue: .main
+        ) { [weak self] _ in
+            self?.applyLocalizedStrings()
+        }
+    }
+
+    private func applyLocalizedStrings() {
+        guard isViewLoaded else { return }
+        welcomeLabel.text = L10n.Home.welcome
+        exitButton.setTitle(L10n.Common.exit, for: .normal)
+        exitButton.accessibilityLabel = L10n.Common.exit
+        settingsButton.accessibilityLabel = L10n.Settings.title
+        themesCollectionView.accessibilityLabel = L10n.Home.themesCollectionAccessibilityLabel
+        updateThemeAvailabilityMessage()
+        themesCollectionView.reloadData()
     }
 }
 

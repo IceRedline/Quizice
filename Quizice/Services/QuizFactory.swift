@@ -10,55 +10,83 @@ import SwiftData
 import CryptoKit
 
 final class QuizFactory {
+    private enum Content {
+        static let dataResourceName = "data"
+        static let dataResourceExtension = "json"
+        static let localizedDataHashKey = "quizice.localizedDataHashKey"
+    }
     
     static let shared = QuizFactory()
     
     private var modelContainer: ModelContainer!
     private var modelContext: ModelContext!
+    private var localizationObserver: NSObjectProtocol?
     
     var themes: [QuizTheme]?
     var chosenTheme: ThemeModel?
     var questionsCount: Int = 5
     var startup1st: Bool = true
     
-    private init() {}
+    private init() {
+        localizationObserver = NotificationCenter.default.addObserver(
+            forName: .appLocalizationDidChange,
+            object: nil,
+            queue: .main
+        ) { [weak self] _ in
+            self?.reloadDataForLocalizationChange()
+        }
+    }
     
     func setModelContext(_ context: ModelContext) {
         self.modelContext = context
     }
     
     @discardableResult
-    func loadTheme(themeName: String) -> Bool {
+    func loadTheme(themeID: String) -> Bool {
         guard
             let loadedThemes = themes,
-            let chosenTheme = loadedThemes.first(where: { $0.theme == themeName})
+            let chosenTheme = loadedThemes.first(where: { $0.stableID == themeID })
         else {
-            print("не удалось определить выбранную тему, переданный текст: \(themeName)")
+            print("Failed to resolve selected theme id: \(themeID)")
             return false
         }
         self.chosenTheme = ThemeModel(quizTheme: chosenTheme)
         return true
     }
     
-    func loadData() {
+    @discardableResult
+    func loadTheme(themeName: String) -> Bool {
+        guard
+            let loadedThemes = themes,
+            let chosenTheme = loadedThemes.first(where: { $0.theme == themeName || $0.stableID == themeName })
+        else {
+            print("Failed to resolve selected theme: \(themeName)")
+            return false
+        }
+        self.chosenTheme = ThemeModel(quizTheme: chosenTheme)
+        return true
+    }
+
+    func loadData(forceReload: Bool = false) {
         let existingThemes = fetchQuizThemes()
-        let jsonHashKey = "jsonHashKey"
+        let languageCode = AppLocalizationStore.shared.resolvedLanguageCode
         
-        if let url = Bundle.main.url(forResource: "data", withExtension: "json"),
+        if let url = localizedDataURL(),
            let data = try? Data(contentsOf: url) {
             
             let newHash = sha256Hash(for: data)
-            let savedHash = UserDefaults.standard.string(forKey: jsonHashKey)
+            let localizedHash = "\(languageCode):\(newHash)"
+            let savedHash = UserDefaults.standard.string(forKey: Content.localizedDataHashKey)
             
-            if newHash == savedHash, !existingThemes.isEmpty {
-                print("JSON не изменился. Загружаем темы из SwiftData: \(existingThemes.count) штуки")
+            if !forceReload, localizedHash == savedHash, !existingThemes.isEmpty {
+                print("JSON is unchanged. Loading themes from SwiftData: \(existingThemes.count)")
                 themes = existingThemes
                 return
             }
             
             do {
                 let decodedData = try JSONDecoder().decode([QuizTheme].self, from: data)
-                print("JSON декодирован")
+                print("Localized JSON decoded for language: \(languageCode)")
                 
                 clearSwiftData(context: modelContext)
                 
@@ -66,16 +94,17 @@ final class QuizFactory {
                     modelContext.insert(theme)
                 }
                 try? modelContext.save()
-                print("JSON загружен и темы сохранены в SwiftData")
+                print("Localized JSON loaded and saved to SwiftData")
                 
-                UserDefaults.standard.set(newHash, forKey: jsonHashKey)
+                UserDefaults.standard.set(localizedHash, forKey: Content.localizedDataHashKey)
                 
                 themes = decodedData
+                chosenTheme = nil
             } catch {
-                print("Ошибка декодирования JSON: \(error)")
+                print("JSON decoding error: \(error)")
             }
         } else {
-            print("Ошибка: JSON не найден")
+            print("Error: localized JSON not found")
         }
     }
     
@@ -96,9 +125,24 @@ final class QuizFactory {
                 context.delete(theme)
             }
             try context.save()
-            print("SwiftData очищена!")
+            print("SwiftData cleared")
         } catch {
-            print("Ошибка при очистке базы: \(error)")
+            print("Database clearing error: \(error)")
         }
+    }
+
+    private func localizedDataURL() -> URL? {
+        AppLocalizationStore.shared.localizedBundle.url(
+            forResource: Content.dataResourceName,
+            withExtension: Content.dataResourceExtension
+        ) ?? Bundle.main.url(
+            forResource: Content.dataResourceName,
+            withExtension: Content.dataResourceExtension
+        )
+    }
+
+    private func reloadDataForLocalizationChange() {
+        guard modelContext != nil else { return }
+        loadData(forceReload: true)
     }
 }
