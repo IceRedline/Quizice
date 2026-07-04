@@ -8,12 +8,14 @@ final class HomeScreenVisualStateTests: XCTestCase {
 
     override func setUp() {
         super.setUp()
+        AppLocalizationStore.shared.languagePreference = .russian
         resetQuizFactory()
     }
 
     override func tearDown() {
         testWindows = []
         resetQuizFactory()
+        UserDefaults.standard.removeObject(forKey: AppLocalizationStore.Keys.language)
         super.tearDown()
     }
 
@@ -190,7 +192,7 @@ final class HomeScreenVisualStateTests: XCTestCase {
         viewController.loadViewIfNeeded()
 
         let label = viewController.view.descendant(withAccessibilityIdentifier: "homeChooseThemeLabel") as? UILabel
-        XCTAssertEqual(label?.text, "Темы пока недоступны")
+        XCTAssertEqual(label?.text, L10n.Home.unavailableThemes)
     }
 
     func testCollectionServiceKeepsStatisticsCardAfterThemeItems() {
@@ -205,8 +207,8 @@ final class HomeScreenVisualStateTests: XCTestCase {
         let feelingLuckyCell = service.collectionView(collectionView, cellForItemAt: IndexPath(item: 2, section: 0))
         let statisticsCell = service.collectionView(collectionView, cellForItemAt: IndexPath(item: 3, section: 0))
 
-        XCTAssertNotNil(firstThemeCell.contentView.descendant(withAccessibilityIdentifier: "Музыка"))
-        XCTAssertNotNil(secondThemeCell.contentView.descendant(withAccessibilityIdentifier: "Технологии"))
+        XCTAssertNotNil(firstThemeCell.contentView.descendant(withAccessibilityIdentifier: "music"))
+        XCTAssertNotNil(secondThemeCell.contentView.descendant(withAccessibilityIdentifier: "technology"))
         XCTAssertNotNil(feelingLuckyCell.contentView.descendant(withAccessibilityIdentifier: "homeFeelingLuckyButton"))
         XCTAssertNotNil(statisticsCell.contentView.descendant(withAccessibilityIdentifier: "homeStatisticsCard"))
     }
@@ -240,10 +242,10 @@ final class HomeScreenVisualStateTests: XCTestCase {
     func testCollectionServiceThemeCardShowsImageAboveThemeTitle() throws {
         useDesignStyle(.clean)
         let themeAssets = [
-            (themeName: "Музыка", displayTitle: "Музыка", assetName: "theme_logo_music_clean", tintColorName: "themeMusicTint"),
-            (themeName: "Технологии", displayTitle: "Технологии", assetName: "theme_logo_tech_clean", tintColorName: "themeTechnologyTint"),
-            (themeName: "История и культура", displayTitle: "Культура и история", assetName: "theme_logo_culture_clean", tintColorName: "themeCultureTint"),
-            (themeName: "Политика", displayTitle: "Политика и бизнес", assetName: "theme_logo_politics_clean", tintColorName: "themePoliticsTint")
+            (themeID: "music", themeName: "Музыка", assetName: "theme_logo_music_clean", tintColorName: "themeMusicTint"),
+            (themeID: "technology", themeName: "Технологии", assetName: "theme_logo_tech_clean", tintColorName: "themeTechnologyTint"),
+            (themeID: "history_culture", themeName: "История и культура", assetName: "theme_logo_culture_clean", tintColorName: "themeCultureTint"),
+            (themeID: "politics_business", themeName: "Политика и бизнес", assetName: "theme_logo_politics_clean", tintColorName: "themePoliticsTint")
         ]
         QuizFactory.shared.themes = themeAssets.map { makeTheme(name: $0.themeName) }
         let service = ThemesCollectionService()
@@ -256,26 +258,32 @@ final class HomeScreenVisualStateTests: XCTestCase {
             themeCell.layoutIfNeeded()
             themeCell.contentView.layoutIfNeeded()
 
-            let imageView = try XCTUnwrap(themeCell.contentView.descendant(withAccessibilityIdentifier: "homeThemeImageView-\(themeAsset.themeName)") as? UIImageView)
-            let titleLabel = try XCTUnwrap(themeCell.contentView.descendant(withAccessibilityIdentifier: "homeThemeTitleLabel-\(themeAsset.themeName)") as? UILabel)
-            let themeButton = try XCTUnwrap(themeCell.contentView.descendant(withAccessibilityIdentifier: themeAsset.themeName) as? UIButton)
+            let imageView = try XCTUnwrap(themeCell.contentView.descendant(withAccessibilityIdentifier: "homeThemeImageView-\(themeAsset.themeID)") as? UIImageView)
+            let titleLabel = try XCTUnwrap(themeCell.contentView.descendant(withAccessibilityIdentifier: "homeThemeTitleLabel-\(themeAsset.themeID)") as? UILabel)
+            let themeButton = try XCTUnwrap(themeCell.contentView.descendant(withAccessibilityIdentifier: themeAsset.themeID) as? UIButton)
             let expectedImage = try XCTUnwrap(UIImage(named: themeAsset.assetName))
             let tintColor = try XCTUnwrap(UIColor(named: themeAsset.tintColorName))
 
             XCTAssertEqual(imageView.image?.pngData(), expectedImage.pngData())
             XCTAssertEqual(imageView.contentMode, .scaleAspectFit)
-            XCTAssertEqual(titleLabel.text, themeAsset.displayTitle)
+            XCTAssertEqual(titleLabel.text, themeAsset.themeName)
             XCTAssertEqual(titleLabel.textAlignment, .center)
             XCTAssertEqual(titleLabel.numberOfLines, 2)
+            XCTAssertEqual(titleLabel.lineBreakMode, .byWordWrapping)
+            XCTAssertFalse(titleLabel.adjustsFontSizeToFitWidth)
             assertColor(themeButton.backgroundColor, equals: assetColor("themeWhite"))
             assertColor(titleLabel.textColor, equals: assetColor("themeCleanSurfaceText"))
             assertColor(UIColor(cgColor: themeButton.layer.borderColor ?? UIColor.clear.cgColor), equals: tintColor.withAlphaComponent(0.75))
             XCTAssertEqual(themeButton.layer.borderWidth, 2)
-            XCTAssertGreaterThanOrEqual(imageView.frame.height, 94)
+            XCTAssertGreaterThanOrEqual(imageView.frame.height, 86)
             XCTAssertLessThan(imageView.frame.minY, titleLabel.frame.minY)
             XCTAssertLessThanOrEqual(imageView.frame.maxY, titleLabel.frame.minY)
-            XCTAssertEqual(titleLabel.frame.height, 48, accuracy: 0.5)
+            XCTAssertEqual(titleLabel.frame.height, 56, accuracy: 0.5)
             XCTAssertEqual(titleLabel.frame.maxY, themeCell.bounds.maxY - 6, accuracy: 0.5)
+
+            let fittingSize = CGSize(width: titleLabel.bounds.width, height: CGFloat.greatestFiniteMagnitude)
+            let requiredTitleHeight = titleLabel.sizeThatFits(fittingSize).height
+            XCTAssertLessThanOrEqual(requiredTitleHeight, titleLabel.bounds.height + 0.5)
         }
     }
 
@@ -288,18 +296,18 @@ final class HomeScreenVisualStateTests: XCTestCase {
         let themeCell = service.collectionView(collectionView, cellForItemAt: IndexPath(item: 0, section: 0))
         let feelingLuckyCell = service.collectionView(collectionView, cellForItemAt: IndexPath(item: 1, section: 0))
         let statisticsCell = service.collectionView(collectionView, cellForItemAt: IndexPath(item: 2, section: 0))
-        let themeButton = themeCell.contentView.descendant(withAccessibilityIdentifier: "Музыка") as? UIButton
+        let themeButton = themeCell.contentView.descendant(withAccessibilityIdentifier: "music") as? UIButton
         let feelingLuckyButton = feelingLuckyCell.contentView.descendant(withAccessibilityIdentifier: "homeFeelingLuckyButton") as? UIButton
         let statisticsButton = statisticsCell.contentView.descendant(withAccessibilityIdentifier: "homeStatisticsCard") as? UIButton
-        let themeTitleLabel = themeCell.contentView.descendant(withAccessibilityIdentifier: "homeThemeTitleLabel-Музыка") as? UILabel
+        let themeTitleLabel = themeCell.contentView.descendant(withAccessibilityIdentifier: "homeThemeTitleLabel-music") as? UILabel
 
-        XCTAssertEqual(themeButton?.accessibilityLabel, "Музыка, тема викторины")
+        XCTAssertEqual(themeButton?.accessibilityLabel, L10n.ThemeCard.accessibilityLabel(themeName: "Музыка"))
         XCTAssertEqual(themeTitleLabel?.text, "Музыка")
         XCTAssertEqual(themeButton?.layer.cornerRadius, 28)
         XCTAssertEqual(themeButton?.layer.borderWidth, 2)
         XCTAssertTrue(themeButton?.clipsToBounds ?? false)
         XCTAssertGreaterThan(themeCell.layer.shadowOpacity, 0)
-        XCTAssertEqual(feelingLuckyButton?.accessibilityLabel, "Мне повезет")
+        XCTAssertEqual(feelingLuckyButton?.accessibilityLabel, L10n.Home.feelingLucky)
         XCTAssertEqual(feelingLuckyButton?.layer.cornerRadius, 22)
         assertColor(feelingLuckyButton?.backgroundColor, equals: assetColor("themeWhite"))
         assertColor(
@@ -309,7 +317,7 @@ final class HomeScreenVisualStateTests: XCTestCase {
         XCTAssertEqual(feelingLuckyButton?.layer.borderWidth, 1)
         XCTAssertTrue(feelingLuckyButton?.clipsToBounds ?? false)
         XCTAssertGreaterThanOrEqual(feelingLuckyCell.layer.shadowOpacity, 0)
-        XCTAssertEqual(statisticsButton?.accessibilityLabel, "Общая статистика")
+        XCTAssertEqual(statisticsButton?.accessibilityLabel, L10n.Home.statisticsAccessibilityLabel)
         XCTAssertEqual(statisticsButton?.layer.cornerRadius, 22)
         assertColor(statisticsButton?.backgroundColor, equals: assetColor("themeWhite"))
         assertColor(
@@ -329,8 +337,8 @@ final class HomeScreenVisualStateTests: XCTestCase {
 
         let themeCell = service.collectionView(collectionView, cellForItemAt: IndexPath(item: 0, section: 0))
         let statisticsCell = service.collectionView(collectionView, cellForItemAt: IndexPath(item: 2, section: 0))
-        let imageView = try XCTUnwrap(themeCell.contentView.descendant(withAccessibilityIdentifier: "homeThemeImageView-Музыка") as? UIImageView)
-        let titleLabel = try XCTUnwrap(themeCell.contentView.descendant(withAccessibilityIdentifier: "homeThemeTitleLabel-Музыка") as? UILabel)
+        let imageView = try XCTUnwrap(themeCell.contentView.descendant(withAccessibilityIdentifier: "homeThemeImageView-music") as? UIImageView)
+        let titleLabel = try XCTUnwrap(themeCell.contentView.descendant(withAccessibilityIdentifier: "homeThemeTitleLabel-music") as? UILabel)
         let statisticsButton = try XCTUnwrap(statisticsCell.contentView.descendant(withAccessibilityIdentifier: "homeStatisticsCard") as? UIButton)
         let expectedImage = try XCTUnwrap(UIImage(named: "theme_logo_music_radar"))
 
@@ -346,7 +354,7 @@ final class HomeScreenVisualStateTests: XCTestCase {
         service.delegate = delegate
 
         let themeButton = UIButton(type: .custom)
-        themeButton.accessibilityIdentifier = "Музыка"
+        themeButton.accessibilityIdentifier = "music"
         let unknownButton = UIButton(type: .custom)
         unknownButton.accessibilityIdentifier = "Неизвестная тема"
         let feelingLuckyButton = UIButton(type: .system)
@@ -359,7 +367,7 @@ final class HomeScreenVisualStateTests: XCTestCase {
         service.feelingLuckyButtonTouchedUpInside(feelingLuckyButton)
         service.statisticsButtonTouchedUpInside(statisticsButton)
 
-        XCTAssertEqual(delegate.selectedThemeNames, ["Музыка"])
+        XCTAssertEqual(delegate.selectedThemeIDs, ["music"])
         XCTAssertEqual(delegate.feelingLuckyTapCount, 1)
         XCTAssertEqual(delegate.statisticsTapCount, 1)
     }
@@ -396,7 +404,20 @@ final class HomeScreenVisualStateTests: XCTestCase {
     }
 
     private func makeTheme(name: String) -> QuizTheme {
-        QuizTheme(theme: name, themeDescription: "Synthetic home-screen test theme", questions: [])
+        let id: String
+        switch name {
+        case "Музыка":
+            id = "music"
+        case "Технологии":
+            id = "technology"
+        case "История", "История и культура":
+            id = "history_culture"
+        case "Политика", "Политика и бизнес":
+            id = "politics_business"
+        default:
+            id = name
+        }
+        return QuizTheme(id: id, theme: name, themeDescription: "Synthetic home-screen test theme", questions: [])
     }
 
     private func useDesignStyle(_ designStyle: AppDesignStyle) {
@@ -444,14 +465,14 @@ final class HomeScreenVisualStateTests: XCTestCase {
 }
 
 private final class ThemeCollectionDelegateSpy: ThemeCollectionDelegate {
-    private(set) var selectedThemeNames: [String] = []
+    private(set) var selectedThemeIDs: [String] = []
     private(set) var feelingLuckyTapCount = 0
     private(set) var statisticsTapCount = 0
 
     func themeButtonTouchedDown(_ sender: UIButton) {}
 
-    func themeButtonTouchedUpInside(_ sender: UIButton, themeName: String) {
-        selectedThemeNames.append(themeName)
+    func themeButtonTouchedUpInside(_ sender: UIButton, themeID: String) {
+        selectedThemeIDs.append(themeID)
     }
 
     func themeButtonTouchedUpOutside(_ sender: UIButton) {}

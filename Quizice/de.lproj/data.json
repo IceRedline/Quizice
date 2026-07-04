@@ -1,0 +1,4166 @@
+[
+    {
+        "theme": "Musik",
+        "themeDescription": "In diesem Quiz errätst du Künstler und Songtitel. Teste dein Musikwissen und genieße eine Reise durch die Welt der Musik.",
+        "questions": [
+            {
+                "question": "Wann wurde der Track 'Burger' veröffentlicht?",
+                "answers": [
+                    "2017",
+                    "2018",
+                    "2016",
+                    "2015"
+                ],
+                "correctAnswer": "2017",
+                "explanation": ""
+            },
+            {
+                "question": "Der beste Song aller Zeiten laut New Musical Express:",
+                "answers": [
+                    "Smells Like Teen Spirit",
+                    "We Will Rock You",
+                    "Like a Rolling Stone",
+                    "Seven Nation Army"
+                ],
+                "correctAnswer": "Smells Like Teen Spirit",
+                "explanation": ""
+            },
+            {
+                "question": "Wer wurde 2022 der erste russische Rapper mit dem Status eines ausländischen Agenten?",
+                "answers": [
+                    "Face",
+                    "MORGENSHTERN",
+                    "Oxxxymiron",
+                    "Noize MC"
+                ],
+                "correctAnswer": "Face",
+                "explanation": ""
+            },
+            {
+                "question": "In welchem Jahr wurde das Lied 'Hotel California' von Eagles veröffentlicht?",
+                "answers": [
+                    "1976",
+                    "1980",
+                    "1972",
+                    "1985"
+                ],
+                "correctAnswer": "1976",
+                "explanation": ""
+            },
+            {
+                "question": "Welche dieser Singles wurde 1965 von The Rolling Stones veröffentlicht?",
+                "answers": [
+                    "Satisfaction",
+                    "Hey Jude",
+                    "House of the Rising Sun",
+                    "Stairway to Heaven"
+                ],
+                "correctAnswer": "Satisfaction",
+                "explanation": ""
+            },
+            {
+                "question": "Welches Instrument gilt als zentral im Jazz?",
+                "answers": [
+                    "Trompete",
+                    "Gitarre",
+                    "Klavier",
+                    "Saxofon"
+                ],
+                "correctAnswer": "Saxofon",
+                "explanation": ""
+            },
+            {
+                "question": "Welche Band veröffentlichte das Album 'Abbey Road'?",
+                "answers": [
+                    "The Rolling Stones",
+                    "The Beatles",
+                    "Led Zeppelin",
+                    "Pink Floyd"
+                ],
+                "correctAnswer": "The Beatles",
+                "explanation": ""
+            },
+            {
+                "question": "Welches Musikgenre zeichnet sich durch schnelles Tempo und energische Rhythmen aus?",
+                "answers": [
+                    "Blues",
+                    "Rock'n'Roll",
+                    "Rap",
+                    "Jazz"
+                ],
+                "correctAnswer": "Rock'n'Roll",
+                "explanation": ""
+            },
+            {
+                "question": "Welches Lied wurde 1975 ein Hit für Queen?",
+                "answers": [
+                    "We Are The Champions",
+                    "Bohemian Rhapsody",
+                    "Don't Stop Me Now",
+                    "Somebody to Love"
+                ],
+                "correctAnswer": "Bohemian Rhapsody",
+                "explanation": ""
+            },
+            {
+                "question": "Wer schrieb das berühmte Stück 'Mondscheinsonate'?",
+                "answers": [
+                    "Wolfgang Amadeus Mozart",
+                    "Ludwig van Beethoven",
+                    "Pyotr Ilyich Tchaikovsky",
+                    "Johann Sebastian Bach"
+                ],
+                "correctAnswer": "Ludwig van Beethoven",
+                "explanation": ""
+            },
+            {
+                "question": "Welche Band schrieb den Hit 'Smells Like Teen Spirit'?",
+                "answers": [
+                    "Pearl Jam",
+                    "Nirvana",
+                    "Green Day",
+                    "Red Hot Chili Peppers"
+                ],
+                "correctAnswer": "Nirvana",
+                "explanation": ""
+            },
+            {
+                "question": "Welcher Musikstil entstand in den 1970ern in New York?",
+                "answers": [
+                    "Hip-Hop",
+                    "Punk",
+                    "Synth-Pop",
+                    "Glam Rock"
+                ],
+                "correctAnswer": "Hip-Hop",
+                "explanation": ""
+            },
+            {
+                "question": "Welches dieser Alben wurde von Michael Jackson veröffentlicht?",
+                "answers": [
+                    "Purple Rain",
+                    "Thriller",
+                    "Like a Prayer",
+                    "Back in Black"
+                ],
+                "correctAnswer": "Thriller",
+                "explanation": ""
+            },
+            {
+                "question": "Welche Band spielt das Lied 'Hotel California'?",
+                "answers": [
+                    "The Eagles",
+                    "Led Zeppelin",
+                    "The Rolling Stones",
+                    "Pink Floyd"
+                ],
+                "correctAnswer": "The Eagles",
+                "explanation": ""
+            },
+            {
+                "question": "Welches Werk von Pjotr Iljitsch Tschaikowski wurde zu Weihnachten populär?",
+                "answers": [
+                    "Der Nussknacker",
+                    "Schwanensee",
+                    "Dornröschen",
+                    "Manfred"
+                ],
+                "correctAnswer": "Der Nussknacker",
+                "explanation": ""
+            },
+            {
+                "question": "Welcher Sänger ist als 'King of Pop' bekannt?",
+                "answers": [
+                    "Elvis Presley",
+                    "Michael Jackson",
+                    "Prince",
+                    "Freddie Mercury"
+                ],
+                "correctAnswer": "Michael Jackson",
+                "explanation": ""
+            },
+            {
+                "question": "Welches Lied machte A-ha berühmt?",
+                "answers": [
+                    "The Sun Always Shines on TV",
+                    "Take On Me",
+                    "Hunting High and Low",
+                    "Crying in the Rain"
+                ],
+                "correctAnswer": "Take On Me",
+                "explanation": ""
+            },
+            {
+                "question": "Wer schrieb das Lied 'Yesterday'?",
+                "answers": [
+                    "John Lennon",
+                    "Paul McCartney",
+                    "George Harrison",
+                    "Ringo Starr"
+                ],
+                "correctAnswer": "Paul McCartney",
+                "explanation": ""
+            },
+            {
+                "question": "Welcher Pink-Floyd-Hit ist mit psychischer Gesundheit verbunden?",
+                "answers": [
+                    "Comfortably Numb",
+                    "Another Brick in the Wall",
+                    "Wish You Were Here",
+                    "Money"
+                ],
+                "correctAnswer": "Comfortably Numb",
+                "explanation": ""
+            },
+            {
+                "question": "Welches Beyoncé-Album widmet sich weiblicher Stärke und afroamerikanischer Kultur?",
+                "answers": [
+                    "4",
+                    "B'Day",
+                    "Lemonade",
+                    "Dangerously in Love"
+                ],
+                "correctAnswer": "Lemonade",
+                "explanation": ""
+            },
+            {
+                "question": "Welcher Musiker ist als 'King of Rock and Roll' bekannt?",
+                "answers": [
+                    "Chuck Berry",
+                    "Little Richard",
+                    "Elvis Presley",
+                    "Jerry Lee Lewis"
+                ],
+                "correctAnswer": "Elvis Presley",
+                "explanation": ""
+            },
+            {
+                "question": "Welche Band spielt das Lied 'Sweet Child O' Mine'?",
+                "answers": [
+                    "Aerosmith",
+                    "Guns N' Roses",
+                    "Bon Jovi",
+                    "Def Leppard"
+                ],
+                "correctAnswer": "Guns N' Roses",
+                "explanation": ""
+            },
+            {
+                "question": "Welcher Hit der 1980er beginnt mit 'It's nine o'clock on a Saturday'?",
+                "answers": [
+                    "Every Breath You Take",
+                    "Billie Jean",
+                    "Piano Man",
+                    "Sweet Child O' Mine"
+                ],
+                "correctAnswer": "Piano Man",
+                "explanation": ""
+            },
+            {
+                "question": "Wer schrieb das Lied 'Imagine'?",
+                "answers": [
+                    "John Lennon",
+                    "Paul McCartney",
+                    "Bob Dylan",
+                    "David Bowie"
+                ],
+                "correctAnswer": "John Lennon",
+                "explanation": ""
+            },
+            {
+                "question": "Welches Album von Metallica wurde zu ihrem meistverkauften Album?",
+                "answers": [
+                    "Master of Puppets",
+                    "Ride the Lightning",
+                    "Metallica (The Black Album)",
+                    "And Justice for All"
+                ],
+                "correctAnswer": "Metallica (The Black Album)",
+                "explanation": ""
+            },
+            {
+                "question": "Welche Band spielt das Lied 'Wonderwall'?",
+                "answers": [
+                    "Blur",
+                    "Radiohead",
+                    "The Verve",
+                    "Oasis"
+                ],
+                "correctAnswer": "Oasis",
+                "explanation": ""
+            },
+            {
+                "question": "Wer schrieb das Lied 'Bohemian Rhapsody'?",
+                "answers": [
+                    "Freddie Mercury",
+                    "Brian May",
+                    "Roger Taylor",
+                    "John Deacon"
+                ],
+                "correctAnswer": "Freddie Mercury",
+                "explanation": ""
+            },
+            {
+                "question": "Welcher Hit von The Prodigy wurde zum Symbol der elektronischen Musik der 1990er?",
+                "answers": [
+                    "Firestarter",
+                    "Breathe",
+                    "Smack My Bitch Up",
+                    "No Good (Start the Dance)"
+                ],
+                "correctAnswer": "Firestarter",
+                "explanation": ""
+            },
+            {
+                "question": "Welcher Sänger ist als 'The Boss' bekannt?",
+                "answers": [
+                    "Bob Dylan",
+                    "Bruce Springsteen",
+                    "Tom Petty",
+                    "Neil Young"
+                ],
+                "correctAnswer": "Bruce Springsteen",
+                "explanation": ""
+            },
+            {
+                "question": "Welche Band spielt das Lied 'Stairway to Heaven'?",
+                "answers": [
+                    "The Rolling Stones",
+                    "Led Zeppelin",
+                    "Pink Floyd",
+                    "The Who"
+                ],
+                "correctAnswer": "Led Zeppelin",
+                "explanation": ""
+            },
+            {
+                "question": "Welcher Hit von Whitney Houston wurde zum Soundtrack des Films 'The Bodyguard'?",
+                "answers": [
+                    "I Will Always Love You",
+                    "Greatest Love of All",
+                    "I Wanna Dance with Somebody",
+                    "Saving All My Love for You"
+                ],
+                "correctAnswer": "I Will Always Love You",
+                "explanation": ""
+            },
+            {
+                "question": "Welcher Musiker ist als 'Prince of Pop' bekannt?",
+                "answers": [
+                    "Michael Jackson",
+                    "Prince",
+                    "George Michael",
+                    "David Bowie"
+                ],
+                "correctAnswer": "Prince",
+                "explanation": ""
+            },
+            {
+                "question": "Welches Nirvana-Lied wurde zum Symbol des Grunge?",
+                "answers": [
+                    "Come As You Are",
+                    "Lithium",
+                    "Smells Like Teen Spirit",
+                    "Heart-Shaped Box"
+                ],
+                "correctAnswer": "Smells Like Teen Spirit",
+                "explanation": ""
+            },
+            {
+                "question": "Welches Album war das Debüt von Arctic Monkeys?",
+                "answers": [
+                    "Favourite Worst Nightmare",
+                    "AM",
+                    "Whatever People Say I Am, That's What I'm Not",
+                    "Humbug"
+                ],
+                "correctAnswer": "Whatever People Say I Am, That's What I'm Not",
+                "explanation": ""
+            },
+            {
+                "question": "Wer schrieb das Lied 'Like a Rolling Stone'?",
+                "answers": [
+                    "Bob Dylan",
+                    "Neil Young",
+                    "Leonard Cohen",
+                    "Bruce Springsteen"
+                ],
+                "correctAnswer": "Bob Dylan",
+                "explanation": ""
+            },
+            {
+                "question": "Welcher Hit von The Killers wurde zu ihrem Erkennungslied?",
+                "answers": [
+                    "Somebody Told Me",
+                    "Mr. Brightside",
+                    "When You Were Young",
+                    "Human"
+                ],
+                "correctAnswer": "Mr. Brightside",
+                "explanation": ""
+            },
+            {
+                "question": "Welches Pink-Floyd-Album gilt als Konzeptalbum über die Abwesenheit von Syd Barrett?",
+                "answers": [
+                    "The Dark Side of the Moon",
+                    "Wish You Were Here",
+                    "Animals",
+                    "The Wall"
+                ],
+                "correctAnswer": "Wish You Were Here",
+                "explanation": ""
+            },
+            {
+                "question": "Welcher Sänger ist als 'King of Soul' bekannt?",
+                "answers": [
+                    "Ray Charles",
+                    "James Brown",
+                    "Marvin Gaye",
+                    "Stevie Wonder"
+                ],
+                "correctAnswer": "James Brown",
+                "explanation": ""
+            },
+            {
+                "question": "Welche Band spielt das Lied 'Don't Stop Believin'?",
+                "answers": [
+                    "Bon Jovi",
+                    "Journey",
+                    "Boston",
+                    "Foreigner"
+                ],
+                "correctAnswer": "Journey",
+                "explanation": ""
+            },
+            {
+                "question": "Welcher Hit von AC/DC wurde zu einer Rockhymne?",
+                "answers": [
+                    "Back in Black",
+                    "Highway to Hell",
+                    "Thunderstruck",
+                    "You Shook Me All Night Long"
+                ],
+                "correctAnswer": "Highway to Hell",
+                "explanation": ""
+            },
+            {
+                "question": "Welcher Musiker ist als 'King of the Blues' bekannt?",
+                "answers": [
+                    "B.B. King",
+                    "Muddy Waters",
+                    "John Lee Hooker",
+                    "Howlin' Wolf"
+                ],
+                "correctAnswer": "B.B. King",
+                "explanation": ""
+            },
+            {
+                "question": "Welche Band spielt das Lied 'Another Brick in the Wall'?",
+                "answers": [
+                    "Led Zeppelin",
+                    "Pink Floyd",
+                    "The Who",
+                    "Deep Purple"
+                ],
+                "correctAnswer": "Pink Floyd",
+                "explanation": ""
+            },
+            {
+                "question": "Welcher Hit von The Beatles wurde zum meistgecoverten Lied der Geschichte?",
+                "answers": [
+                    "Let It Be",
+                    "Yesterday",
+                    "Hey Jude",
+                    "Help!"
+                ],
+                "correctAnswer": "Yesterday",
+                "explanation": ""
+            },
+            {
+                "question": "Welcher Sänger ist als 'Stimme einer Generation' bekannt?",
+                "answers": [
+                    "Bob Dylan",
+                    "John Lennon",
+                    "Kurt Cobain",
+                    "Freddie Mercury"
+                ],
+                "correctAnswer": "Bob Dylan",
+                "explanation": ""
+            },
+            {
+                "question": "Welche Band spielt das Lied 'Under the Bridge'?",
+                "answers": [
+                    "Red Hot Chili Peppers",
+                    "Nirvana",
+                    "Foo Fighters",
+                    "Pearl Jam"
+                ],
+                "correctAnswer": "Red Hot Chili Peppers",
+                "explanation": ""
+            },
+            {
+                "question": "Welcher Hit von Queen wurde zum Soundtrack des Films 'Chess Fever'?",
+                "answers": [
+                    "We Will Rock You",
+                    "Another One Bites the Dust",
+                    "I Want to Break Free",
+                    "Radio Ga Ga"
+                ],
+                "correctAnswer": "I Want to Break Free",
+                "explanation": ""
+            },
+            {
+                "question": "Welcher Musiker ist als 'King of Latin Pop' bekannt?",
+                "answers": [
+                    "Ricky Martin",
+                    "Enrique Iglesias",
+                    "Shakira",
+                    "Marc Anthony"
+                ],
+                "correctAnswer": "Ricky Martin",
+                "explanation": ""
+            },
+            {
+                "question": "Welche Band spielt das Lied 'Zombie'?",
+                "answers": [
+                    "U2",
+                    "The Cranberries",
+                    "Radiohead",
+                    "The Cure"
+                ],
+                "correctAnswer": "The Cranberries",
+                "explanation": ""
+            },
+            {
+                "question": "Welcher Hit von Coldplay wurde zu einem der beliebtesten Songs der 2000er?",
+                "answers": [
+                    "Clocks",
+                    "Viva la Vida",
+                    "The Scientist",
+                    "Yellow"
+                ],
+                "correctAnswer": "Yellow",
+                "explanation": ""
+            },
+            {
+                "question": "Welcher Sänger ist als 'King of Pop-Punk' bekannt?",
+                "answers": [
+                    "Billie Joe Armstrong",
+                    "Travis Barker",
+                    "Blink-182",
+                    "Green Day"
+                ],
+                "correctAnswer": "Billie Joe Armstrong",
+                "explanation": ""
+            },
+            {
+                "question": "Welche Band spielt das Lied 'Basket Case'?",
+                "answers": [
+                    "Blink-182",
+                    "Sum 41",
+                    "Green Day",
+                    "The Offspring"
+                ],
+                "correctAnswer": "Green Day",
+                "explanation": ""
+            },
+            {
+                "question": "Welcher Hit von Linkin Park wurde zum Symbol der 2000er?",
+                "answers": [
+                    "In the End",
+                    "Numb",
+                    "Crawling",
+                    "What I've Done"
+                ],
+                "correctAnswer": "In the End",
+                "explanation": ""
+            },
+            {
+                "question": "Welcher Musiker ist als 'King of Funk' bekannt?",
+                "answers": [
+                    "James Brown",
+                    "George Clinton",
+                    "Sly Stone",
+                    "Prince"
+                ],
+                "correctAnswer": "James Brown",
+                "explanation": ""
+            },
+            {
+                "question": "Welche Band spielt das Lied 'Californication'?",
+                "answers": [
+                    "Red Hot Chili Peppers",
+                    "Foo Fighters",
+                    "Nirvana",
+                    "Pearl Jam"
+                ],
+                "correctAnswer": "Red Hot Chili Peppers",
+                "explanation": ""
+            },
+            {
+                "question": "Welcher Hit von The Rolling Stones wurde zu ihrem Erkennungslied?",
+                "answers": [
+                    "Paint It Black",
+                    "Sympathy for the Devil",
+                    "Angie",
+                    "Satisfaction"
+                ],
+                "correctAnswer": "Satisfaction",
+                "explanation": ""
+            },
+            {
+                "question": "Welcher Sänger ist als 'King of R&B' bekannt?",
+                "answers": [
+                    "Usher",
+                    "Chris Brown",
+                    "R. Kelly",
+                    "Marvin Gaye"
+                ],
+                "correctAnswer": "Usher",
+                "explanation": ""
+            },
+            {
+                "question": "Welche Band spielt das Lied 'Smells Like Teen Spirit'?",
+                "answers": [
+                    "Pearl Jam",
+                    "Nirvana",
+                    "Soundgarden",
+                    "Alice in Chains"
+                ],
+                "correctAnswer": "Nirvana",
+                "explanation": ""
+            },
+            {
+                "question": "Welcher Hit von Radiohead wurde zum Kultsong der 1990er?",
+                "answers": [
+                    "Paranoid Android",
+                    "Karma Police",
+                    "Creep",
+                    "No Surprises"
+                ],
+                "correctAnswer": "Creep",
+                "explanation": ""
+            },
+            {
+                "question": "Welcher Musiker ist als 'King of Reggae' bekannt?",
+                "answers": [
+                    "Bob Marley",
+                    "Peter Tosh",
+                    "Jimmy Cliff",
+                    "Burning Spear"
+                ],
+                "correctAnswer": "Bob Marley",
+                "explanation": ""
+            },
+            {
+                "question": "Welche Band spielt das Lied 'Sweet Home Alabama'?",
+                "answers": [
+                    "The Allman Brothers Band",
+                    "Lynyrd Skynyrd",
+                    "ZZ Top",
+                    "The Doobie Brothers"
+                ],
+                "correctAnswer": "Lynyrd Skynyrd",
+                "explanation": ""
+            },
+            {
+                "question": "Welcher Hit von U2 wurde zum Symbol der 1980er?",
+                "answers": [
+                    "With or Without You",
+                    "Sunday Bloody Sunday",
+                    "Beautiful Day",
+                    "One"
+                ],
+                "correctAnswer": "With or Without You",
+                "explanation": ""
+            },
+            {
+                "question": "Welcher Sänger ist als 'King of House' bekannt?",
+                "answers": [
+                    "David Guetta",
+                    "Avicii",
+                    "Swedish House Mafia",
+                    "Daft Punk"
+                ],
+                "correctAnswer": "David Guetta",
+                "explanation": ""
+            },
+            {
+                "question": "Welche Band spielt das Lied 'Enter Sandman'?",
+                "answers": [
+                    "Megadeth",
+                    "Slayer",
+                    "Metallica",
+                    "Anthrax"
+                ],
+                "correctAnswer": "Metallica",
+                "explanation": ""
+            },
+            {
+                "question": "Welcher Hit von The Doors wurde zum Kultklassiker?",
+                "answers": [
+                    "Light My Fire",
+                    "Riders on the Storm",
+                    "Break On Through",
+                    "The End"
+                ],
+                "correctAnswer": "Light My Fire",
+                "explanation": ""
+            },
+            {
+                "question": "Welcher Musiker ist als 'King of Hip-Hop' bekannt?",
+                "answers": [
+                    "Jay-Z",
+                    "Nas",
+                    "Tupac Shakur",
+                    "The Notorious B.I.G."
+                ],
+                "correctAnswer": "The Notorious B.I.G.",
+                "explanation": ""
+            },
+            {
+                "question": "Welche Band spielt das Lied 'Wonderful Tonight'?",
+                "answers": [
+                    "Eric Clapton",
+                    "The Rolling Stones",
+                    "The Beatles",
+                    "Pink Floyd"
+                ],
+                "correctAnswer": "Eric Clapton",
+                "explanation": ""
+            },
+            {
+                "question": "Welcher Hit von Oasis wurde zum Symbol des Britpop?",
+                "answers": [
+                    "Don't Look Back in Anger",
+                    "Champagne Supernova",
+                    "Live Forever",
+                    "Wonderwall"
+                ],
+                "correctAnswer": "Wonderwall",
+                "explanation": ""
+            },
+            {
+                "question": "Welcher Sänger ist als 'King of Disco' bekannt?",
+                "answers": [
+                    "Donna Summer",
+                    "Bee Gees",
+                    "Gloria Gaynor",
+                    "ABBA"
+                ],
+                "correctAnswer": "Bee Gees",
+                "explanation": ""
+            },
+            {
+                "question": "Welche Band spielt das Lied 'November Rain'?",
+                "answers": [
+                    "Aerosmith",
+                    "Guns N' Roses",
+                    "Bon Jovi",
+                    "Def Leppard"
+                ],
+                "correctAnswer": "Guns N' Roses",
+                "explanation": ""
+            },
+            {
+                "question": "Welcher Hit von The Police wurde zu einem Welthit?",
+                "answers": [
+                    "Roxanne",
+                    "Every Breath You Take",
+                    "Message in a Bottle",
+                    "Walking on the Moon"
+                ],
+                "correctAnswer": "Every Breath You Take",
+                "explanation": ""
+            },
+            {
+                "question": "Welcher Musiker ist als 'King of Jazz' bekannt?",
+                "answers": [
+                    "Louis Armstrong",
+                    "Duke Ellington",
+                    "Miles Davis",
+                    "Charlie Parker"
+                ],
+                "correctAnswer": "Louis Armstrong",
+                "explanation": ""
+            },
+            {
+                "question": "Welche Band spielt das Lied 'Losing My Religion'?",
+                "answers": [
+                    "Nirvana",
+                    "Pearl Jam",
+                    "R.E.M.",
+                    "Soundgarden"
+                ],
+                "correctAnswer": "R.E.M.",
+                "explanation": ""
+            },
+            {
+                "question": "Welcher Hit von The Clash wurde zum Symbol des Punkrock?",
+                "answers": [
+                    "London Calling",
+                    "Should I Stay or Should I Go",
+                    "Rock the Casbah",
+                    "Train in Vain"
+                ],
+                "correctAnswer": "Should I Stay or Should I Go",
+                "explanation": ""
+            },
+            {
+                "question": "Welcher Sänger ist als 'King of Country' bekannt?",
+                "answers": [
+                    "Johnny Cash",
+                    "Willie Nelson",
+                    "Dolly Parton",
+                    "Kenny Rogers"
+                ],
+                "correctAnswer": "Johnny Cash",
+                "explanation": ""
+            },
+            {
+                "question": "Welche Band spielt das Lied 'Bitter Sweet Symphony'?",
+                "answers": [
+                    "Oasis",
+                    "The Verve",
+                    "Blur",
+                    "Radiohead"
+                ],
+                "correctAnswer": "The Verve",
+                "explanation": ""
+            },
+            {
+                "question": "Welcher Hit von Blur wurde zum Symbol des Britpop?",
+                "answers": [
+                    "Song 2",
+                    "Parklife",
+                    "Girls & Boys",
+                    "Tender"
+                ],
+                "correctAnswer": "Song 2",
+                "explanation": ""
+            },
+            {
+                "question": "Welcher Musiker ist als 'King of Soul Blues' bekannt?",
+                "answers": [
+                    "B.B. King",
+                    "Ray Charles",
+                    "Otis Redding",
+                    "Sam Cooke"
+                ],
+                "correctAnswer": "Ray Charles",
+                "explanation": ""
+            },
+            {
+                "question": "Welche Band spielt das Lied 'Killer Queen'?",
+                "answers": [
+                    "Queen",
+                    "The Rolling Stones",
+                    "David Bowie",
+                    "Elton John"
+                ],
+                "correctAnswer": "Queen",
+                "explanation": ""
+            },
+            {
+                "question": "Welcher Hit von The Beach Boys wurde zum Symbol der Surfmusik?",
+                "answers": [
+                    "Good Vibrations",
+                    "California Girls",
+                    "Surfin' USA",
+                    "Wouldn't It Be Nice"
+                ],
+                "correctAnswer": "Surfin' USA",
+                "explanation": ""
+            },
+            {
+                "question": "Welcher Sänger ist als 'King of Lounge Music' bekannt?",
+                "answers": [
+                    "Frank Sinatra",
+                    "Dean Martin",
+                    "Tony Bennett",
+                    "Sammy Davis Jr."
+                ],
+                "correctAnswer": "Frank Sinatra",
+                "explanation": ""
+            },
+            {
+                "question": "Welche Band spielt das Lied 'Don't Speak'?",
+                "answers": [
+                    "No Doubt",
+                    "The Cranberries",
+                    "Garbage",
+                    "Alanis Morissette"
+                ],
+                "correctAnswer": "No Doubt",
+                "explanation": ""
+            },
+            {
+                "question": "Welcher Hit von The White Stripes wurde zum Kultklassiker?",
+                "answers": [
+                    "Seven Nation Army",
+                    "Fell in Love with a Girl",
+                    "The Hardest Button to Button",
+                    "Icky Thump"
+                ],
+                "correctAnswer": "Seven Nation Army",
+                "explanation": ""
+            }
+        ],
+        "id": "music"
+    },
+    {
+        "theme": "Technologie",
+        "themeDescription": "Teste dein Wissen über Geräte, Programmiersprachen, Computergeschichte und digitale Kultur.",
+        "questions": [
+            {
+                "question": "Wann erschien das erste iPhone?",
+                "answers": [
+                    "2007",
+                    "2006",
+                    "2008",
+                    "2009"
+                ],
+                "correctAnswer": "2007",
+                "explanation": ""
+            },
+            {
+                "question": "Wie viele Kerne hat der AMD Ryzen 3990X?",
+                "answers": [
+                    "64",
+                    "32",
+                    "16",
+                    "12"
+                ],
+                "correctAnswer": "64",
+                "explanation": ""
+            },
+            {
+                "question": "Mini-LED-Bildschirme sind eine Variante von:",
+                "answers": [
+                    "IPS",
+                    "OLED",
+                    "TN",
+                    "AMOLED"
+                ],
+                "correctAnswer": "IPS",
+                "explanation": ""
+            },
+            {
+                "question": "Was ist HBM-Speicher?",
+                "answers": [
+                    "Memory soldered on the chip",
+                    "Memory for mobile devices",
+                    "An improved version of GDDR6",
+                    "AMD processor cache memory"
+                ],
+                "correctAnswer": "Memory soldered on the chip",
+                "explanation": ""
+            },
+            {
+                "question": "Die Thunderbolt-Technologie wurde entwickelt von:",
+                "answers": [
+                    "Intel and Apple",
+                    "AMD and Apple",
+                    "Apple",
+                    "Intel and AMD"
+                ],
+                "correctAnswer": "Intel and Apple",
+                "explanation": ""
+            },
+            {
+                "question": "Wie heißt die Technologie, mit der Geräte kabellos geladen werden können?",
+                "answers": [
+                    "Fast Charge",
+                    "Qi",
+                    "PD",
+                    "MagSafe"
+                ],
+                "correctAnswer": "Qi",
+                "explanation": ""
+            },
+            {
+                "question": "Welcher Prozessor nutzte als erster einen 5-nm-Prozess?",
+                "answers": [
+                    "Apple A14 Bionic",
+                    "Intel Core i9-11900K",
+                    "AMD Ryzen 5950X",
+                    "Snapdragon 888"
+                ],
+                "correctAnswer": "Apple A14 Bionic",
+                "explanation": ""
+            },
+            {
+                "question": "Welcher Anschluss ersetzte microUSB in den meisten modernen Smartphones?",
+                "answers": [
+                    "USB-C",
+                    "Lightning",
+                    "Thunderbolt",
+                    "Mini-USB"
+                ],
+                "correctAnswer": "USB-C",
+                "explanation": ""
+            },
+            {
+                "question": "Wie heißt die Technologie, die durch kurzzeitiges Erhöhen der Taktfrequenz die Prozessorleistung steigert?",
+                "answers": [
+                    "Turbo Boost",
+                    "Hyper-Threading",
+                    "SpeedStep",
+                    "Multi-Core"
+                ],
+                "correctAnswer": "Turbo Boost",
+                "explanation": ""
+            },
+            {
+                "question": "Welchem Unternehmen gehört die Grafikkartenmarke GeForce?",
+                "answers": [
+                    "AMD",
+                    "Intel",
+                    "NVIDIA",
+                    "Qualcomm"
+                ],
+                "correctAnswer": "NVIDIA",
+                "explanation": ""
+            },
+            {
+                "question": "Welcher Paneltyp wird wegen seiner hohen Bildwiederholrate am häufigsten in Gaming-Monitoren verwendet?",
+                "answers": [
+                    "TN",
+                    "IPS",
+                    "OLED",
+                    "VA"
+                ],
+                "correctAnswer": "TN",
+                "explanation": ""
+            },
+            {
+                "question": "Was does the abbreviation VPN?",
+                "answers": [
+                    "Virtual Private Network",
+                    "Variable Protocol Node",
+                    "Verified Personal Number",
+                    "Virtual Processing Network"
+                ],
+                "correctAnswer": "Virtual Private Network",
+                "explanation": ""
+            },
+            {
+                "question": "Welches Dateisystem wird auf modernen Macs verwendet?",
+                "answers": [
+                    "NTFS",
+                    "ext4",
+                    "APFS",
+                    "FAT32"
+                ],
+                "correctAnswer": "APFS",
+                "explanation": ""
+            },
+            {
+                "question": "Welcher dieser Funkstandards bietet die höchste Geschwindigkeit?",
+                "answers": [
+                    "Wi-Fi 5",
+                    "Wi-Fi 6",
+                    "Bluetooth 5.0",
+                    "LTE"
+                ],
+                "correctAnswer": "Wi-Fi 6",
+                "explanation": ""
+            },
+            {
+                "question": "Welche Technologie speichert Daten in Flash-Speicher ohne bewegliche Teile?",
+                "answers": [
+                    "HDD",
+                    "SSD",
+                    "CD-ROM",
+                    "RAM"
+                ],
+                "correctAnswer": "SSD",
+                "explanation": ""
+            },
+            {
+                "question": "Welche Programmiersprache schuf Guido van Rossum?",
+                "answers": [
+                    "Java",
+                    "Python",
+                    "C++",
+                    "Ruby"
+                ],
+                "correctAnswer": "Python",
+                "explanation": ""
+            },
+            {
+                "question": "Welches Unternehmen entwickelte die erste kommerzielle grafische Benutzeroberfläche (GUI)?",
+                "answers": [
+                    "Microsoft",
+                    "Apple",
+                    "Xerox",
+                    "IBM"
+                ],
+                "correctAnswer": "Xerox",
+                "explanation": ""
+            },
+            {
+                "question": "Was does the abbreviation 'GPU'?",
+                "answers": [
+                    "Graphical Processing Unit",
+                    "General Processing Unit",
+                    "Graphics Performance Unit",
+                    "Global Processing Unit"
+                ],
+                "correctAnswer": "Graphical Processing Unit",
+                "explanation": ""
+            },
+            {
+                "question": "Welches Jahr gilt als Geburtsjahr des Internets?",
+                "answers": [
+                    "1969",
+                    "1983",
+                    "1991",
+                    "1975"
+                ],
+                "correctAnswer": "1983",
+                "explanation": ""
+            },
+            {
+                "question": "Welche Technologie bildet die Grundlage von Kryptowährungen wie Bitcoin?",
+                "answers": [
+                    "Blockchain",
+                    "Quantencomputing",
+                    "Künstliche Intelligenz",
+                    "Cloud-Dienste"
+                ],
+                "correctAnswer": "Blockchain",
+                "explanation": ""
+            },
+            {
+                "question": "Wie heißt der Standard für kabelloses Laden, der in den meisten Smartphones verwendet wird?",
+                "answers": [
+                    "Qi",
+                    "PowerMat",
+                    "AirFuel",
+                    "WiPower"
+                ],
+                "correctAnswer": "Qi",
+                "explanation": ""
+            },
+            {
+                "question": "Welcher Prozessor wurde im ersten Macintosh (1984) verwendet?",
+                "answers": [
+                    "Motorola 68000",
+                    "Intel 8086",
+                    "Zilog Z80",
+                    "MOS 6502"
+                ],
+                "correctAnswer": "Motorola 68000",
+                "explanation": ""
+            },
+            {
+                "question": "Was wird in Teraflops gemessen?",
+                "answers": [
+                    "Internet speed",
+                    "Processor performance",
+                    "Battery capacity",
+                    "Screen refresh rate"
+                ],
+                "correctAnswer": "Processor performance",
+                "explanation": ""
+            },
+            {
+                "question": "Welches dieser Betriebssysteme ist Open Source?",
+                "answers": [
+                    "Windows",
+                    "macOS",
+                    "Linux",
+                    "iOS"
+                ],
+                "correctAnswer": "Linux",
+                "explanation": ""
+            },
+            {
+                "question": "Wie heißt die Technologie, mit der Windows-Anwendungen auf macOS ausgeführt werden können?",
+                "answers": [
+                    "Boot Camp",
+                    "Parallels",
+                    "Wine",
+                    "VirtualBox"
+                ],
+                "correctAnswer": "Wine",
+                "explanation": ""
+            },
+            {
+                "question": "Welches Protokoll stellt eine sichere Verbindung zu Websites bereit?",
+                "answers": [
+                    "HTTP",
+                    "FTP",
+                    "HTTPS",
+                    "SMTP"
+                ],
+                "correctAnswer": "HTTPS",
+                "explanation": ""
+            },
+            {
+                "question": "Welches Gerät erfand Douglas Engelbart 1964?",
+                "answers": [
+                    "Tastatur",
+                    "Monitor",
+                    "Computermaus",
+                    "Drucker"
+                ],
+                "correctAnswer": "Computermaus",
+                "explanation": ""
+            },
+            {
+                "question": "Welche Programmiersprache wird zum Erstellen von Webseiten verwendet?",
+                "answers": [
+                    "Python",
+                    "Java",
+                    "HTML",
+                    "Swift"
+                ],
+                "correctAnswer": "HTML",
+                "explanation": ""
+            },
+            {
+                "question": "Wie heißt der schnellste Speicher in einem Computer?",
+                "answers": [
+                    "HDD",
+                    "SSD",
+                    "RAM",
+                    "Cache-Speicher"
+                ],
+                "correctAnswer": "Cache-Speicher",
+                "explanation": ""
+            },
+            {
+                "question": "Welches Unternehmen entwickelte die ARM-Prozessorarchitektur?",
+                "answers": [
+                    "Intel",
+                    "AMD",
+                    "ARM Holdings",
+                    "Qualcomm"
+                ],
+                "correctAnswer": "ARM Holdings",
+                "explanation": ""
+            },
+            {
+                "question": "Welcher Kommunikationsstandard wird in modernen Smartphones zum Bezahlen verwendet?",
+                "answers": [
+                    "Bluetooth",
+                    "NFC",
+                    "Wi-Fi",
+                    "LTE"
+                ],
+                "correctAnswer": "NFC",
+                "explanation": ""
+            },
+            {
+                "question": "Welcher Displaytyp benötigt keine Hintergrundbeleuchtung?",
+                "answers": [
+                    "LCD",
+                    "OLED",
+                    "IPS",
+                    "TN"
+                ],
+                "correctAnswer": "OLED",
+                "explanation": ""
+            },
+            {
+                "question": "Wie heißt die Technologie, die mithilfe von KI die Bildauflösung erhöht?",
+                "answers": [
+                    "DLSS",
+                    "Ray Tracing",
+                    "FSR",
+                    "HDR"
+                ],
+                "correctAnswer": "DLSS",
+                "explanation": ""
+            },
+            {
+                "question": "Welcher Prozessor wird in der PlayStation 5 verwendet?",
+                "answers": [
+                    "AMD Ryzen",
+                    "Intel Core i9",
+                    "Apple M1",
+                    "Qualcomm Snapdragon"
+                ],
+                "correctAnswer": "AMD Ryzen",
+                "explanation": ""
+            },
+            {
+                "question": "Welche Programmiersprache entwickelte Microsoft im Jahr 2000?",
+                "answers": [
+                    "Java",
+                    "C#",
+                    "Python",
+                    "Ruby"
+                ],
+                "correctAnswer": "C#",
+                "explanation": ""
+            },
+            {
+                "question": "Welche Technologie kann Daten mit bis zu 40 Gbit/s übertragen?",
+                "answers": [
+                    "USB 3.0",
+                    "Thunderbolt 3",
+                    "HDMI 2.1",
+                    "Ethernet"
+                ],
+                "correctAnswer": "Thunderbolt 3",
+                "explanation": ""
+            },
+            {
+                "question": "Wie heißt das Betriebssystem für Apples Smartwatches?",
+                "answers": [
+                    "watchOS",
+                    "Wear OS",
+                    "Tizen",
+                    "HarmonyOS"
+                ],
+                "correctAnswer": "watchOS",
+                "explanation": ""
+            },
+            {
+                "question": "Welche Komponente übernimmt die Grafikverarbeitung in einem Computer?",
+                "answers": [
+                    "CPU",
+                    "GPU",
+                    "RAM",
+                    "SSD"
+                ],
+                "correctAnswer": "GPU",
+                "explanation": ""
+            },
+            {
+                "question": "Welches Dateiformat wird für den 3D-Druck verwendet?",
+                "answers": [
+                    "JPEG",
+                    "STL",
+                    "MP4",
+                    "DOCX"
+                ],
+                "correctAnswer": "STL",
+                "explanation": ""
+            },
+            {
+                "question": "Welche Programmiersprache wird zum Erstellen von Android-Apps verwendet?",
+                "answers": [
+                    "Swift",
+                    "Kotlin",
+                    "C++",
+                    "Ruby"
+                ],
+                "correctAnswer": "Kotlin",
+                "explanation": ""
+            },
+            {
+                "question": "Welches Unternehmen entwickelte die erste SSD?",
+                "answers": [
+                    "Samsung",
+                    "Intel",
+                    "SanDisk",
+                    "Toshiba"
+                ],
+                "correctAnswer": "SanDisk",
+                "explanation": ""
+            },
+            {
+                "question": "Wie heißt die Technologie, mit der mehrere Monitore genutzt werden können?",
+                "answers": [
+                    "Multi-Screen",
+                    "Dual Display",
+                    "Extended Desktop",
+                    "Multi-Monitor"
+                ],
+                "correctAnswer": "Extended Desktop",
+                "explanation": ""
+            },
+            {
+                "question": "Welcher Wi-Fi-Standard arbeitet im 6-GHz-Band?",
+                "answers": [
+                    "Wi-Fi 5",
+                    "Wi-Fi 6",
+                    "Wi-Fi 6E",
+                    "Wi-Fi 7"
+                ],
+                "correctAnswer": "Wi-Fi 6E",
+                "explanation": ""
+            },
+            {
+                "question": "Welche Auszeichnungssprache wird zum Erstellen von Webseiten verwendet?",
+                "answers": [
+                    "CSS",
+                    "JavaScript",
+                    "HTML",
+                    "PHP"
+                ],
+                "correctAnswer": "HTML",
+                "explanation": ""
+            },
+            {
+                "question": "Welche Technologie ermöglicht das Laden von Geräten aus der Entfernung?",
+                "answers": [
+                    "Qi",
+                    "AirFuel",
+                    "Resonant Charging",
+                    "MagSafe"
+                ],
+                "correctAnswer": "Resonant Charging",
+                "explanation": ""
+            },
+            {
+                "question": "Welcher Prozessor wird im iPhone 13 verwendet?",
+                "answers": [
+                    "A14 Bionic",
+                    "A15 Bionic",
+                    "Snapdragon 888",
+                    "Exynos 2100"
+                ],
+                "correctAnswer": "A15 Bionic",
+                "explanation": ""
+            },
+            {
+                "question": "Welche Programmiersprache schuf Brendan Eich?",
+                "answers": [
+                    "Python",
+                    "Java",
+                    "JavaScript",
+                    "C#"
+                ],
+                "correctAnswer": "JavaScript",
+                "explanation": ""
+            },
+            {
+                "question": "Welches Unternehmen entwickelte den ersten kommerziellen Computer?",
+                "answers": [
+                    "IBM",
+                    "Apple",
+                    "Microsoft",
+                    "HP"
+                ],
+                "correctAnswer": "IBM",
+                "explanation": ""
+            },
+            {
+                "question": "Welcher Kommunikationsstandard wird in kabellosen Kopfhörern verwendet?",
+                "answers": [
+                    "Wi-Fi",
+                    "Bluetooth",
+                    "NFC",
+                    "LTE"
+                ],
+                "correctAnswer": "Bluetooth",
+                "explanation": ""
+            },
+            {
+                "question": "Wie heißt die Technologie, mit der ein Computer ohne Maus und Tastatur genutzt werden kann?",
+                "answers": [
+                    "Touch Screen",
+                    "Voice Control",
+                    "Gesture Control",
+                    "Eye Tracking"
+                ],
+                "correctAnswer": "Voice Control",
+                "explanation": ""
+            },
+            {
+                "question": "Welche Programmiersprache wird zum Erstellen von iOS-Apps verwendet?",
+                "answers": [
+                    "Java",
+                    "Kotlin",
+                    "Swift",
+                    "Dart"
+                ],
+                "correctAnswer": "Swift",
+                "explanation": ""
+            },
+            {
+                "question": "Welche Technologie ermöglicht einem Computer, menschliche Sprache zu verstehen?",
+                "answers": [
+                    "NLP",
+                    "AI",
+                    "ML",
+                    "VR"
+                ],
+                "correctAnswer": "NLP",
+                "explanation": ""
+            },
+            {
+                "question": "Welche Computerkomponente speichert das BIOS?",
+                "answers": [
+                    "HDD",
+                    "SSD",
+                    "RAM",
+                    "ROM"
+                ],
+                "correctAnswer": "ROM",
+                "explanation": ""
+            },
+            {
+                "question": "Welche programming language wird für Datenanalyse verwendet?",
+                "answers": [
+                    "Python",
+                    "C++",
+                    "Java",
+                    "Ruby"
+                ],
+                "correctAnswer": "Python",
+                "explanation": ""
+            },
+            {
+                "question": "Welches Unternehmen entwickelte den ersten Touchscreen?",
+                "answers": [
+                    "Apple",
+                    "IBM",
+                    "Microsoft",
+                    "HP"
+                ],
+                "correctAnswer": "IBM",
+                "explanation": ""
+            },
+            {
+                "question": "Welcher Standard wird zur Übertragung hochauflösender Videos verwendet?",
+                "answers": [
+                    "HDMI",
+                    "VGA",
+                    "DVI",
+                    "DisplayPort"
+                ],
+                "correctAnswer": "HDMI",
+                "explanation": ""
+            },
+            {
+                "question": "Wie heißt die Technologie, mit der ein Computer als Telefon genutzt werden kann?",
+                "answers": [
+                    "VoIP",
+                    "VPN",
+                    "RDP",
+                    "HTTP"
+                ],
+                "correctAnswer": "VoIP",
+                "explanation": ""
+            },
+            {
+                "question": "Welche programming language wird verwendet, um zu erstellen igr?",
+                "answers": [
+                    "Python",
+                    "C#",
+                    "Java",
+                    "Ruby"
+                ],
+                "correctAnswer": "C#",
+                "explanation": ""
+            },
+            {
+                "question": "Welche Technologie kann die Internetgeschwindigkeit erhöhen?",
+                "answers": [
+                    "5G",
+                    "Wi-Fi 6",
+                    "Fiber Optics",
+                    "Alles Genannte"
+                ],
+                "correctAnswer": "Alles Genannte",
+                "explanation": ""
+            },
+            {
+                "question": "Welche Komponente ist in einem Computer für die Datenspeicherung zuständig?",
+                "answers": [
+                    "CPU",
+                    "GPU",
+                    "RAM",
+                    "SSD"
+                ],
+                "correctAnswer": "SSD",
+                "explanation": ""
+            },
+            {
+                "question": "Welche Programmiersprache wird zum Erstellen von Websites verwendet?",
+                "answers": [
+                    "HTML",
+                    "CSS",
+                    "JavaScript",
+                    "Alles Genannte"
+                ],
+                "correctAnswer": "Alles Genannte",
+                "explanation": ""
+            },
+            {
+                "question": "Welches Unternehmen entwickelte den ersten Laptop?",
+                "answers": [
+                    "IBM",
+                    "Apple",
+                    "Toshiba",
+                    "HP"
+                ],
+                "correctAnswer": "Toshiba",
+                "explanation": ""
+            },
+            {
+                "question": "Welcher Standard wird zur Übertragung von hochwertigem Audio verwendet?",
+                "answers": [
+                    "Bluetooth",
+                    "3.5mm jack",
+                    "USB-C",
+                    "HDMI"
+                ],
+                "correctAnswer": "HDMI",
+                "explanation": ""
+            },
+            {
+                "question": "Wie heißt die sicherste Technologie zum Entsperren ohne Passwort?",
+                "answers": [
+                    "Face scanner",
+                    "Fingerprint scanner",
+                    "Voice recognition",
+                    "Alles Genannte"
+                ],
+                "correctAnswer": "Face scanner",
+                "explanation": ""
+            },
+            {
+                "question": "Welche Programmiersprache wird zur Entwicklung künstlicher Intelligenz verwendet?",
+                "answers": [
+                    "Python",
+                    "Java",
+                    "C++",
+                    "Ruby"
+                ],
+                "correctAnswer": "Python",
+                "explanation": ""
+            },
+            {
+                "question": "Welche Technologie ermöglicht die Nutzung eines Computers in virtueller Realität?",
+                "answers": [
+                    "VR",
+                    "AR",
+                    "MR",
+                    "Alles Genannte"
+                ],
+                "correctAnswer": "Alles Genannte",
+                "explanation": ""
+            },
+            {
+                "question": "Welche Computerkomponente ist für die Audioverarbeitung zuständig?",
+                "answers": [
+                    "CPU",
+                    "GPU",
+                    "Sound Card",
+                    "SSD"
+                ],
+                "correctAnswer": "Sound Card",
+                "explanation": ""
+            },
+            {
+                "question": "Welche Programmiersprache wird zum Erstellen von Blockchain-Anwendungen verwendet?",
+                "answers": [
+                    "Python",
+                    "Solidity",
+                    "Java",
+                    "C#"
+                ],
+                "correctAnswer": "Solidity",
+                "explanation": ""
+            },
+            {
+                "question": "Welches Unternehmen entwickelte das erste Smartphone?",
+                "answers": [
+                    "Apple",
+                    "IBM",
+                    "Nokia",
+                    "BlackBerry"
+                ],
+                "correctAnswer": "IBM",
+                "explanation": ""
+            },
+            {
+                "question": "Welcher Standard wird nur zur Datenübertragung in IoT-Geräten verwendet?",
+                "answers": [
+                    "Bluetooth",
+                    "Wi-Fi",
+                    "Zigbee",
+                    "Alles Genannte"
+                ],
+                "correctAnswer": "Zigbee",
+                "explanation": ""
+            },
+            {
+                "question": "Wie heißt die Technologie, mit der ein Computer in erweiterter Realität genutzt werden kann?",
+                "answers": [
+                    "VR",
+                    "AR",
+                    "MR",
+                    "XR"
+                ],
+                "correctAnswer": "AR",
+                "explanation": ""
+            },
+            {
+                "question": "Welche Programmiersprache wird zum Erstellen mobiler iOS-Apps verwendet?",
+                "answers": [
+                    "Python",
+                    "Java",
+                    "Swift",
+                    "Alles Genannte"
+                ],
+                "correctAnswer": "Swift",
+                "explanation": ""
+            },
+            {
+                "question": "Welche Technologie ermöglicht es, einen PC zum Mining von Kryptowährungen zu verwenden?",
+                "answers": [
+                    "Blockchain",
+                    "GPU mining",
+                    "ASIC mining",
+                    "Alles Genannte"
+                ],
+                "correctAnswer": "GPU mining",
+                "explanation": ""
+            },
+            {
+                "question": "Welche Computerkomponente ist für die Internetverbindung zuständig?",
+                "answers": [
+                    "CPU",
+                    "GPU",
+                    "Network Card",
+                    "SSD"
+                ],
+                "correctAnswer": "Network Card",
+                "explanation": ""
+            },
+            {
+                "question": "Welche Programmiersprache wird zum Erstellen von Betriebssystemen verwendet?",
+                "answers": [
+                    "Python",
+                    "C",
+                    "Java",
+                    "Ruby"
+                ],
+                "correctAnswer": "C",
+                "explanation": ""
+            },
+            {
+                "question": "Welches Unternehmen entwickelte das erste Tablet?",
+                "answers": [
+                    "Apple",
+                    "Microsoft",
+                    "IBM",
+                    "HP"
+                ],
+                "correctAnswer": "Microsoft",
+                "explanation": ""
+            },
+            {
+                "question": "Welcher Standard wird zur Datenübertragung in Smart Homes verwendet?",
+                "answers": [
+                    "Bluetooth",
+                    "Wi-Fi",
+                    "Zigbee",
+                    "Alles Genannte"
+                ],
+                "correctAnswer": "Alles Genannte",
+                "explanation": ""
+            },
+            {
+                "question": "Wie heißt Apples Technologie zur Gesichtserkennung?",
+                "answers": [
+                    "Face ID",
+                    "Facial Recognition",
+                    "Biometric Scanning",
+                    "Alles Genannte"
+                ],
+                "correctAnswer": "Face ID",
+                "explanation": ""
+            },
+            {
+                "question": "Welche programming language wird verwendet, um zu erstellen igr na Unity?",
+                "answers": [
+                    "Python",
+                    "C#",
+                    "Java",
+                    "Ruby"
+                ],
+                "correctAnswer": "C#",
+                "explanation": ""
+            },
+            {
+                "question": "Welche Technologie ermöglicht einem Computer die Automatisierung von Aufgaben?",
+                "answers": [
+                    "AI",
+                    "ML",
+                    "RPA",
+                    "Alles Genannte"
+                ],
+                "correctAnswer": "Alles Genannte",
+                "explanation": ""
+            },
+            {
+                "question": "Welche computer component ist für die Kühlung verantwortlich?",
+                "answers": [
+                    "CPU",
+                    "GPU",
+                    "Cooling Fan",
+                    "SSD"
+                ],
+                "correctAnswer": "Cooling Fan",
+                "explanation": ""
+            },
+            {
+                "question": "Welche Programmiersprache wird am häufigsten zum Erstellen von Webanwendungen verwendet?",
+                "answers": [
+                    "Python",
+                    "JavaScript",
+                    "Java",
+                    "Kotlin"
+                ],
+                "correctAnswer": "JavaScript",
+                "explanation": ""
+            },
+            {
+                "question": "Welches Unternehmen entwickelte das erste Smart Home?",
+                "answers": [
+                    "Apple",
+                    "Google",
+                    "Amazon",
+                    "Microsoft"
+                ],
+                "correctAnswer": "Microsoft",
+                "explanation": ""
+            },
+            {
+                "question": "Welcher Standard wird zur Datenübertragung in autonomen Fahrzeugen verwendet?",
+                "answers": [
+                    "5G",
+                    "Wi-Fi",
+                    "V2X",
+                    "Alles Genannte"
+                ],
+                "correctAnswer": "Alles Genannte",
+                "explanation": ""
+            },
+            {
+                "question": "Wie heißt die Technologie, die Sprachsynthese für Sprachassistenten bereitstellt?",
+                "answers": [
+                    "NLP",
+                    "AI",
+                    "ML",
+                    "Alles Genannte"
+                ],
+                "correctAnswer": "Alles Genannte",
+                "explanation": ""
+            },
+            {
+                "question": "Welche Programmiersprache wird zum Erstellen von Chatbots verwendet?",
+                "answers": [
+                    "Python",
+                    "JavaScript",
+                    "Java",
+                    "Alles Genannte"
+                ],
+                "correctAnswer": "Alles Genannte",
+                "explanation": ""
+            }
+        ],
+        "id": "technology"
+    },
+    {
+        "theme": "Geschichte und Kultur",
+        "themeDescription": "Fragen zu historischen Ereignissen, Kunst, Literatur, Architektur und dem kulturellen Welterbe.",
+        "questions": [
+            {
+                "question": "Wann schrieb Beethoven die Mondscheinsonate?",
+                "answers": [
+                    "1801",
+                    "1784",
+                    "1802",
+                    "1811"
+                ],
+                "correctAnswer": "1801",
+                "explanation": ""
+            },
+            {
+                "question": "Ein anderer Name des Stanislawski- und Nemirowitsch-Dantschenko-Theaters:",
+                "answers": [
+                    "MAMT",
+                    "MKhT",
+                    "GosTiM",
+                    "MPT"
+                ],
+                "correctAnswer": "MAMT",
+                "explanation": ""
+            },
+            {
+                "question": "Wie viele Sinfonien schrieb Tschaikowski?",
+                "answers": [
+                    "6",
+                    "8",
+                    "4",
+                    "12"
+                ],
+                "correctAnswer": "6",
+                "explanation": ""
+            },
+            {
+                "question": "Start date of World War II",
+                "answers": [
+                    "1 sentyabrya 1939 g.",
+                    "22 iyunya 1941 g.",
+                    "11 yanvarya 1940 g.",
+                    "26 iyunya 1941 g."
+                ],
+                "correctAnswer": "1 sentyabrya 1939 g.",
+                "explanation": ""
+            },
+            {
+                "question": "In welcher Stadt begann Peter I. mit dem Bau der russischen Flotte?",
+                "answers": [
+                    "Voronezh",
+                    "Moskva",
+                    "Sankt-Peterburg",
+                    "Ekaterinburg"
+                ],
+                "correctAnswer": "Voronezh",
+                "explanation": ""
+            },
+            {
+                "question": "Wie hieß der berühmteste Tempel des antiken Griechenlands, der Athena gewidmet war?",
+                "answers": [
+                    "Parfenon",
+                    "Kolizey",
+                    "Panteon",
+                    "Akropol"
+                ],
+                "correctAnswer": "Parfenon",
+                "explanation": ""
+            },
+            {
+                "question": "Welcher Künstler malte 'Das letzte Abendmahl'?",
+                "answers": [
+                    "Leonardo da Vinchi",
+                    "Mikelandzhelo",
+                    "Rafael",
+                    "Rembrandt"
+                ],
+                "correctAnswer": "Leonardo da Vinchi",
+                "explanation": ""
+            },
+            {
+                "question": "Welche antike Stadt wurde beim Ausbruch des Vesuvs im Jahr 79 unter Asche begraben?",
+                "answers": [
+                    "Pompei",
+                    "Karfagen",
+                    "Troya",
+                    "Afiny"
+                ],
+                "correctAnswer": "Pompei",
+                "explanation": ""
+            },
+            {
+                "question": "Wie hieß der Staat, der auf dem Gebiet Russlands vor der Rus existierte?",
+                "answers": [
+                    "Skifiya",
+                    "Zolotaya Orda",
+                    "Vizantiya",
+                    "Khazarskiy kaganat"
+                ],
+                "correctAnswer": "Khazarskiy kaganat",
+                "explanation": ""
+            },
+            {
+                "question": "Wer schrieb den Roman 'Krieg und Frieden'?",
+                "answers": [
+                    "Lev Tolstoy",
+                    "Fyodor Dostoevskiy",
+                    "Aleksandr Pushkin",
+                    "Ivan Turgenev"
+                ],
+                "correctAnswer": "Lev Tolstoy",
+                "explanation": ""
+            },
+            {
+                "question": "Welches Bauwerk gilt als Symbol Indiens?",
+                "answers": [
+                    "Tadzh-Makhal",
+                    "Bolshaya kitayskaya stena",
+                    "Piramidy Gizy",
+                    "Angkor-Vat"
+                ],
+                "correctAnswer": "Tadzh-Makhal",
+                "explanation": ""
+            },
+            {
+                "question": "Welcher Baustil ist durch massive Mauern, Rundbögen und kleine Fenster gekennzeichnet?",
+                "answers": [
+                    "Romanskiy",
+                    "Goticheskiy",
+                    "Barokko",
+                    "Modern"
+                ],
+                "correctAnswer": "Romanskiy",
+                "explanation": ""
+            },
+            {
+                "question": "Welcher König Frankreichs wurde während der Französischen Revolution hingerichtet?",
+                "answers": [
+                    "Lyudovik XVI",
+                    "Napoleon I",
+                    "Lyudovik XIV",
+                    "Filipp IV"
+                ],
+                "correctAnswer": "Lyudovik XVI",
+                "explanation": ""
+            },
+            {
+                "question": "Welches Land gilt als Geburtsort der Olympischen Spiele?",
+                "answers": [
+                    "Gretsiya",
+                    "Italien",
+                    "Egipet",
+                    "Frankreich"
+                ],
+                "correctAnswer": "Gretsiya",
+                "explanation": ""
+            },
+            {
+                "question": "Wie hieß die Handelsroute, die China und Europa im Mittelalter verband?",
+                "answers": [
+                    "Shyolkovyy put",
+                    "Put Svyatogo Iakova",
+                    "Velikiy chaynyy put",
+                    "Spays Roud"
+                ],
+                "correctAnswer": "Shyolkovyy put",
+                "explanation": ""
+            },
+            {
+                "question": "Wer schuf die Skulptur 'David'?",
+                "answers": [
+                    "Donatello",
+                    "Mikelandzhelo",
+                    "Bernini",
+                    "Roden"
+                ],
+                "correctAnswer": "Mikelandzhelo",
+                "explanation": ""
+            },
+            {
+                "question": "In welchem Jahr fand die Schlacht auf dem Kulikowo-Feld statt?",
+                "answers": [
+                    "1380",
+                    "1240",
+                    "1480",
+                    "1547"
+                ],
+                "correctAnswer": "1380",
+                "explanation": ""
+            },
+            {
+                "question": "Welcher russische Zar reformierte 1700 den Kalender?",
+                "answers": [
+                    "Ivan Groznyy",
+                    "Pyotr I",
+                    "Aleksey Mikhaylovich",
+                    "Pavel I"
+                ],
+                "correctAnswer": "Pyotr I",
+                "explanation": ""
+            },
+            {
+                "question": "Wer wrote 'Gore ot uma'?",
+                "answers": [
+                    "Pushkin",
+                    "Griboedov",
+                    "Gogol",
+                    "Turgenev"
+                ],
+                "correctAnswer": "Griboedov",
+                "explanation": ""
+            },
+            {
+                "question": "Welcher Künstler schuf 'Schwarzes Quadrat'?",
+                "answers": [
+                    "Kandinskiy",
+                    "Malevich",
+                    "Shagal",
+                    "Pikasso"
+                ],
+                "correctAnswer": "Malevich",
+                "explanation": ""
+            },
+            {
+                "question": "In welchem Jahrhundert lebte Shakespeare?",
+                "answers": [
+                    "XIV",
+                    "XV",
+                    "XVI",
+                    "XVII"
+                ],
+                "correctAnswer": "XVI",
+                "explanation": ""
+            },
+            {
+                "question": "Welches antike Volk baute die Pyramiden von Gizeh?",
+                "answers": [
+                    "Shumery",
+                    "Atsteki",
+                    "Egiptyane",
+                    "Mayya"
+                ],
+                "correctAnswer": "Egiptyane",
+                "explanation": ""
+            },
+            {
+                "question": "Wer war der erste Kaiser Roms?",
+                "answers": [
+                    "Yuliy Tsezar",
+                    "Oktavian Avgust",
+                    "Neron",
+                    "Konstantin"
+                ],
+                "correctAnswer": "Oktavian Avgust",
+                "explanation": ""
+            },
+            {
+                "question": "Welche painting style vertrat Van Gog?",
+                "answers": [
+                    "Impressionizm",
+                    "Postimpressionizm",
+                    "Kubizm",
+                    "Syurrealizm"
+                ],
+                "correctAnswer": "Postimpressionizm",
+                "explanation": ""
+            },
+            {
+                "question": "Wer schrieb 'Die Göttliche Komödie'?",
+                "answers": [
+                    "Dante",
+                    "Petrarka",
+                    "Bokkachcho",
+                    "Moler"
+                ],
+                "correctAnswer": "Dante",
+                "explanation": ""
+            },
+            {
+                "question": "Wie hieß das erste gedruckte Buch Europas?",
+                "answers": [
+                    "Bibliya Gutenberga",
+                    "Kniga myortvykh",
+                    "Iliada",
+                    "Odisseya"
+                ],
+                "correctAnswer": "Bibliya Gutenberga",
+                "explanation": ""
+            },
+            {
+                "question": "Wer schrieb die Musik zum Ballett 'Schwanensee'?",
+                "answers": [
+                    "Chaykovskiy",
+                    "Musorgskiy",
+                    "Rimskiy-Korsakov",
+                    "Shostakovich"
+                ],
+                "correctAnswer": "Chaykovskiy",
+                "explanation": ""
+            },
+            {
+                "question": "Welche Stadt war die Hauptstadt des Byzantinischen Reiches?",
+                "answers": [
+                    "Rim",
+                    "Afiny",
+                    "Konstantinopol",
+                    "Antiokhiya"
+                ],
+                "correctAnswer": "Konstantinopol",
+                "explanation": ""
+            },
+            {
+                "question": "Wer malte 'Der Schrei'?",
+                "answers": [
+                    "Munk",
+                    "Van Gog",
+                    "Pikasso",
+                    "Dali"
+                ],
+                "correctAnswer": "Munk",
+                "explanation": ""
+            },
+            {
+                "question": "Welcher russische Schriftsteller erhielt 1958 den Nobelpreis für Literatur?",
+                "answers": [
+                    "Tolstoy",
+                    "Pasternak",
+                    "Solzhenitsyn",
+                    "Bunin"
+                ],
+                "correctAnswer": "Pasternak",
+                "explanation": ""
+            },
+            {
+                "question": "Welcher Baustil ist durch Spitzbögen und Glasfenster gekennzeichnet?",
+                "answers": [
+                    "Romanskiy",
+                    "Goticheskiy",
+                    "Barokko",
+                    "Rokoko"
+                ],
+                "correctAnswer": "Goticheskiy",
+                "explanation": ""
+            },
+            {
+                "question": "Wer war die Hauptgottheit der antiken griechischen Mythologie?",
+                "answers": [
+                    "Apollon",
+                    "Zevs",
+                    "Poseydon",
+                    "Gerakl"
+                ],
+                "correctAnswer": "Zevs",
+                "explanation": ""
+            },
+            {
+                "question": "Welcher russische Künstler malte 'Bogatyrs'?",
+                "answers": [
+                    "Repin",
+                    "Vasnetsov",
+                    "Surikov",
+                    "Ayvazovskiy"
+                ],
+                "correctAnswer": "Vasnetsov",
+                "explanation": ""
+            },
+            {
+                "question": "In welchem Jahr wurde Sankt Petersburg gegründet?",
+                "answers": [
+                    "1703",
+                    "1712",
+                    "1682",
+                    "1725"
+                ],
+                "correctAnswer": "1703",
+                "explanation": ""
+            },
+            {
+                "question": "Wer schrieb 'Schuld und Sühne'?",
+                "answers": [
+                    "Tolstoy",
+                    "Dostoevskiy",
+                    "Chekhov",
+                    "Turgenev"
+                ],
+                "correctAnswer": "Dostoevskiy",
+                "explanation": ""
+            },
+            {
+                "question": "Welche antike Stadt war für ihre Hängenden Gärten bekannt?",
+                "answers": [
+                    "Vavilon",
+                    "Afiny",
+                    "Rim",
+                    "Karfagen"
+                ],
+                "correctAnswer": "Vavilon",
+                "explanation": ""
+            },
+            {
+                "question": "Wer war der erste Präsident der Vereinigten Staaten?",
+                "answers": [
+                    "Dzhefferson",
+                    "Linkoln",
+                    "Vashington",
+                    "Ruzvelt"
+                ],
+                "correctAnswer": "Vashington",
+                "explanation": ""
+            },
+            {
+                "question": "Welcher Komponist schrieb die 'Mondscheinsonate'?",
+                "answers": [
+                    "Motsart",
+                    "Betkhoven",
+                    "Bakh",
+                    "Shopen"
+                ],
+                "correctAnswer": "Betkhoven",
+                "explanation": ""
+            },
+            {
+                "question": "Welcher russische Zar ist als 'der Schreckliche' bekannt?",
+                "answers": [
+                    "Ivan IV",
+                    "Pyotr I",
+                    "Aleksandr II",
+                    "Nikolay II"
+                ],
+                "correctAnswer": "Ivan IV",
+                "explanation": ""
+            },
+            {
+                "question": "Wer schrieb 'Hamlet'?",
+                "answers": [
+                    "Shekspir",
+                    "Moler",
+                    "Gyote",
+                    "Dante"
+                ],
+                "correctAnswer": "Shekspir",
+                "explanation": ""
+            },
+            {
+                "question": "Welche Stadt war das Zentrum der Renaissance?",
+                "answers": [
+                    "Parizh",
+                    "Florentsiya",
+                    "Venetsiya",
+                    "Rim"
+                ],
+                "correctAnswer": "Florentsiya",
+                "explanation": ""
+            },
+            {
+                "question": "Wer schrieb 'Eugen Onegin'?",
+                "answers": [
+                    "Lermontov",
+                    "Pushkin",
+                    "Gogol",
+                    "Turgenev"
+                ],
+                "correctAnswer": "Pushkin",
+                "explanation": ""
+            },
+            {
+                "question": "Welches antike Volk schuf das Alphabet?",
+                "answers": [
+                    "Finikiytsy",
+                    "Egiptyane",
+                    "Shumery",
+                    "Greki"
+                ],
+                "correctAnswer": "Finikiytsy",
+                "explanation": ""
+            },
+            {
+                "question": "Wer war der letzte Kaiser Russlands?",
+                "answers": [
+                    "Aleksandr II",
+                    "Nikolay II",
+                    "Pyotr I",
+                    "Aleksandr III"
+                ],
+                "correctAnswer": "Nikolay II",
+                "explanation": ""
+            },
+            {
+                "question": "Welcher Künstler malte die 'Mona Lisa'?",
+                "answers": [
+                    "Rafael",
+                    "Mikelandzhelo",
+                    "Leonardo da Vinchi",
+                    "Titsian"
+                ],
+                "correctAnswer": "Leonardo da Vinchi",
+                "explanation": ""
+            },
+            {
+                "question": "In welchem Jahr begann der Erste Weltkrieg?",
+                "answers": [
+                    "1914",
+                    "1917",
+                    "1918",
+                    "1915"
+                ],
+                "correctAnswer": "1914",
+                "explanation": ""
+            },
+            {
+                "question": "Wer schrieb die 'Ilias' und die 'Odyssee'?",
+                "answers": [
+                    "Gomer",
+                    "Vergiliy",
+                    "Gesiod",
+                    "Ovidiy"
+                ],
+                "correctAnswer": "Gomer",
+                "explanation": ""
+            },
+            {
+                "question": "Welcher russische Komponist schrieb 'Der Nussknacker'?",
+                "answers": [
+                    "Chaykovskiy",
+                    "Rakhmaninov",
+                    "Shostakovich",
+                    "Prokofev"
+                ],
+                "correctAnswer": "Chaykovskiy",
+                "explanation": ""
+            },
+            {
+                "question": "Welche Stadt war die Hauptstadt des Alten Ägypten?",
+                "answers": [
+                    "Fivy",
+                    "Memfis",
+                    "Aleksandriya",
+                    "Kair"
+                ],
+                "correctAnswer": "Memfis",
+                "explanation": ""
+            },
+            {
+                "question": "Wer schrieb 'Krieg und Frieden'?",
+                "answers": [
+                    "Dostoevskiy",
+                    "Tolstoy",
+                    "Turgenev",
+                    "Chekhov"
+                ],
+                "correctAnswer": "Tolstoy",
+                "explanation": ""
+            },
+            {
+                "question": "Welchen Kunststil vertrat Salvador Dalí?",
+                "answers": [
+                    "Kubizm",
+                    "Syurrealizm",
+                    "Impressionizm",
+                    "Futurizm"
+                ],
+                "correctAnswer": "Syurrealizm",
+                "explanation": ""
+            },
+            {
+                "question": "In welchem Jahr fand die Oktoberrevolution statt?",
+                "answers": [
+                    "1917",
+                    "1905",
+                    "1914",
+                    "1924"
+                ],
+                "correctAnswer": "1917",
+                "explanation": ""
+            },
+            {
+                "question": "Wer schrieb 'Faust'?",
+                "answers": [
+                    "Gyote",
+                    "Shiller",
+                    "Geyne",
+                    "Nitsshe"
+                ],
+                "correctAnswer": "Gyote",
+                "explanation": ""
+            },
+            {
+                "question": "Welcher russische Künstler malte 'Der Morgen der Strelitzenhinrichtung'?",
+                "answers": [
+                    "Repin",
+                    "Surikov",
+                    "Vasnetsov",
+                    "Ayvazovskiy"
+                ],
+                "correctAnswer": "Surikov",
+                "explanation": ""
+            },
+            {
+                "question": "Welche antike Stadt war für den Koloss von Rhodos bekannt?",
+                "answers": [
+                    "Afiny",
+                    "Rodos",
+                    "Aleksandriya",
+                    "Vavilon"
+                ],
+                "correctAnswer": "Rodos",
+                "explanation": ""
+            },
+            {
+                "question": "Wer war der erste Mensch im All?",
+                "answers": [
+                    "Gagarin",
+                    "Armstrong",
+                    "Titov",
+                    "Leonov"
+                ],
+                "correctAnswer": "Gagarin",
+                "explanation": ""
+            },
+            {
+                "question": "Welcher Komponist schrieb die 'Sinfonie Nr. 5'?",
+                "answers": [
+                    "Motsart",
+                    "Betkhoven",
+                    "Bakh",
+                    "Shubert"
+                ],
+                "correctAnswer": "Betkhoven",
+                "explanation": ""
+            },
+            {
+                "question": "Welcher russische Schriftsteller schrieb 'Die toten Seelen'?",
+                "answers": [
+                    "Tolstoy",
+                    "Dostoevskiy",
+                    "Gogol",
+                    "Turgenev"
+                ],
+                "correctAnswer": "Gogol",
+                "explanation": ""
+            },
+            {
+                "question": "Welche Stadt war die Hauptstadt des Osmanischen Reiches?",
+                "answers": [
+                    "Ankara",
+                    "Stambul",
+                    "Damask",
+                    "Kair"
+                ],
+                "correctAnswer": "Stambul",
+                "explanation": ""
+            },
+            {
+                "question": "Wer schrieb 'Anna Karenina'?",
+                "answers": [
+                    "Dostoevskiy",
+                    "Tolstoy",
+                    "Chekhov",
+                    "Turgenev"
+                ],
+                "correctAnswer": "Tolstoy",
+                "explanation": ""
+            },
+            {
+                "question": "Welchen Baustil repräsentiert die Kathedrale Notre-Dame?",
+                "answers": [
+                    "Romanskiy",
+                    "Goticheskiy",
+                    "Barokko",
+                    "Renessans"
+                ],
+                "correctAnswer": "Goticheskiy",
+                "explanation": ""
+            },
+            {
+                "question": "In welchem Jahr wurde Moskau gegründet?",
+                "answers": [
+                    "1147",
+                    "1240",
+                    "988",
+                    "1380"
+                ],
+                "correctAnswer": "1147",
+                "explanation": ""
+            },
+            {
+                "question": "Wer schrieb 'Don Quijote'?",
+                "answers": [
+                    "Servantes",
+                    "Shekspir",
+                    "Gyote",
+                    "Dante"
+                ],
+                "correctAnswer": "Servantes",
+                "explanation": ""
+            },
+            {
+                "question": "Welcher russische Künstler malte 'Die neunte Welle'?",
+                "answers": [
+                    "Ayvazovskiy",
+                    "Shishkin",
+                    "Repin",
+                    "Levitan"
+                ],
+                "correctAnswer": "Ayvazovskiy",
+                "explanation": ""
+            },
+            {
+                "question": "Welche antike Stadt war für die Bibliothek von Alexandria bekannt?",
+                "answers": [
+                    "Afiny",
+                    "Rim",
+                    "Aleksandriya",
+                    "Karfagen"
+                ],
+                "correctAnswer": "Aleksandriya",
+                "explanation": ""
+            },
+            {
+                "question": "Wer war der erste Papst?",
+                "answers": [
+                    "Pyotr",
+                    "Pavel",
+                    "Ioann",
+                    "Lev"
+                ],
+                "correctAnswer": "Pyotr",
+                "explanation": ""
+            },
+            {
+                "question": "Welcher Komponist schrieb 'Die vier Jahreszeiten'?",
+                "answers": [
+                    "Vivaldi",
+                    "Bakh",
+                    "Motsart",
+                    "Betkhoven"
+                ],
+                "correctAnswer": "Vivaldi",
+                "explanation": ""
+            },
+            {
+                "question": "Welcher russische Schriftsteller schrieb 'Väter und Söhne'?",
+                "answers": [
+                    "Tolstoy",
+                    "Dostoevskiy",
+                    "Turgenev",
+                    "Chekhov"
+                ],
+                "correctAnswer": "Turgenev",
+                "explanation": ""
+            },
+            {
+                "question": "Welche Stadt war die Hauptstadt von Byzanz?",
+                "answers": [
+                    "Rim",
+                    "Afiny",
+                    "Konstantinopol",
+                    "Antiokhiya"
+                ],
+                "correctAnswer": "Konstantinopol",
+                "explanation": ""
+            },
+            {
+                "question": "Wer schrieb 'Der Revisor'?",
+                "answers": [
+                    "Gogol",
+                    "Tolstoy",
+                    "Dostoevskiy",
+                    "Chekhov"
+                ],
+                "correctAnswer": "Gogol",
+                "explanation": ""
+            },
+            {
+                "question": "Welche painting style vertrat Klod Mone?",
+                "answers": [
+                    "Impressionizm",
+                    "Ekspressionizm",
+                    "Kubizm",
+                    "Syurrealizm"
+                ],
+                "correctAnswer": "Impressionizm",
+                "explanation": ""
+            },
+            {
+                "question": "In welchem Jahr fand die Schlacht von Borodino statt?",
+                "answers": [
+                    "1812",
+                    "1805",
+                    "1825",
+                    "1799"
+                ],
+                "correctAnswer": "1812",
+                "explanation": ""
+            },
+            {
+                "question": "Wer schrieb 'Die Brüder Karamasow'?",
+                "answers": [
+                    "Tolstoy",
+                    "Dostoevskiy",
+                    "Turgenev",
+                    "Chekhov"
+                ],
+                "correctAnswer": "Dostoevskiy",
+                "explanation": ""
+            },
+            {
+                "question": "Welcher russische Künstler malte 'Die Wolgatreidler'?",
+                "answers": [
+                    "Repin",
+                    "Surikov",
+                    "Vasnetsov",
+                    "Levitan"
+                ],
+                "correctAnswer": "Repin",
+                "explanation": ""
+            },
+            {
+                "question": "Welche antike Stadt war für den Tempel der Artemis bekannt?",
+                "answers": [
+                    "Afiny",
+                    "Efes",
+                    "Rim",
+                    "Vavilon"
+                ],
+                "correctAnswer": "Efes",
+                "explanation": ""
+            },
+            {
+                "question": "Wer war der erste König Englands?",
+                "answers": [
+                    "Vilgelm Zavoevatel",
+                    "Alfred Velikiy",
+                    "Genrikh VIII",
+                    "Richard Lvinoe Serdtse"
+                ],
+                "correctAnswer": "Alfred Velikiy",
+                "explanation": ""
+            },
+            {
+                "question": "Welcher Komponist schrieb das 'Requiem'?",
+                "answers": [
+                    "Bakh",
+                    "Motsart",
+                    "Betkhoven",
+                    "Shubert"
+                ],
+                "correctAnswer": "Motsart",
+                "explanation": ""
+            },
+            {
+                "question": "Welcher russische Schriftsteller schrieb 'Der Kirschgarten'?",
+                "answers": [
+                    "Tolstoy",
+                    "Dostoevskiy",
+                    "Chekhov",
+                    "Turgenev"
+                ],
+                "correctAnswer": "Chekhov",
+                "explanation": ""
+            },
+            {
+                "question": "Welche Stadt war die Hauptstadt des alten China?",
+                "answers": [
+                    "Pekin",
+                    "Shankhay",
+                    "Sian",
+                    "Nankin"
+                ],
+                "correctAnswer": "Sian",
+                "explanation": ""
+            },
+            {
+                "question": "Wer schrieb 'Ein Held unserer Zeit'?",
+                "answers": [
+                    "Lermontov",
+                    "Pushkin",
+                    "Gogol",
+                    "Turgenev"
+                ],
+                "correctAnswer": "Lermontov",
+                "explanation": ""
+            },
+            {
+                "question": "Welchen Baustil repräsentiert das Taj Mahal?",
+                "answers": [
+                    "Gotika",
+                    "Barokko",
+                    "Mogolskaya arkhitektura",
+                    "Renessans"
+                ],
+                "correctAnswer": "Mogolskaya arkhitektura",
+                "explanation": ""
+            },
+            {
+                "question": "In welchem Jahr wurde die Magna Carta unterzeichnet?",
+                "answers": [
+                    "1215",
+                    "1066",
+                    "1346",
+                    "1485"
+                ],
+                "correctAnswer": "1215",
+                "explanation": ""
+            },
+            {
+                "question": "Wer schrieb 'Decamerone'?",
+                "answers": [
+                    "Dante",
+                    "Petrarka",
+                    "Bokkachcho",
+                    "Moler"
+                ],
+                "correctAnswer": "Bokkachcho",
+                "explanation": ""
+            },
+            {
+                "question": "Welcher russische Künstler malte 'Die Saatkrähen sind zurück'?",
+                "answers": [
+                    "Savrasov",
+                    "Shishkin",
+                    "Levitan",
+                    "Repin"
+                ],
+                "correctAnswer": "Savrasov",
+                "explanation": ""
+            },
+            {
+                "question": "Welche antike Stadt war für das Mausoleum von Halikarnassos bekannt?",
+                "answers": [
+                    "Afiny",
+                    "Galikarnas",
+                    "Rim",
+                    "Vavilon"
+                ],
+                "correctAnswer": "Galikarnas",
+                "explanation": ""
+            },
+            {
+                "question": "Wer war der erste Kaiser Chinas?",
+                "answers": [
+                    "Tsin Shikhuandi",
+                    "Konfutsiy",
+                    "Lao-tszy",
+                    "Sun-tszy"
+                ],
+                "correctAnswer": "Tsin Shikhuandi",
+                "explanation": ""
+            },
+            {
+                "question": "Welcher Komponist schrieb 'Schwanensee'?",
+                "answers": [
+                    "Chaykovskiy",
+                    "Rakhmaninov",
+                    "Shostakovich",
+                    "Prokofev"
+                ],
+                "correctAnswer": "Chaykovskiy",
+                "explanation": ""
+            },
+            {
+                "question": "Welcher russische Schriftsteller schrieb 'Die Hauptmannstochter'?",
+                "answers": [
+                    "Pushkin",
+                    "Lermontov",
+                    "Gogol",
+                    "Turgenev"
+                ],
+                "correctAnswer": "Pushkin",
+                "explanation": ""
+            },
+            {
+                "question": "Welche Stadt war die Hauptstadt des antiken Rom?",
+                "answers": [
+                    "Rim",
+                    "Konstantinopol",
+                    "Afiny",
+                    "Karfagen"
+                ],
+                "correctAnswer": "Rim",
+                "explanation": ""
+            },
+            {
+                "question": "Wer schrieb 'Mzyri'?",
+                "answers": [
+                    "Lermontov",
+                    "Pushkin",
+                    "Gogol",
+                    "Turgenev"
+                ],
+                "correctAnswer": "Lermontov",
+                "explanation": ""
+            },
+            {
+                "question": "Welchen Malstil vertrat Pablo Picasso?",
+                "answers": [
+                    "Kubizm",
+                    "Syurrealizm",
+                    "Impressionizm",
+                    "Futurizm"
+                ],
+                "correctAnswer": "Kubizm",
+                "explanation": ""
+            },
+            {
+                "question": "In welchem Jahr fand die Französische Revolution statt?",
+                "answers": [
+                    "1789",
+                    "1776",
+                    "1799",
+                    "1812"
+                ],
+                "correctAnswer": "1789",
+                "explanation": ""
+            },
+            {
+                "question": "Wer schrieb 'Die Göttliche Komödie'?",
+                "answers": [
+                    "Dante",
+                    "Petrarka",
+                    "Bokkachcho",
+                    "Moler"
+                ],
+                "correctAnswer": "Dante",
+                "explanation": ""
+            },
+            {
+                "question": "Welcher russische Künstler malte 'Morgen im Kiefernwald'?",
+                "answers": [
+                    "Shishkin",
+                    "Levitan",
+                    "Savrasov",
+                    "Repin"
+                ],
+                "correctAnswer": "Shishkin",
+                "explanation": ""
+            },
+            {
+                "question": "Welche antike Stadt war für die Zeusstatue von Olympia bekannt?",
+                "answers": [
+                    "Afiny",
+                    "Olimpiya",
+                    "Rim",
+                    "Vavilon"
+                ],
+                "correctAnswer": "Olimpiya",
+                "explanation": ""
+            },
+            {
+                "question": "Wer war der erste Präsident Frankreichs?",
+                "answers": [
+                    "Napoleon",
+                    "Lui-Filipp",
+                    "Sharl de Goll",
+                    "Lui Napoleon Bonapart"
+                ],
+                "correctAnswer": "Lui Napoleon Bonapart",
+                "explanation": ""
+            },
+            {
+                "question": "Welcher Komponist schrieb 'Carmen'?",
+                "answers": [
+                    "Bize",
+                    "Verdi",
+                    "Puchchini",
+                    "Motsart"
+                ],
+                "correctAnswer": "Bize",
+                "explanation": ""
+            },
+            {
+                "question": "Welcher russische Schriftsteller schrieb 'Oblomow'?",
+                "answers": [
+                    "Goncharov",
+                    "Turgenev",
+                    "Dostoevskiy",
+                    "Tolstoy"
+                ],
+                "correctAnswer": "Goncharov",
+                "explanation": ""
+            },
+            {
+                "question": "Welche Stadt war die Hauptstadt des alten Persien?",
+                "answers": [
+                    "Persepol",
+                    "Vavilon",
+                    "Suzy",
+                    "Pasargady"
+                ],
+                "correctAnswer": "Persepol",
+                "explanation": ""
+            },
+            {
+                "question": "Wer schrieb 'Das Igorlied'?",
+                "answers": [
+                    "Neizvestnyy avtor",
+                    "Pushkin",
+                    "Lermontov",
+                    "Gogol"
+                ],
+                "correctAnswer": "Neizvestnyy avtor",
+                "explanation": ""
+            },
+            {
+                "question": "Welchen Baustil repräsentiert der Petersdom in Rom?",
+                "answers": [
+                    "Gotika",
+                    "Barokko",
+                    "Renessans",
+                    "Romanskiy"
+                ],
+                "correctAnswer": "Barokko",
+                "explanation": ""
+            }
+        ],
+        "id": "history_culture"
+    },
+    {
+        "theme": "Politik und Wirtschaft",
+        "themeDescription": "Teste dein Wissen über Politiker, Unternehmen, Wirtschaft, Finanzen und wichtige Geschäftsentscheidungen.",
+        "questions": [
+            {
+                "question": "Wann wurde Putin amtierender Präsident Russlands?",
+                "answers": [
+                    "1999",
+                    "2000",
+                    "2001",
+                    "1991"
+                ],
+                "correctAnswer": "1999",
+                "explanation": ""
+            },
+            {
+                "question": "Aus welchem Land stammt BORK?",
+                "answers": [
+                    "Russland",
+                    "Deutschland",
+                    "Österreich",
+                    "Amerika"
+                ],
+                "correctAnswer": "Russland",
+                "explanation": ""
+            },
+            {
+                "question": "Wie viele countries are members of the UN?",
+                "answers": [
+                    "193",
+                    "200",
+                    "31",
+                    "126"
+                ],
+                "correctAnswer": "193",
+                "explanation": ""
+            },
+            {
+                "question": "Worauf ist WeWork spezialisiert?",
+                "answers": [
+                    "Gewerbeimmobilien",
+                    "Job search",
+                    "IT startup acceleration",
+                    "Development"
+                ],
+                "correctAnswer": "Gewerbeimmobilien",
+                "explanation": ""
+            },
+            {
+                "question": "Wer hielt von 1995 bis 2003 den Hauptanteil an Yukos?",
+                "answers": [
+                    "M. Khodorkovskiy",
+                    "P. Aven",
+                    "G. Gref",
+                    "B. Berezovskiy"
+                ],
+                "correctAnswer": "M. Khodorkovskiy",
+                "explanation": ""
+            },
+            {
+                "question": "Welcher Wirtschaftsbegriff bezeichnet den Rückgang der Kaufkraft des Geldes infolge eines allgemeinen Preisanstiegs?",
+                "answers": [
+                    "Inflation",
+                    "Deflation",
+                    "Rezession",
+                    "Stagflation"
+                ],
+                "correctAnswer": "Inflation",
+                "explanation": ""
+            },
+            {
+                "question": "Welches Land erklärte als erstes in der Geschichte den Zahlungsausfall auf Auslandsschulden?",
+                "answers": [
+                    "Frankreich",
+                    "Spanien",
+                    "Vereinigtes Königreich",
+                    "Deutschland"
+                ],
+                "correctAnswer": "Spanien",
+                "explanation": ""
+            },
+            {
+                "question": "Welches Steuerkonzept sieht vor, dass Reiche einen höheren Prozentsatz ihres Einkommens zahlen als Arme?",
+                "answers": [
+                    "Progressive Besteuerung",
+                    "Regressive taxation",
+                    "Proportional taxation",
+                    "Indirect taxation"
+                ],
+                "correctAnswer": "Progressive Besteuerung",
+                "explanation": ""
+            },
+            {
+                "question": "Welche Bank wurde nach Vermögenswerten als größte Investmentbank der Welt anerkannt?",
+                "answers": [
+                    "JPMorgan Chase",
+                    "Goldman Sachs",
+                    "Morgan Stanley",
+                    "Bank of America"
+                ],
+                "correctAnswer": "JPMorgan Chase",
+                "explanation": ""
+            },
+            {
+                "question": "Welcher Konzern erreichte als erster in der Geschichte eine Marktkapitalisierung von 1 Billion US-Dollar?",
+                "answers": [
+                    "Apple",
+                    "Microsoft",
+                    "Amazon",
+                    "Saudi Aramco"
+                ],
+                "correctAnswer": "Apple",
+                "explanation": ""
+            },
+            {
+                "question": "Welches G7-Land gehört nicht dem UN-Sicherheitsrat an?",
+                "answers": [
+                    "Kanada",
+                    "Frankreich",
+                    "Vereinigtes Königreich",
+                    "Italien"
+                ],
+                "correctAnswer": "Kanada",
+                "explanation": ""
+            },
+            {
+                "question": "Wie heißt die makroökonomische Situation, in der Arbeitslosigkeit und Inflation gleichzeitig steigen?",
+                "answers": [
+                    "Stagflation",
+                    "Rezession",
+                    "Deflation",
+                    "Liquiditätskrise"
+                ],
+                "correctAnswer": "Stagflation",
+                "explanation": ""
+            },
+            {
+                "question": "In welchem Jahr führte Saudi Aramco den größten Börsengang der Geschichte durch?",
+                "answers": [
+                    "2019",
+                    "2015",
+                    "2021",
+                    "2017"
+                ],
+                "correctAnswer": "2019",
+                "explanation": ""
+            },
+            {
+                "question": "Wer prägte das Konzept der 'unsichtbaren Hand des Marktes'?",
+                "answers": [
+                    "Adam Smith",
+                    "John Keynes",
+                    "Karl Marx",
+                    "Milton Friedman"
+                ],
+                "correctAnswer": "Adam Smith",
+                "explanation": ""
+            },
+            {
+                "question": "Welches Ereignis führte zur weltweiten Finanzkrise von 2008?",
+                "answers": [
+                    "US subprime mortgage crisis",
+                    "Collapse of Lehman Brothers",
+                    "Greek debt crisis",
+                    "Oil price collapse"
+                ],
+                "correctAnswer": "US subprime mortgage crisis",
+                "explanation": ""
+            },
+            {
+                "question": "Welche Währung wird in der Schweiz verwendet?",
+                "answers": [
+                    "Swiss franc",
+                    "Euro",
+                    "US dollar",
+                    "Pound sterling"
+                ],
+                "correctAnswer": "Swiss franc",
+                "explanation": ""
+            },
+            {
+                "question": "Welcher russische Unternehmer gründete Wildberries?",
+                "answers": [
+                    "Tatyana Bakalchuk",
+                    "Oleg Tinkov",
+                    "Alisher Usmanov",
+                    "Arkady Volozh"
+                ],
+                "correctAnswer": "Tatyana Bakalchuk",
+                "explanation": ""
+            },
+            {
+                "question": "Wie heißt die internationale Organisation, die das Korruptionsniveau in Ländern überwacht?",
+                "answers": [
+                    "Transparency International",
+                    "UNESCO",
+                    "IMF",
+                    "OECD"
+                ],
+                "correctAnswer": "Transparency International",
+                "explanation": ""
+            },
+            {
+                "question": "Was does the abbreviation IPO?",
+                "answers": [
+                    "Börsengang",
+                    "Investment in production facilities",
+                    "Corporate income tax",
+                    "Online sole proprietor"
+                ],
+                "correctAnswer": "Börsengang",
+                "explanation": ""
+            },
+            {
+                "question": "Welcher Autokonzern besitzt die Marke Lamborghini?",
+                "answers": [
+                    "Volkswagen",
+                    "Ferrari",
+                    "Mercedes-Benz",
+                    "BMW"
+                ],
+                "correctAnswer": "Volkswagen",
+                "explanation": ""
+            },
+            {
+                "question": "Wer ist der Gründer des Investmentfonds Berkshire Hathaway?",
+                "answers": [
+                    "Warren Buffett",
+                    "George Soros",
+                    "Ray Dalio",
+                    "Benjamin Graham"
+                ],
+                "correctAnswer": "Warren Buffett",
+                "explanation": ""
+            },
+            {
+                "question": "Welche der folgenden Optionen ist keine Kryptowährung?",
+                "answers": [
+                    "Ethereum",
+                    "Bitcoin",
+                    "Ripple",
+                    "VISA"
+                ],
+                "correctAnswer": "VISA",
+                "explanation": ""
+            },
+            {
+                "question": "Was ist eine Offshore-Zone?",
+                "answers": [
+                    "Region with preferential taxation",
+                    "Oil production site",
+                    "Exchange trading platform",
+                    "Closed economic zone"
+                ],
+                "correctAnswer": "Region with preferential taxation",
+                "explanation": ""
+            },
+            {
+                "question": "Wer schrieb das Buch 'Das Kapital im 21. Jahrhundert'?",
+                "answers": [
+                    "Thomas Piketty",
+                    "Karl Marx",
+                    "Pol Krugman",
+                    "Nuriel Rubini"
+                ],
+                "correctAnswer": "Thomas Piketty",
+                "explanation": ""
+            },
+            {
+                "question": "Welcher Unternehmer übernahm Tesla nach dem Weggang von Martin Eberhard?",
+                "answers": [
+                    "Elon Musk",
+                    "Larry Page",
+                    "Steve Jobs",
+                    "Jeff Bezos"
+                ],
+                "correctAnswer": "Elon Musk",
+                "explanation": ""
+            },
+            {
+                "question": "Welches Unternehmen wurde als Online-Buchhandlung gegründet?",
+                "answers": [
+                    "Amazon",
+                    "eBay",
+                    "Google",
+                    "AliExpress"
+                ],
+                "correctAnswer": "Amazon",
+                "explanation": ""
+            },
+            {
+                "question": "In welchem Land wurde Nestlé gegründet?",
+                "answers": [
+                    "Schweiz",
+                    "Frankreich",
+                    "USA",
+                    "Deutschland"
+                ],
+                "correctAnswer": "Schweiz",
+                "explanation": ""
+            },
+            {
+                "question": "Welcher Staatschef wurde zweimal einem Amtsenthebungsverfahren unterzogen?",
+                "answers": [
+                    "Donald Trump",
+                    "Richard Nixon",
+                    "Bill Clinton",
+                    "Boris Johnson"
+                ],
+                "correctAnswer": "Donald Trump",
+                "explanation": ""
+            },
+            {
+                "question": "Welcher Unternehmer kaufte Twitter im Jahr 2022?",
+                "answers": [
+                    "Elon Musk",
+                    "Mark Zuckerberg",
+                    "Larry Ellison",
+                    "Peter Thiel"
+                ],
+                "correctAnswer": "Elon Musk",
+                "explanation": ""
+            },
+            {
+                "question": "Was sind Sanktionen in der internationalen Politik?",
+                "answers": [
+                    "Pressure measures against a country",
+                    "Economic aid",
+                    "Peacekeeping mission",
+                    "Electoral reform"
+                ],
+                "correctAnswer": "Pressure measures against a country",
+                "explanation": ""
+            },
+            {
+                "question": "Wie heißt das russische System zur Kontrolle öffentlicher Ausgaben und Korruptionsbekämpfung?",
+                "answers": [
+                    "Federal Treasury",
+                    "Central Bank of Russia",
+                    "Federal Tax Service",
+                    "Rosfinmonitoring"
+                ],
+                "correctAnswer": "Federal Treasury",
+                "explanation": ""
+            },
+            {
+                "question": "Welches Unternehmen war 2023 weltweit führend nach Marktkapitalisierung?",
+                "answers": [
+                    "Apple",
+                    "Microsoft",
+                    "Saudi Aramco",
+                    "Tesla"
+                ],
+                "correctAnswer": "Apple",
+                "explanation": ""
+            },
+            {
+                "question": "Welche russische Bank wurde 2022 als erste von SWIFT getrennt?",
+                "answers": [
+                    "Sberbank",
+                    "VTB",
+                    "Tinkoff",
+                    "Alfa-Bank"
+                ],
+                "correctAnswer": "Sberbank",
+                "explanation": ""
+            },
+            {
+                "question": "Wer wurde der jüngste Selfmade-Milliardär der Geschichte?",
+                "answers": [
+                    "Mark Zuckerberg",
+                    "Elon Musk",
+                    "Kylie Jenner",
+                    "Evan Spiegel"
+                ],
+                "correctAnswer": "Kylie Jenner",
+                "explanation": ""
+            },
+            {
+                "question": "Wie heißt die Politik, bestimmte Waren nicht in ein Land einführen zu lassen?",
+                "answers": [
+                    "Embargo",
+                    "Protectionism",
+                    "Dumping",
+                    "Sanctions"
+                ],
+                "correctAnswer": "Embargo",
+                "explanation": ""
+            },
+            {
+                "question": "Welches Land führte als erstes ein bedingungsloses Grundeinkommen auf nationaler Ebene ein?",
+                "answers": [
+                    "Finnland",
+                    "Schweiz",
+                    "Kanada",
+                    "Netherlands"
+                ],
+                "correctAnswer": "Finnland",
+                "explanation": ""
+            },
+            {
+                "question": "Welcher russische Oligarch wurde 2023 in London verhaftet?",
+                "answers": [
+                    "Roman Abramovich",
+                    "Mikhail Fridman",
+                    "Oleg Deripaska",
+                    "Viktor Vekselberg"
+                ],
+                "correctAnswer": "Mikhail Fridman",
+                "explanation": ""
+            },
+            {
+                "question": "Welche Kryptowährung hatte 2023 die höchste Marktkapitalisierung?",
+                "answers": [
+                    "Bitcoin",
+                    "Ethereum",
+                    "BNB",
+                    "Cardano"
+                ],
+                "correctAnswer": "Bitcoin",
+                "explanation": ""
+            },
+            {
+                "question": "Welcher Index gilt als 'Barometer der amerikanischen Wirtschaft'?",
+                "answers": [
+                    "NASDAQ",
+                    "S&P 500",
+                    "Dow Jones",
+                    "Russell 2000"
+                ],
+                "correctAnswer": "Dow Jones",
+                "explanation": ""
+            },
+            {
+                "question": "Welcher dieser Milliardäre gehört nicht zu den 'Big Four' der Technologieunternehmen?",
+                "answers": [
+                    "Jeff Bezos",
+                    "Mark Zuckerberg",
+                    "Elon Musk",
+                    "Bill Geyts"
+                ],
+                "correctAnswer": "Elon Musk",
+                "explanation": ""
+            },
+            {
+                "question": "Welche Bank wurde vor der Krise 2008 als 'stabilste Bank Russlands' bezeichnet?",
+                "answers": [
+                    "Sberbank",
+                    "Bank of Moscow",
+                    "Investbank",
+                    "KIT Finans"
+                ],
+                "correctAnswer": "KIT Finans",
+                "explanation": ""
+            },
+            {
+                "question": "Welches Unternehmen führte 2014 den größten Börsengang der US-Geschichte durch?",
+                "answers": [
+                    "Facebook",
+                    "Alibaba",
+                    "Uber",
+                    "Airbnb"
+                ],
+                "correctAnswer": "Alibaba",
+                "explanation": ""
+            },
+            {
+                "question": "Welcher politische Begriff bedeutet 'Herrschaft der Reichen'?",
+                "answers": [
+                    "Plutokratiya",
+                    "Oligarkhiya",
+                    "Kleptokratiya",
+                    "Meritokratiya"
+                ],
+                "correctAnswer": "Plutokratiya",
+                "explanation": ""
+            },
+            {
+                "question": "Welcher dieser Politiker war kein Friedensnobelpreisträger?",
+                "answers": [
+                    "Barak Obama",
+                    "Donald Trump",
+                    "Angela Merkel",
+                    "Mikhail Gorbachev"
+                ],
+                "correctAnswer": "Donald Trump",
+                "explanation": ""
+            },
+            {
+                "question": "Wie heißt die Wirtschaftstheorie, die minimale staatliche Eingriffe annimmt?",
+                "answers": [
+                    "Keynesianismus",
+                    "Monetarismus",
+                    "Libertarismus",
+                    "Socialism"
+                ],
+                "correctAnswer": "Libertarismus",
+                "explanation": ""
+            },
+            {
+                "question": "Welches Land legalisierte Bitcoin als erstes als Zahlungsmittel?",
+                "answers": [
+                    "El Salvador",
+                    "Schweiz",
+                    "Singapore",
+                    "Japan"
+                ],
+                "correctAnswer": "El Salvador",
+                "explanation": ""
+            },
+            {
+                "question": "Welcher russische Unternehmer besitzt den Fußballclub Monaco?",
+                "answers": [
+                    "Roman Abramovich",
+                    "Dmitriy Rybolovlev",
+                    "Alisher Usmanov",
+                    "Mikhail Prokhorov"
+                ],
+                "correctAnswer": "Dmitriy Rybolovlev",
+                "explanation": ""
+            },
+            {
+                "question": "Welches Unternehmen entwickelte die Blockchain-Technologie?",
+                "answers": [
+                    "IBM",
+                    "Satoshi Nakamoto",
+                    "Vitalik Buterin",
+                    "Ripple Labs"
+                ],
+                "correctAnswer": "Satoshi Nakamoto",
+                "explanation": ""
+            },
+            {
+                "question": "Wie heißt der Prozess, bei dem das Management ein Unternehmen übernimmt?",
+                "answers": [
+                    "IPO",
+                    "MBO",
+                    "SPO",
+                    "LBO"
+                ],
+                "correctAnswer": "MBO",
+                "explanation": ""
+            },
+            {
+                "question": "Welcher dieser Politiker gehörte nicht zur G7?",
+                "answers": [
+                    "Vladimir Putin",
+                    "Angela Merkel",
+                    "Emmanuel Makron",
+                    "Dzho Bayden"
+                ],
+                "correctAnswer": "Vladimir Putin",
+                "explanation": ""
+            },
+            {
+                "question": "Welche russische Bank wurde als erste auf die US-Sanktionsliste gesetzt?",
+                "answers": [
+                    "Bank of Moscow",
+                    "Russian Agricultural Bank",
+                    "Promsvyazbank",
+                    "Vnesheconombank"
+                ],
+                "correctAnswer": "Bank of Moscow",
+                "explanation": ""
+            },
+            {
+                "question": "Welches Land ist der größte Halter amerikanischer Staatsanleihen?",
+                "answers": [
+                    "China",
+                    "Japan",
+                    "Vereinigtes Königreich",
+                    "Saudi Arabia"
+                ],
+                "correctAnswer": "Japan",
+                "explanation": ""
+            },
+            {
+                "question": "Wie heißt die Wirtschaftskennzahl, die alle Endprodukte und Dienstleistungen abbildet?",
+                "answers": [
+                    "BIP",
+                    "BSP",
+                    "NNP",
+                    "National income"
+                ],
+                "correctAnswer": "BIP",
+                "explanation": ""
+            },
+            {
+                "question": "Welcher dieser Milliardäre gehört nicht dem Verwaltungsrat von Facebook an?",
+                "answers": [
+                    "Mark Zuckerberg",
+                    "Sheril Sendberg",
+                    "Peter Thiel",
+                    "Elon Musk"
+                ],
+                "correctAnswer": "Elon Musk",
+                "explanation": ""
+            },
+            {
+                "question": "Welcher russische Unternehmer besitzt die Brooklyn Nets?",
+                "answers": [
+                    "Mikhail Prokhorov",
+                    "Roman Abramovich",
+                    "Alisher Usmanov",
+                    "Oleg Deripaska"
+                ],
+                "correctAnswer": "Mikhail Prokhorov",
+                "explanation": ""
+            },
+            {
+                "question": "Welches Unternehmen führte den größten Börsengang in der Geschichte Chinas durch?",
+                "answers": [
+                    "Alibaba",
+                    "Tencent",
+                    "Huawei",
+                    "Xiaomi"
+                ],
+                "correctAnswer": "Alibaba",
+                "explanation": ""
+            },
+            {
+                "question": "Wie heißt die Wirtschaftspolitik des Einfrierens von Preisen und Löhnen?",
+                "answers": [
+                    "Deregulyatsiya",
+                    "Stabilizatsionnaya programma",
+                    "Politika dokhodov",
+                    "Monetarnoe targetirovanie"
+                ],
+                "correctAnswer": "Politika dokhodov",
+                "explanation": ""
+            },
+            {
+                "question": "Welcher dieser Politiker war nicht russischer Finanzminister?",
+                "answers": [
+                    "Aleksey Kudrin",
+                    "Anton Siluanov",
+                    "German Gref",
+                    "Elvira Nabiullina"
+                ],
+                "correctAnswer": "German Gref",
+                "explanation": ""
+            },
+            {
+                "question": "Welches Unternehmen erreichte als erstes eine Bewertung von 3 Billionen US-Dollar?",
+                "answers": [
+                    "Apple",
+                    "Microsoft",
+                    "Amazon",
+                    "Saudi Aramco"
+                ],
+                "correctAnswer": "Apple",
+                "explanation": ""
+            },
+            {
+                "question": "Wie heißt die künstliche Senkung des Wechselkurses einer Landeswährung?",
+                "answers": [
+                    "Abwertung",
+                    "Aufwertung",
+                    "Währungsumstellung",
+                    "Zahlungsausfall"
+                ],
+                "correctAnswer": "Abwertung",
+                "explanation": ""
+            },
+            {
+                "question": "Welcher dieser Unternehmer steht nicht auf der Forbes-Liste?",
+                "answers": [
+                    "Pavel Durov",
+                    "Yuriy Milner",
+                    "Arkady Volozh",
+                    "Igor Rybakov"
+                ],
+                "correctAnswer": "Yuriy Milner",
+                "explanation": ""
+            },
+            {
+                "question": "Welches Land führte als erstes eine digitale Zentralbankwährung ein?",
+                "answers": [
+                    "China",
+                    "USA",
+                    "Schweden",
+                    "Japan"
+                ],
+                "correctAnswer": "China",
+                "explanation": ""
+            },
+            {
+                "question": "Wie heißt die Wirtschaftstheorie, die auf den Ideen von Milton Friedman basiert?",
+                "answers": [
+                    "Keynesianismus",
+                    "Monetarismus",
+                    "Marxismus",
+                    "Institutionalismus"
+                ],
+                "correctAnswer": "Monetarismus",
+                "explanation": ""
+            },
+            {
+                "question": "Welcher dieser Politiker war nicht Vorsitzender der russischen Zentralbank?",
+                "answers": [
+                    "Sergey Ignatev",
+                    "Viktor Gerashchenko",
+                    "Aleksey Ulyukaev",
+                    "Elvira Nabiullina"
+                ],
+                "correctAnswer": "Aleksey Ulyukaev",
+                "explanation": ""
+            },
+            {
+                "question": "Welches Unternehmen übernahm LinkedIn für 26 Milliarden US-Dollar?",
+                "answers": [
+                    "Google",
+                    "Microsoft",
+                    "Facebook",
+                    "Salesforce"
+                ],
+                "correctAnswer": "Microsoft",
+                "explanation": ""
+            },
+            {
+                "question": "Wie heißt die Politik der künstlichen Aufwertung einer Landeswährung?",
+                "answers": [
+                    "Abwertung",
+                    "Aufwertung",
+                    "Währungsumstellung",
+                    "Zahlungsausfall"
+                ],
+                "correctAnswer": "Aufwertung",
+                "explanation": ""
+            },
+            {
+                "question": "Welcher dieser Unternehmer gehört nicht dem Verwaltungsrat von Tesla an?",
+                "answers": [
+                    "Elon Musk",
+                    "Larry Ellison",
+                    "Kimbal Mask",
+                    "Jeff Bezos"
+                ],
+                "correctAnswer": "Jeff Bezos",
+                "explanation": ""
+            },
+            {
+                "question": "Welches Land führte als erstes negative Zinssätze ein?",
+                "answers": [
+                    "Japan",
+                    "Schweiz",
+                    "Schweden",
+                    "Dänemark"
+                ],
+                "correctAnswer": "Dänemark",
+                "explanation": ""
+            },
+            {
+                "question": "Wie heißt die Wirtschaftstheorie, die auf den Ideen von John Keynes basiert?",
+                "answers": [
+                    "Monetarismus",
+                    "Keynesianismus",
+                    "Marxismus",
+                    "Institutionalismus"
+                ],
+                "correctAnswer": "Keynesianismus",
+                "explanation": ""
+            },
+            {
+                "question": "Welcher dieser Politiker war nicht Ministerpräsident Russlands?",
+                "answers": [
+                    "Viktor Chernomyrdin",
+                    "Sergey Kirienko",
+                    "Aleksey Kudrin",
+                    "Mikhail Kasyanov"
+                ],
+                "correctAnswer": "Aleksey Kudrin",
+                "explanation": ""
+            },
+            {
+                "question": "Welches Unternehmen übernahm GitHub für 7,5 Milliarden US-Dollar?",
+                "answers": [
+                    "Google",
+                    "Microsoft",
+                    "Facebook",
+                    "Salesforce"
+                ],
+                "correctAnswer": "Microsoft",
+                "explanation": ""
+            },
+            {
+                "question": "Wie heißt der Prozess der Verringerung der Geldmenge in einer Wirtschaft?",
+                "answers": [
+                    "Geldemission",
+                    "Abwertung",
+                    "Währungsumstellung",
+                    "Demonetisierung"
+                ],
+                "correctAnswer": "Demonetisierung",
+                "explanation": ""
+            },
+            {
+                "question": "Welcher dieser Unternehmer gehört nicht dem Verwaltungsrat von Google an?",
+                "answers": [
+                    "Sundar Pichai",
+                    "Larry Page",
+                    "Sergey Brin",
+                    "Elon Musk"
+                ],
+                "correctAnswer": "Elon Musk",
+                "explanation": ""
+            },
+            {
+                "question": "Welches Land führte als erstes eine Luxussteuer ein?",
+                "answers": [
+                    "Frankreich",
+                    "Schweden",
+                    "USA",
+                    "Vereinigtes Königreich"
+                ],
+                "correctAnswer": "Frankreich",
+                "explanation": ""
+            },
+            {
+                "question": "Wie heißt die Wirtschaftstheorie, die auf den Ideen von Karl Marx basiert?",
+                "answers": [
+                    "Monetarismus",
+                    "Keynesianismus",
+                    "Marxismus",
+                    "Institutionalismus"
+                ],
+                "correctAnswer": "Marxismus",
+                "explanation": ""
+            },
+            {
+                "question": "Welcher dieser Politiker war nicht russischer Wirtschaftsminister?",
+                "answers": [
+                    "Andrey Nechaev",
+                    "Evgeniy Yasin",
+                    "German Gref",
+                    "Aleksey Kudrin"
+                ],
+                "correctAnswer": "Aleksey Kudrin",
+                "explanation": ""
+            },
+            {
+                "question": "Welches Unternehmen übernahm WhatsApp für 19 Milliarden US-Dollar?",
+                "answers": [
+                    "Google",
+                    "Microsoft",
+                    "Facebook",
+                    "Tencent"
+                ],
+                "correctAnswer": "Facebook",
+                "explanation": ""
+            },
+            {
+                "question": "Wie heißt der Prozess der Erhöhung der Geldmenge in einer Wirtschaft?",
+                "answers": [
+                    "Geldemission",
+                    "Abwertung",
+                    "Währungsumstellung",
+                    "Demonetisierung"
+                ],
+                "correctAnswer": "Geldemission",
+                "explanation": ""
+            },
+            {
+                "question": "Welcher dieser Unternehmer gehört nicht dem Verwaltungsrat von Amazon an?",
+                "answers": [
+                    "Jeff Bezos",
+                    "Warren Buffett",
+                    "Endi Dzhessi",
+                    "Rozalind Bryuer"
+                ],
+                "correctAnswer": "Warren Buffett",
+                "explanation": ""
+            },
+            {
+                "question": "Welches Land führte als erstes ein bedingungsloses Grundeinkommen auf nationaler Ebene ein?",
+                "answers": [
+                    "Finnland",
+                    "Schweiz",
+                    "Kanada",
+                    "Netherlands"
+                ],
+                "correctAnswer": "Finnland",
+                "explanation": ""
+            },
+            {
+                "question": "Wie heißt die Wirtschaftstheorie, die auf den Ideen von Friedrich Hayek basiert?",
+                "answers": [
+                    "Austrian school",
+                    "Chicago school",
+                    "Cambridge school",
+                    "Stockholm school"
+                ],
+                "correctAnswer": "Austrian school",
+                "explanation": ""
+            },
+            {
+                "question": "Welcher dieser Politiker war nicht US-Finanzminister?",
+                "answers": [
+                    "Genri Polson",
+                    "Timoti Gaytner",
+                    "Stiven Mnuchin",
+                    "Dzhanet Yellen"
+                ],
+                "correctAnswer": "Dzhanet Yellen",
+                "explanation": ""
+            },
+            {
+                "question": "Welches Unternehmen übernahm Nokia für 7,2 Milliarden US-Dollar?",
+                "answers": [
+                    "Google",
+                    "Microsoft",
+                    "Samsung",
+                    "Huawei"
+                ],
+                "correctAnswer": "Microsoft",
+                "explanation": ""
+            },
+            {
+                "question": "Wie heißt der Prozess, bei dem alte Geldscheine durch neue ersetzt werden?",
+                "answers": [
+                    "Geldemission",
+                    "Abwertung",
+                    "Währungsumstellung",
+                    "Demonetisierung"
+                ],
+                "correctAnswer": "Währungsumstellung",
+                "explanation": ""
+            },
+            {
+                "question": "Welcher dieser Unternehmer gehört nicht dem Verwaltungsrat von Berkshire Hathaway an?",
+                "answers": [
+                    "Warren Buffett",
+                    "Charli Manger",
+                    "Bill Geyts",
+                    "Jeff Bezos"
+                ],
+                "correctAnswer": "Jeff Bezos",
+                "explanation": ""
+            },
+            {
+                "question": "Welches Land führte als erstes eine CO2-Steuer ein?",
+                "answers": [
+                    "Finnland",
+                    "Schweden",
+                    "Norwegen",
+                    "Dänemark"
+                ],
+                "correctAnswer": "Finnland",
+                "explanation": ""
+            },
+            {
+                "question": "Wie heißt die Wirtschaftstheorie, die auf den Ideen von Thorstein Veblen basiert?",
+                "answers": [
+                    "Monetarismus",
+                    "Keynesianismus",
+                    "Institutionalismus",
+                    "Marxismus"
+                ],
+                "correctAnswer": "Institutionalismus",
+                "explanation": ""
+            },
+            {
+                "question": "Welcher dieser Politiker war nicht Vorsitzender der US-Notenbank?",
+                "answers": [
+                    "Alan Grinspen",
+                    "Ben Bernanke",
+                    "Dzhanet Yellen",
+                    "Stiven Mnuchin"
+                ],
+                "correctAnswer": "Stiven Mnuchin",
+                "explanation": ""
+            },
+            {
+                "question": "Welches Unternehmen übernahm Motorola Mobility für 12,5 Milliarden US-Dollar?",
+                "answers": [
+                    "Google",
+                    "Microsoft",
+                    "Lenovo",
+                    "Samsung"
+                ],
+                "correctAnswer": "Google",
+                "explanation": ""
+            },
+            {
+                "question": "Wie heißt es, wenn ein Staat seine Schuldenverpflichtungen nicht erfüllt?",
+                "answers": [
+                    "Abwertung",
+                    "Aufwertung",
+                    "Währungsumstellung",
+                    "Zahlungsausfall"
+                ],
+                "correctAnswer": "Zahlungsausfall",
+                "explanation": ""
+            },
+            {
+                "question": "Welcher dieser Unternehmer gehört nicht dem Verwaltungsrat von Alibaba an?",
+                "answers": [
+                    "Dzhek Ma",
+                    "Dzhozef Tsay",
+                    "Masayoshi Son",
+                    "Elon Musk"
+                ],
+                "correctAnswer": "Elon Musk",
+                "explanation": ""
+            },
+            {
+                "question": "Welches Land führte als erstes einen progressiven Einkommensteuertarif ein?",
+                "answers": [
+                    "Vereinigtes Königreich",
+                    "Deutschland",
+                    "Frankreich",
+                    "USA"
+                ],
+                "correctAnswer": "Vereinigtes Königreich",
+                "explanation": ""
+            },
+            {
+                "question": "Wie heißt die Wirtschaftstheorie, die auf den Ideen von Joseph Schumpeter basiert?",
+                "answers": [
+                    "Economic growth theory",
+                    "Business cycle theory",
+                    "Innovation theory",
+                    "Competition theory"
+                ],
+                "correctAnswer": "Innovation theory",
+                "explanation": ""
+            },
+            {
+                "question": "Welcher dieser Politiker war nicht Präsident der Weltbank?",
+                "answers": [
+                    "Robert Zellik",
+                    "Dzhim Yon Kim",
+                    "Kristin Lagard",
+                    "Pol Vulfovits"
+                ],
+                "correctAnswer": "Kristin Lagard",
+                "explanation": ""
+            },
+            {
+                "question": "Welches Unternehmen übernahm Skype für 8,5 Milliarden US-Dollar?",
+                "answers": [
+                    "Google",
+                    "Microsoft",
+                    "eBay",
+                    "Yahoo"
+                ],
+                "correctAnswer": "Microsoft",
+                "explanation": ""
+            },
+            {
+                "question": "Wie heißt der Prozess eines allgemeinen Preisrückgangs in einer Wirtschaft?",
+                "answers": [
+                    "Inflation",
+                    "Deflation",
+                    "Stagflation",
+                    "Rezession"
+                ],
+                "correctAnswer": "Deflation",
+                "explanation": ""
+            },
+            {
+                "question": "Welcher dieser Unternehmer gehört nicht dem Verwaltungsrat von Twitter an?",
+                "answers": [
+                    "Dzhek Dorsi",
+                    "Elon Musk",
+                    "Evan Uilyams",
+                    "Piter Fenton"
+                ],
+                "correctAnswer": "Elon Musk",
+                "explanation": ""
+            },
+            {
+                "question": "Welches Land führte als erstes die Mehrwertsteuer ein?",
+                "answers": [
+                    "Frankreich",
+                    "Deutschland",
+                    "Vereinigtes Königreich",
+                    "USA"
+                ],
+                "correctAnswer": "Frankreich",
+                "explanation": ""
+            },
+            {
+                "question": "Wie heißt die Wirtschaftstheorie, die auf den Ideen von Ronald Coase basiert?",
+                "answers": [
+                    "Transaction cost theory",
+                    "Public choice theory",
+                    "Game theory",
+                    "Contract theory"
+                ],
+                "correctAnswer": "Transaction cost theory",
+                "explanation": ""
+            },
+            {
+                "question": "Welcher dieser Politiker war nicht Chef des IWF?",
+                "answers": [
+                    "Dominik Stross-Kan",
+                    "Kristin Lagard",
+                    "Robert Zellik",
+                    "Kristalina Georgieva"
+                ],
+                "correctAnswer": "Robert Zellik",
+                "explanation": ""
+            },
+            {
+                "question": "Welches Unternehmen übernahm YouTube für 1,65 Milliarden US-Dollar?",
+                "answers": [
+                    "Google",
+                    "Microsoft",
+                    "Yahoo",
+                    "Facebook"
+                ],
+                "correctAnswer": "Google",
+                "explanation": ""
+            },
+            {
+                "question": "Wie heißt der gleichzeitige Anstieg von Inflation und Arbeitslosigkeit?",
+                "answers": [
+                    "Stagflation",
+                    "Rezession",
+                    "Depressiya",
+                    "Deflation"
+                ],
+                "correctAnswer": "Stagflation",
+                "explanation": ""
+            },
+            {
+                "question": "Welcher dieser Unternehmer gehört nicht dem Verwaltungsrat von Netflix an?",
+                "answers": [
+                    "Rid Khastings",
+                    "Ted Sarandos",
+                    "Warren Buffett",
+                    "Enn Miner"
+                ],
+                "correctAnswer": "Warren Buffett",
+                "explanation": ""
+            },
+            {
+                "question": "Welches Land führte als erstes die Erbschaftsteuer ein?",
+                "answers": [
+                    "Vereinigtes Königreich",
+                    "Frankreich",
+                    "USA",
+                    "Deutschland"
+                ],
+                "correctAnswer": "Vereinigtes Königreich",
+                "explanation": ""
+            },
+            {
+                "question": "Wie heißt die Wirtschaftstheorie, die auf den Ideen von James Buchanan basiert?",
+                "answers": [
+                    "Public choice theory",
+                    "Game theory",
+                    "Contract theory",
+                    "Auction theory"
+                ],
+                "correctAnswer": "Public choice theory",
+                "explanation": ""
+            },
+            {
+                "question": "Welcher dieser Politiker war nicht Chef der EZB?",
+                "answers": [
+                    "Zhan-Klod Trishe",
+                    "Mario Dragi",
+                    "Kristin Lagard",
+                    "Angela Merkel"
+                ],
+                "correctAnswer": "Angela Merkel",
+                "explanation": ""
+            },
+            {
+                "question": "Welches Unternehmen übernahm Instagram für 1 Milliarde US-Dollar?",
+                "answers": [
+                    "Google",
+                    "Microsoft",
+                    "Facebook",
+                    "Twitter"
+                ],
+                "correctAnswer": "Facebook",
+                "explanation": ""
+            }
+        ],
+        "id": "politics_business"
+    }
+]

@@ -43,12 +43,8 @@
 "result.description.very_low_score" = "Тебе точно стоит попробовать ещё раз!";
 "result.restart" = "Начать заново";
 "result.text_format" = "Твой результат:\n %d/%d";
-
 "settings.alert.action" = "Понятно";
 "settings.close" = "Закрыть";
-"settings.feedback" = "Оставить отзыв";
-"settings.feedback.subtitle" = "Расскажите, что улучшить в Quizice";
-"settings.feedback.unavailable_message" = "Форма отзыва появится позже.";
 "settings.done" = "Готово";
 "settings.design" = "Дизайн";
 "settings.design.subtitle" = "Классический, радар, минимализм или пиксель";
@@ -56,6 +52,9 @@
 "settings.design.radar" = "Радар";
 "settings.design.pixel" = "Пиксель";
 "settings.design.classic" = "Классический";
+"settings.feedback" = "Оставить отзыв";
+"settings.feedback.subtitle" = "Расскажите, что улучшить в Quizice";
+"settings.feedback.unavailable_message" = "Форма отзыва появится позже.";
 "settings.icon" = "Иконка приложения";
 "settings.icon.subtitle" = "Выберите стиль иконки";
 "settings.icon.classic" = "Классика";
@@ -80,7 +79,6 @@
 "settings.theme.light" = "Светлая";
 "settings.theme.system" = "Системная";
 "settings.title" = "Настройки";
-
 "statistics.accessibility_label" = "Экран общей статистики";
 "statistics.best_result" = "Лучший результат";
 "statistics.correct_answers" = "Правильных ответов";

@@ -134,6 +134,7 @@ final class QuizDescriptionViewController: UIViewController, QuizDescriptionView
     private var backButton: UIButton!
     private let appearanceStore = AppAppearanceStore.shared
     private var appearanceObserver: NSObjectProtocol?
+    private var localizationObserver: NSObjectProtocol?
     
     var presenter: QuizDescriptionPresenterProtocol?
     
@@ -152,6 +153,7 @@ final class QuizDescriptionViewController: UIViewController, QuizDescriptionView
         installAppearanceTraitObserver()
         presenter?.configurePickerView(numberOfQuestionsPickerView)
         presenter?.viewDidLoad()
+        installLocalizationObserver()
         
         numberOfQuestionsPickerView.setValue(currentAppearance().surfaceTextColor, forKey: Content.pickerTextColorKey)
     }
@@ -159,6 +161,9 @@ final class QuizDescriptionViewController: UIViewController, QuizDescriptionView
     deinit {
         if let appearanceObserver {
             NotificationCenter.default.removeObserver(appearanceObserver)
+        }
+        if let localizationObserver {
+            NotificationCenter.default.removeObserver(localizationObserver)
         }
     }
 
@@ -390,6 +395,23 @@ final class QuizDescriptionViewController: UIViewController, QuizDescriptionView
         } else {
             dismiss(animated: true)
         }
+    }
+
+    private func installLocalizationObserver() {
+        localizationObserver = NotificationCenter.default.addObserver(
+            forName: .appLocalizationDidChange,
+            object: nil,
+            queue: .main
+        ) { [weak self] _ in
+            self?.applyLocalizedStrings()
+        }
+    }
+
+    private func applyLocalizedStrings() {
+        guard isViewLoaded else { return }
+        pickerCaptionLabel.text = L10n.Description.questionCount
+        startButton.setTitle(L10n.Common.start, for: .normal)
+        backButton.setTitle(L10n.Common.back, for: .normal)
     }
 }
 
