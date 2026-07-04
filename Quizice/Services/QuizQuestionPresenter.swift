@@ -94,7 +94,7 @@ final class QuizQuestionPresenter: QuizQuestionPresenterProtocol {
         let clampedCount = min(requestedCount, usableQuestions.count)
         questionsTotalCount = max(clampedCount, 1)
         chosenThemeQuestionsArray = Array(usableQuestions.shuffled().prefix(questionsTotalCount ?? usableQuestions.count))
-        print("загружены вопросы: \(chosenThemeQuestionsArray.count)")
+        AppLog.quiz.debug("Loaded questions: \(self.chosenThemeQuestionsArray.count)")
     }
     
     func loadQuestion() {
