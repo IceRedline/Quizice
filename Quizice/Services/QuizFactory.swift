@@ -47,7 +47,7 @@ final class QuizFactory {
             let loadedThemes = themes,
             let chosenTheme = loadedThemes.first(where: { $0.stableID == themeID })
         else {
-            print("Failed to resolve selected theme id: \(themeID)")
+            AppLog.content.error("Failed to resolve selected theme id: \(themeID, privacy: .public)")
             return false
         }
         self.chosenTheme = ThemeModel(quizTheme: chosenTheme)
@@ -60,7 +60,7 @@ final class QuizFactory {
             let loadedThemes = themes,
             let chosenTheme = loadedThemes.first(where: { $0.theme == themeName || $0.stableID == themeName })
         else {
-            print("Failed to resolve selected theme: \(themeName)")
+            AppLog.content.error("Failed to resolve selected theme: \(themeName, privacy: .public)")
             return false
         }
         self.chosenTheme = ThemeModel(quizTheme: chosenTheme)
@@ -79,32 +79,35 @@ final class QuizFactory {
             let savedHash = UserDefaults.standard.string(forKey: Content.localizedDataHashKey)
             
             if !forceReload, localizedHash == savedHash, !existingThemes.isEmpty {
-                print("JSON is unchanged. Loading themes from SwiftData: \(existingThemes.count)")
+                AppLog.content.debug("JSON unchanged, loading \(existingThemes.count) themes from SwiftData")
                 themes = existingThemes
                 return
             }
             
             do {
                 let decodedData = try JSONDecoder().decode([QuizTheme].self, from: data)
-                print("Localized JSON decoded for language: \(languageCode)")
+                AppLog.content.debug("Localized JSON decoded for language: \(languageCode, privacy: .public)")
                 
                 clearSwiftData(context: modelContext)
                 
                 for theme in decodedData {
                     modelContext.insert(theme)
                 }
-                try? modelContext.save()
-                print("Localized JSON loaded and saved to SwiftData")
+                do {
+                    try modelContext.save()
+                } catch {
+                    AppLog.persistence.error("Failed to save themes: \(String(describing: error), privacy: .public)")
+                }
                 
                 UserDefaults.standard.set(localizedHash, forKey: Content.localizedDataHashKey)
                 
                 themes = decodedData
                 chosenTheme = nil
             } catch {
-                print("JSON decoding error: \(error)")
+                AppLog.content.error("JSON decoding error: \(String(describing: error), privacy: .public)")
             }
         } else {
-            print("Error: localized JSON not found")
+            AppLog.content.error("Localized JSON not found")
         }
     }
     
@@ -125,9 +128,9 @@ final class QuizFactory {
                 context.delete(theme)
             }
             try context.save()
-            print("SwiftData cleared")
+            AppLog.persistence.debug("SwiftData cleared")
         } catch {
-            print("Database clearing error: \(error)")
+            AppLog.persistence.error("Database clearing error: \(String(describing: error), privacy: .public)")
         }
     }
 

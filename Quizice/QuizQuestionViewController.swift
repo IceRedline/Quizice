@@ -377,7 +377,7 @@ final class QuizQuestionViewController: UIViewController, QuizQuestionViewContro
             soundOfCorrectAnswerPlayer = try? AVAudioPlayer(contentsOf: correctSoundURL)
             soundOfIncorrectAnswerPlayer = try? AVAudioPlayer(contentsOf: incorrectSoundURL)
         } else {
-            print(L10n.Question.audioLoadFailure)
+            AppLog.audio.error("\(L10n.Question.audioLoadFailure, privacy: .public)")
         }
     }
     
