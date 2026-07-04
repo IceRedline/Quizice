@@ -569,6 +569,11 @@ final class QuizViewController: UIViewController, QuizViewControllerProtocol, Th
         startRandomTheme()
     }
 
+    func aiThemeButtonTouchedUpInside(_ sender: UIButton) {
+        animationsEngine.animateUpFloat(sender)
+        showAIThemeCreationView()
+    }
+
     func statisticsButtonTouchedUpInside(_ sender: UIButton) {
         animationsEngine.animateUpFloat(sender)
         let viewController = StatisticsViewController()
@@ -595,6 +600,16 @@ final class QuizViewController: UIViewController, QuizViewControllerProtocol, Th
             return
         }
         showDescriptionViewController()
+    }
+
+    private func showAIThemeCreationView() {
+        let viewController = UIHostingController(rootView: QuizAIThemeCreationView(service: MockAIQuizThemeService()))
+        viewController.modalPresentationStyle = .pageSheet
+        if let sheetPresentationController = viewController.sheetPresentationController {
+            sheetPresentationController.detents = [.large()]
+            sheetPresentationController.prefersGrabberVisible = true
+        }
+        present(viewController, animated: true)
     }
 
     @objc private func backButtonTapped() {
