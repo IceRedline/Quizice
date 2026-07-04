@@ -66,6 +66,10 @@ struct QuizAIThemeCreationView: View {
         prompt.trimmingCharacters(in: .whitespacesAndNewlines)
     }
 
+    private var selectedLocale: Locale {
+        AppLocalizationStore.shared.resolvedLocale
+    }
+
     private var canSubmit: Bool {
         !trimmedPrompt.isEmpty && !isSubmitting
     }
@@ -259,7 +263,7 @@ struct QuizAIThemeCreationView: View {
         defer { isSubmitting = false }
 
         do {
-            _ = try await service.generateQuizTheme(for: prompt)
+            _ = try await service.generateQuizTheme(for: prompt, locale: selectedLocale)
             dismiss()
         } catch {
             isShowingError = true
