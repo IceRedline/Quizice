@@ -16,6 +16,7 @@ final class QuizQuestionPresenter: QuizQuestionPresenterProtocol {
     private var timer: Timer?
     private var remainingTime: TimeInterval = 20
     private let totalTime: TimeInterval = 20
+    private let tickInterval: TimeInterval = 0.02
     
     var chosenThemeQuestionsArray: [QuestionModel] = []
     var currentQuestion: QuestionModel?
@@ -44,11 +45,11 @@ final class QuizQuestionPresenter: QuizQuestionPresenterProtocol {
         remainingTime = totalTime
         view?.updateProgress(1.0)
         
-        timer = Timer.scheduledTimer(withTimeInterval: 0.03, repeats: true) { [weak self] _ in
+        timer = Timer.scheduledTimer(withTimeInterval: tickInterval, repeats: true) { [weak self] _ in
             guard let self = self else { return }
             
-            self.remainingTime -= 0.05
-            let progress = Float(self.remainingTime / self.totalTime)
+            self.remainingTime -= self.tickInterval
+            let progress = Float(max(self.remainingTime, 0) / self.totalTime)
             self.view?.updateProgress(progress)
             
             if self.remainingTime <= 0 {
