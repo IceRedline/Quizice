@@ -47,10 +47,7 @@ final class LocalizationTests: XCTestCase {
     }
 
     func testLocalizedDataFilesKeepStableThemeShapeAndValidAnswers() throws {
-        let root = URL(fileURLWithPath: #filePath)
-            .deletingLastPathComponent()
-            .deletingLastPathComponent()
-            .appendingPathComponent("Quizice")
+        let root = localizedDataRoot()
         let languages = ["ru", "en", "es", "de", "it", "fr"]
         var expectedThemeIDs: [String]?
         var expectedQuestionCounts: [Int]?
@@ -85,10 +82,7 @@ final class LocalizationTests: XCTestCase {
     }
 
     func testNonRussianDataFilesDoNotContainCyrillicQuestionContent() throws {
-        let root = URL(fileURLWithPath: #filePath)
-            .deletingLastPathComponent()
-            .deletingLastPathComponent()
-            .appendingPathComponent("Quizice")
+        let root = localizedDataRoot()
         let nonRussianLanguages = ["en", "es", "de", "it", "fr"]
         let cyrillicRange = try NSRegularExpression(pattern: #"[А-Яа-яЁё]"#)
 
@@ -113,10 +107,7 @@ final class LocalizationTests: XCTestCase {
     }
 
     func testNonRussianDataFilesDoNotContainTransliteratedRussianQuestionFragments() throws {
-        let root = URL(fileURLWithPath: #filePath)
-            .deletingLastPathComponent()
-            .deletingLastPathComponent()
-            .appendingPathComponent("Quizice")
+        let root = localizedDataRoot()
         let nonRussianLanguages = ["en", "es", "de", "it", "fr"]
         let badFragments = [
             "V kakom",
@@ -149,6 +140,14 @@ final class LocalizationTests: XCTestCase {
                 }
             }
         }
+    }
+
+    private func localizedDataRoot() -> URL {
+        URL(fileURLWithPath: #filePath)
+            .deletingLastPathComponent()
+            .deletingLastPathComponent()
+            .deletingLastPathComponent()
+            .appendingPathComponent("Quizice")
     }
 }
 

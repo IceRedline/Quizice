@@ -9,8 +9,14 @@ set -euo pipefail
 # - selects an available iOS Simulator deterministically for xcodebuild test;
 # - verifies the Quizice scheme discovers and executes the QuiziceTests suite;
 # - verifies the R007/R008 XCTest coverage markers remain present;
+# - verifies Point-Free SnapshotTesting is linked through the QuiziceTests target;
+# - runs tests with code coverage and enforces a risk-based minimum app line coverage;
 # - preserves Quizice/data.json and never uses it as a mutable fixture;
 # - keeps failures loud and actionable for local developer/CI-style invocation.
+#
+# To intentionally refresh image snapshots locally, run the XCTest command below
+# with SNAPSHOT_TESTING_RECORD=all, inspect the changed PNGs, then rerun this
+# verifier without recording.
 
 readonly PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$PROJECT_ROOT"
@@ -21,12 +27,24 @@ readonly PROJECT_FILE="$PROJECT/project.pbxproj"
 readonly SCHEME="Quizice"
 readonly CONFIGURATION="Debug"
 readonly DATA_JSON="Quizice/data.json"
-readonly SMOKE_TESTS="QuiziceTests/QuiziceTests.swift"
-readonly SUMMARY_TESTS="QuiziceTests/StatisticsSummaryTests.swift"
-readonly STORE_TESTS="QuiziceTests/StatisticsStoreTests.swift"
-readonly PRESENTER_FAILURE_TESTS="QuiziceTests/QuizQuestionPresenterFailureStateTests.swift"
+readonly SMOKE_TESTS="QuiziceTests/Unit/QuiziceTests.swift"
+readonly SUMMARY_TESTS="QuiziceTests/Unit/StatisticsSummaryTests.swift"
+readonly STORE_TESTS="QuiziceTests/Unit/StatisticsStoreTests.swift"
+readonly PRESENTER_FAILURE_TESTS="QuiziceTests/Unit/QuizQuestionPresenterFailureStateTests.swift"
+readonly SNAPSHOT_SUPPORT_TESTS="QuiziceTests/Snapshots/SnapshotSupport.swift"
+readonly COMPONENT_SNAPSHOT_TESTS="QuiziceTests/Snapshots/ComponentSnapshotTests.swift"
+readonly HOME_CARD_SNAPSHOT_TESTS="QuiziceTests/Snapshots/HomeCardSnapshotTests.swift"
+readonly SCREEN_SNAPSHOT_TESTS="QuiziceTests/Snapshots/ScreenSnapshotTests.swift"
+readonly SWIFTUI_SNAPSHOT_TESTS="QuiziceTests/Snapshots/SwiftUISnapshotTests.swift"
+readonly APP_APPEARANCE_TESTS="QuiziceTests/Unit/AppAppearanceTests.swift"
+readonly QUIZ_PRESENTER_TESTS="QuiziceTests/Unit/QuizPresenterTests.swift"
+readonly QUESTION_PRESENTER_TESTS="QuiziceTests/Unit/QuizQuestionPresenterTests.swift"
+readonly QUIZ_FACTORY_TESTS="QuiziceTests/Unit/QuizFactoryTests.swift"
+readonly QUIZ_COORDINATOR_TESTS="QuiziceTests/Unit/QuizFlowCoordinatorAdditionalTests.swift"
+readonly MIN_LINE_COVERAGE_PERCENT=80
 
 TEMP_FILES=()
+TEMP_PATHS=()
 DATA_JSON_INITIAL_HASH=""
 
 log_section() {
@@ -38,14 +56,124 @@ fail() {
   exit 1
 }
 
+print_xctest_failure_summary() {
+  local result_bundle="$1"
+  local test_log="$2"
+  local summary_json
+  summary_json="$(mktemp -t quizice-s04-xcresult-summary.XXXXXX.json)"
+  remember_temp_file "$summary_json"
+
+  log_section "XCTest failure summary" >&2
+
+  if xcrun xcresulttool get test-results summary --path "$result_bundle" --compact > "$summary_json" 2>/dev/null; then
+    if python3 - "$summary_json" "${GITHUB_ACTIONS:-}" "${GITHUB_STEP_SUMMARY:-}" "$PROJECT_ROOT" <<'PY'
+import json
+import re
+import sys
+
+summary_path, github_actions, step_summary_path, project_root = sys.argv[1:5]
+
+with open(summary_path, "r", encoding="utf-8") as handle:
+    payload = json.load(handle)
+
+failures = []
+
+def walk(value):
+    if isinstance(value, dict):
+        if value.get("testName") or value.get("failureText"):
+            failures.append(value)
+        for child in value.values():
+            walk(child)
+    elif isinstance(value, list):
+        for child in value:
+            walk(child)
+
+walk(payload.get("testFailures", payload))
+
+deduplicated = []
+seen = set()
+for failure in failures:
+    key = (
+        failure.get("targetName", ""),
+        failure.get("testName", ""),
+        failure.get("failureText", ""),
+    )
+    if key not in seen:
+        seen.add(key)
+        deduplicated.append(failure)
+
+def escape_github(value):
+    return value.replace("%", "%25").replace("\r", "%0D").replace("\n", "%0A")
+
+def swift_location(text):
+    match = re.search(r"((?:/[^:\n]+)?[^:\n]+\.swift):(\d+)", text)
+    if match:
+        return match.group(1), match.group(2)
+    return "", ""
+
+if not deduplicated:
+    print("No structured XCTest failures were found in the xcresult summary.", file=sys.stderr)
+    raise SystemExit(2)
+
+summary_lines = [
+    "### XCTest failure summary",
+    "",
+    "| Target | Test | Message |",
+    "| --- | --- | --- |",
+]
+
+for index, failure in enumerate(deduplicated, start=1):
+    target = failure.get("targetName") or "unknown target"
+    test_name = failure.get("testName") or failure.get("testIdentifierString") or "unknown test"
+    message = (failure.get("failureText") or "").strip() or "No failure message in xcresult."
+    one_line_message = " ".join(message.split())
+    print(f"{index}. {target} / {test_name}", file=sys.stderr)
+    print(f"   {one_line_message}", file=sys.stderr)
+
+    file_path, line = swift_location(message)
+    if file_path.startswith(project_root + "/"):
+        file_path = file_path[len(project_root) + 1:]
+    if github_actions.lower() == "true":
+        annotation = f"::error title={escape_github(test_name)}"
+        if file_path:
+            annotation += f",file={escape_github(file_path)}"
+        if line:
+            annotation += f",line={line}"
+        annotation += f"::{escape_github(one_line_message)}"
+        print(annotation)
+
+    markdown_message = one_line_message.replace("|", "\\|")
+    summary_lines.append(f"| `{target}` | `{test_name}` | {markdown_message} |")
+
+if step_summary_path:
+    with open(step_summary_path, "a", encoding="utf-8") as handle:
+        handle.write("\n".join(summary_lines))
+        handle.write("\n")
+PY
+    then
+      return
+    fi
+  fi
+
+  printf 'Could not read structured failures from xcresult; showing likely failure lines from xcodebuild log.\n' >&2
+  grep -E "Test case '.*' failed|/[^:]+\.swift:[0-9]+: error:|XCTAssert|failed:" "$test_log" >&2 || true
+}
+
 remember_temp_file() {
   TEMP_FILES+=("$1")
+}
+
+remember_temp_path() {
+  TEMP_PATHS+=("$1")
 }
 
 cleanup() {
   local path
   for path in "${TEMP_FILES[@]+"${TEMP_FILES[@]}"}"; do
     [[ -n "$path" && -f "$path" ]] && rm -f "$path"
+  done
+  for path in "${TEMP_PATHS[@]+"${TEMP_PATHS[@]}"}"; do
+    [[ -n "$path" && -e "$path" ]] && rm -rf "$path"
   done
 }
 trap cleanup EXIT
@@ -114,6 +242,12 @@ except Exception as exc:
 
 devices_by_runtime = payload.get("devices", {})
 candidates = []
+preferred_names = {
+    "iPhone 16": 0,
+    "iPhone 16 Pro": 1,
+    "iPhone 15": 2,
+    "iPhone 15 Pro": 3,
+}
 for runtime, devices in devices_by_runtime.items():
     if "iOS" not in runtime:
         continue
@@ -127,12 +261,16 @@ for runtime, devices in devices_by_runtime.items():
         state = device.get("state", "")
         udid = device.get("udid", "")
         if udid:
-            candidates.append((0 if state == "Booted" else 1, runtime, name, udid))
+            # Snapshot references are device-sensitive. Prefer the pinned CI-era
+            # iPhone before considering already-booted newer local simulators.
+            preferred_rank = preferred_names.get(name, 100)
+            boot_rank = 0 if state == "Booted" else 1
+            candidates.append((preferred_rank, boot_rank, runtime, name, udid))
 
 if not candidates:
     raise SystemExit("no available iOS iPhone Simulator found")
 
-for _, _, _, udid in sorted(candidates):
+for _, _, _, _, udid in sorted(candidates):
     print(udid)
     break
 '
@@ -146,6 +284,16 @@ check_project_and_test_wiring() {
   require_file "$SUMMARY_TESTS"
   require_file "$STORE_TESTS"
   require_file "$PRESENTER_FAILURE_TESTS"
+  require_file "$SNAPSHOT_SUPPORT_TESTS"
+  require_file "$COMPONENT_SNAPSHOT_TESTS"
+  require_file "$HOME_CARD_SNAPSHOT_TESTS"
+  require_file "$SCREEN_SNAPSHOT_TESTS"
+  require_file "$SWIFTUI_SNAPSHOT_TESTS"
+  require_file "$APP_APPEARANCE_TESTS"
+  require_file "$QUIZ_PRESENTER_TESTS"
+  require_file "$QUESTION_PRESENTER_TESTS"
+  require_file "$QUIZ_FACTORY_TESTS"
+  require_file "$QUIZ_COORDINATOR_TESTS"
 
   local xcodebuild_list_log
   xcodebuild_list_log="$(mktemp -t quizice-s04-xcodebuild-list.XXXXXX.log)"
@@ -161,6 +309,15 @@ check_project_and_test_wiring() {
   require_extended_regex "$PROJECT_FILE" 'StatisticsSummaryTests\.swift in Sources' 'StatisticsSummaryTests must remain in the test Sources build phase'
   require_extended_regex "$PROJECT_FILE" 'StatisticsStoreTests\.swift in Sources' 'StatisticsStoreTests must remain in the test Sources build phase'
   require_extended_regex "$PROJECT_FILE" 'QuizQuestionPresenterFailureStateTests\.swift in Sources' 'QuizQuestionPresenterFailureStateTests must remain in the test Sources build phase'
+  require_fixed_string "$PROJECT_FILE" 'https://github.com/pointfreeco/swift-snapshot-testing' 'Point-Free SnapshotTesting package must be referenced by the Xcode project'
+  require_fixed_string "$PROJECT_FILE" 'SnapshotTesting in Frameworks' 'SnapshotTesting product must be linked into the test target'
+  require_extended_regex "$PROJECT_FILE" 'SnapshotSupport\.swift in Sources' 'Snapshot support helpers must be in the test Sources build phase'
+  require_extended_regex "$PROJECT_FILE" 'ComponentSnapshotTests\.swift in Sources' 'Component snapshot tests must be in the test Sources build phase'
+  require_extended_regex "$PROJECT_FILE" 'HomeCardSnapshotTests\.swift in Sources' 'Home-card snapshot tests must be in the test Sources build phase'
+  require_extended_regex "$PROJECT_FILE" 'ScreenSnapshotTests\.swift in Sources' 'Screen snapshot tests must be in the test Sources build phase'
+  require_extended_regex "$PROJECT_FILE" 'SwiftUISnapshotTests\.swift in Sources' 'SwiftUI snapshot tests must be in the test Sources build phase'
+  require_extended_regex "$PROJECT_FILE" 'AppAppearanceTests\.swift in Sources' 'App appearance tests must be in the test Sources build phase'
+  require_extended_regex "$PROJECT_FILE" 'QuizQuestionPresenterTests\.swift in Sources' 'Expanded question presenter tests must be in the test Sources build phase'
   require_fixed_string "$SMOKE_TESTS" '@testable import Quizice' 'Smoke tests must import the Quizice app module'
   require_fixed_string "$xcodebuild_list_log" 'Quizice' 'Quizice scheme must be visible to xcodebuild'
 
@@ -219,6 +376,24 @@ check_failure_state_coverage_markers() {
   printf 'R008 failure-state marker checks: PASS\n'
 }
 
+check_snapshot_coverage_markers() {
+  log_section "Snapshot and expanded unit coverage-marker checks"
+
+  require_fixed_string "$SNAPSHOT_SUPPORT_TESTS" 'import SnapshotTesting' 'Snapshot support must import Point-Free SnapshotTesting'
+  require_fixed_string "$SNAPSHOT_SUPPORT_TESTS" 'AppLocalizationStore.shared.languagePreference = language' 'Snapshot support must pin language'
+  require_fixed_string "$SNAPSHOT_SUPPORT_TESTS" 'UIView.setAnimationsEnabled(false)' 'Snapshot support must disable animations'
+  require_fixed_string "$COMPONENT_SNAPSHOT_TESTS" 'testPrimaryButtonsAcrossDesignStyles' 'Component snapshots must cover primary buttons across styles'
+  require_fixed_string "$COMPONENT_SNAPSHOT_TESTS" 'testSecondaryButtonsAcrossDesignStyles' 'Component snapshots must cover secondary buttons across styles'
+  require_fixed_string "$HOME_CARD_SNAPSHOT_TESTS" 'testThemeCardSnapshot' 'Home card snapshots must cover theme cards'
+  require_fixed_string "$SCREEN_SNAPSHOT_TESTS" 'testHomeScreenSnapshot' 'Screen snapshots must cover home'
+  require_fixed_string "$SWIFTUI_SNAPSHOT_TESTS" 'testSettingsViewSnapshot' 'SwiftUI snapshots must cover settings'
+  require_fixed_string "$APP_APPEARANCE_TESTS" 'testAllDesignStylesResolveExpectedSurfaceFamilies' 'Appearance tests must cover all design styles'
+  require_fixed_string "$QUESTION_PRESENTER_TESTS" 'testCorrectAnswerRecordsSingleCompletedAttemptAndEmitsResult' 'Question presenter tests must cover result emission and statistics recording'
+  require_fixed_string "$QUIZ_FACTORY_TESTS" 'testSwiftDataThemeStoreReplacesFetchesAndClearsThemes' 'Factory tests must cover in-memory SwiftData theme store behavior'
+
+  printf 'Snapshot and expanded unit coverage-marker checks: PASS\n'
+}
+
 run_app_build() {
   log_section "App build"
   xcodebuild \
@@ -229,6 +404,45 @@ run_app_build() {
     CODE_SIGNING_ALLOWED=NO \
     build
   printf 'App build: PASS\n'
+}
+
+check_coverage() {
+  local result_bundle="$1"
+  local coverage_json
+  coverage_json="$(mktemp -t quizice-s04-xccov.XXXXXX.json)"
+  remember_temp_file "$coverage_json"
+
+  xcrun xccov view --report --json "$result_bundle" > "$coverage_json"
+  python3 - "$coverage_json" "$MIN_LINE_COVERAGE_PERCENT" <<'PY'
+import json
+import sys
+
+path = sys.argv[1]
+minimum = float(sys.argv[2])
+with open(path, "r", encoding="utf-8") as handle:
+    report = json.load(handle)
+
+targets = report.get("targets", [])
+app_targets = [
+    target for target in targets
+    if target.get("name") in {"Quizice.app", "Quizice"}
+    or (target.get("name", "").startswith("Quizice") and "Tests" not in target.get("name", ""))
+]
+
+if not app_targets:
+    raise SystemExit("could not find Quizice app target in xccov report")
+
+target = sorted(app_targets, key=lambda item: item.get("executableLines", 0), reverse=True)[0]
+line_coverage = target.get("lineCoverage")
+if line_coverage is None:
+    raise SystemExit("Quizice app target did not include lineCoverage")
+
+percent = line_coverage * 100
+print(f"Quizice app line coverage: {percent:.2f}%")
+if percent + 1e-9 < minimum:
+    raise SystemExit(f"line coverage {percent:.2f}% is below required {minimum:.0f}%")
+PY
+  printf 'Coverage threshold (%s%%): PASS\n' "$MIN_LINE_COVERAGE_PERCENT"
 }
 
 run_unit_tests() {
@@ -242,6 +456,10 @@ run_unit_tests() {
   local test_log
   test_log="$(mktemp -t quizice-s04-xctest.XXXXXX.log)"
   remember_temp_file "$test_log"
+  local result_bundle
+  result_bundle="$(mktemp -d "${TMPDIR:-/tmp}/quizice-s04-result.XXXXXX.xcresult")"
+  rm -rf "$result_bundle"
+  remember_temp_path "$result_bundle"
 
   if ! xcodebuild \
     -project "$PROJECT" \
@@ -249,7 +467,10 @@ run_unit_tests() {
     -configuration "$CONFIGURATION" \
     -destination "platform=iOS Simulator,id=$simulator_udid" \
     CODE_SIGNING_ALLOWED=NO \
+    -enableCodeCoverage YES \
+    -resultBundlePath "$result_bundle" \
     test | tee "$test_log"; then
+    print_xctest_failure_summary "$result_bundle" "$test_log"
     printf 'XCTest log retained at: %s\n' "$test_log" >&2
     fail "xcodebuild test failed"
   fi
@@ -262,8 +483,13 @@ run_unit_tests() {
     'StatisticsStoreTests did not appear to execute'
   require_extended_regex "$test_log" "Test Suite 'QuizQuestionPresenterFailureStateTests' passed|Test case 'QuizQuestionPresenterFailureStateTests\\." \
     'QuizQuestionPresenterFailureStateTests did not appear to execute'
+  require_extended_regex "$test_log" "Test Suite 'ComponentSnapshotTests' passed|Test case 'ComponentSnapshotTests\\." \
+    'ComponentSnapshotTests did not appear to execute'
+  require_extended_regex "$test_log" "Test Suite 'ScreenSnapshotTests' passed|Test case 'ScreenSnapshotTests\\." \
+    'ScreenSnapshotTests did not appear to execute'
 
   printf 'XCTest suite: PASS\n'
+  check_coverage "$result_bundle"
 }
 
 log_section "Required files and data preservation baseline"
@@ -280,6 +506,7 @@ assert_data_json_unchanged
 check_project_and_test_wiring
 check_statistics_coverage_markers
 check_failure_state_coverage_markers
+check_snapshot_coverage_markers
 assert_data_json_unchanged
 run_app_build
 assert_data_json_unchanged
