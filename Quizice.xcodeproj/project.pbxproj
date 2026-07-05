@@ -54,6 +54,17 @@
 		99D1000D2E70000100D10001 /* Manrope.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 99D100092E70000100D10001 /* Manrope.ttf */; };
 		99E200012E90000100E20001 /* QuizAIThemeCreationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99E200022E90000100E20001 /* QuizAIThemeCreationView.swift */; };
 		99E200032E90000100E20001 /* AIQuizThemeService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99E200042E90000100E20001 /* AIQuizThemeService.swift */; };
+		99F000012EA0000100F00001 /* SnapshotSupport.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99F000002EA0000100F00001 /* SnapshotSupport.swift */; };
+		99F000032EA0000100F00001 /* AppAppearanceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99F000022EA0000100F00001 /* AppAppearanceTests.swift */; };
+		99F000052EA0000100F00001 /* QuizPresenterTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99F000042EA0000100F00001 /* QuizPresenterTests.swift */; };
+		99F000072EA0000100F00001 /* QuizQuestionPresenterTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99F000062EA0000100F00001 /* QuizQuestionPresenterTests.swift */; };
+		99F000092EA0000100F00001 /* QuizFactoryTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99F000082EA0000100F00001 /* QuizFactoryTests.swift */; };
+		99F0000B2EA0000100F00001 /* QuizFlowCoordinatorAdditionalTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99F0000A2EA0000100F00001 /* QuizFlowCoordinatorAdditionalTests.swift */; };
+		99F0000D2EA0000100F00001 /* ComponentSnapshotTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99F0000C2EA0000100F00001 /* ComponentSnapshotTests.swift */; };
+		99F0000F2EA0000100F00001 /* HomeCardSnapshotTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99F0000E2EA0000100F00001 /* HomeCardSnapshotTests.swift */; };
+		99F000112EA0000100F00001 /* ScreenSnapshotTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99F000102EA0000100F00001 /* ScreenSnapshotTests.swift */; };
+		99F000132EA0000100F00001 /* SwiftUISnapshotTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99F000122EA0000100F00001 /* SwiftUISnapshotTests.swift */; };
+		99F000212EA0000100F00001 /* SnapshotTesting in Frameworks */ = {isa = PBXBuildFile; productRef = 99F000202EA0000100F00001 /* SnapshotTesting */; };
 		99FCF0252D969B7F006341F4 /* QuizResultPresenterProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99FCF0242D969B7F006341F4 /* QuizResultPresenterProtocol.swift */; };
 		99FCF0272D969B96006341F4 /* QuizResultPresenter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99FCF0262D969B96006341F4 /* QuizResultPresenter.swift */; };
 		99FCF0292D969CDF006341F4 /* QuizResultViewControllerProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99FCF0282D969CDF006341F4 /* QuizResultViewControllerProtocol.swift */; };
@@ -134,6 +145,16 @@
 		99D100092E70000100D10001 /* Manrope.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = Manrope.ttf; sourceTree = "<group>"; };
 		99E200022E90000100E20001 /* QuizAIThemeCreationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuizAIThemeCreationView.swift; sourceTree = "<group>"; };
 		99E200042E90000100E20001 /* AIQuizThemeService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AIQuizThemeService.swift; sourceTree = "<group>"; };
+		99F000002EA0000100F00001 /* SnapshotSupport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SnapshotSupport.swift; sourceTree = "<group>"; };
+		99F000022EA0000100F00001 /* AppAppearanceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppAppearanceTests.swift; sourceTree = "<group>"; };
+		99F000042EA0000100F00001 /* QuizPresenterTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuizPresenterTests.swift; sourceTree = "<group>"; };
+		99F000062EA0000100F00001 /* QuizQuestionPresenterTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuizQuestionPresenterTests.swift; sourceTree = "<group>"; };
+		99F000082EA0000100F00001 /* QuizFactoryTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuizFactoryTests.swift; sourceTree = "<group>"; };
+		99F0000A2EA0000100F00001 /* QuizFlowCoordinatorAdditionalTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuizFlowCoordinatorAdditionalTests.swift; sourceTree = "<group>"; };
+		99F0000C2EA0000100F00001 /* ComponentSnapshotTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ComponentSnapshotTests.swift; sourceTree = "<group>"; };
+		99F0000E2EA0000100F00001 /* HomeCardSnapshotTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeCardSnapshotTests.swift; sourceTree = "<group>"; };
+		99F000102EA0000100F00001 /* ScreenSnapshotTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenSnapshotTests.swift; sourceTree = "<group>"; };
+		99F000122EA0000100F00001 /* SwiftUISnapshotTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SwiftUISnapshotTests.swift; sourceTree = "<group>"; };
 		99FCF0242D969B7F006341F4 /* QuizResultPresenterProtocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuizResultPresenterProtocol.swift; sourceTree = "<group>"; };
 		99FCF0262D969B96006341F4 /* QuizResultPresenter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuizResultPresenter.swift; sourceTree = "<group>"; };
 		99FCF0282D969CDF006341F4 /* QuizResultViewControllerProtocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuizResultViewControllerProtocol.swift; sourceTree = "<group>"; };
@@ -154,6 +175,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				99F000212EA0000100F00001 /* SnapshotTesting in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -275,15 +297,49 @@
 		99B400002E20000100B40001 /* QuiziceTests */ = {
 			isa = PBXGroup;
 			children = (
+				99F000142EA0000100F00001 /* Unit */,
+				99F000152EA0000100F00001 /* UI */,
+				99F000162EA0000100F00001 /* Snapshots */,
+			);
+			path = QuiziceTests;
+			sourceTree = "<group>";
+		};
+		99F000142EA0000100F00001 /* Unit */ = {
+			isa = PBXGroup;
+			children = (
 				99B400012E20000100B40001 /* QuiziceTests.swift */,
+				99F000022EA0000100F00001 /* AppAppearanceTests.swift */,
+				99F000042EA0000100F00001 /* QuizPresenterTests.swift */,
+				99F000062EA0000100F00001 /* QuizQuestionPresenterTests.swift */,
+				99F000082EA0000100F00001 /* QuizFactoryTests.swift */,
+				99F0000A2EA0000100F00001 /* QuizFlowCoordinatorAdditionalTests.swift */,
 				99B400112E20000100B40001 /* StatisticsSummaryTests.swift */,
 				99B400132E20000100B40001 /* StatisticsStoreTests.swift */,
 				99B400152E20000100B40001 /* QuizQuestionPresenterFailureStateTests.swift */,
-				99B400172E20000100B40001 /* HomeScreenVisualStateTests.swift */,
-				99B400192E20000100B40001 /* CrossScreenVisualStateTests.swift */,
 				99C0FFF42E50000100C0DE01 /* LocalizationTests.swift */,
 			);
-			path = QuiziceTests;
+			path = Unit;
+			sourceTree = "<group>";
+		};
+		99F000152EA0000100F00001 /* UI */ = {
+			isa = PBXGroup;
+			children = (
+				99B400172E20000100B40001 /* HomeScreenVisualStateTests.swift */,
+				99B400192E20000100B40001 /* CrossScreenVisualStateTests.swift */,
+			);
+			path = UI;
+			sourceTree = "<group>";
+		};
+		99F000162EA0000100F00001 /* Snapshots */ = {
+			isa = PBXGroup;
+			children = (
+				99F000002EA0000100F00001 /* SnapshotSupport.swift */,
+				99F0000C2EA0000100F00001 /* ComponentSnapshotTests.swift */,
+				99F0000E2EA0000100F00001 /* HomeCardSnapshotTests.swift */,
+				99F000102EA0000100F00001 /* ScreenSnapshotTests.swift */,
+				99F000122EA0000100F00001 /* SwiftUISnapshotTests.swift */,
+			);
+			path = Snapshots;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -323,6 +379,7 @@
 			);
 			name = QuiziceTests;
 			packageProductDependencies = (
+				99F000202EA0000100F00001 /* SnapshotTesting */,
 			);
 			productName = QuiziceTests;
 			productReference = 99B400032E20000100B40001 /* QuiziceTests.xctest */;
@@ -363,6 +420,9 @@
 			minimizedProjectReferenceProxies = 1;
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 993C1BAA2D8D5E8900AD9BE4 /* Products */;
+			packageReferences = (
+				99F000302EA0000100F00001 /* XCRemoteSwiftPackageReference "swift-snapshot-testing" */,
+			);
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
@@ -448,12 +508,22 @@
 			buildActionMask = 2147483647;
 			files = (
 				99B400022E20000100B40001 /* QuiziceTests.swift in Sources */,
+				99F000032EA0000100F00001 /* AppAppearanceTests.swift in Sources */,
+				99F000052EA0000100F00001 /* QuizPresenterTests.swift in Sources */,
+				99F000072EA0000100F00001 /* QuizQuestionPresenterTests.swift in Sources */,
+				99F000092EA0000100F00001 /* QuizFactoryTests.swift in Sources */,
+				99F0000B2EA0000100F00001 /* QuizFlowCoordinatorAdditionalTests.swift in Sources */,
 				99B400102E20000100B40001 /* StatisticsSummaryTests.swift in Sources */,
 				99B400122E20000100B40001 /* StatisticsStoreTests.swift in Sources */,
 				99B400142E20000100B40001 /* QuizQuestionPresenterFailureStateTests.swift in Sources */,
 				99B400162E20000100B40001 /* HomeScreenVisualStateTests.swift in Sources */,
 				99B400182E20000100B40001 /* CrossScreenVisualStateTests.swift in Sources */,
 				99C0FFF52E50000100C0DE01 /* LocalizationTests.swift in Sources */,
+				99F000012EA0000100F00001 /* SnapshotSupport.swift in Sources */,
+				99F0000D2EA0000100F00001 /* ComponentSnapshotTests.swift in Sources */,
+				99F0000F2EA0000100F00001 /* HomeCardSnapshotTests.swift in Sources */,
+				99F000112EA0000100F00001 /* ScreenSnapshotTests.swift in Sources */,
+				99F000132EA0000100F00001 /* SwiftUISnapshotTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -778,6 +848,25 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		99F000302EA0000100F00001 /* XCRemoteSwiftPackageReference "swift-snapshot-testing" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/pointfreeco/swift-snapshot-testing";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 1.19.2;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		99F000202EA0000100F00001 /* SnapshotTesting */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 99F000302EA0000100F00001 /* XCRemoteSwiftPackageReference "swift-snapshot-testing" */;
+			productName = SnapshotTesting;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 993C1BA12D8D5E8900AD9BE4 /* Project object */;
 }

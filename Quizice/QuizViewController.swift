@@ -121,6 +121,7 @@ final class QuizViewController: BaseQuizViewController, QuizViewControllerProtoc
     private let session: QuizSessionManaging
     private let statisticsStore: StatisticsStore
     private let themesCollectionService: ThemesCollectionService
+    private let motivationPromptProvider: (String?) -> String
     private let animationsEngine = Animations()
     private let motivationBlurContext = CIContext(options: nil)
     private var soundPlayer: AVAudioPlayer!
@@ -135,11 +136,13 @@ final class QuizViewController: BaseQuizViewController, QuizViewControllerProtoc
     init(
         themeRepository: ThemeRepository = QuizFactory.shared,
         session: QuizSessionManaging = QuizFactory.shared,
-        statisticsStore: StatisticsStore = StatisticsStore()
+        statisticsStore: StatisticsStore = StatisticsStore(),
+        motivationPromptProvider: @escaping (String?) -> String = QuizViewController.randomMotivationPrompt
     ) {
         self.themeRepository = themeRepository
         self.session = session
         self.statisticsStore = statisticsStore
+        self.motivationPromptProvider = motivationPromptProvider
         self.themesCollectionService = ThemesCollectionService(
             themeRepository: themeRepository,
             statisticsStore: statisticsStore
@@ -240,7 +243,7 @@ final class QuizViewController: BaseQuizViewController, QuizViewControllerProtoc
         motivationContainerView = UIView()
         motivationContainerView.translatesAutoresizingMaskIntoConstraints = false
 
-        motivationLabel = makeLabel(text: randomMotivationPrompt(), font: typography.font(size: Typography.motivationFontSize, weight: .bold))
+        motivationLabel = makeLabel(text: motivationPromptProvider(nil), font: typography.font(size: Typography.motivationFontSize, weight: .bold))
         motivationLabel.numberOfLines = 2
         motivationLabel.accessibilityIdentifier = AccessibilityID.motivationLabel
         motivationLabel.adjustsFontForContentSizeCategory = true
@@ -610,11 +613,11 @@ final class QuizViewController: BaseQuizViewController, QuizViewControllerProtoc
 
     private func refreshMotivationPrompt() {
         guard themeRepository.themes?.isEmpty == false else { return }
-        motivationLabel.text = randomMotivationPrompt(excluding: motivationLabel.text)
+        motivationLabel.text = motivationPromptProvider(motivationLabel.text)
         invalidateMotivationBlurredText()
     }
 
-    private func randomMotivationPrompt(excluding currentPrompt: String? = nil) -> String {
+    private static func randomMotivationPrompt(excluding currentPrompt: String? = nil) -> String {
         let prompts = L10n.Home.motivationPrompts
         let availablePrompts = prompts.filter { $0 != currentPrompt }
         let prompt = (availablePrompts.isEmpty ? prompts : availablePrompts).randomElement() ?? ""
