@@ -15,6 +15,10 @@ final class ScreenSnapshotTests: XCTestCase {
     }
 
     func testHomeScreenSnapshot() {
+        let suiteName = "ScreenSnapshotTests.home.\(UUID().uuidString)"
+        let defaults = UserDefaults(suiteName: suiteName)!
+        defaults.removePersistentDomain(forName: suiteName)
+        let statisticsStore = StatisticsStore(userDefaults: defaults, key: "attempts")
         QuizFactory.shared.themes = [
             SnapshotSupport.makeTheme(id: "music", name: "Музыка"),
             SnapshotSupport.makeTheme(id: "technology", name: "Технологии"),
@@ -23,7 +27,14 @@ final class ScreenSnapshotTests: XCTestCase {
         ]
         QuizFactory.shared.startup1st = false
 
-        SnapshotSupport.assertScreen(QuizViewController(), named: "clean-home")
+        let viewController = QuizViewController(
+            statisticsStore: statisticsStore,
+            motivationPromptProvider: { _ in "Время\nпроверить факты" }
+        )
+
+        SnapshotSupport.assertScreen(viewController, named: "clean-home")
+
+        defaults.removePersistentDomain(forName: suiteName)
     }
 
     func testDescriptionScreenSnapshot() {
