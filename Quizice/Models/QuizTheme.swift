@@ -9,31 +9,32 @@ import Foundation
 import SwiftData
 
 @Model
-class QuizTheme: Decodable {
-    var id: String?
-    @Attribute(.unique) var theme: String
+class QuizTheme {
+    @Attribute(.unique) var id: String
+    var theme: String
     var themeDescription: String
     @Relationship(deleteRule: .cascade) var questions: [QuizQuestion]
     
-    init(id: String? = nil, theme: String, themeDescription: String, questions: [QuizQuestion]) {
+    init(id: String, theme: String, themeDescription: String, questions: [QuizQuestion]) {
         self.id = id
         self.theme = theme
         self.themeDescription = themeDescription
         self.questions = questions
     }
-    
-    enum CodingKeys: String, CodingKey {
-        case id
-        case theme
-        case themeDescription
-        case questions
-    }
-    
-    required init(from decoder: Decoder) throws {
-        let container = try decoder.container(keyedBy: CodingKeys.self)
-        self.id = try container.decodeIfPresent(String.self, forKey: .id)
-        self.theme = try container.decode(String.self, forKey: .theme)
-        self.themeDescription = try container.decode(String.self, forKey: .themeDescription)
-        self.questions = try container.decode([QuizQuestion].self, forKey: .questions)
+}
+
+struct QuizThemeDTO: Decodable {
+    let id: String
+    let theme: String
+    let themeDescription: String
+    let questions: [QuizQuestionDTO]
+
+    func makeModel() -> QuizTheme {
+        QuizTheme(
+            id: id,
+            theme: theme,
+            themeDescription: themeDescription,
+            questions: questions.map { $0.makeModel() }
+        )
     }
 }

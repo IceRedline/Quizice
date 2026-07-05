@@ -8,6 +8,9 @@ final class CrossScreenVisualStateTests: XCTestCase {
         AppLocalizationStore.shared.languagePreference = .russian
         resetQuestionFactoryState()
         UserDefaults.standard.set(AppDesignStyle.clean.rawValue, forKey: AppAppearanceStore.Keys.designStyle)
+        // Pin the clean color scheme so shadow/surface assertions are deterministic
+        // regardless of the host simulator's system light/dark appearance.
+        UserDefaults.standard.set(CleanColorSchemePreference.light.rawValue, forKey: AppAppearanceStore.Keys.cleanColorScheme)
         UIView.setAnimationsEnabled(false)
     }
 
@@ -412,12 +415,12 @@ final class CrossScreenVisualStateTests: XCTestCase {
         let question = QuizQuestion(
             question: "Какой ответ должен подсветиться как верный?",
             answers: ["Правильный ответ", "Ошибочный ответ 1", "Ошибочный ответ 2", "Ошибочный ответ 3"],
-            correctAnswer: "Правильный ответ",
-            explanation: "Проверяем визуальное состояние ответа."
+            correctAnswer: "Правильный ответ"
         )
 
         return ThemeModel(
             quizTheme: QuizTheme(
+                id: "visual_test",
                 theme: "Визуальный тест",
                 themeDescription: "Тема для проверки вопросного экрана",
                 questions: [question]

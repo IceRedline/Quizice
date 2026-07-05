@@ -12,8 +12,9 @@ final class MockAIQuizThemeService: AIQuizThemeServiceProtocol {
         let trimmedPrompt = prompt.trimmingCharacters(in: .whitespacesAndNewlines)
         generatedPrompts.append(trimmedPrompt)
         generatedLocaleIdentifiers.append(locale.identifier)
-        print("AI quiz theme prompt: \(trimmedPrompt), locale: \(locale.identifier)")
+        AppLog.quiz.debug("AI quiz theme prompt: \(trimmedPrompt, privacy: .public), locale: \(locale.identifier, privacy: .public)")
         return QuizTheme(
+            id: trimmedPrompt.lowercased().replacingOccurrences(of: " ", with: "_"),
             theme: trimmedPrompt,
             themeDescription: "AI generated quiz placeholder",
             questions: []

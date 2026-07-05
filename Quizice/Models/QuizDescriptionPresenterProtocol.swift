@@ -5,7 +5,7 @@
 //  Created by Артем Табенский on 28.03.2025.
 //
 
-import UIKit
+import Foundation
 
 protocol QuizDescriptionPresenterProtocol {
     var view: QuizDescriptionViewControllerProtocol? { get set }
@@ -13,6 +13,7 @@ protocol QuizDescriptionPresenterProtocol {
     var themeDescription: String { get set }
     
     func viewDidLoad()
-    func configurePickerView(_ pickerView: UIPickerView)
+    var numberOfQuestionsOptionCount: Int { get }
+    func numberOfQuestionsTitle(at row: Int) -> String?
     func saveNumberOfQuestions(chosenRow: Int)
 }

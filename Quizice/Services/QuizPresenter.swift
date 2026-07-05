@@ -8,12 +8,18 @@
 import Foundation
 
 final class QuizPresenter: QuizPresenterProtocol {
-    var view: QuizViewControllerProtocol?
+    private let session: QuizSessionManaging
 
-    func configureDescriptionPresenter(viewController: QuizDescriptionViewController) {
-        viewController.configurePresenter(QuizDescriptionPresenter())
-        viewController.presenter?.themeName = QuizFactory.shared.chosenTheme?.themeName ?? L10n.Description.defaultThemeName
-        viewController.presenter?.themeDescription = QuizFactory.shared.chosenTheme?.description ?? L10n.Description.defaultThemeDescription
+    weak var view: QuizViewControllerProtocol?
+
+    init(session: QuizSessionManaging = QuizFactory.shared) {
+        self.session = session
     }
-    
+
+    func descriptionContent() -> QuizDescriptionContent {
+        QuizDescriptionContent(
+            themeName: session.chosenTheme?.themeName ?? L10n.Description.defaultThemeName,
+            themeDescription: session.chosenTheme?.description ?? L10n.Description.defaultThemeDescription
+        )
+    }
 }

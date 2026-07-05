@@ -44,7 +44,7 @@ remember_temp_file() {
 
 cleanup() {
   local path
-  for path in "${TEMP_FILES[@]}"; do
+  for path in "${TEMP_FILES[@]+"${TEMP_FILES[@]}"}"; do
     [[ -n "$path" && -f "$path" ]] && rm -f "$path"
   done
 }
@@ -208,7 +208,9 @@ check_failure_state_coverage_markers() {
   require_fixed_string "$PRESENTER_FAILURE_TESTS" 'XCTAssertEqual(view.unavailableCalls.count, 1' 'Unavailable-question assertions must verify exactly one unavailable state'
   require_fixed_string "$PRESENTER_FAILURE_TESTS" 'XCTAssertTrue(view.loadedQuestions.isEmpty' 'Unavailable-question assertions must verify malformed questions are not loaded'
   require_fixed_string "$PRESENTER_FAILURE_TESTS" 'XCTAssertEqual(view.resultsCallCount, 0' 'Unavailable-question assertions must verify no result navigation fires'
-  require_fixed_string "$PRESENTER_FAILURE_TESTS" 'QuizFactory.shared.chosenTheme = nil' 'Presenter tests must reset nil chosen-theme state'
+  require_fixed_string "$PRESENTER_FAILURE_TESTS" 'QuizQuestionPresenter(session: session)' 'Presenter tests must use injected session state instead of QuizFactory.shared'
+  require_fixed_string "$PRESENTER_FAILURE_TESTS" 'testQuestionWithDuplicatedCorrectAnswerShowsUnavailableQuestionState' 'Presenter failure-state tests must cover ambiguous duplicate correct-answer titles'
+  require_fixed_string "$PRESENTER_FAILURE_TESTS" 'testAnswerSelectionUsesOptionID' 'Presenter tests must cover answer selection by option id'
 
   if grep -Fq "$DATA_JSON" "$SUMMARY_TESTS" "$STORE_TESTS" "$PRESENTER_FAILURE_TESTS"; then
     fail "S04 tests must use synthetic fixtures and isolated UserDefaults, not mutable $DATA_JSON"

@@ -3,7 +3,7 @@ import UIKit
 import SwiftUI
 #endif
 
-final class StatisticsViewController: UIViewController {
+final class StatisticsViewController: BaseQuizViewController {
     private enum Content {
         static let backgroundImageName = "backgroundImage"
         static let percentageSuffix = "%"
@@ -100,9 +100,7 @@ final class StatisticsViewController: UIViewController {
     private let percentageValueLabel = UILabel()
     private let bestResultValueLabel = UILabel()
     private var rowTitleLabels: [UILabel] = []
-    private let appearanceStore = AppAppearanceStore.shared
-    private var appearanceObserver: NSObjectProtocol?
-    private var localizationObserver: NSObjectProtocol?
+    weak var router: QuizRouting?
     
     private var playedQuizzesRow: UIView!
     private var correctAnswersRow: UIView!
@@ -135,15 +133,6 @@ final class StatisticsViewController: UIViewController {
         installAppearanceTraitObserver()
         title = L10n.Statistics.title
         installLocalizationObserver()
-    }
-
-    deinit {
-        if let appearanceObserver {
-            NotificationCenter.default.removeObserver(appearanceObserver)
-        }
-        if let localizationObserver {
-            NotificationCenter.default.removeObserver(localizationObserver)
-        }
     }
 
     override func viewWillAppear(_ animated: Bool) {
@@ -298,11 +287,7 @@ final class StatisticsViewController: UIViewController {
     }
 
     @objc private func backButtonTapped() {
-        if let navigationController {
-            navigationController.popViewController(animated: true)
-        } else {
-            dismiss(animated: true)
-        }
+        router?.closeStatistics()
     }
 
     private func makeStatisticRow(
@@ -353,27 +338,7 @@ final class StatisticsViewController: UIViewController {
         return containerView
     }
 
-    private func installAppearanceObserver() {
-        appearanceObserver = NotificationCenter.default.addObserver(
-            forName: .appAppearanceDidChange,
-            object: nil,
-            queue: .main
-        ) { [weak self] _ in
-            self?.applyAppearance()
-        }
-    }
-
-    private func installAppearanceTraitObserver() {
-        registerForTraitChanges([UITraitUserInterfaceStyle.self]) { (viewController: StatisticsViewController, _: UITraitCollection) in
-            viewController.applyAppearance()
-        }
-    }
-
-    private func currentAppearance() -> AppAppearance {
-        appearanceStore.appearance(compatibleWith: traitCollection)
-    }
-
-    private func applyAppearance() {
+    override func applyAppearance() {
         guard isViewLoaded else { return }
         let appearance = currentAppearance()
         appearance.applyBackground(to: view)
@@ -438,17 +403,7 @@ final class StatisticsViewController: UIViewController {
         bestResultRow.accessibilityValue = bestResultDisplay
     }
 
-    private func installLocalizationObserver() {
-        localizationObserver = NotificationCenter.default.addObserver(
-            forName: .appLocalizationDidChange,
-            object: nil,
-            queue: .main
-        ) { [weak self] _ in
-            self?.applyLocalizedStrings()
-        }
-    }
-
-    private func applyLocalizedStrings() {
+    override func applyLocalizedStrings() {
         guard isViewLoaded else { return }
         title = L10n.Statistics.title
         view.accessibilityLabel = L10n.Statistics.accessibilityLabel
