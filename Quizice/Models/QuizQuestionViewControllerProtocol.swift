@@ -12,8 +12,8 @@ protocol QuizQuestionViewControllerProtocol: AnyObject {
     
     func updateProgress(_ progress: Float)
     func showTimeExpired()
-    func loadQuestionToView(themeName: String, questionText: String, questionNumberText: String, currentAnswers: [String])
+    func loadQuestionToView(_ viewModel: QuizQuestionViewModel)
     func showQuestionUnavailable(themeName: String?, message: String)
     func correctAnswerTapped(isTrue: Bool)
-    func showResults()
+    func showResults(_ result: QuizResultState)
 }

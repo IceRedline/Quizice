@@ -3,7 +3,7 @@ import UIKit
 import SwiftUI
 #endif
 
-final class QuizResultViewController: UIViewController, QuizResultViewControllerProtocol {
+final class QuizResultViewController: BaseQuizViewController, QuizResultViewControllerProtocol {
     private enum Content {
         static let backgroundImageName = "backgroundImage"
     }
@@ -63,9 +63,7 @@ final class QuizResultViewController: UIViewController, QuizResultViewController
     private var resultDescription: UILabel!
     
     private var restartButton: UIButton!
-    private let appearanceStore = AppAppearanceStore.shared
-    private var appearanceObserver: NSObjectProtocol?
-    private var localizationObserver: NSObjectProtocol?
+    weak var router: QuizRouting?
     
     var presenter: QuizResultPresenterProtocol?
     
@@ -84,15 +82,6 @@ final class QuizResultViewController: UIViewController, QuizResultViewController
         installAppearanceTraitObserver()
         presenter?.viewDidLoad()
         installLocalizationObserver()
-    }
-
-    deinit {
-        if let appearanceObserver {
-            NotificationCenter.default.removeObserver(appearanceObserver)
-        }
-        if let localizationObserver {
-            NotificationCenter.default.removeObserver(localizationObserver)
-        }
     }
 
     func configurePresenter(_ presenter: QuizResultPresenterProtocol) {
@@ -208,27 +197,7 @@ final class QuizResultViewController: UIViewController, QuizResultViewController
         return button
     }
 
-    private func installAppearanceObserver() {
-        appearanceObserver = NotificationCenter.default.addObserver(
-            forName: .appAppearanceDidChange,
-            object: nil,
-            queue: .main
-        ) { [weak self] _ in
-            self?.applyAppearance()
-        }
-    }
-
-    private func installAppearanceTraitObserver() {
-        registerForTraitChanges([UITraitUserInterfaceStyle.self]) { (viewController: QuizResultViewController, _: UITraitCollection) in
-            viewController.applyAppearance()
-        }
-    }
-
-    private func currentAppearance() -> AppAppearance {
-        appearanceStore.appearance(compatibleWith: traitCollection)
-    }
-
-    private func applyAppearance() {
+    override func applyAppearance() {
         guard isViewLoaded else { return }
         let appearance = currentAppearance()
         appearance.applyBackground(to: view)
@@ -254,24 +223,10 @@ final class QuizResultViewController: UIViewController, QuizResultViewController
     }
     
     @IBAction func backButtonTapped() {
-        let rootViewController = QuizViewController()
-        let navigationController = UINavigationController(rootViewController: rootViewController)
-        navigationController.setNavigationBarHidden(true, animated: false)
-        view.window?.rootViewController = navigationController
-        view.window?.makeKeyAndVisible()
+        router?.restartQuiz()
     }
 
-    private func installLocalizationObserver() {
-        localizationObserver = NotificationCenter.default.addObserver(
-            forName: .appLocalizationDidChange,
-            object: nil,
-            queue: .main
-        ) { [weak self] _ in
-            self?.applyLocalizedStrings()
-        }
-    }
-
-    private func applyLocalizedStrings() {
+    override func applyLocalizedStrings() {
         guard isViewLoaded else { return }
         restartButton.setTitle(L10n.Result.restart, for: .normal)
         presenter?.viewDidLoad()

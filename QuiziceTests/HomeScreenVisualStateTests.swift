@@ -160,28 +160,30 @@ final class HomeScreenVisualStateTests: XCTestCase {
         QuizFactory.shared.themes = [makeTheme(name: "Музыка")]
 
         let viewController = makeHomeViewController(in: CGRect(x: 0, y: 0, width: 390, height: 844))
+        let router = HomeRouterSpy()
+        viewController.router = router
         let settingsButton = try XCTUnwrap(viewController.view.descendant(withAccessibilityIdentifier: "homeSettingsButton") as? UIButton)
 
         XCTAssertNotNil(settingsButton.image(for: .normal))
 
         settingsButton.sendActions(for: .touchUpInside)
 
-        let hostingController = try XCTUnwrap(viewController.presentedViewController as? UIHostingController<QuizSettingsView>)
-        XCTAssertEqual(hostingController.modalPresentationStyle, .pageSheet)
+        XCTAssertEqual(router.showSettingsCallCount, 1)
     }
 
     func testHomeAIThemeButtonPresentsAIThemeCreationScreen() throws {
         QuizFactory.shared.themes = [makeTheme(name: "Музыка")]
 
         let viewController = makeHomeViewController(in: CGRect(x: 0, y: 0, width: 390, height: 844))
+        let router = HomeRouterSpy()
+        viewController.router = router
         let collectionView = try XCTUnwrap(viewController.view.descendant(withAccessibilityIdentifier: "homeThemesCollectionView") as? UICollectionView)
         collectionView.layoutIfNeeded()
         let createWithAIButton = try XCTUnwrap(viewController.view.descendant(withAccessibilityIdentifier: "homeCreateWithAIButton") as? UIButton)
 
         createWithAIButton.sendActions(for: .touchUpInside)
 
-        let hostingController = try XCTUnwrap(viewController.presentedViewController as? UIHostingController<QuizAIThemeCreationView>)
-        XCTAssertEqual(hostingController.modalPresentationStyle, .pageSheet)
+        XCTAssertEqual(router.showAIThemeCreationCallCount, 1)
     }
 
     func testHomeScreenShowsUnavailableCopyWhenThemesAreEmpty() {
@@ -528,6 +530,30 @@ private final class ThemeCollectionDelegateSpy: ThemeCollectionDelegate {
         statisticsTapCount += 1
     }
 
+}
+
+private final class HomeRouterSpy: QuizRouting {
+    private(set) var showDescriptionCallCount = 0
+    private(set) var showQuestionCallCount = 0
+    private(set) var showResultCallCount = 0
+    private(set) var showStatisticsCallCount = 0
+    private(set) var showAIThemeCreationCallCount = 0
+    private(set) var showSettingsCallCount = 0
+    private(set) var closeDescriptionCallCount = 0
+    private(set) var closeStatisticsCallCount = 0
+    private(set) var closeQuestionCallCount = 0
+    private(set) var restartQuizCallCount = 0
+
+    func showDescription() { showDescriptionCallCount += 1 }
+    func showQuestion() { showQuestionCallCount += 1 }
+    func showResult(_ result: QuizResultState) { showResultCallCount += 1 }
+    func showStatistics() { showStatisticsCallCount += 1 }
+    func showAIThemeCreation() { showAIThemeCreationCallCount += 1 }
+    func showSettings() { showSettingsCallCount += 1 }
+    func closeDescription() { closeDescriptionCallCount += 1 }
+    func closeStatistics() { closeStatisticsCallCount += 1 }
+    func closeQuestion() { closeQuestionCallCount += 1 }
+    func restartQuiz() { restartQuizCallCount += 1 }
 }
 
 private extension UIView {

@@ -5,7 +5,7 @@
 //  Created by Артем Табенский on 28.03.2025.
 //
 
-import UIKit
+import Foundation
 
 protocol QuizDescriptionViewControllerProtocol: AnyObject {
     var presenter: QuizDescriptionPresenterProtocol? { get set }

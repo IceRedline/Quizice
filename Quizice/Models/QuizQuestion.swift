@@ -9,31 +9,30 @@ import Foundation
 import SwiftData
 
 @Model
-class QuizQuestion: Decodable {
+class QuizQuestion {
     var question: String
     var answers: [String]
     var correctAnswer: String
-    var explanation: String
     
+    init(question: String, answers: [String], correctAnswer: String) {
+        self.question = question
+        self.answers = answers
+        self.correctAnswer = correctAnswer
+    }
+}
+
+struct QuizQuestionDTO: Decodable {
+    let question: String
+    let answers: [String]
+    let correctAnswer: String
+
     enum CodingKeys: String, CodingKey {
         case question
         case answers
         case correctAnswer
-        case explanation
     }
-    
-    init(question: String, answers: [String], correctAnswer: String, explanation: String) {
-        self.question = question
-        self.answers = answers
-        self.correctAnswer = correctAnswer
-        self.explanation = explanation
-    }
-    
-    required init(from decoder: Decoder) throws {
-        let container = try decoder.container(keyedBy: CodingKeys.self)
-        self.question = try container.decode(String.self, forKey: .question)
-        self.answers = try container.decode([String].self, forKey: .answers)
-        self.correctAnswer = try container.decode(String.self, forKey: .correctAnswer)
-        self.explanation = try container.decode(String.self, forKey: .explanation)
+
+    func makeModel() -> QuizQuestion {
+        QuizQuestion(question: question, answers: answers, correctAnswer: correctAnswer)
     }
 }
