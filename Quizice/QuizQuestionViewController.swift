@@ -105,6 +105,9 @@ final class QuizQuestionViewController: BaseQuizViewController, QuizQuestionView
         static let answerFeedbackDuration: Double = 0.15
         static let answerFeedbackOptions: UIView.AnimationOptions = [.curveEaseInOut, .allowUserInteraction]
         static let nextButtonEnableDuration: TimeInterval = 1
+        static let questionTransitionDuration: TimeInterval = 0.34
+        static let questionNumberTransitionDuration: TimeInterval = 0.18
+        static let questionTransitionOptions: UIView.AnimationOptions = [.curveEaseInOut]
     }
     
     private enum ActionButtonStyle {
@@ -174,6 +177,9 @@ final class QuizQuestionViewController: BaseQuizViewController, QuizQuestionView
     private var soundOfIncorrectAnswerPlayer: AVAudioPlayer!
     weak var router: QuizRouting?
     private var currentAnswerOptions: [QuizAnswerOption] = []
+    private var hasLoadedQuestion = false
+    private var isQuestionTransitionInProgress = false
+    private weak var outgoingQuestionCardSnapshot: UIView?
     
     var presenter: QuizQuestionPresenterProtocol?
     
@@ -449,14 +455,111 @@ final class QuizQuestionViewController: BaseQuizViewController, QuizQuestionView
     }
     
     func loadQuestionToView(_ viewModel: QuizQuestionViewModel) {
+        guard !isQuestionTransitionInProgress else { return }
+
+        guard hasLoadedQuestion else {
+            applyQuestion(viewModel, updatesQuestionNumber: true)
+            hasLoadedQuestion = true
+            presenter?.startTimer()
+            return
+        }
+
+        guard shouldAnimateQuestionTransition else {
+            finishQuestionTransition(with: viewModel, animatedQuestionNumber: false)
+            return
+        }
+
+        animateQuestionTransition(to: viewModel)
+    }
+
+    private var shouldAnimateQuestionTransition: Bool {
+        questionCardView.window != nil && !UIAccessibility.isReduceMotionEnabled
+    }
+
+    private func applyQuestion(_ viewModel: QuizQuestionViewModel, updatesQuestionNumber: Bool) {
         resetAllColors()
         
         timerBar.progress = presenter?.currentProgress ?? .zero
         themeNameLabel.text = viewModel.themeName
         questionLabel.text = viewModel.questionText
         applyAnswers(viewModel.answers)
-        questionNumberLabel.text = viewModel.questionNumberText
+        if updatesQuestionNumber {
+            questionNumberLabel.text = viewModel.questionNumberText
+        }
         nextButton.isEnabled = false
+    }
+
+    private func animateQuestionTransition(to viewModel: QuizQuestionViewModel) {
+        guard let containerView = questionCardView.superview else {
+            finishQuestionTransition(with: viewModel, animatedQuestionNumber: false)
+            return
+        }
+
+        containerView.layoutIfNeeded()
+        guard let outgoingCardSnapshot = questionCardView.snapshotView(afterScreenUpdates: false) else {
+            finishQuestionTransition(with: viewModel, animatedQuestionNumber: false)
+            return
+        }
+
+        isQuestionTransitionInProgress = true
+        questionCardView.isUserInteractionEnabled = false
+        nextButton.isEnabled = false
+
+        outgoingCardSnapshot.frame = questionCardView.frame
+        containerView.insertSubview(outgoingCardSnapshot, aboveSubview: questionCardView)
+        outgoingQuestionCardSnapshot = outgoingCardSnapshot
+
+        let horizontalOffset = containerView.bounds.width + Layout.cardHorizontalInset
+        questionCardView.transform = CGAffineTransform(translationX: horizontalOffset, y: 0)
+        applyQuestion(viewModel, updatesQuestionNumber: false)
+
+        UIView.transition(
+            with: questionNumberLabel,
+            duration: AnimationTiming.questionNumberTransitionDuration,
+            options: [.transitionCrossDissolve, .allowUserInteraction],
+            animations: {
+                self.questionNumberLabel.text = viewModel.questionNumberText
+            }
+        )
+
+        UIView.animate(
+            withDuration: AnimationTiming.questionTransitionDuration,
+            delay: 0,
+            options: AnimationTiming.questionTransitionOptions,
+            animations: {
+                outgoingCardSnapshot.transform = CGAffineTransform(translationX: -horizontalOffset, y: 0)
+                self.questionCardView.transform = .identity
+            },
+            completion: { _ in
+                outgoingCardSnapshot.removeFromSuperview()
+                self.outgoingQuestionCardSnapshot = nil
+                self.questionCardView.transform = .identity
+                self.completeQuestionTransition()
+            }
+        )
+    }
+
+    private func finishQuestionTransition(with viewModel: QuizQuestionViewModel, animatedQuestionNumber: Bool) {
+        isQuestionTransitionInProgress = false
+        questionCardView.isUserInteractionEnabled = true
+        questionCardView.transform = .identity
+        applyQuestion(viewModel, updatesQuestionNumber: !animatedQuestionNumber)
+        if animatedQuestionNumber {
+            UIView.transition(
+                with: questionNumberLabel,
+                duration: AnimationTiming.questionNumberTransitionDuration,
+                options: [.transitionCrossDissolve, .allowUserInteraction],
+                animations: {
+                    self.questionNumberLabel.text = viewModel.questionNumberText
+                }
+            )
+        }
+        presenter?.startTimer()
+    }
+
+    private func completeQuestionTransition() {
+        isQuestionTransitionInProgress = false
+        questionCardView.isUserInteractionEnabled = true
         presenter?.startTimer()
     }
     
@@ -470,6 +573,12 @@ final class QuizQuestionViewController: BaseQuizViewController, QuizQuestionView
     }
     
     func showQuestionUnavailable(themeName: String?, message: String) {
+        hasLoadedQuestion = false
+        isQuestionTransitionInProgress = false
+        outgoingQuestionCardSnapshot?.removeFromSuperview()
+        outgoingQuestionCardSnapshot = nil
+        questionCardView.transform = .identity
+        questionCardView.isUserInteractionEnabled = true
         themeNameLabel.text = themeName ?? L10n.Question.fallbackTheme
         questionNumberLabel.text = L10n.Question.unavailableNumber
         questionLabel.text = message
@@ -695,6 +804,7 @@ final class QuizQuestionViewController: BaseQuizViewController, QuizQuestionView
     }
     
     @IBAction func nextButtonTapped() {
+        guard !isQuestionTransitionInProgress else { return }
         presenter?.checkQuestionNumberAndProceed()
     }
     
