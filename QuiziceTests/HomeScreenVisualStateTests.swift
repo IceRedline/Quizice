@@ -371,9 +371,15 @@ final class HomeScreenVisualStateTests: XCTestCase {
         XCTAssertEqual(playedValueLabel.text, "0")
         XCTAssertEqual(accuracyTitleLabel.text, L10n.Home.statisticsAccuracyShort)
         XCTAssertEqual(accuracyValueLabel.text, "0%")
-        XCTAssertEqual(playedTitleLabel.frame.midY, playedValueLabel.frame.midY, accuracy: 0.5)
-        XCTAssertEqual(accuracyTitleLabel.frame.midY, accuracyValueLabel.frame.midY, accuracy: 0.5)
-        XCTAssertLessThan(playedTitleLabel.frame.midY, accuracyTitleLabel.frame.midY)
+        let playedRowStack = try XCTUnwrap(playedTitleLabel.superview as? UIStackView)
+        let accuracyRowStack = try XCTUnwrap(accuracyTitleLabel.superview as? UIStackView)
+        let metricsStack = try XCTUnwrap(playedRowStack.superview as? UIStackView)
+        XCTAssertTrue(playedRowStack === playedValueLabel.superview)
+        XCTAssertTrue(accuracyRowStack === accuracyValueLabel.superview)
+        XCTAssertTrue(metricsStack === accuracyRowStack.superview)
+        XCTAssertEqual(playedRowStack.axis, .horizontal)
+        XCTAssertEqual(accuracyRowStack.axis, .horizontal)
+        XCTAssertEqual(metricsStack.axis, .vertical)
         XCTAssertEqual(
             statisticsButton.accessibilityValue,
             L10n.Home.statisticsAccessibilityValue(playedQuizzes: 0, percentage: 0)
