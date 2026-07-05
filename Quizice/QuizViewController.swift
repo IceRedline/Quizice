@@ -5,21 +5,16 @@ import SwiftUI
 final class QuizViewController: BaseQuizViewController, QuizViewControllerProtocol, ThemeCollectionDelegate {
     private enum Content {
         static let backgroundImageName = "backgroundImage"
-        static let logoImageName = "Quizice"
         static let settingsIconName = "gear"
         static let startupSoundName = "Quizice Enter"
         static let startupSoundExtension = "m4a"
         static let themeCellReuseIdentifier = "themeCell"
-
-        static let logoAccessibilityLabel = "Quizice"
     }
 
     private enum AccessibilityID {
         static let rootView = "homeRootView"
-        static let welcomeLabel = "homeWelcomeLabel"
-        static let logoImageView = "homeLogoImageView"
-        static let logoTextLabel = "homeLogoTextLabel"
-        static let chooseThemeLabel = "homeChooseThemeLabel"
+        static let motivationLabel = "homeMotivationLabel"
+        static let motivationBlurredImageView = "homeMotivationBlurredImageView"
         static let headerStackView = "homeHeaderStackView"
         static let themesCollectionView = "homeThemesCollectionView"
         static let screenStackView = "homeScreenStackView"
@@ -32,13 +27,16 @@ final class QuizViewController: BaseQuizViewController, QuizViewControllerProtoc
         static let screenTopInset: CGFloat = 28
         static let screenBottomInset: CGFloat = 0
         static let screenStackSpacing: CGFloat = 0
-        static let headerToCollectionSpacing: CGFloat = 18
+        static let headerToCollectionSpacing: CGFloat = 22
         static let collectionItemSpacing: CGFloat = 16
         static let collectionHorizontalInset: CGFloat = 24
         static let collectionTopInset: CGFloat = 0
         static let collectionBottomInset: CGFloat = 0
-        static let logoWidthMultiplier: CGFloat = 0.7
-        static let logoHeight: CGFloat = 84
+        static let motivationFadeDistance: CGFloat = 72
+        static let motivationBlurRampDistance: CGFloat = 18
+        static let motivationBlurHoldDistance: CGFloat = 42
+        static let motivationBlurRadius: CGFloat = 7
+        static let motivationBlurPadding: CGFloat = 24
         static let settingsButtonTopInset: CGFloat = 8
         static let settingsButtonTrailingInset: CGFloat = 14
         static let settingsButtonSize: CGFloat = 36
@@ -74,9 +72,7 @@ final class QuizViewController: BaseQuizViewController, QuizViewControllerProtoc
     }
 
     private enum Typography {
-        static let welcomeFontSize: CGFloat = 26
-        static let chooseThemeFontSize: CGFloat = 24
-        static let logoTextFontSize: CGFloat = 52
+        static let motivationFontSize: CGFloat = 26
         static let actionButtonFontSize: CGFloat = 19
         static let settingsIconPointSize: CGFloat = 14
         static let unlimitedNumberOfLines = 0
@@ -85,6 +81,10 @@ final class QuizViewController: BaseQuizViewController, QuizViewControllerProtoc
     private enum Appearance {
         static let hiddenAlpha: CGFloat = 0
         static let visibleAlpha: CGFloat = 1
+        static let motivationBlurMaxAlpha: CGFloat = 0.82
+        static let headerLayerZPosition: CGFloat = 0
+        static let collectionLayerZPosition: CGFloat = 10
+        static let controlsLayerZPosition: CGFloat = 20
 
         static let primaryButtonBackgroundAlpha: CGFloat = 0.88
         static let primaryButtonCornerRadius: CGFloat = 22
@@ -100,19 +100,17 @@ final class QuizViewController: BaseQuizViewController, QuizViewControllerProtoc
     }
 
     private enum AnimationTiming {
-        static let welcomeFadeInDuration: TimeInterval = 1
-        static let logoFadeInDelay: TimeInterval = 1
-        static let logoFadeInDuration: TimeInterval = 2
-        static let controlsFadeInDelay: TimeInterval = 2
-        static let controlsFadeInDuration: TimeInterval = 1
-        static let cellFadeInDuration: TimeInterval = 1
-        static let cellFadeInStagger: TimeInterval = 0.15
+        static let motivationFadeInDuration: TimeInterval = 0.65
+        static let contentRevealDelay: TimeInterval = 0.45
+        static let controlsFadeInDelay: TimeInterval = 0.2
+        static let controlsFadeInDuration: TimeInterval = 0.45
+        static let cellFadeInDuration: TimeInterval = 0.55
+        static let cellFadeInStagger: TimeInterval = 0.08
     }
 
-    private var welcomeLabel: UILabel!
-    private var quiziceLabel: UIImageView!
-    private var quiziceTextLabel: UILabel!
-    private var chooseThemeLabel: UILabel!
+    private var motivationContainerView: UIView!
+    private var motivationLabel: UILabel!
+    private var motivationBlurredImageView: UIImageView!
     private var headerStackView: UIStackView!
     private var screenStackView: UIStackView!
     private var settingsButton: UIButton!
@@ -124,12 +122,14 @@ final class QuizViewController: BaseQuizViewController, QuizViewControllerProtoc
     private let statisticsStore: StatisticsStore
     private let themesCollectionService: ThemesCollectionService
     private let animationsEngine = Animations()
+    private let motivationBlurContext = CIContext(options: nil)
     private var soundPlayer: AVAudioPlayer!
+    private var motivationBlurSnapshotSignature: String?
     weak var router: QuizRouting?
     var presenter: QuizPresenterProtocol?
 
     private var startupAnimatedViews: [UIView] {
-        [welcomeLabel, quiziceLabel, quiziceTextLabel, themesCollectionView, chooseThemeLabel, settingsButton]
+        [motivationLabel, motivationBlurredImageView, themesCollectionView, settingsButton]
     }
 
     init(
@@ -185,11 +185,16 @@ final class QuizViewController: BaseQuizViewController, QuizViewControllerProtoc
 
     override func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
+        updateCollectionTopInset()
         updateCollectionScrollAvailability()
+        if !session.startup1st {
+            updateMotivationHeaderVisibility(for: themesCollectionView)
+        }
     }
 
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
+        refreshMotivationPrompt()
         themesCollectionView.reloadData()
     }
 
@@ -215,8 +220,10 @@ final class QuizViewController: BaseQuizViewController, QuizViewControllerProtoc
         configureScreenStack()
         configureInitialStartupVisibilityIfNeeded()
 
+        rootView.addSubview(headerStackView)
         rootView.addSubview(screenStackView)
         rootView.addSubview(settingsButton)
+        applyLayerOrdering()
         activateLayoutConstraints(in: rootView)
     }
 
@@ -230,24 +237,35 @@ final class QuizViewController: BaseQuizViewController, QuizViewControllerProtoc
 
     private func configureHeaderViews() {
         let typography = currentAppearance().typography
-        welcomeLabel = makeLabel(text: L10n.Home.welcome, font: typography.font(size: Typography.welcomeFontSize, weight: .semibold))
-        welcomeLabel.accessibilityIdentifier = AccessibilityID.welcomeLabel
-        welcomeLabel.adjustsFontForContentSizeCategory = true
+        motivationContainerView = UIView()
+        motivationContainerView.translatesAutoresizingMaskIntoConstraints = false
 
-        quiziceLabel = UIImageView(image: UIImage(named: Content.logoImageName))
-        quiziceLabel.accessibilityIdentifier = AccessibilityID.logoImageView
-        quiziceLabel.accessibilityLabel = Content.logoAccessibilityLabel
-        quiziceLabel.contentMode = .scaleAspectFit
-        quiziceLabel.translatesAutoresizingMaskIntoConstraints = false
+        motivationLabel = makeLabel(text: randomMotivationPrompt(), font: typography.font(size: Typography.motivationFontSize, weight: .bold))
+        motivationLabel.numberOfLines = 2
+        motivationLabel.accessibilityIdentifier = AccessibilityID.motivationLabel
+        motivationLabel.adjustsFontForContentSizeCategory = true
 
-        quiziceTextLabel = makeLabel(text: Content.logoAccessibilityLabel, font: typography.font(size: Typography.logoTextFontSize, weight: .bold))
-        quiziceTextLabel.accessibilityIdentifier = AccessibilityID.logoTextLabel
-        quiziceTextLabel.accessibilityLabel = Content.logoAccessibilityLabel
-        quiziceTextLabel.adjustsFontForContentSizeCategory = true
+        motivationBlurredImageView = UIImageView()
+        motivationBlurredImageView.accessibilityIdentifier = AccessibilityID.motivationBlurredImageView
+        motivationBlurredImageView.alpha = Appearance.hiddenAlpha
+        motivationBlurredImageView.contentMode = .topLeft
+        motivationBlurredImageView.isUserInteractionEnabled = false
+        motivationBlurredImageView.translatesAutoresizingMaskIntoConstraints = false
 
-        chooseThemeLabel = makeLabel(text: L10n.Home.chooseTheme, font: typography.font(size: Typography.chooseThemeFontSize, weight: .semibold))
-        chooseThemeLabel.accessibilityIdentifier = AccessibilityID.chooseThemeLabel
-        chooseThemeLabel.adjustsFontForContentSizeCategory = true
+        motivationContainerView.addSubview(motivationBlurredImageView)
+        motivationContainerView.addSubview(motivationLabel)
+
+        NSLayoutConstraint.activate([
+            motivationLabel.leadingAnchor.constraint(equalTo: motivationContainerView.leadingAnchor),
+            motivationLabel.trailingAnchor.constraint(equalTo: motivationContainerView.trailingAnchor),
+            motivationLabel.topAnchor.constraint(equalTo: motivationContainerView.topAnchor),
+            motivationLabel.bottomAnchor.constraint(equalTo: motivationContainerView.bottomAnchor),
+
+            motivationBlurredImageView.leadingAnchor.constraint(equalTo: motivationContainerView.leadingAnchor, constant: -Layout.motivationBlurPadding),
+            motivationBlurredImageView.trailingAnchor.constraint(equalTo: motivationContainerView.trailingAnchor, constant: Layout.motivationBlurPadding),
+            motivationBlurredImageView.topAnchor.constraint(equalTo: motivationContainerView.topAnchor, constant: -Layout.motivationBlurPadding),
+            motivationBlurredImageView.bottomAnchor.constraint(equalTo: motivationContainerView.bottomAnchor, constant: Layout.motivationBlurPadding)
+        ])
     }
 
     private func configureSettingsButton() {
@@ -273,13 +291,14 @@ final class QuizViewController: BaseQuizViewController, QuizViewControllerProtoc
     }
 
     private func configureHeaderStack() {
-        headerStackView = UIStackView(arrangedSubviews: [welcomeLabel, quiziceLabel, quiziceTextLabel, chooseThemeLabel])
+        headerStackView = UIStackView(arrangedSubviews: [motivationContainerView])
         headerStackView.accessibilityIdentifier = AccessibilityID.headerStackView
         headerStackView.axis = .vertical
-        headerStackView.alignment = .center
+        headerStackView.alignment = .leading
         headerStackView.spacing = Layout.headerStackSpacing
         headerStackView.isLayoutMarginsRelativeArrangement = true
         headerStackView.directionalLayoutMargins = Layout.headerMargins
+        headerStackView.isUserInteractionEnabled = false
         headerStackView.translatesAutoresizingMaskIntoConstraints = false
     }
 
@@ -290,12 +309,14 @@ final class QuizViewController: BaseQuizViewController, QuizViewControllerProtoc
         layout.minimumInteritemSpacing = Layout.collectionItemSpacing
         layout.sectionInset = Layout.collectionSectionInsets
 
-        themesCollectionView = UICollectionView(frame: .zero, collectionViewLayout: layout)
+        themesCollectionView = HomeThemesCollectionView(frame: .zero, collectionViewLayout: layout)
         themesCollectionView.accessibilityIdentifier = AccessibilityID.themesCollectionView
         themesCollectionView.accessibilityLabel = L10n.Home.themesCollectionAccessibilityLabel
         themesCollectionView.alwaysBounceVertical = false
         themesCollectionView.bounces = false
-        themesCollectionView.delaysContentTouches = false
+        themesCollectionView.canCancelContentTouches = true
+        themesCollectionView.contentInsetAdjustmentBehavior = .never
+        themesCollectionView.delaysContentTouches = true
         themesCollectionView.showsVerticalScrollIndicator = false
         themesCollectionView.isScrollEnabled = false
         themesCollectionView.translatesAutoresizingMaskIntoConstraints = false
@@ -304,37 +325,40 @@ final class QuizViewController: BaseQuizViewController, QuizViewControllerProtoc
     }
 
     private func configureScreenStack() {
-        screenStackView = UIStackView(arrangedSubviews: [headerStackView, themesCollectionView])
+        screenStackView = UIStackView(arrangedSubviews: [themesCollectionView])
         screenStackView.accessibilityIdentifier = AccessibilityID.screenStackView
         screenStackView.axis = .vertical
         screenStackView.alignment = .fill
         screenStackView.spacing = Layout.screenStackSpacing
-        screenStackView.isLayoutMarginsRelativeArrangement = true
-        screenStackView.directionalLayoutMargins = Layout.screenMargins
-        screenStackView.setCustomSpacing(Layout.headerToCollectionSpacing, after: headerStackView)
+        screenStackView.isLayoutMarginsRelativeArrangement = false
         screenStackView.translatesAutoresizingMaskIntoConstraints = false
     }
 
-    private func activateLayoutConstraints(in rootView: UIView) {
-        let logoHeightConstraint = quiziceLabel.heightAnchor.constraint(equalToConstant: Layout.logoHeight)
-        logoHeightConstraint.priority = .defaultHigh
+    private func applyLayerOrdering() {
+        headerStackView.layer.zPosition = Appearance.headerLayerZPosition
+        motivationContainerView.layer.zPosition = Appearance.headerLayerZPosition
+        screenStackView.layer.zPosition = Appearance.collectionLayerZPosition
+        themesCollectionView.layer.zPosition = Appearance.collectionLayerZPosition
+        settingsButton.layer.zPosition = Appearance.controlsLayerZPosition
+    }
 
+    private func activateLayoutConstraints(in rootView: UIView) {
         NSLayoutConstraint.activate([
             screenStackView.topAnchor.constraint(equalTo: rootView.safeAreaLayoutGuide.topAnchor),
             screenStackView.leadingAnchor.constraint(equalTo: rootView.leadingAnchor),
             screenStackView.trailingAnchor.constraint(equalTo: rootView.trailingAnchor),
-            screenStackView.bottomAnchor.constraint(equalTo: rootView.safeAreaLayoutGuide.bottomAnchor),
+            screenStackView.bottomAnchor.constraint(equalTo: rootView.bottomAnchor),
+
+            headerStackView.topAnchor.constraint(equalTo: rootView.safeAreaLayoutGuide.topAnchor, constant: Layout.screenTopInset),
+            headerStackView.leadingAnchor.constraint(equalTo: rootView.leadingAnchor),
+            headerStackView.trailingAnchor.constraint(equalTo: rootView.trailingAnchor),
 
             settingsButton.topAnchor.constraint(equalTo: rootView.safeAreaLayoutGuide.topAnchor, constant: Layout.settingsButtonTopInset),
             settingsButton.trailingAnchor.constraint(equalTo: rootView.trailingAnchor, constant: -Layout.settingsButtonTrailingInset),
             settingsButton.widthAnchor.constraint(equalToConstant: Layout.settingsButtonSize),
             settingsButton.heightAnchor.constraint(equalToConstant: Layout.settingsButtonSize),
 
-            welcomeLabel.widthAnchor.constraint(lessThanOrEqualTo: headerStackView.layoutMarginsGuide.widthAnchor),
-            quiziceLabel.widthAnchor.constraint(lessThanOrEqualTo: rootView.widthAnchor, multiplier: Layout.logoWidthMultiplier),
-            logoHeightConstraint,
-            quiziceTextLabel.widthAnchor.constraint(lessThanOrEqualTo: headerStackView.layoutMarginsGuide.widthAnchor),
-            chooseThemeLabel.widthAnchor.constraint(lessThanOrEqualTo: headerStackView.layoutMarginsGuide.widthAnchor)
+            motivationContainerView.widthAnchor.constraint(equalTo: headerStackView.layoutMarginsGuide.widthAnchor)
         ])
     }
 
@@ -343,7 +367,7 @@ final class QuizViewController: BaseQuizViewController, QuizViewControllerProtoc
         label.text = text
         label.textColor = .white
         label.font = font
-        label.textAlignment = .center
+        label.textAlignment = .left
         label.numberOfLines = Typography.unlimitedNumberOfLines
         label.translatesAutoresizingMaskIntoConstraints = false
         return label
@@ -355,17 +379,11 @@ final class QuizViewController: BaseQuizViewController, QuizViewControllerProtoc
         appearance.applyBackground(to: view)
         overrideUserInterfaceStyle = appearance.resolvedInterfaceStyle
 
-        welcomeLabel?.textColor = appearance.screenTextColor
-        welcomeLabel?.font = appearance.typography.font(size: Typography.welcomeFontSize, weight: .semibold)
-        welcomeLabel?.textAlignment = homeHeaderTextAlignment(for: appearance)
-        quiziceTextLabel?.textColor = appearance.screenTextColor
-        quiziceTextLabel?.font = appearance.typography.font(size: Typography.logoTextFontSize, weight: .bold)
-        quiziceTextLabel?.textAlignment = homeHeaderTextAlignment(for: appearance)
-        updateLogoVisibility(for: appearance)
-        chooseThemeLabel?.textColor = appearance.screenTextColor
-        chooseThemeLabel?.font = appearance.typography.font(size: Typography.chooseThemeFontSize, weight: .semibold)
-        chooseThemeLabel?.textAlignment = homeHeaderTextAlignment(for: appearance)
-        headerStackView?.alignment = homeHeaderStackAlignment(for: appearance)
+        motivationLabel?.textColor = appearance.screenTextColor
+        motivationLabel?.font = appearance.typography.font(size: Typography.motivationFontSize, weight: .bold)
+        motivationLabel?.textAlignment = .left
+        headerStackView?.alignment = .leading
+        invalidateMotivationBlurredText()
 
         settingsButton?.applyActionAppearance(appearance.iconButton, appearance: appearance)
         settingsButton?.layer.cornerRadius = Layout.settingsButtonSize / 2
@@ -373,23 +391,6 @@ final class QuizViewController: BaseQuizViewController, QuizViewControllerProtoc
 
         themesCollectionView?.backgroundColor = .clear
         themesCollectionView?.reloadData()
-    }
-
-    private func updateLogoVisibility(for appearance: AppAppearance) {
-        let usesImageLogo = appearance.designStyle == .classic
-        quiziceLabel?.isHidden = !usesImageLogo
-        quiziceTextLabel?.isHidden = usesImageLogo
-        if !session.startup1st {
-            activeLogoView()?.alpha = Appearance.visibleAlpha
-        }
-    }
-
-    private func homeHeaderTextAlignment(for appearance: AppAppearance) -> NSTextAlignment {
-        appearance.designStyle == .clean ? .left : .center
-    }
-
-    private func homeHeaderStackAlignment(for appearance: AppAppearance) -> UIStackView.Alignment {
-        appearance.designStyle == .clean ? .leading : .center
     }
 
     private func configureInitialStartupVisibilityIfNeeded() {
@@ -411,30 +412,115 @@ final class QuizViewController: BaseQuizViewController, QuizViewControllerProtoc
         themesCollectionView.bounces = shouldScroll
     }
 
+    private func updateCollectionTopInset() {
+        let oldTopInset = themesCollectionView.contentInset.top
+        let topInset = headerStackView.bounds.height + Layout.screenTopInset + Layout.headerToCollectionSpacing
+        refreshMotivationBlurredTextIfNeeded()
+        guard abs(oldTopInset - topInset) > Layout.scrollActivationTolerance else { return }
+
+        let contentOffsetFromTopInset = themesCollectionView.contentOffset.y + oldTopInset
+        themesCollectionView.contentInset.top = topInset
+        themesCollectionView.verticalScrollIndicatorInsets.top = topInset
+
+        if !themesCollectionView.isDragging && !themesCollectionView.isDecelerating {
+            themesCollectionView.contentOffset.y = contentOffsetFromTopInset - topInset
+        }
+    }
+
+    private func updateMotivationHeaderVisibility(for scrollView: UIScrollView) {
+        let scrolledDistance = max(scrollView.contentOffset.y + scrollView.adjustedContentInset.top, .zero)
+        let progress = min(scrolledDistance / Layout.motivationFadeDistance, 1)
+        let alpha = 1 - progress
+        let blurInProgress = min(scrolledDistance / Layout.motivationBlurRampDistance, 1)
+        let blurOutDistance = Layout.motivationFadeDistance - Layout.motivationBlurHoldDistance
+        let blurOutProgress = max(min((scrolledDistance - Layout.motivationBlurHoldDistance) / blurOutDistance, 1), 0)
+
+        motivationLabel.alpha = alpha
+        motivationBlurredImageView.alpha = Appearance.motivationBlurMaxAlpha * blurInProgress * (1 - blurOutProgress)
+    }
+
+    private func invalidateMotivationBlurredText() {
+        motivationBlurSnapshotSignature = nil
+        motivationBlurredImageView?.image = nil
+    }
+
+    private func refreshMotivationBlurredTextIfNeeded() {
+        guard motivationLabel.bounds.width > .zero, motivationLabel.bounds.height > .zero else { return }
+
+        let signature = [
+            motivationLabel.text ?? "",
+            motivationLabel.font.fontName,
+            "\(motivationLabel.font.pointSize)",
+            String(describing: motivationLabel.textColor),
+            "\(motivationLabel.bounds.size.width)",
+            "\(motivationLabel.bounds.size.height)",
+            "\(Layout.motivationBlurPadding)"
+        ].joined(separator: "|")
+
+        guard motivationBlurSnapshotSignature != signature else { return }
+        motivationBlurSnapshotSignature = signature
+        motivationBlurredImageView.image = makeBlurredMotivationTextImage()
+    }
+
+    private func makeBlurredMotivationTextImage() -> UIImage? {
+        let padding = Layout.motivationBlurPadding
+        let bounds = CGRect(
+            origin: .zero,
+            size: CGSize(
+                width: motivationLabel.bounds.width + padding * 2,
+                height: motivationLabel.bounds.height + padding * 2
+            )
+        )
+        let format = UIGraphicsImageRendererFormat()
+        format.scale = UIScreen.main.scale
+        format.opaque = false
+
+        let sourceImage = UIGraphicsImageRenderer(bounds: bounds, format: format).image { context in
+            context.cgContext.translateBy(x: padding, y: padding)
+            motivationLabel.layer.render(in: context.cgContext)
+        }
+
+        guard
+            let inputImage = CIImage(image: sourceImage),
+            let clampFilter = CIFilter(name: "CIAffineClamp"),
+            let blurFilter = CIFilter(name: "CIGaussianBlur")
+        else {
+            return sourceImage
+        }
+
+        clampFilter.setValue(inputImage, forKey: kCIInputImageKey)
+        clampFilter.setValue(CGAffineTransform.identity, forKey: kCIInputTransformKey)
+        blurFilter.setValue(clampFilter.outputImage, forKey: kCIInputImageKey)
+        blurFilter.setValue(Layout.motivationBlurRadius, forKey: kCIInputRadiusKey)
+
+        guard
+            let outputImage = blurFilter.outputImage?.cropped(to: inputImage.extent),
+            let cgImage = motivationBlurContext.createCGImage(outputImage, from: inputImage.extent)
+        else {
+            return sourceImage
+        }
+
+        return UIImage(cgImage: cgImage, scale: sourceImage.scale, orientation: sourceImage.imageOrientation)
+    }
+
     private func animateViewsAndPlaySound() {
         let visibleCells = sortedVisibleThemeCells()
         prepareStartupAnimation(visibleCells: visibleCells)
         loadStartupSound()
 
-        welcomeLabel.fadeIn(duration: AnimationTiming.welcomeFadeInDuration)
+        motivationLabel.fadeIn(duration: AnimationTiming.motivationFadeInDuration)
 
-        DispatchQueue.main.asyncAfter(deadline: .now() + AnimationTiming.logoFadeInDelay) { [weak self] in
+        DispatchQueue.main.asyncAfter(deadline: .now() + AnimationTiming.contentRevealDelay) { [weak self] in
             guard let self else { return }
             self.soundPlayer?.play()
-            self.activeLogoView()?.fadeIn(duration: AnimationTiming.logoFadeInDuration)
             self.themesCollectionView.alpha = Appearance.visibleAlpha
 
             DispatchQueue.main.asyncAfter(deadline: .now() + AnimationTiming.controlsFadeInDelay) { [weak self] in
                 guard let self else { return }
-                self.chooseThemeLabel.fadeIn(duration: AnimationTiming.controlsFadeInDuration)
                 self.settingsButton.fadeIn(duration: AnimationTiming.controlsFadeInDuration)
                 self.animateThemeCells(visibleCells)
             }
         }
-    }
-
-    private func activeLogoView() -> UIView? {
-        quiziceLabel.isHidden ? quiziceTextLabel : quiziceLabel
     }
 
     private func sortedVisibleThemeCells() -> [UICollectionViewCell] {
@@ -506,13 +592,33 @@ final class QuizViewController: BaseQuizViewController, QuizViewControllerProtoc
         router?.showStatistics()
     }
 
+    func themesCollectionDidScroll(_ scrollView: UIScrollView) {
+        updateMotivationHeaderVisibility(for: scrollView)
+    }
+
     private func showDescriptionViewController() {
         router?.showDescription()
     }
 
     private func updateThemeAvailabilityMessage() {
         let hasThemes = themeRepository.themes?.isEmpty == false
-        chooseThemeLabel.text = hasThemes ? L10n.Home.chooseTheme : L10n.Home.unavailableThemes
+        if !hasThemes {
+            motivationLabel.text = L10n.Home.unavailableThemes
+            invalidateMotivationBlurredText()
+        }
+    }
+
+    private func refreshMotivationPrompt() {
+        guard themeRepository.themes?.isEmpty == false else { return }
+        motivationLabel.text = randomMotivationPrompt(excluding: motivationLabel.text)
+        invalidateMotivationBlurredText()
+    }
+
+    private func randomMotivationPrompt(excluding currentPrompt: String? = nil) -> String {
+        let prompts = L10n.Home.motivationPrompts
+        let availablePrompts = prompts.filter { $0 != currentPrompt }
+        let prompt = (availablePrompts.isEmpty ? prompts : availablePrompts).randomElement() ?? ""
+        return prompt.replacingOccurrences(of: "\\n", with: "\n")
     }
 
     private func startRandomTheme() {
@@ -536,11 +642,20 @@ final class QuizViewController: BaseQuizViewController, QuizViewControllerProtoc
 
     override func applyLocalizedStrings() {
         guard isViewLoaded else { return }
-        welcomeLabel.text = L10n.Home.welcome
+        refreshMotivationPrompt()
         settingsButton.accessibilityLabel = L10n.Settings.title
         themesCollectionView.accessibilityLabel = L10n.Home.themesCollectionAccessibilityLabel
         updateThemeAvailabilityMessage()
         themesCollectionView.reloadData()
+    }
+}
+
+private final class HomeThemesCollectionView: UICollectionView {
+    override func touchesShouldCancel(in view: UIView) -> Bool {
+        if view is UIControl {
+            return true
+        }
+        return super.touchesShouldCancel(in: view)
     }
 }
 

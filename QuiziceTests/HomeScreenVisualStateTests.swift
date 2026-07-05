@@ -29,15 +29,12 @@ final class HomeScreenVisualStateTests: XCTestCase {
         viewController.loadViewIfNeeded()
 
         XCTAssertNotNil(viewController.view.descendant(withAccessibilityIdentifier: "homeRootView"))
-        XCTAssertNotNil(viewController.view.descendant(withAccessibilityIdentifier: "homeWelcomeLabel"))
-        XCTAssertNotNil(viewController.view.descendant(withAccessibilityIdentifier: "homeLogoImageView"))
-        XCTAssertNotNil(viewController.view.descendant(withAccessibilityIdentifier: "homeLogoTextLabel"))
-        XCTAssertNotNil(viewController.view.descendant(withAccessibilityIdentifier: "homeChooseThemeLabel"))
+        XCTAssertNotNil(viewController.view.descendant(withAccessibilityIdentifier: "homeMotivationLabel"))
         XCTAssertNotNil(viewController.view.descendant(withAccessibilityIdentifier: "homeThemesCollectionView"))
         XCTAssertNotNil(viewController.view.descendant(withAccessibilityIdentifier: "homeSettingsButton"))
     }
 
-    func testCleanHomeHeaderUsesLeadingAlignment() throws {
+    func testHomeHeaderUsesSingleLeadingMotivationPrompt() throws {
         useDesignStyle(.clean)
         QuizFactory.shared.themes = [makeTheme(name: "Музыка")]
 
@@ -45,21 +42,19 @@ final class HomeScreenVisualStateTests: XCTestCase {
         viewController.loadViewIfNeeded()
 
         let headerStackView = try XCTUnwrap(viewController.view.descendant(withAccessibilityIdentifier: "homeHeaderStackView") as? UIStackView)
-        let welcomeLabel = try XCTUnwrap(viewController.view.descendant(withAccessibilityIdentifier: "homeWelcomeLabel") as? UILabel)
-        let logoImageView = try XCTUnwrap(viewController.view.descendant(withAccessibilityIdentifier: "homeLogoImageView") as? UIImageView)
-        let logoTextLabel = try XCTUnwrap(viewController.view.descendant(withAccessibilityIdentifier: "homeLogoTextLabel") as? UILabel)
-        let chooseThemeLabel = try XCTUnwrap(viewController.view.descendant(withAccessibilityIdentifier: "homeChooseThemeLabel") as? UILabel)
+        let motivationLabel = try XCTUnwrap(viewController.view.descendant(withAccessibilityIdentifier: "homeMotivationLabel") as? UILabel)
 
         XCTAssertEqual(headerStackView.alignment, .leading)
-        XCTAssertEqual(welcomeLabel.textAlignment, .left)
-        XCTAssertTrue(logoImageView.isHidden)
-        XCTAssertFalse(logoTextLabel.isHidden)
-        XCTAssertEqual(logoTextLabel.text, "Quizice")
-        XCTAssertEqual(logoTextLabel.textAlignment, .left)
-        XCTAssertEqual(chooseThemeLabel.textAlignment, .left)
+        XCTAssertTrue(motivationLabel.isDescendant(of: headerStackView))
+        XCTAssertEqual(motivationLabel.textAlignment, .left)
+        XCTAssertTrue(L10n.Home.motivationPrompts.contains(motivationLabel.text ?? ""))
+        XCTAssertNil(viewController.view.descendant(withAccessibilityIdentifier: "homeWelcomeLabel"))
+        XCTAssertNil(viewController.view.descendant(withAccessibilityIdentifier: "homeLogoImageView"))
+        XCTAssertNil(viewController.view.descendant(withAccessibilityIdentifier: "homeLogoTextLabel"))
+        XCTAssertNil(viewController.view.descendant(withAccessibilityIdentifier: "homeChooseThemeLabel"))
     }
 
-    func testNonCleanHomeHeaderKeepsCenteredAlignment() throws {
+    func testNonCleanHomeHeaderAlsoUsesLeadingAlignment() throws {
         UserDefaults.standard.set(AppDesignStyle.radar.rawValue, forKey: AppAppearanceStore.Keys.designStyle)
         QuizFactory.shared.themes = [makeTheme(name: "Музыка")]
 
@@ -67,34 +62,13 @@ final class HomeScreenVisualStateTests: XCTestCase {
         viewController.loadViewIfNeeded()
 
         let headerStackView = try XCTUnwrap(viewController.view.descendant(withAccessibilityIdentifier: "homeHeaderStackView") as? UIStackView)
-        let welcomeLabel = try XCTUnwrap(viewController.view.descendant(withAccessibilityIdentifier: "homeWelcomeLabel") as? UILabel)
-        let logoImageView = try XCTUnwrap(viewController.view.descendant(withAccessibilityIdentifier: "homeLogoImageView") as? UIImageView)
-        let logoTextLabel = try XCTUnwrap(viewController.view.descendant(withAccessibilityIdentifier: "homeLogoTextLabel") as? UILabel)
-        let chooseThemeLabel = try XCTUnwrap(viewController.view.descendant(withAccessibilityIdentifier: "homeChooseThemeLabel") as? UILabel)
+        let motivationLabel = try XCTUnwrap(viewController.view.descendant(withAccessibilityIdentifier: "homeMotivationLabel") as? UILabel)
 
-        XCTAssertEqual(headerStackView.alignment, .center)
-        XCTAssertEqual(welcomeLabel.textAlignment, .center)
-        XCTAssertTrue(logoImageView.isHidden)
-        XCTAssertFalse(logoTextLabel.isHidden)
-        XCTAssertEqual(logoTextLabel.textAlignment, .center)
-        XCTAssertEqual(chooseThemeLabel.textAlignment, .center)
+        XCTAssertEqual(headerStackView.alignment, .leading)
+        XCTAssertEqual(motivationLabel.textAlignment, .left)
     }
 
-    func testClassicHomeHeaderUsesImageLogo() throws {
-        UserDefaults.standard.set(AppDesignStyle.classic.rawValue, forKey: AppAppearanceStore.Keys.designStyle)
-        QuizFactory.shared.themes = [makeTheme(name: "Музыка")]
-
-        let viewController = QuizViewController()
-        viewController.loadViewIfNeeded()
-
-        let logoImageView = try XCTUnwrap(viewController.view.descendant(withAccessibilityIdentifier: "homeLogoImageView") as? UIImageView)
-        let logoTextLabel = try XCTUnwrap(viewController.view.descendant(withAccessibilityIdentifier: "homeLogoTextLabel") as? UILabel)
-
-        XCTAssertFalse(logoImageView.isHidden)
-        XCTAssertTrue(logoTextLabel.isHidden)
-    }
-
-    func testHomeCollectionDoesNotDelayButtonTouchDownEvents() {
+    func testHomeCollectionCanCancelButtonTouchesForScrolling() {
         QuizFactory.shared.themes = [makeTheme(name: "Музыка")]
 
         let viewController = QuizViewController()
@@ -102,7 +76,10 @@ final class HomeScreenVisualStateTests: XCTestCase {
 
         let collectionView = viewController.view.descendant(withAccessibilityIdentifier: "homeThemesCollectionView") as? UICollectionView
 
-        XCTAssertEqual(collectionView?.delaysContentTouches, false)
+        XCTAssertEqual(collectionView?.delaysContentTouches, true)
+        XCTAssertEqual(collectionView?.canCancelContentTouches, true)
+        XCTAssertEqual(collectionView?.contentInsetAdjustmentBehavior, .never)
+        XCTAssertEqual(collectionView?.touchesShouldCancel(in: UIButton(type: .system)), true)
     }
 
     func testHomeCollectionEnablesScrollOnlyWhenContentDoesNotFit() {
@@ -123,23 +100,72 @@ final class HomeScreenVisualStateTests: XCTestCase {
         XCTAssertEqual(compactCollectionView?.bounces, true)
     }
 
+    func testHomeMotivationLabelFadesAsCollectionScrollsUp() throws {
+        QuizFactory.shared.themes = [
+            makeTheme(name: "Музыка"),
+            makeTheme(name: "Технологии"),
+            makeTheme(name: "История и культура"),
+            makeTheme(name: "Политика и бизнес")
+        ]
+
+        let viewController = makeHomeViewController(in: CGRect(x: 0, y: 0, width: 390, height: 430))
+        let collectionView = try XCTUnwrap(viewController.view.descendant(withAccessibilityIdentifier: "homeThemesCollectionView") as? UICollectionView)
+        let motivationLabel = try XCTUnwrap(viewController.view.descendant(withAccessibilityIdentifier: "homeMotivationLabel") as? UILabel)
+        let blurredTextImageView = try XCTUnwrap(viewController.view.descendant(withAccessibilityIdentifier: "homeMotivationBlurredImageView") as? UIImageView)
+        let topInset = collectionView.adjustedContentInset.top
+
+        XCTAssertGreaterThan(topInset, 0)
+        XCTAssertEqual(motivationLabel.alpha, 1)
+        XCTAssertEqual(blurredTextImageView.alpha, 0)
+
+        collectionView.contentOffset.y = -topInset + 18
+        collectionView.delegate?.scrollViewDidScroll?(collectionView)
+
+        XCTAssertEqual(motivationLabel.alpha, 0.75, accuracy: 0.001)
+        XCTAssertGreaterThan(blurredTextImageView.alpha, 0.8)
+        XCTAssertNotNil(blurredTextImageView.image)
+
+        collectionView.contentOffset.y = -topInset + 36
+        collectionView.delegate?.scrollViewDidScroll?(collectionView)
+
+        XCTAssertEqual(motivationLabel.alpha, 0.5, accuracy: 0.001)
+        XCTAssertGreaterThan(blurredTextImageView.alpha, 0.8)
+        XCTAssertNotNil(blurredTextImageView.image)
+
+        collectionView.contentOffset.y = -topInset + 72
+        collectionView.delegate?.scrollViewDidScroll?(collectionView)
+
+        XCTAssertEqual(motivationLabel.alpha, 0, accuracy: 0.001)
+        XCTAssertEqual(blurredTextImageView.alpha, 0, accuracy: 0.001)
+    }
+
+    func testHomeCollectionIsLayeredAboveMotivationHeader() throws {
+        QuizFactory.shared.themes = [
+            makeTheme(name: "Музыка"),
+            makeTheme(name: "Технологии")
+        ]
+
+        let viewController = makeHomeViewController(in: CGRect(x: 0, y: 0, width: 390, height: 430))
+        let headerStackView = try XCTUnwrap(viewController.view.descendant(withAccessibilityIdentifier: "homeHeaderStackView"))
+        let screenStackView = try XCTUnwrap(viewController.view.descendant(withAccessibilityIdentifier: "homeScreenStackView"))
+        let headerIndex = try XCTUnwrap(viewController.view.subviews.firstIndex(of: headerStackView))
+        let screenIndex = try XCTUnwrap(viewController.view.subviews.firstIndex(of: screenStackView))
+
+        XCTAssertLessThan(headerIndex, screenIndex)
+        XCTAssertLessThan(headerStackView.layer.zPosition, screenStackView.layer.zPosition)
+    }
+
     func testHomeScreenHidesStartupAnimatedViewsBeforeFirstRenderedFrame() throws {
         QuizFactory.shared.startup1st = true
 
         let viewController = QuizViewController()
         viewController.loadView()
 
-        let welcomeLabel = try XCTUnwrap(viewController.view.descendant(withAccessibilityIdentifier: "homeWelcomeLabel"))
-        let logoImageView = try XCTUnwrap(viewController.view.descendant(withAccessibilityIdentifier: "homeLogoImageView"))
-        let logoTextLabel = try XCTUnwrap(viewController.view.descendant(withAccessibilityIdentifier: "homeLogoTextLabel"))
-        let chooseThemeLabel = try XCTUnwrap(viewController.view.descendant(withAccessibilityIdentifier: "homeChooseThemeLabel"))
+        let motivationLabel = try XCTUnwrap(viewController.view.descendant(withAccessibilityIdentifier: "homeMotivationLabel"))
         let collectionView = try XCTUnwrap(viewController.view.descendant(withAccessibilityIdentifier: "homeThemesCollectionView"))
         let settingsButton = try XCTUnwrap(viewController.view.descendant(withAccessibilityIdentifier: "homeSettingsButton"))
 
-        XCTAssertEqual(welcomeLabel.alpha, 0)
-        XCTAssertEqual(logoImageView.alpha, 0)
-        XCTAssertEqual(logoTextLabel.alpha, 0)
-        XCTAssertEqual(chooseThemeLabel.alpha, 0)
+        XCTAssertEqual(motivationLabel.alpha, 0)
         XCTAssertEqual(collectionView.alpha, 0)
         XCTAssertEqual(settingsButton.alpha, 0)
     }
@@ -192,7 +218,7 @@ final class HomeScreenVisualStateTests: XCTestCase {
         let viewController = QuizViewController()
         viewController.loadViewIfNeeded()
 
-        let label = viewController.view.descendant(withAccessibilityIdentifier: "homeChooseThemeLabel") as? UILabel
+        let label = viewController.view.descendant(withAccessibilityIdentifier: "homeMotivationLabel") as? UILabel
         XCTAssertEqual(label?.text, L10n.Home.unavailableThemes)
     }
 
@@ -415,14 +441,23 @@ final class HomeScreenVisualStateTests: XCTestCase {
         let collectionView = makeCollectionView()
 
         let themeCell = service.collectionView(collectionView, cellForItemAt: IndexPath(item: 0, section: 0))
+        let aiThemeCell = service.collectionView(collectionView, cellForItemAt: IndexPath(item: 1, section: 0))
         let statisticsCell = service.collectionView(collectionView, cellForItemAt: IndexPath(item: 3, section: 0))
         let imageView = try XCTUnwrap(themeCell.contentView.descendant(withAccessibilityIdentifier: "homeThemeImageView-music") as? UIImageView)
         let titleLabel = try XCTUnwrap(themeCell.contentView.descendant(withAccessibilityIdentifier: "homeThemeTitleLabel-music") as? UILabel)
+        let aiThemeButton = try XCTUnwrap(aiThemeCell.contentView.descendant(withAccessibilityIdentifier: "homeCreateWithAIButton") as? UIButton)
         let statisticsButton = try XCTUnwrap(statisticsCell.contentView.descendant(withAccessibilityIdentifier: "homeStatisticsCard") as? UIButton)
         let expectedImage = try XCTUnwrap(UIImage(named: "theme_logo_music_radar"))
 
         XCTAssertEqual(imageView.image?.pngData(), expectedImage.pngData())
         assertColor(titleLabel.textColor, equals: assetColor("themeRadarGreen"))
+        XCTAssertNil(aiThemeCell.contentView.descendant(withAccessibilityIdentifier: "homeCreateWithAIGradientBorder"))
+        assertColor(aiThemeButton.backgroundColor, equals: .clear)
+        assertColor(UIColor(cgColor: aiThemeButton.layer.borderColor ?? UIColor.clear.cgColor), equals: assetColor("themeRadarGreen"))
+        assertColor(UIColor(cgColor: aiThemeButton.layer.shadowColor ?? UIColor.clear.cgColor), equals: assetColor("themeRadarGreen"))
+        XCTAssertEqual(aiThemeButton.layer.borderWidth, 1)
+        XCTAssertGreaterThan(aiThemeButton.layer.shadowOpacity, 0)
+        XCTAssertFalse(aiThemeButton.clipsToBounds)
         assertColor(statisticsButton.backgroundColor, equals: .clear)
     }
 
@@ -604,6 +639,8 @@ private final class ThemeCollectionDelegateSpy: ThemeCollectionDelegate {
     func statisticsButtonTouchedUpInside(_ sender: UIButton) {
         statisticsTapCount += 1
     }
+
+    func themesCollectionDidScroll(_ scrollView: UIScrollView) {}
 
 }
 
