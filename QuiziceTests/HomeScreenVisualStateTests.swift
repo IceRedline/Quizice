@@ -350,6 +350,64 @@ final class HomeScreenVisualStateTests: XCTestCase {
         XCTAssertGreaterThanOrEqual(statisticsCell.layer.shadowOpacity, 0)
     }
 
+    func testCollectionServiceRendersEmptyStatisticsSummaryOnHomeCard() throws {
+        QuizFactory.shared.themes = [makeTheme(name: "Музыка")]
+        let statisticsStore = makeStatisticsStore()
+        let service = ThemesCollectionService(statisticsStore: statisticsStore)
+        let collectionView = makeCollectionView()
+
+        let statisticsCell = service.collectionView(collectionView, cellForItemAt: IndexPath(item: 3, section: 0))
+        statisticsCell.frame = CGRect(x: 0, y: 0, width: 342, height: 112)
+        statisticsCell.contentView.frame = statisticsCell.bounds
+        statisticsCell.layoutIfNeeded()
+        statisticsCell.contentView.layoutIfNeeded()
+        let statisticsButton = try XCTUnwrap(statisticsCell.contentView.descendant(withAccessibilityIdentifier: "homeStatisticsCard") as? UIButton)
+        let playedTitleLabel = try XCTUnwrap(statisticsCell.contentView.descendant(withAccessibilityIdentifier: "homeStatisticsPlayedTitleLabel") as? UILabel)
+        let playedValueLabel = try XCTUnwrap(statisticsCell.contentView.descendant(withAccessibilityIdentifier: "homeStatisticsPlayedValueLabel") as? UILabel)
+        let accuracyTitleLabel = try XCTUnwrap(statisticsCell.contentView.descendant(withAccessibilityIdentifier: "homeStatisticsAccuracyTitleLabel") as? UILabel)
+        let accuracyValueLabel = try XCTUnwrap(statisticsCell.contentView.descendant(withAccessibilityIdentifier: "homeStatisticsAccuracyValueLabel") as? UILabel)
+
+        XCTAssertEqual(playedTitleLabel.text, L10n.Home.statisticsPlayedShort)
+        XCTAssertEqual(playedValueLabel.text, "0")
+        XCTAssertEqual(accuracyTitleLabel.text, L10n.Home.statisticsAccuracyShort)
+        XCTAssertEqual(accuracyValueLabel.text, "0%")
+        let playedRowStack = try XCTUnwrap(playedTitleLabel.superview as? UIStackView)
+        let accuracyRowStack = try XCTUnwrap(accuracyTitleLabel.superview as? UIStackView)
+        let metricsStack = try XCTUnwrap(playedRowStack.superview as? UIStackView)
+        XCTAssertTrue(playedRowStack === playedValueLabel.superview)
+        XCTAssertTrue(accuracyRowStack === accuracyValueLabel.superview)
+        XCTAssertTrue(metricsStack === accuracyRowStack.superview)
+        XCTAssertEqual(playedRowStack.axis, .horizontal)
+        XCTAssertEqual(accuracyRowStack.axis, .horizontal)
+        XCTAssertEqual(metricsStack.axis, .vertical)
+        XCTAssertEqual(
+            statisticsButton.accessibilityValue,
+            L10n.Home.statisticsAccessibilityValue(playedQuizzes: 0, percentage: 0)
+        )
+    }
+
+    func testCollectionServiceRendersRecordedStatisticsSummaryOnHomeCard() throws {
+        QuizFactory.shared.themes = [makeTheme(name: "Музыка")]
+        let statisticsStore = makeStatisticsStore(attempts: [
+            (correctAnswers: 3, totalQuestions: 5),
+            (correctAnswers: 5, totalQuestions: 5)
+        ])
+        let service = ThemesCollectionService(statisticsStore: statisticsStore)
+        let collectionView = makeCollectionView()
+
+        let statisticsCell = service.collectionView(collectionView, cellForItemAt: IndexPath(item: 3, section: 0))
+        let statisticsButton = try XCTUnwrap(statisticsCell.contentView.descendant(withAccessibilityIdentifier: "homeStatisticsCard") as? UIButton)
+        let playedValueLabel = try XCTUnwrap(statisticsCell.contentView.descendant(withAccessibilityIdentifier: "homeStatisticsPlayedValueLabel") as? UILabel)
+        let accuracyValueLabel = try XCTUnwrap(statisticsCell.contentView.descendant(withAccessibilityIdentifier: "homeStatisticsAccuracyValueLabel") as? UILabel)
+
+        XCTAssertEqual(playedValueLabel.text, "2")
+        XCTAssertEqual(accuracyValueLabel.text, "80%")
+        XCTAssertEqual(
+            statisticsButton.accessibilityValue,
+            L10n.Home.statisticsAccessibilityValue(playedQuizzes: 2, percentage: 80)
+        )
+    }
+
     func testCollectionServiceUsesRadarGreenThemeCardText() throws {
         UserDefaults.standard.set(AppDesignStyle.radar.rawValue, forKey: AppAppearanceStore.Keys.designStyle)
         QuizFactory.shared.themes = [makeTheme(name: "Музыка")]
@@ -441,6 +499,23 @@ final class HomeScreenVisualStateTests: XCTestCase {
         window.layoutIfNeeded()
         testWindows.append(window)
         return viewController
+    }
+
+    private func makeStatisticsStore(
+        attempts: [(correctAnswers: Int, totalQuestions: Int)] = []
+    ) -> StatisticsStore {
+        let suiteName = "ru.avtabenskiy.QuiziceTests.HomeScreenVisualStateTests.\(UUID().uuidString)"
+        guard let userDefaults = UserDefaults(suiteName: suiteName) else {
+            let key = "home-statistics-test-\(UUID().uuidString)"
+            let store = StatisticsStore(userDefaults: .standard, key: key)
+            attempts.forEach { store.recordAttempt(correctAnswers: $0.correctAnswers, totalQuestions: $0.totalQuestions) }
+            return store
+        }
+
+        userDefaults.removePersistentDomain(forName: suiteName)
+        let store = StatisticsStore(userDefaults: userDefaults, key: "home-statistics-test")
+        attempts.forEach { store.recordAttempt(correctAnswers: $0.correctAnswers, totalQuestions: $0.totalQuestions) }
+        return store
     }
 
     private func makeTheme(name: String) -> QuizTheme {
