@@ -29,6 +29,11 @@
 "home.themes_collection.accessibility_label" = "Темы викторины";
 "home.unavailable_themes" = "Темы пока недоступны";
 "home.welcome" = "Добро пожаловать в";
+"home.motivation_prompt.1" = "Давай прокачаем твои мозги";
+"home.motivation_prompt.2" = "Разомни извилины перед новым раундом";
+"home.motivation_prompt.3" = "Проверим, на что способен твой мозг";
+"home.motivation_prompt.4" = "Сегодня твой интеллект выходит на арену";
+"home.motivation_prompt.5" = "Пора зарядить голову вопросами";
 "question.audio_load_failure" = "Аудиофайлы не были загружены";
 "question.fallback_theme" = "Викторина";
 "question.number_format" = "Вопрос №%d";
