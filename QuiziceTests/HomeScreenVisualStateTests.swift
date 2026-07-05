@@ -45,7 +45,7 @@ final class HomeScreenVisualStateTests: XCTestCase {
         let motivationLabel = try XCTUnwrap(viewController.view.descendant(withAccessibilityIdentifier: "homeMotivationLabel") as? UILabel)
 
         XCTAssertEqual(headerStackView.alignment, .leading)
-        XCTAssertEqual(headerStackView.arrangedSubviews, [motivationLabel])
+        XCTAssertTrue(motivationLabel.isDescendant(of: headerStackView))
         XCTAssertEqual(motivationLabel.textAlignment, .left)
         XCTAssertTrue(L10n.Home.motivationPrompts.contains(motivationLabel.text ?? ""))
         XCTAssertNil(viewController.view.descendant(withAccessibilityIdentifier: "homeWelcomeLabel"))
@@ -98,6 +98,61 @@ final class HomeScreenVisualStateTests: XCTestCase {
         XCTAssertEqual(compactCollectionView?.isScrollEnabled, true)
         XCTAssertEqual(compactCollectionView?.alwaysBounceVertical, true)
         XCTAssertEqual(compactCollectionView?.bounces, true)
+    }
+
+    func testHomeMotivationLabelFadesAsCollectionScrollsUp() throws {
+        QuizFactory.shared.themes = [
+            makeTheme(name: "Музыка"),
+            makeTheme(name: "Технологии"),
+            makeTheme(name: "История и культура"),
+            makeTheme(name: "Политика и бизнес")
+        ]
+
+        let viewController = makeHomeViewController(in: CGRect(x: 0, y: 0, width: 390, height: 430))
+        let collectionView = try XCTUnwrap(viewController.view.descendant(withAccessibilityIdentifier: "homeThemesCollectionView") as? UICollectionView)
+        let motivationLabel = try XCTUnwrap(viewController.view.descendant(withAccessibilityIdentifier: "homeMotivationLabel") as? UILabel)
+        let blurredTextImageView = try XCTUnwrap(viewController.view.descendant(withAccessibilityIdentifier: "homeMotivationBlurredImageView") as? UIImageView)
+        let topInset = collectionView.adjustedContentInset.top
+
+        XCTAssertGreaterThan(topInset, 0)
+        XCTAssertEqual(motivationLabel.alpha, 1)
+        XCTAssertEqual(blurredTextImageView.alpha, 0)
+
+        collectionView.contentOffset.y = -topInset + 18
+        collectionView.delegate?.scrollViewDidScroll?(collectionView)
+
+        XCTAssertEqual(motivationLabel.alpha, 0.75, accuracy: 0.001)
+        XCTAssertGreaterThan(blurredTextImageView.alpha, 0.8)
+        XCTAssertNotNil(blurredTextImageView.image)
+
+        collectionView.contentOffset.y = -topInset + 36
+        collectionView.delegate?.scrollViewDidScroll?(collectionView)
+
+        XCTAssertEqual(motivationLabel.alpha, 0.5, accuracy: 0.001)
+        XCTAssertGreaterThan(blurredTextImageView.alpha, 0.8)
+        XCTAssertNotNil(blurredTextImageView.image)
+
+        collectionView.contentOffset.y = -topInset + 72
+        collectionView.delegate?.scrollViewDidScroll?(collectionView)
+
+        XCTAssertEqual(motivationLabel.alpha, 0, accuracy: 0.001)
+        XCTAssertEqual(blurredTextImageView.alpha, 0, accuracy: 0.001)
+    }
+
+    func testHomeCollectionIsLayeredAboveMotivationHeader() throws {
+        QuizFactory.shared.themes = [
+            makeTheme(name: "Музыка"),
+            makeTheme(name: "Технологии")
+        ]
+
+        let viewController = makeHomeViewController(in: CGRect(x: 0, y: 0, width: 390, height: 430))
+        let headerStackView = try XCTUnwrap(viewController.view.descendant(withAccessibilityIdentifier: "homeHeaderStackView"))
+        let screenStackView = try XCTUnwrap(viewController.view.descendant(withAccessibilityIdentifier: "homeScreenStackView"))
+        let headerIndex = try XCTUnwrap(viewController.view.subviews.firstIndex(of: headerStackView))
+        let screenIndex = try XCTUnwrap(viewController.view.subviews.firstIndex(of: screenStackView))
+
+        XCTAssertLessThan(headerIndex, screenIndex)
+        XCTAssertLessThan(headerStackView.layer.zPosition, screenStackView.layer.zPosition)
     }
 
     func testHomeScreenHidesStartupAnimatedViewsBeforeFirstRenderedFrame() throws {
@@ -584,6 +639,8 @@ private final class ThemeCollectionDelegateSpy: ThemeCollectionDelegate {
     func statisticsButtonTouchedUpInside(_ sender: UIButton) {
         statisticsTapCount += 1
     }
+
+    func themesCollectionDidScroll(_ scrollView: UIScrollView) {}
 
 }
 

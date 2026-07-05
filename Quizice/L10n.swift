@@ -46,7 +46,14 @@ enum L10n {
                 L10n.localized("home.motivation_prompt.2", comment: "Home screen random motivation prompt"),
                 L10n.localized("home.motivation_prompt.3", comment: "Home screen random motivation prompt"),
                 L10n.localized("home.motivation_prompt.4", comment: "Home screen random motivation prompt"),
-                L10n.localized("home.motivation_prompt.5", comment: "Home screen random motivation prompt")
+                L10n.localized("home.motivation_prompt.5", comment: "Home screen random motivation prompt"),
+                L10n.localized("home.motivation_prompt.6", comment: "Home screen random motivation prompt"),
+                L10n.localized("home.motivation_prompt.7", comment: "Home screen random motivation prompt"),
+                L10n.localized("home.motivation_prompt.8", comment: "Home screen random motivation prompt"),
+                L10n.localized("home.motivation_prompt.9", comment: "Home screen random motivation prompt"),
+                L10n.localized("home.motivation_prompt.10", comment: "Home screen random motivation prompt"),
+                L10n.localized("home.motivation_prompt.11", comment: "Home screen random motivation prompt"),
+                L10n.localized("home.motivation_prompt.12", comment: "Home screen random motivation prompt")
             ]
         }
 
