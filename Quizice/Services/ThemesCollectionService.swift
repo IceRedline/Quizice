@@ -157,6 +157,10 @@ final class ThemesCollectionService: NSObject, UICollectionViewDelegate, UIColle
 
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, insetForSectionAt section: Int) -> UIEdgeInsets { Layout.sectionInsets }
 
+    func scrollViewDidScroll(_ scrollView: UIScrollView) {
+        delegate?.themesCollectionDidScroll(scrollView)
+    }
+
     private func prepare(_ cell: UICollectionViewCell, appearance: AppAppearance) {
         cell.contentView.subviews.forEach { $0.removeFromSuperview() }
         cell.contentView.backgroundColor = .clear
