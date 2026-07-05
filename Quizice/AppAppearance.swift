@@ -705,6 +705,55 @@ extension UIButton {
     }
 }
 
+class BaseQuizViewController: UIViewController {
+    private let appearanceStore = AppAppearanceStore.shared
+    private var appearanceObserver: NSObjectProtocol?
+    private var localizationObserver: NSObjectProtocol?
+
+    deinit {
+        if let appearanceObserver {
+            NotificationCenter.default.removeObserver(appearanceObserver)
+        }
+        if let localizationObserver {
+            NotificationCenter.default.removeObserver(localizationObserver)
+        }
+    }
+
+    func installAppearanceObserver() {
+        appearanceObserver = NotificationCenter.default.addObserver(
+            forName: .appAppearanceDidChange,
+            object: nil,
+            queue: .main
+        ) { [weak self] _ in
+            self?.applyAppearance()
+        }
+    }
+
+    func installAppearanceTraitObserver() {
+        registerForTraitChanges([UITraitUserInterfaceStyle.self]) { (viewController: BaseQuizViewController, _: UITraitCollection) in
+            viewController.applyAppearance()
+        }
+    }
+
+    func installLocalizationObserver() {
+        localizationObserver = NotificationCenter.default.addObserver(
+            forName: .appLocalizationDidChange,
+            object: nil,
+            queue: .main
+        ) { [weak self] _ in
+            self?.applyLocalizedStrings()
+        }
+    }
+
+    func currentAppearance() -> AppAppearance {
+        appearanceStore.appearance(compatibleWith: traitCollection)
+    }
+
+    func applyAppearance() {}
+
+    func applyLocalizedStrings() {}
+}
+
 extension Font.Weight {
     var uiFontWeight: UIFont.Weight {
         switch self {

@@ -4,7 +4,7 @@ import AVKit
 import SwiftUI
 #endif
 
-final class QuizQuestionViewController: UIViewController, QuizQuestionViewControllerProtocol {
+final class QuizQuestionViewController: BaseQuizViewController, QuizQuestionViewControllerProtocol {
     private enum Content {
         static let backgroundImageName = "backgroundImage"
         static let correctSoundName = "Quizice Correct"
@@ -172,9 +172,8 @@ final class QuizQuestionViewController: UIViewController, QuizQuestionViewContro
     private let animationsEngine = Animations()
     private var soundOfCorrectAnswerPlayer: AVAudioPlayer!
     private var soundOfIncorrectAnswerPlayer: AVAudioPlayer!
-    private let appearanceStore = AppAppearanceStore.shared
-    private var appearanceObserver: NSObjectProtocol?
-    private var localizationObserver: NSObjectProtocol?
+    weak var router: QuizRouting?
+    private var currentAnswerOptions: [QuizAnswerOption] = []
     
     var presenter: QuizQuestionPresenterProtocol?
     
@@ -201,15 +200,6 @@ final class QuizQuestionViewController: UIViewController, QuizQuestionViewContro
         installLocalizationObserver()
 
         hapticFeedback.prepare()
-    }
-
-    deinit {
-        if let appearanceObserver {
-            NotificationCenter.default.removeObserver(appearanceObserver)
-        }
-        if let localizationObserver {
-            NotificationCenter.default.removeObserver(localizationObserver)
-        }
     }
 
     // MARK: - Timer methods
@@ -377,7 +367,7 @@ final class QuizQuestionViewController: UIViewController, QuizQuestionViewContro
             soundOfCorrectAnswerPlayer = try? AVAudioPlayer(contentsOf: correctSoundURL)
             soundOfIncorrectAnswerPlayer = try? AVAudioPlayer(contentsOf: incorrectSoundURL)
         } else {
-            print(L10n.Question.audioLoadFailure)
+            AppLog.audio.error("\(L10n.Question.audioLoadFailure, privacy: .public)")
         }
     }
     
@@ -432,13 +422,19 @@ final class QuizQuestionViewController: UIViewController, QuizQuestionViewContro
     
     private func colorAndDisableButtons() {
         let appearance = currentAppearance()
-        answerButtons.forEach { button in
+        for (index, button) in answerButtons.enumerated() {
             button.isEnabled = false
-            guard let presenter else { return }
-            if presenter.checkAnswerButtonTitle(selectedAnswer: button) {
+            guard
+                let presenter,
+                currentAnswerOptions.indices.contains(index)
+            else { continue }
+            switch presenter.answerFeedback(for: currentAnswerOptions[index].id) {
+            case .correct:
                 applyAnswerFeedback(.correct, to: button, appearance: appearance, animated: true)
-            } else {
+            case .wrong:
                 applyAnswerFeedback(.wrong, to: button, appearance: appearance, animated: true)
+            case .normal:
+                applyAnswerFeedback(.normal, to: button, appearance: appearance, animated: true)
             }
         }
     }
@@ -452,22 +448,23 @@ final class QuizQuestionViewController: UIViewController, QuizQuestionViewContro
         setTimerBarColor(appearance.accentColor)
     }
     
-    func loadQuestionToView(themeName: String, questionText: String, questionNumberText: String, currentAnswers: [String]) {
+    func loadQuestionToView(_ viewModel: QuizQuestionViewModel) {
         resetAllColors()
         
         timerBar.progress = presenter?.currentProgress ?? .zero
-        themeNameLabel.text = themeName
-        questionLabel.text = questionText
-        applyAnswers(currentAnswers)
-        questionNumberLabel.text = questionNumberText
+        themeNameLabel.text = viewModel.themeName
+        questionLabel.text = viewModel.questionText
+        applyAnswers(viewModel.answers)
+        questionNumberLabel.text = viewModel.questionNumberText
         nextButton.isEnabled = false
         presenter?.startTimer()
     }
     
-    private func applyAnswers(_ currentAnswers: [String]) {
+    private func applyAnswers(_ currentAnswers: [QuizAnswerOption]) {
+        currentAnswerOptions = currentAnswers
         for (index, button) in answerButtons.enumerated() {
             let hasAnswer = currentAnswers.indices.contains(index)
-            button.setTitle(hasAnswer ? currentAnswers[index] : L10n.Question.unavailableAnswer, for: .normal)
+            button.setTitle(hasAnswer ? currentAnswers[index].title : L10n.Question.unavailableAnswer, for: .normal)
             button.isEnabled = hasAnswer
         }
     }
@@ -476,6 +473,7 @@ final class QuizQuestionViewController: UIViewController, QuizQuestionViewContro
         themeNameLabel.text = themeName ?? L10n.Question.fallbackTheme
         questionNumberLabel.text = L10n.Question.unavailableNumber
         questionLabel.text = message
+        currentAnswerOptions = []
         timerBar.progress = .zero
         let appearance = currentAppearance()
         setTimerBarColor(appearance.accentColor)
@@ -626,27 +624,7 @@ final class QuizQuestionViewController: UIViewController, QuizQuestionViewContro
         )
     }
 
-    private func installAppearanceObserver() {
-        appearanceObserver = NotificationCenter.default.addObserver(
-            forName: .appAppearanceDidChange,
-            object: nil,
-            queue: .main
-        ) { [weak self] _ in
-            self?.applyAppearance()
-        }
-    }
-
-    private func installAppearanceTraitObserver() {
-        registerForTraitChanges([UITraitUserInterfaceStyle.self]) { (viewController: QuizQuestionViewController, _: UITraitCollection) in
-            viewController.applyAppearance()
-        }
-    }
-
-    private func currentAppearance() -> AppAppearance {
-        appearanceStore.appearance(compatibleWith: traitCollection)
-    }
-
-    private func applyAppearance() {
+    override func applyAppearance() {
         guard isViewLoaded else { return }
         let appearance = currentAppearance()
         appearance.applyBackground(to: view)
@@ -688,11 +666,8 @@ final class QuizQuestionViewController: UIViewController, QuizQuestionViewContro
         return appearance.screenTextColor
     }
     
-    func showResults() {
-        let viewController = QuizResultViewController()
-        viewController.modalPresentationStyle = .fullScreen
-        presenter?.configureResultPresenter(viewController: viewController)
-        present(viewController, animated: true)
+    func showResults(_ result: QuizResultState) {
+        router?.showResult(result)
     }
     
     private func resetSoundPlayers() {
@@ -704,11 +679,15 @@ final class QuizQuestionViewController: UIViewController, QuizQuestionViewContro
     
     @IBAction func answerChosen(_ sender: UIButton) {
         guard sender.isEnabled else { return }
+        guard
+            let selectedIndex = answerButtons.firstIndex(where: { $0 === sender }),
+            currentAnswerOptions.indices.contains(selectedIndex)
+        else { return }
         
         hapticFeedback.prepare()
         resetSoundPlayers()
         colorAndDisableButtons()
-        presenter?.checkAnswer(sender)
+        presenter?.checkAnswer(optionID: currentAnswerOptions[selectedIndex].id)
         presenter?.stopTimer()
         UIView.animate(withDuration: AnimationTiming.nextButtonEnableDuration) {
             self.nextButton.isEnabled = true
@@ -720,21 +699,11 @@ final class QuizQuestionViewController: UIViewController, QuizQuestionViewContro
     }
     
     @IBAction func backButtonTapped() {
-        dismiss(animated: true)
+        router?.closeQuestion()
         presenter?.resetGameProgress()
     }
 
-    private func installLocalizationObserver() {
-        localizationObserver = NotificationCenter.default.addObserver(
-            forName: .appLocalizationDidChange,
-            object: nil,
-            queue: .main
-        ) { [weak self] _ in
-            self?.applyLocalizedStrings()
-        }
-    }
-
-    private func applyLocalizedStrings() {
+    override func applyLocalizedStrings() {
         guard isViewLoaded else { return }
         nextButton.setTitle(L10n.Common.next, for: .normal)
         backButton.setTitle(L10n.Common.back, for: .normal)
@@ -746,10 +715,17 @@ final class QuizQuestionViewController: UIViewController, QuizQuestionViewContro
     let viewController = QuizQuestionViewController()
     viewController.loadViewIfNeeded()
     viewController.loadQuestionToView(
-        themeName: "История и культура",
-        questionText: "Какой город был столицей Российской империи большую часть XVIII века?",
-        questionNumberText: "Вопрос №3",
-        currentAnswers: ["Москва", "Санкт-Петербург", "Казань", "Новгород"]
+        QuizQuestionViewModel(
+            themeName: "История и культура",
+            questionText: "Какой город был столицей Российской империи большую часть XVIII века?",
+            questionNumberText: "Вопрос №3",
+            answers: [
+                QuizAnswerOption(id: "0", title: "Москва"),
+                QuizAnswerOption(id: "1", title: "Санкт-Петербург"),
+                QuizAnswerOption(id: "2", title: "Казань"),
+                QuizAnswerOption(id: "3", title: "Новгород")
+            ]
+        )
     )
     viewController.updateProgress(0.62)
     return viewController

@@ -123,3 +123,106 @@ final class AppFontRegistrationTests: XCTestCase {
         }
     }
 }
+
+final class QuizResultPresenterBoundaryTests: XCTestCase {
+    func testResultDescriptionBoundariesUseHalfOpenRanges() {
+        assertDescription(correctAnswers: 0, totalQuestions: 100, expected: L10n.Result.veryLowScoreDescription)
+        assertDescription(correctAnswers: 15, totalQuestions: 100, expected: L10n.Result.lowScoreDescription)
+        assertDescription(correctAnswers: 30, totalQuestions: 100, expected: L10n.Result.mediumLowScoreDescription)
+        assertDescription(correctAnswers: 50, totalQuestions: 100, expected: L10n.Result.mediumScoreDescription)
+        assertDescription(correctAnswers: 75, totalQuestions: 100, expected: L10n.Result.strongResultDescription)
+        assertDescription(correctAnswers: 100, totalQuestions: 100, expected: L10n.Result.perfectScoreDescription)
+    }
+
+    func testZeroTotalQuestionsUsesNoQuestionsDescription() {
+        assertDescription(correctAnswers: 0, totalQuestions: 0, expected: L10n.Result.noQuestionsDescription)
+    }
+
+    private func assertDescription(
+        correctAnswers: Int,
+        totalQuestions: Int,
+        expected: String,
+        file: StaticString = #filePath,
+        line: UInt = #line
+    ) {
+        let presenter = QuizResultPresenter(
+            result: QuizResultState(correctAnswers: correctAnswers, totalQuestions: totalQuestions)
+        )
+        let view = QuizResultViewSpy()
+        presenter.view = view
+
+        presenter.viewDidLoad()
+
+        XCTAssertEqual(view.descriptionTexts.last, expected, file: file, line: line)
+    }
+}
+
+final class QuizDescriptionPresenterTests: XCTestCase {
+    func testOutOfBoundsQuestionCountSelectionDoesNotMutateSession() {
+        let session = PresenterTestSession()
+        session.questionsCount = 10
+        let presenter = QuizDescriptionPresenter(session: session)
+
+        presenter.saveNumberOfQuestions(chosenRow: 99)
+
+        XCTAssertEqual(session.questionsCount, 10)
+    }
+}
+
+@MainActor
+final class QuizFlowCoordinatorTests: XCTestCase {
+    func testRestartDismissesFlowAndKeepsExistingWindowRootController() {
+        let window = UIWindow(frame: CGRect(x: 0, y: 0, width: 390, height: 844))
+        let navigationController = NavigationControllerSpy()
+        let coordinator = QuizFlowCoordinator(
+            window: window,
+            navigationController: navigationController,
+            session: PresenterTestSession()
+        )
+        coordinator.start()
+        let rootBeforeRestart = window.rootViewController
+
+        coordinator.restartQuiz()
+
+        XCTAssertTrue(window.rootViewController === rootBeforeRestart)
+        XCTAssertEqual(navigationController.dismissCallCount, 1)
+        XCTAssertEqual(navigationController.popToRootCallCount, 1)
+    }
+}
+
+private final class QuizResultViewSpy: QuizResultViewControllerProtocol {
+    var presenter: QuizResultPresenterProtocol?
+    private(set) var descriptionTexts: [String] = []
+
+    func updateResultLabels(resultText: String, descriptionText: String) {
+        descriptionTexts.append(descriptionText)
+    }
+}
+
+private final class PresenterTestSession: QuizSessionManaging {
+    var themes: [QuizTheme]?
+    var chosenTheme: ThemeModel?
+    var questionsCount: Int = 5
+    var startup1st: Bool = false
+
+    func loadTheme(themeID: String) -> Bool {
+        guard let theme = themes?.first(where: { $0.stableID == themeID }) else { return false }
+        chosenTheme = ThemeModel(quizTheme: theme)
+        return true
+    }
+}
+
+private final class NavigationControllerSpy: UINavigationController {
+    private(set) var dismissCallCount = 0
+    private(set) var popToRootCallCount = 0
+
+    override func dismiss(animated flag: Bool, completion: (() -> Void)? = nil) {
+        dismissCallCount += 1
+        completion?()
+    }
+
+    override func popToRootViewController(animated: Bool) -> [UIViewController]? {
+        popToRootCallCount += 1
+        return []
+    }
+}

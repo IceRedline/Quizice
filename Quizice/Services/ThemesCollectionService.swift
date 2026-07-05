@@ -1,7 +1,7 @@
 import UIKit
 
 final class ThemesCollectionService: NSObject, UICollectionViewDelegate, UICollectionViewDataSource, UICollectionViewDelegateFlowLayout {
-    private enum Content {
+    enum Content {
         static let themeCellReuseIdentifier = "themeCell"
         static let themeImageAccessibilityIDPrefix = "homeThemeImageView"
         static let themeTitleAccessibilityIDPrefix = "homeThemeTitleLabel"
@@ -28,13 +28,6 @@ final class ThemesCollectionService: NSObject, UICollectionViewDelegate, UIColle
         static let technologyThemeTintColorName = "themeTechnologyTint"
         static let cultureThemeTintColorName = "themeCultureTint"
         static let politicsThemeTintColorName = "themePoliticsTint"
-    }
-
-    private enum ThemeID {
-        static let music = "music"
-        static let technology = "technology"
-        static let historyCulture = "history_culture"
-        static let politicsBusiness = "politics_business"
     }
 
     private enum Layout {
@@ -85,16 +78,21 @@ final class ThemesCollectionService: NSObject, UICollectionViewDelegate, UIColle
 
     weak var delegate: ThemeCollectionDelegate?
 
-    private let quizFactory = QuizFactory.shared
+    private let themeRepository: ThemeRepository
     private let appearanceStore = AppAppearanceStore.shared
 
-    private var themeCount: Int { quizFactory.themes?.count ?? 0 }
+    private var themeCount: Int { themeRepository.themes?.count ?? 0 }
 
     private var aiThemeIndex: Int { themeCount }
 
     private var feelingLuckyIndex: Int { themeCount + 1 }
 
     private var statisticsIndex: Int { themeCount + 2 }
+
+    init(themeRepository: ThemeRepository = QuizFactory.shared) {
+        self.themeRepository = themeRepository
+        super.init()
+    }
 
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int { themeCount + 3 }
 
@@ -118,7 +116,7 @@ final class ThemesCollectionService: NSObject, UICollectionViewDelegate, UIColle
             return cell
         }
 
-        guard let theme = quizFactory.themes?[safe: indexPath.item] else {
+        guard let theme = themeRepository.themes?[safe: indexPath.item] else {
             return cell
         }
         configureThemeCard(in: cell, theme: theme, appearance: appearance)
@@ -172,7 +170,6 @@ final class ThemesCollectionService: NSObject, UICollectionViewDelegate, UIColle
         button.layer.borderWidth = appearance.themeCardBorderWidth
         button.layer.borderColor = appearance.themeCardBorder(baseColor: themeTintColor).cgColor
         button.clipsToBounds = true
-        button.adjustsImageWhenHighlighted = false
         button.translatesAutoresizingMaskIntoConstraints = false
 
         let imageView = UIImageView(image: UIImage(named: themeImageName))
@@ -413,77 +410,11 @@ final class ThemesCollectionService: NSObject, UICollectionViewDelegate, UIColle
     }
 
     private func themeLogoImageName(for themeID: String, appearance: AppAppearance) -> String {
-        switch appearance.designStyle {
-        case .clean:
-            return cleanThemeLogoImageName(for: themeID)
-        case .radar:
-            return radarThemeLogoImageName(for: themeID)
-        case .pixel, .classic:
-            return classicThemeLogoImageName(for: themeID)
-        }
-    }
-
-    private func cleanThemeLogoImageName(for themeID: String) -> String {
-        switch themeID {
-        case ThemeID.music:
-            return Content.musicThemeLogoCleanImageName
-        case ThemeID.technology:
-            return Content.technologyThemeLogoCleanImageName
-        case ThemeID.historyCulture:
-            return Content.cultureThemeLogoCleanImageName
-        case ThemeID.politicsBusiness:
-            return Content.politicsThemeLogoCleanImageName
-        default:
-            return themeID
-        }
-    }
-
-    private func radarThemeLogoImageName(for themeID: String) -> String {
-        switch themeID {
-        case ThemeID.music:
-            return Content.musicThemeLogoRadarImageName
-        case ThemeID.technology:
-            return Content.technologyThemeLogoRadarImageName
-        case ThemeID.historyCulture:
-            return Content.cultureThemeLogoRadarImageName
-        case ThemeID.politicsBusiness:
-            return Content.politicsThemeLogoRadarImageName
-        default:
-            return themeID
-        }
-    }
-
-    private func classicThemeLogoImageName(for themeID: String) -> String {
-        switch themeID {
-        case ThemeID.music:
-            return Content.musicThemeLogoImageName
-        case ThemeID.technology:
-            return Content.technologyThemeLogoImageName
-        case ThemeID.historyCulture:
-            return Content.cultureThemeLogoImageName
-        case ThemeID.politicsBusiness:
-            return Content.politicsThemeLogoImageName
-        default:
-            return themeID
-        }
+        ThemeVisualCatalog.logoImageName(for: themeID, designStyle: appearance.designStyle)
     }
 
     private func themeTintColor(for themeID: String) -> UIColor {
-        let colorName: String
-        switch themeID {
-        case ThemeID.music:
-            colorName = Content.musicThemeTintColorName
-        case ThemeID.technology:
-            colorName = Content.technologyThemeTintColorName
-        case ThemeID.historyCulture:
-            colorName = Content.cultureThemeTintColorName
-        case ThemeID.politicsBusiness:
-            colorName = Content.politicsThemeTintColorName
-        default:
-            return .white
-        }
-
-        return UIColor(named: colorName) ?? .white
+        ThemeVisualCatalog.tintColor(for: themeID)
     }
 
     @objc func buttonTouchedDown(_ sender: UIButton) {
@@ -493,7 +424,7 @@ final class ThemesCollectionService: NSObject, UICollectionViewDelegate, UIColle
     @objc func buttonTouchedUpInside(_ sender: UIButton) {
         guard
             let themeID = sender.accessibilityIdentifier,
-            quizFactory.themes?.contains(where: { $0.stableID == themeID }) == true
+            themeRepository.themes?.contains(where: { $0.stableID == themeID }) == true
         else { return }
         delegate?.themeButtonTouchedUpInside(sender, themeID: themeID)
     }
@@ -514,6 +445,62 @@ final class ThemesCollectionService: NSObject, UICollectionViewDelegate, UIColle
         delegate?.statisticsButtonTouchedUpInside(sender)
     }
 
+}
+
+private struct ThemeVisualDescriptor {
+    let classicLogoName: String
+    let cleanLogoName: String
+    let radarLogoName: String
+    let tintColorName: String
+
+    func logoName(for designStyle: AppDesignStyle) -> String {
+        switch designStyle {
+        case .clean:
+            return cleanLogoName
+        case .radar:
+            return radarLogoName
+        case .pixel, .classic:
+            return classicLogoName
+        }
+    }
+}
+
+private enum ThemeVisualCatalog {
+    private static let descriptors: [String: ThemeVisualDescriptor] = [
+        "music": ThemeVisualDescriptor(
+            classicLogoName: ThemesCollectionService.Content.musicThemeLogoImageName,
+            cleanLogoName: ThemesCollectionService.Content.musicThemeLogoCleanImageName,
+            radarLogoName: ThemesCollectionService.Content.musicThemeLogoRadarImageName,
+            tintColorName: ThemesCollectionService.Content.musicThemeTintColorName
+        ),
+        "technology": ThemeVisualDescriptor(
+            classicLogoName: ThemesCollectionService.Content.technologyThemeLogoImageName,
+            cleanLogoName: ThemesCollectionService.Content.technologyThemeLogoCleanImageName,
+            radarLogoName: ThemesCollectionService.Content.technologyThemeLogoRadarImageName,
+            tintColorName: ThemesCollectionService.Content.technologyThemeTintColorName
+        ),
+        "history_culture": ThemeVisualDescriptor(
+            classicLogoName: ThemesCollectionService.Content.cultureThemeLogoImageName,
+            cleanLogoName: ThemesCollectionService.Content.cultureThemeLogoCleanImageName,
+            radarLogoName: ThemesCollectionService.Content.cultureThemeLogoRadarImageName,
+            tintColorName: ThemesCollectionService.Content.cultureThemeTintColorName
+        ),
+        "politics_business": ThemeVisualDescriptor(
+            classicLogoName: ThemesCollectionService.Content.politicsThemeLogoImageName,
+            cleanLogoName: ThemesCollectionService.Content.politicsThemeLogoCleanImageName,
+            radarLogoName: ThemesCollectionService.Content.politicsThemeLogoRadarImageName,
+            tintColorName: ThemesCollectionService.Content.politicsThemeTintColorName
+        )
+    ]
+
+    static func logoImageName(for themeID: String, designStyle: AppDesignStyle) -> String {
+        descriptors[themeID]?.logoName(for: designStyle) ?? themeID
+    }
+
+    static func tintColor(for themeID: String) -> UIColor {
+        guard let colorName = descriptors[themeID]?.tintColorName else { return .white }
+        return UIColor(named: colorName) ?? .white
+    }
 }
 
 private extension Array {
