@@ -59,7 +59,15 @@ final class AppAppearanceStoreTests: XCTestCase {
 
     func testSettingsDesignOrderAndTitles() {
         XCTAssertEqual(AppDesignStyle.settingsOrder, [.classic, .radar, .clean, .pixel])
-        XCTAssertEqual(AppDesignStyle.settingsOrder.map(\.title), ["Классический", "Радар", "Минимализм", "Пиксель"])
+        XCTAssertEqual(
+            AppDesignStyle.settingsOrder.map(\.title),
+            [
+                L10n.Settings.Design.classic,
+                L10n.Settings.Design.radar,
+                L10n.Settings.Design.clean,
+                L10n.Settings.Design.pixel
+            ]
+        )
     }
 
     func testPostsNotificationWhenAppearanceChanges() {
