@@ -159,9 +159,8 @@ final class QuizFlowCoordinator: QuizRouting {
     }
 
     func restartQuiz() {
-        navigationController.dismiss(animated: true) { [navigationController] in
-            navigationController.popToRootViewController(animated: false)
-        }
+        navigationController.popToRootViewController(animated: false)
+        navigationController.dismiss(animated: true)
     }
 
     private var presentedViewController: UIViewController {
