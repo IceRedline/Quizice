@@ -121,6 +121,7 @@ final class QuizViewController: BaseQuizViewController, QuizViewControllerProtoc
 
     private let themeRepository: ThemeRepository
     private let session: QuizSessionManaging
+    private let statisticsStore: StatisticsStore
     private let themesCollectionService: ThemesCollectionService
     private let animationsEngine = Animations()
     private var soundPlayer: AVAudioPlayer!
@@ -133,11 +134,16 @@ final class QuizViewController: BaseQuizViewController, QuizViewControllerProtoc
 
     init(
         themeRepository: ThemeRepository = QuizFactory.shared,
-        session: QuizSessionManaging = QuizFactory.shared
+        session: QuizSessionManaging = QuizFactory.shared,
+        statisticsStore: StatisticsStore = StatisticsStore()
     ) {
         self.themeRepository = themeRepository
         self.session = session
-        self.themesCollectionService = ThemesCollectionService(themeRepository: themeRepository)
+        self.statisticsStore = statisticsStore
+        self.themesCollectionService = ThemesCollectionService(
+            themeRepository: themeRepository,
+            statisticsStore: statisticsStore
+        )
         super.init(nibName: nil, bundle: nil)
     }
 
@@ -180,6 +186,11 @@ final class QuizViewController: BaseQuizViewController, QuizViewControllerProtoc
     override func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
         updateCollectionScrollAvailability()
+    }
+
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        themesCollectionView.reloadData()
     }
 
     override func viewDidAppear(_ animated: Bool) {

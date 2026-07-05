@@ -22,7 +22,10 @@
 "home.feeling_lucky.accessibility_hint" = "Avvia un tema casuale";
 "home.statistics.accessibility_hint" = "Apre le statistiche generali dei quiz completati";
 "home.statistics.accessibility_label" = "Statistiche generali";
+"home.statistics.accessibility_value_format" = "Giocati: %d. Precisione: %d%%";
+"home.statistics.accuracy_short" = "Precisione";
 "home.statistics.description" = "Risultati complessivi dei quiz";
+"home.statistics.played_short" = "Giocati";
 "home.themes_collection.accessibility_label" = "Temi del quiz";
 "home.unavailable_themes" = "I temi non sono ancora disponibili";
 "home.welcome" = "Benvenuto in";

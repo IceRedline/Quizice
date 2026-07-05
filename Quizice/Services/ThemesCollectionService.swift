@@ -10,6 +10,10 @@ final class ThemesCollectionService: NSObject, UICollectionViewDelegate, UIColle
         static let aiThemeGradientBorderAccessibilityID = "homeCreateWithAIGradientBorder"
         static let feelingLuckyAccessibilityID = "homeFeelingLuckyButton"
         static let statisticsAccessibilityID = "homeStatisticsCard"
+        static let statisticsPlayedValueAccessibilityID = "homeStatisticsPlayedValueLabel"
+        static let statisticsPlayedTitleAccessibilityID = "homeStatisticsPlayedTitleLabel"
+        static let statisticsAccuracyValueAccessibilityID = "homeStatisticsAccuracyValueLabel"
+        static let statisticsAccuracyTitleAccessibilityID = "homeStatisticsAccuracyTitleLabel"
 
         static let musicThemeLogoImageName = "theme_logo_music"
         static let technologyThemeLogoImageName = "theme_logo_tech.png"
@@ -41,6 +45,9 @@ final class ThemesCollectionService: NSObject, UICollectionViewDelegate, UIColle
         static let aiThemeBadgeVerticalInset: CGFloat = 5
         static let aiThemeBadgeMinimumWidth: CGFloat = 48
         static let statisticsStackSpacing: CGFloat = 6
+        static let statisticsContentSpacing: CGFloat = 16
+        static let statisticsMetricsSpacing: CGFloat = 8
+        static let statisticsMetricSpacing: CGFloat = 8
         static let themeImageTopInset: CGFloat = 14
         static let themeImageHorizontalInset: CGFloat = 4
         static let themeImageToTitleSpacing: CGFloat = 0
@@ -71,6 +78,8 @@ final class ThemesCollectionService: NSObject, UICollectionViewDelegate, UIColle
         static let cellShadowOpacity: Float = 0.22
         static let titleFontSize: CGFloat = 24
         static let descriptionFontSize: CGFloat = 15
+        static let statisticsMetricValueFontSize: CGFloat = 18
+        static let statisticsMetricTitleFontSize: CGFloat = 14
         static let luckyFontSize: CGFloat = 19
         static let betaBadgeFontSize: CGFloat = 12
         static let themeTitleFontSize: CGFloat = 18
@@ -79,6 +88,7 @@ final class ThemesCollectionService: NSObject, UICollectionViewDelegate, UIColle
     weak var delegate: ThemeCollectionDelegate?
 
     private let themeRepository: ThemeRepository
+    private let statisticsStore: StatisticsStore
     private let appearanceStore = AppAppearanceStore.shared
 
     private var themeCount: Int { themeRepository.themes?.count ?? 0 }
@@ -89,8 +99,9 @@ final class ThemesCollectionService: NSObject, UICollectionViewDelegate, UIColle
 
     private var statisticsIndex: Int { themeCount + 2 }
 
-    init(themeRepository: ThemeRepository = QuizFactory.shared) {
+    init(themeRepository: ThemeRepository = QuizFactory.shared, statisticsStore: StatisticsStore = StatisticsStore()) {
         self.themeRepository = themeRepository
+        self.statisticsStore = statisticsStore
         super.init()
     }
 
@@ -329,10 +340,17 @@ final class ThemesCollectionService: NSObject, UICollectionViewDelegate, UIColle
     }
 
     private func configureStatisticsCard(in cell: UICollectionViewCell, appearance: AppAppearance) {
+        let summary = statisticsStore.loadSummary()
+        let accuracyDisplay = "\(summary.percentage)%"
+
         let button = UIButton(type: .system)
         button.accessibilityIdentifier = Content.statisticsAccessibilityID
         button.accessibilityLabel = L10n.Home.statisticsAccessibilityLabel
         button.accessibilityHint = L10n.Home.statisticsAccessibilityHint
+        button.accessibilityValue = L10n.Home.statisticsAccessibilityValue(
+            playedQuizzes: summary.playedQuizzes,
+            percentage: summary.percentage
+        )
         button.applyActionAppearance(appearance.row, appearance: appearance, textColor: appearance.surfaceTextColor)
         applyCleanOutlineStyleIfNeeded(
             to: button,
@@ -351,6 +369,7 @@ final class ThemesCollectionService: NSObject, UICollectionViewDelegate, UIColle
         titleLabel.textColor = appearance.surfaceTextColor
         titleLabel.font = appearance.typography.font(size: Appearance.titleFontSize, weight: .bold)
         titleLabel.textAlignment = .left
+        titleLabel.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
         titleLabel.translatesAutoresizingMaskIntoConstraints = false
 
         let descriptionLabel = UILabel()
@@ -359,23 +378,93 @@ final class ThemesCollectionService: NSObject, UICollectionViewDelegate, UIColle
         descriptionLabel.font = appearance.typography.font(size: Appearance.descriptionFontSize, weight: .semibold)
         descriptionLabel.textAlignment = .left
         descriptionLabel.numberOfLines = 2
+        descriptionLabel.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
         descriptionLabel.translatesAutoresizingMaskIntoConstraints = false
 
-        let stackView = UIStackView(arrangedSubviews: [titleLabel, descriptionLabel])
-        stackView.axis = .vertical
-        stackView.alignment = .leading
-        stackView.spacing = Layout.statisticsStackSpacing
-        stackView.isUserInteractionEnabled = false
-        stackView.translatesAutoresizingMaskIntoConstraints = false
+        let textStackView = UIStackView(arrangedSubviews: [titleLabel, descriptionLabel])
+        textStackView.axis = .vertical
+        textStackView.alignment = .leading
+        textStackView.spacing = Layout.statisticsStackSpacing
+        textStackView.isUserInteractionEnabled = false
+        textStackView.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
+        textStackView.translatesAutoresizingMaskIntoConstraints = false
+
+        let playedMetricView = makeStatisticsMetricView(
+            title: L10n.Home.statisticsPlayedShort,
+            value: "\(summary.playedQuizzes)",
+            titleAccessibilityIdentifier: Content.statisticsPlayedTitleAccessibilityID,
+            valueAccessibilityIdentifier: Content.statisticsPlayedValueAccessibilityID,
+            appearance: appearance
+        )
+        let accuracyMetricView = makeStatisticsMetricView(
+            title: L10n.Home.statisticsAccuracyShort,
+            value: accuracyDisplay,
+            titleAccessibilityIdentifier: Content.statisticsAccuracyTitleAccessibilityID,
+            valueAccessibilityIdentifier: Content.statisticsAccuracyValueAccessibilityID,
+            appearance: appearance
+        )
+
+        let metricsStackView = UIStackView(arrangedSubviews: [playedMetricView, accuracyMetricView])
+        metricsStackView.axis = .vertical
+        metricsStackView.alignment = .fill
+        metricsStackView.spacing = Layout.statisticsMetricsSpacing
+        metricsStackView.isUserInteractionEnabled = false
+        metricsStackView.setContentCompressionResistancePriority(.required, for: .horizontal)
+        metricsStackView.translatesAutoresizingMaskIntoConstraints = false
+
+        let contentStackView = UIStackView(arrangedSubviews: [textStackView, metricsStackView])
+        contentStackView.axis = .horizontal
+        contentStackView.alignment = .center
+        contentStackView.distribution = .fill
+        contentStackView.spacing = Layout.statisticsContentSpacing
+        contentStackView.isUserInteractionEnabled = false
+        contentStackView.translatesAutoresizingMaskIntoConstraints = false
 
         pin(button, to: cell.contentView)
-        button.addSubview(stackView)
+        button.addSubview(contentStackView)
 
         NSLayoutConstraint.activate([
-            stackView.leadingAnchor.constraint(equalTo: button.leadingAnchor, constant: Layout.cardContentHorizontalInset),
-            stackView.trailingAnchor.constraint(equalTo: button.trailingAnchor, constant: -Layout.cardContentHorizontalInset),
-            stackView.centerYAnchor.constraint(equalTo: button.centerYAnchor)
+            contentStackView.leadingAnchor.constraint(equalTo: button.leadingAnchor, constant: Layout.cardContentHorizontalInset),
+            contentStackView.trailingAnchor.constraint(equalTo: button.trailingAnchor, constant: -Layout.cardContentHorizontalInset),
+            contentStackView.centerYAnchor.constraint(equalTo: button.centerYAnchor)
         ])
+    }
+
+    private func makeStatisticsMetricView(
+        title: String,
+        value: String,
+        titleAccessibilityIdentifier: String,
+        valueAccessibilityIdentifier: String,
+        appearance: AppAppearance
+    ) -> UIStackView {
+        let valueLabel = UILabel()
+        valueLabel.accessibilityIdentifier = valueAccessibilityIdentifier
+        valueLabel.text = value
+        valueLabel.textColor = appearance.surfaceTextColor
+        valueLabel.font = appearance.typography.font(size: Appearance.statisticsMetricValueFontSize, weight: .bold)
+        valueLabel.textAlignment = .right
+        valueLabel.adjustsFontSizeToFitWidth = true
+        valueLabel.minimumScaleFactor = 0.8
+        valueLabel.setContentCompressionResistancePriority(.required, for: .horizontal)
+        valueLabel.translatesAutoresizingMaskIntoConstraints = false
+
+        let titleLabel = UILabel()
+        titleLabel.accessibilityIdentifier = titleAccessibilityIdentifier
+        titleLabel.text = title
+        titleLabel.textColor = appearance.secondarySurfaceTextColor
+        titleLabel.font = appearance.typography.font(size: Appearance.statisticsMetricTitleFontSize, weight: .semibold)
+        titleLabel.textAlignment = .left
+        titleLabel.adjustsFontSizeToFitWidth = true
+        titleLabel.minimumScaleFactor = 0.75
+        titleLabel.translatesAutoresizingMaskIntoConstraints = false
+
+        let stackView = UIStackView(arrangedSubviews: [titleLabel, valueLabel])
+        stackView.axis = .horizontal
+        stackView.alignment = .center
+        stackView.spacing = Layout.statisticsMetricSpacing
+        stackView.isUserInteractionEnabled = false
+        stackView.translatesAutoresizingMaskIntoConstraints = false
+        return stackView
     }
 
     private func applyCleanOutlineStyleIfNeeded(to button: UIButton, appearance: AppAppearance, borderColor: UIColor) {
