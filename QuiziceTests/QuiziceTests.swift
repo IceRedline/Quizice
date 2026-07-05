@@ -195,6 +195,7 @@ final class QuizFlowCoordinatorTests: XCTestCase {
         XCTAssertTrue(window.rootViewController === rootBeforeRestart)
         XCTAssertEqual(navigationController.dismissCallCount, 1)
         XCTAssertEqual(navigationController.popToRootCallCount, 1)
+        XCTAssertEqual(navigationController.events, [.popToRoot(animated: false), .dismiss(animated: true)])
     }
 }
 
@@ -221,16 +222,24 @@ private final class PresenterTestSession: QuizSessionManaging {
 }
 
 private final class NavigationControllerSpy: UINavigationController {
+    enum Event: Equatable {
+        case dismiss(animated: Bool)
+        case popToRoot(animated: Bool)
+    }
+
     private(set) var dismissCallCount = 0
     private(set) var popToRootCallCount = 0
+    private(set) var events: [Event] = []
 
     override func dismiss(animated flag: Bool, completion: (() -> Void)? = nil) {
         dismissCallCount += 1
+        events.append(.dismiss(animated: flag))
         completion?()
     }
 
     override func popToRootViewController(animated: Bool) -> [UIViewController]? {
         popToRootCallCount += 1
+        events.append(.popToRoot(animated: animated))
         return []
     }
 }

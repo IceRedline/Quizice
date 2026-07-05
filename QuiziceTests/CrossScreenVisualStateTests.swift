@@ -115,6 +115,41 @@ final class CrossScreenVisualStateTests: XCTestCase {
         assertColor(timerBar?.tintColor, equals: currentAppearance().accentColor)
     }
 
+    func testQuestionScreenUpdatesExistingCardWhenNextQuestionViewModelIsLoaded() throws {
+        QuizFactory.shared.chosenTheme = makeQuestionTheme()
+        QuizFactory.shared.questionsCount = 1
+
+        let viewController = QuizQuestionViewController()
+        viewController.loadViewIfNeeded()
+        defer { viewController.presenter?.stopTimer() }
+
+        let nextViewModel = QuizQuestionViewModel(
+            themeName: "Визуальный тест",
+            questionText: "Какой город называют Северной столицей?",
+            questionNumberText: "Вопрос №2",
+            answers: [
+                QuizAnswerOption(id: "2-0", title: "Санкт-Петербург"),
+                QuizAnswerOption(id: "2-1", title: "Москва"),
+                QuizAnswerOption(id: "2-2", title: "Казань"),
+                QuizAnswerOption(id: "2-3", title: "Новосибирск")
+            ]
+        )
+
+        viewController.loadQuestionToView(nextViewModel)
+
+        let questionLabel = try XCTUnwrap(viewController.view.descendant(withAccessibilityIdentifier: "questionTextLabel") as? UILabel)
+        let questionNumberLabel = try XCTUnwrap(viewController.view.descendant(withAccessibilityIdentifier: "questionNumberLabel") as? UILabel)
+        let nextButton = try XCTUnwrap(viewController.view.descendant(withAccessibilityIdentifier: "questionNextButton") as? UIButton)
+        let answerButtons = questionAnswerButtons(in: viewController)
+
+        XCTAssertNotNil(viewController.view.descendant(withAccessibilityIdentifier: "questionCardView"))
+        XCTAssertNotNil(viewController.view.descendant(withAccessibilityIdentifier: "questionAnswersStackView"))
+        XCTAssertEqual(questionLabel.text, nextViewModel.questionText)
+        XCTAssertEqual(questionNumberLabel.text, nextViewModel.questionNumberText)
+        XCTAssertEqual(answerButtons.map { $0.title(for: .normal) }, nextViewModel.answers.map(\.title))
+        XCTAssertFalse(nextButton.isEnabled)
+    }
+
     func testQuestionScreenPreservesPresenterDrivenAnswerFeedbackState() throws {
         QuizFactory.shared.chosenTheme = makeQuestionTheme()
         QuizFactory.shared.questionsCount = 1
