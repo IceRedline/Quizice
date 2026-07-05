@@ -56,6 +56,109 @@ fail() {
   exit 1
 }
 
+print_xctest_failure_summary() {
+  local result_bundle="$1"
+  local test_log="$2"
+  local summary_json
+  summary_json="$(mktemp -t quizice-s04-xcresult-summary.XXXXXX.json)"
+  remember_temp_file "$summary_json"
+
+  log_section "XCTest failure summary" >&2
+
+  if xcrun xcresulttool get test-results summary --path "$result_bundle" --compact > "$summary_json" 2>/dev/null; then
+    if python3 - "$summary_json" "${GITHUB_ACTIONS:-}" "${GITHUB_STEP_SUMMARY:-}" "$PROJECT_ROOT" <<'PY'
+import json
+import re
+import sys
+
+summary_path, github_actions, step_summary_path, project_root = sys.argv[1:5]
+
+with open(summary_path, "r", encoding="utf-8") as handle:
+    payload = json.load(handle)
+
+failures = []
+
+def walk(value):
+    if isinstance(value, dict):
+        if value.get("testName") or value.get("failureText"):
+            failures.append(value)
+        for child in value.values():
+            walk(child)
+    elif isinstance(value, list):
+        for child in value:
+            walk(child)
+
+walk(payload.get("testFailures", payload))
+
+deduplicated = []
+seen = set()
+for failure in failures:
+    key = (
+        failure.get("targetName", ""),
+        failure.get("testName", ""),
+        failure.get("failureText", ""),
+    )
+    if key not in seen:
+        seen.add(key)
+        deduplicated.append(failure)
+
+def escape_github(value):
+    return value.replace("%", "%25").replace("\r", "%0D").replace("\n", "%0A")
+
+def swift_location(text):
+    match = re.search(r"((?:/[^:\n]+)?[^:\n]+\.swift):(\d+)", text)
+    if match:
+        return match.group(1), match.group(2)
+    return "", ""
+
+if not deduplicated:
+    print("No structured XCTest failures were found in the xcresult summary.", file=sys.stderr)
+    raise SystemExit(2)
+
+summary_lines = [
+    "### XCTest failure summary",
+    "",
+    "| Target | Test | Message |",
+    "| --- | --- | --- |",
+]
+
+for index, failure in enumerate(deduplicated, start=1):
+    target = failure.get("targetName") or "unknown target"
+    test_name = failure.get("testName") or failure.get("testIdentifierString") or "unknown test"
+    message = (failure.get("failureText") or "").strip() or "No failure message in xcresult."
+    one_line_message = " ".join(message.split())
+    print(f"{index}. {target} / {test_name}", file=sys.stderr)
+    print(f"   {one_line_message}", file=sys.stderr)
+
+    file_path, line = swift_location(message)
+    if file_path.startswith(project_root + "/"):
+        file_path = file_path[len(project_root) + 1:]
+    if github_actions.lower() == "true":
+        annotation = f"::error title={escape_github(test_name)}"
+        if file_path:
+            annotation += f",file={escape_github(file_path)}"
+        if line:
+            annotation += f",line={line}"
+        annotation += f"::{escape_github(one_line_message)}"
+        print(annotation)
+
+    markdown_message = one_line_message.replace("|", "\\|")
+    summary_lines.append(f"| `{target}` | `{test_name}` | {markdown_message} |")
+
+if step_summary_path:
+    with open(step_summary_path, "a", encoding="utf-8") as handle:
+        handle.write("\n".join(summary_lines))
+        handle.write("\n")
+PY
+    then
+      return
+    fi
+  fi
+
+  printf 'Could not read structured failures from xcresult; showing likely failure lines from xcodebuild log.\n' >&2
+  grep -E "Test case '.*' failed|/[^:]+\.swift:[0-9]+: error:|XCTAssert|failed:" "$test_log" >&2 || true
+}
+
 remember_temp_file() {
   TEMP_FILES+=("$1")
 }
@@ -139,6 +242,12 @@ except Exception as exc:
 
 devices_by_runtime = payload.get("devices", {})
 candidates = []
+preferred_names = {
+    "iPhone 16": 0,
+    "iPhone 16 Pro": 1,
+    "iPhone 15": 2,
+    "iPhone 15 Pro": 3,
+}
 for runtime, devices in devices_by_runtime.items():
     if "iOS" not in runtime:
         continue
@@ -152,12 +261,16 @@ for runtime, devices in devices_by_runtime.items():
         state = device.get("state", "")
         udid = device.get("udid", "")
         if udid:
-            candidates.append((0 if state == "Booted" else 1, runtime, name, udid))
+            # Snapshot references are device-sensitive. Prefer the pinned CI-era
+            # iPhone before considering already-booted newer local simulators.
+            preferred_rank = preferred_names.get(name, 100)
+            boot_rank = 0 if state == "Booted" else 1
+            candidates.append((preferred_rank, boot_rank, runtime, name, udid))
 
 if not candidates:
     raise SystemExit("no available iOS iPhone Simulator found")
 
-for _, _, _, udid in sorted(candidates):
+for _, _, _, _, udid in sorted(candidates):
     print(udid)
     break
 '
@@ -357,6 +470,7 @@ run_unit_tests() {
     -enableCodeCoverage YES \
     -resultBundlePath "$result_bundle" \
     test | tee "$test_log"; then
+    print_xctest_failure_summary "$result_bundle" "$test_log"
     printf 'XCTest log retained at: %s\n' "$test_log" >&2
     fail "xcodebuild test failed"
   fi
