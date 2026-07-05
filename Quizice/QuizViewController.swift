@@ -90,13 +90,12 @@ final class QuizViewController: BaseQuizViewController, QuizViewControllerProtoc
     }
 
     private enum AnimationTiming {
-        static let welcomeFadeInDuration: TimeInterval = 1
-        static let logoFadeInDelay: TimeInterval = 1
-        static let logoFadeInDuration: TimeInterval = 2
-        static let controlsFadeInDelay: TimeInterval = 2
-        static let controlsFadeInDuration: TimeInterval = 1
-        static let cellFadeInDuration: TimeInterval = 1
-        static let cellFadeInStagger: TimeInterval = 0.15
+        static let motivationFadeInDuration: TimeInterval = 0.65
+        static let contentRevealDelay: TimeInterval = 0.45
+        static let controlsFadeInDelay: TimeInterval = 0.2
+        static let controlsFadeInDuration: TimeInterval = 0.45
+        static let cellFadeInDuration: TimeInterval = 0.55
+        static let cellFadeInStagger: TimeInterval = 0.08
     }
 
     private var motivationLabel: UILabel!
@@ -361,9 +360,9 @@ final class QuizViewController: BaseQuizViewController, QuizViewControllerProtoc
         prepareStartupAnimation(visibleCells: visibleCells)
         loadStartupSound()
 
-        motivationLabel.fadeIn(duration: AnimationTiming.welcomeFadeInDuration)
+        motivationLabel.fadeIn(duration: AnimationTiming.motivationFadeInDuration)
 
-        DispatchQueue.main.asyncAfter(deadline: .now() + AnimationTiming.logoFadeInDelay) { [weak self] in
+        DispatchQueue.main.asyncAfter(deadline: .now() + AnimationTiming.contentRevealDelay) { [weak self] in
             guard let self else { return }
             self.soundPlayer?.play()
             self.themesCollectionView.alpha = Appearance.visibleAlpha
