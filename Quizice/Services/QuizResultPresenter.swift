@@ -13,6 +13,11 @@ final class QuizResultPresenter: QuizResultPresenterProtocol {
     var correctAnswers: Int = 0
     var totalQuestions: Int = 0
     
+    init(result: QuizResultState = QuizResultState(correctAnswers: 0, totalQuestions: 0)) {
+        self.correctAnswers = result.correctAnswers
+        self.totalQuestions = result.totalQuestions
+    }
+    
     func viewDidLoad() {
         getResultText()
     }
@@ -40,7 +45,7 @@ final class QuizResultPresenter: QuizResultPresenterProtocol {
         case 0.5..<0.75:
             descriptionText = L10n.Result.mediumScoreDescription
         case 0.75..<1:
-            descriptionText = L10n.Result.highScoreDescription
+            descriptionText = L10n.Result.strongResultDescription
         case 1...:
             descriptionText = L10n.Result.perfectScoreDescription
         default:

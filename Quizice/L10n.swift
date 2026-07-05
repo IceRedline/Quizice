@@ -64,7 +64,7 @@ enum L10n {
 
     enum Result {
         static var fallbackDescription: String { L10n.localized("result.description.fallback", comment: "Fallback result description") }
-        static var highScoreDescription: String { L10n.localized("result.description.high_score", comment: "Result description for high scores") }
+        static var strongResultDescription: String { L10n.localized("result.description.high_score", comment: "Result description for strong results") }
         static var invalidScoreDescription: String { L10n.localized("result.description.invalid_score", comment: "Result description for invalid score state") }
         static var lowScoreDescription: String { L10n.localized("result.description.low_score", comment: "Result description for low scores") }
         static var mediumLowScoreDescription: String { L10n.localized("result.description.medium_low_score", comment: "Result description for medium-low scores") }

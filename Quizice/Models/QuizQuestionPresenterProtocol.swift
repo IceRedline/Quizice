@@ -5,7 +5,7 @@
 //  Created by Артем Табенский on 21.03.2025.
 //
 
-import UIKit
+import Foundation
 
 protocol QuizQuestionPresenterProtocol {
     var view: QuizQuestionViewControllerProtocol? { get set }
@@ -18,9 +18,8 @@ protocol QuizQuestionPresenterProtocol {
     func stopTimer()
     func loadQuestion()
     func checkQuestionNumberAndProceed()
-    func checkAnswerButtonTitle(selectedAnswer: UIButton) -> Bool
-    func checkAnswer(_ sender: UIButton)
+    func answerFeedback(for optionID: String) -> QuizAnswerFeedback
+    func checkAnswer(optionID: String)
     func updateQuizState(isCorrect: Bool)
-    func configureResultPresenter(viewController: QuizResultViewController)
     func resetGameProgress()
 }

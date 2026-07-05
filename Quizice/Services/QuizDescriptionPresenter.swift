@@ -5,23 +5,36 @@
 //  Created by Артем Табенский on 28.03.2025.
 //
 
-import UIKit
+import Foundation
 
-final class QuizDescriptionPresenter: NSObject, QuizDescriptionPresenterProtocol {
+final class QuizDescriptionPresenter: QuizDescriptionPresenterProtocol {
     private let numberOfQuestionsOptions: [Int] = [5, 10, 15]
+    private let session: QuizSessionManaging
 
     weak var view: QuizDescriptionViewControllerProtocol?
 
     var themeName: String = L10n.Description.defaultThemeName
     var themeDescription: String = L10n.Description.defaultThemeDescription
     
+    init(session: QuizSessionManaging = QuizFactory.shared, content: QuizDescriptionContent? = nil) {
+        self.session = session
+        if let content {
+            self.themeName = content.themeName
+            self.themeDescription = content.themeDescription
+        }
+    }
+    
     func viewDidLoad() {
         getLabelsText()
     }
     
-    func configurePickerView(_ pickerView: UIPickerView) {
-        pickerView.delegate = self
-        pickerView.dataSource = self
+    var numberOfQuestionsOptionCount: Int {
+        numberOfQuestionsOptions.count
+    }
+
+    func numberOfQuestionsTitle(at row: Int) -> String? {
+        guard numberOfQuestionsOptions.indices.contains(row) else { return nil }
+        return String(numberOfQuestionsOptions[row])
     }
     
     func getLabelsText() {
@@ -29,19 +42,7 @@ final class QuizDescriptionPresenter: NSObject, QuizDescriptionPresenterProtocol
     }
     
     func saveNumberOfQuestions(chosenRow: Int) {
-        QuizFactory.shared.questionsCount = numberOfQuestionsOptions[chosenRow]
-    }
-}
-
-extension QuizDescriptionPresenter: UIPickerViewDelegate, UIPickerViewDataSource {
-    
-    func numberOfComponents(in pickerView: UIPickerView) -> Int { 1 }
-    
-    func pickerView(_ pickerView: UIPickerView, numberOfRowsInComponent component: Int) -> Int {
-        numberOfQuestionsOptions.count
-    }
-    
-    func pickerView(_ pickerView: UIPickerView, titleForRow row: Int, forComponent component: Int) -> String? {
-        String(numberOfQuestionsOptions[row])
+        guard numberOfQuestionsOptions.indices.contains(chosenRow) else { return }
+        session.questionsCount = numberOfQuestionsOptions[chosenRow]
     }
 }

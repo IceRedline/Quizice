@@ -2,7 +2,7 @@ import UIKit
 import AVKit
 import SwiftUI
 
-final class QuizViewController: UIViewController, QuizViewControllerProtocol, ThemeCollectionDelegate {
+final class QuizViewController: BaseQuizViewController, QuizViewControllerProtocol, ThemeCollectionDelegate {
     private enum Content {
         static let backgroundImageName = "backgroundImage"
         static let logoImageName = "Quizice"
@@ -119,17 +119,31 @@ final class QuizViewController: UIViewController, QuizViewControllerProtocol, Th
 
     private var themesCollectionView: UICollectionView!
 
+    private let themeRepository: ThemeRepository
+    private let session: QuizSessionManaging
+    private let themesCollectionService: ThemesCollectionService
     private let animationsEngine = Animations()
     private var soundPlayer: AVAudioPlayer!
-    private let appearanceStore = AppAppearanceStore.shared
-    private var appearanceObserver: NSObjectProtocol?
-    private var localizationObserver: NSObjectProtocol?
-
-    private let themesCollectionService = ThemesCollectionService()
+    weak var router: QuizRouting?
     var presenter: QuizPresenterProtocol?
 
     private var startupAnimatedViews: [UIView] {
         [welcomeLabel, quiziceLabel, quiziceTextLabel, themesCollectionView, chooseThemeLabel, settingsButton]
+    }
+
+    init(
+        themeRepository: ThemeRepository = QuizFactory.shared,
+        session: QuizSessionManaging = QuizFactory.shared
+    ) {
+        self.themeRepository = themeRepository
+        self.session = session
+        self.themesCollectionService = ThemesCollectionService(themeRepository: themeRepository)
+        super.init(nibName: nil, bundle: nil)
+    }
+
+    @available(*, unavailable)
+    required init?(coder: NSCoder) {
+        return nil
     }
 
     override func loadView() {
@@ -150,24 +164,17 @@ final class QuizViewController: UIViewController, QuizViewControllerProtocol, Th
         installAppearanceObserver()
         installAppearanceTraitObserver()
 
-        if QuizFactory.shared.startup1st {
-            QuizFactory.shared.loadData()
+        if session.startup1st {
+            themeRepository.loadData(forceReload: false)
         }
 
-        configurePresenter(QuizPresenter())
+        if presenter == nil {
+            configurePresenter(QuizPresenter(session: session))
+        }
 
         configureThemesCollectionService()
         installLocalizationObserver()
         updateThemeAvailabilityMessage()
-    }
-
-    deinit {
-        if let appearanceObserver {
-            NotificationCenter.default.removeObserver(appearanceObserver)
-        }
-        if let localizationObserver {
-            NotificationCenter.default.removeObserver(localizationObserver)
-        }
     }
 
     override func viewDidLayoutSubviews() {
@@ -178,9 +185,9 @@ final class QuizViewController: UIViewController, QuizViewControllerProtocol, Th
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
 
-        if QuizFactory.shared.startup1st {
+        if session.startup1st {
             animateViewsAndPlaySound()
-            QuizFactory.shared.startup1st = false
+            session.startup1st = false
         }
     }
 
@@ -331,27 +338,7 @@ final class QuizViewController: UIViewController, QuizViewControllerProtocol, Th
         return label
     }
 
-    private func installAppearanceObserver() {
-        appearanceObserver = NotificationCenter.default.addObserver(
-            forName: .appAppearanceDidChange,
-            object: nil,
-            queue: .main
-        ) { [weak self] _ in
-            self?.applyAppearance()
-        }
-    }
-
-    private func installAppearanceTraitObserver() {
-        registerForTraitChanges([UITraitUserInterfaceStyle.self]) { (viewController: QuizViewController, _: UITraitCollection) in
-            viewController.applyAppearance()
-        }
-    }
-
-    private func currentAppearance() -> AppAppearance {
-        appearanceStore.appearance(compatibleWith: traitCollection)
-    }
-
-    private func applyAppearance() {
+    override func applyAppearance() {
         guard isViewLoaded else { return }
         let appearance = currentAppearance()
         appearance.applyBackground(to: view)
@@ -381,7 +368,7 @@ final class QuizViewController: UIViewController, QuizViewControllerProtocol, Th
         let usesImageLogo = appearance.designStyle == .classic
         quiziceLabel?.isHidden = !usesImageLogo
         quiziceTextLabel?.isHidden = usesImageLogo
-        if !QuizFactory.shared.startup1st {
+        if !session.startup1st {
             activeLogoView()?.alpha = Appearance.visibleAlpha
         }
     }
@@ -395,7 +382,7 @@ final class QuizViewController: UIViewController, QuizViewControllerProtocol, Th
     }
 
     private func configureInitialStartupVisibilityIfNeeded() {
-        guard QuizFactory.shared.startup1st else { return }
+        guard session.startup1st else { return }
         startupAnimatedViews.forEach { $0.alpha = Appearance.hiddenAlpha }
     }
 
@@ -482,7 +469,7 @@ final class QuizViewController: UIViewController, QuizViewControllerProtocol, Th
 
     func themeButtonTouchedUpInside(_ sender: UIButton, themeID: String) {
         animationsEngine.animateUpFloat(sender)
-        guard QuizFactory.shared.loadTheme(themeID: themeID) else {
+        guard session.loadTheme(themeID: themeID) else {
             updateThemeAvailabilityMessage()
             return
         }
@@ -505,25 +492,22 @@ final class QuizViewController: UIViewController, QuizViewControllerProtocol, Th
 
     func statisticsButtonTouchedUpInside(_ sender: UIButton) {
         animationsEngine.animateUpFloat(sender)
-        let viewController = StatisticsViewController()
-        navigationController?.pushViewController(viewController, animated: true)
+        router?.showStatistics()
     }
 
     private func showDescriptionViewController() {
-        let viewController = QuizDescriptionViewController()
-        presenter?.configureDescriptionPresenter(viewController: viewController)
-        navigationController?.pushViewController(viewController, animated: true)
+        router?.showDescription()
     }
 
     private func updateThemeAvailabilityMessage() {
-        let hasThemes = QuizFactory.shared.themes?.isEmpty == false
+        let hasThemes = themeRepository.themes?.isEmpty == false
         chooseThemeLabel.text = hasThemes ? L10n.Home.chooseTheme : L10n.Home.unavailableThemes
     }
 
     private func startRandomTheme() {
         guard
-            let themeID = QuizFactory.shared.themes?.randomElement()?.stableID,
-            QuizFactory.shared.loadTheme(themeID: themeID)
+            let themeID = themeRepository.themes?.randomElement()?.stableID,
+            session.loadTheme(themeID: themeID)
         else {
             updateThemeAvailabilityMessage()
             return
@@ -532,36 +516,14 @@ final class QuizViewController: UIViewController, QuizViewControllerProtocol, Th
     }
 
     private func showAIThemeCreationView() {
-        let viewController = UIHostingController(rootView: QuizAIThemeCreationView(service: MockAIQuizThemeService()))
-        viewController.modalPresentationStyle = .pageSheet
-        if let sheetPresentationController = viewController.sheetPresentationController {
-            sheetPresentationController.detents = [.large()]
-            sheetPresentationController.prefersGrabberVisible = true
-        }
-        present(viewController, animated: true)
+        router?.showAIThemeCreation()
     }
 
     @objc private func settingsButtonTapped() {
-        let viewController = UIHostingController(rootView: QuizSettingsView())
-        viewController.modalPresentationStyle = .pageSheet
-        if let sheetPresentationController = viewController.sheetPresentationController {
-            sheetPresentationController.detents = [.large()]
-            sheetPresentationController.prefersGrabberVisible = true
-        }
-        present(viewController, animated: true)
+        router?.showSettings()
     }
 
-    private func installLocalizationObserver() {
-        localizationObserver = NotificationCenter.default.addObserver(
-            forName: .appLocalizationDidChange,
-            object: nil,
-            queue: .main
-        ) { [weak self] _ in
-            self?.applyLocalizedStrings()
-        }
-    }
-
-    private func applyLocalizedStrings() {
+    override func applyLocalizedStrings() {
         guard isViewLoaded else { return }
         welcomeLabel.text = L10n.Home.welcome
         settingsButton.accessibilityLabel = L10n.Settings.title
@@ -575,10 +537,10 @@ final class QuizViewController: UIViewController, QuizViewControllerProtocol, Th
 #Preview("Quiz") {
     QuizFactory.shared.startup1st = false
     QuizFactory.shared.themes = [
-        QuizTheme(theme: "Музыка", themeDescription: "Вопросы о треках, артистах и музыкальных эпохах.", questions: []),
-        QuizTheme(theme: "Технологии", themeDescription: "Гаджеты, IT-компании и цифровая культура.", questions: []),
-        QuizTheme(theme: "История и культура", themeDescription: "Исторические события, искусство и традиции.", questions: []),
-        QuizTheme(theme: "Политика и бизнес", themeDescription: "Лидеры, компании и громкие решения.", questions: [])
+        QuizTheme(id: "music", theme: "Музыка", themeDescription: "Вопросы о треках, артистах и музыкальных эпохах.", questions: []),
+        QuizTheme(id: "technology", theme: "Технологии", themeDescription: "Гаджеты, IT-компании и цифровая культура.", questions: []),
+        QuizTheme(id: "history_culture", theme: "История и культура", themeDescription: "Исторические события, искусство и традиции.", questions: []),
+        QuizTheme(id: "politics_business", theme: "Политика и бизнес", themeDescription: "Лидеры, компании и громкие решения.", questions: [])
     ]
 
     let viewController = QuizViewController()

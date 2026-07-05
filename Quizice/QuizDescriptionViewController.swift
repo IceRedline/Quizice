@@ -3,10 +3,9 @@ import UIKit
 import SwiftUI
 #endif
 
-final class QuizDescriptionViewController: UIViewController, QuizDescriptionViewControllerProtocol {
+final class QuizDescriptionViewController: BaseQuizViewController, QuizDescriptionViewControllerProtocol {
     private enum Content {
         static let backgroundImageName = "backgroundImage"
-        static let pickerTextColorKey = "textColor"
     }
     
     private enum AccessibilityID {
@@ -132,9 +131,7 @@ final class QuizDescriptionViewController: UIViewController, QuizDescriptionView
     
     private var startButton: UIButton!
     private var backButton: UIButton!
-    private let appearanceStore = AppAppearanceStore.shared
-    private var appearanceObserver: NSObjectProtocol?
-    private var localizationObserver: NSObjectProtocol?
+    weak var router: QuizRouting?
     
     var presenter: QuizDescriptionPresenterProtocol?
     
@@ -151,20 +148,10 @@ final class QuizDescriptionViewController: UIViewController, QuizDescriptionView
         super.viewDidLoad()
         installAppearanceObserver()
         installAppearanceTraitObserver()
-        presenter?.configurePickerView(numberOfQuestionsPickerView)
+        numberOfQuestionsPickerView.delegate = self
+        numberOfQuestionsPickerView.dataSource = self
         presenter?.viewDidLoad()
         installLocalizationObserver()
-        
-        numberOfQuestionsPickerView.setValue(currentAppearance().surfaceTextColor, forKey: Content.pickerTextColorKey)
-    }
-
-    deinit {
-        if let appearanceObserver {
-            NotificationCenter.default.removeObserver(appearanceObserver)
-        }
-        if let localizationObserver {
-            NotificationCenter.default.removeObserver(localizationObserver)
-        }
     }
 
     func updateLabels(themeName: String, themeDescription: String) {
@@ -324,27 +311,7 @@ final class QuizDescriptionViewController: UIViewController, QuizDescriptionView
         return button
     }
 
-    private func installAppearanceObserver() {
-        appearanceObserver = NotificationCenter.default.addObserver(
-            forName: .appAppearanceDidChange,
-            object: nil,
-            queue: .main
-        ) { [weak self] _ in
-            self?.applyAppearance()
-        }
-    }
-
-    private func installAppearanceTraitObserver() {
-        registerForTraitChanges([UITraitUserInterfaceStyle.self]) { (viewController: QuizDescriptionViewController, _: UITraitCollection) in
-            viewController.applyAppearance()
-        }
-    }
-
-    private func currentAppearance() -> AppAppearance {
-        appearanceStore.appearance(compatibleWith: traitCollection)
-    }
-
-    private func applyAppearance() {
+    override func applyAppearance() {
         guard isViewLoaded else { return }
         let appearance = currentAppearance()
         appearance.applyBackground(to: view)
@@ -362,7 +329,7 @@ final class QuizDescriptionViewController: UIViewController, QuizDescriptionView
         numberOfQuestionsPickerView?.layer.cornerRadius = appearance.row.cornerRadius
         numberOfQuestionsPickerView?.layer.borderWidth = appearance.row.borderWidth
         numberOfQuestionsPickerView?.layer.borderColor = appearance.row.borderColor.cgColor
-        numberOfQuestionsPickerView?.setValue(appearance.surfaceTextColor, forKey: Content.pickerTextColorKey)
+        numberOfQuestionsPickerView?.reloadAllComponents()
 
         startButton?.applyActionAppearance(appearance.primaryButton, appearance: appearance, textColor: actionTextColor(for: .primary, appearance: appearance))
         startButton?.titleLabel?.font = appearance.typography.font(size: Typography.buttonFontSize, weight: .semibold)
@@ -383,31 +350,14 @@ final class QuizDescriptionViewController: UIViewController, QuizDescriptionView
     
     @objc private func startButtonTapped() {
         presenter?.saveNumberOfQuestions(chosenRow: numberOfQuestionsPickerView.selectedRow(inComponent: .zero))
-        
-        let viewController = QuizQuestionViewController()
-        viewController.modalPresentationStyle = .fullScreen
-        present(viewController, animated: true)
+        router?.showQuestion()
     }
     
     @objc private func backButtonTapped() {
-        if let navigationController {
-            navigationController.popViewController(animated: true)
-        } else {
-            dismiss(animated: true)
-        }
+        router?.closeDescription()
     }
 
-    private func installLocalizationObserver() {
-        localizationObserver = NotificationCenter.default.addObserver(
-            forName: .appLocalizationDidChange,
-            object: nil,
-            queue: .main
-        ) { [weak self] _ in
-            self?.applyLocalizedStrings()
-        }
-    }
-
-    private func applyLocalizedStrings() {
+    override func applyLocalizedStrings() {
         guard isViewLoaded else { return }
         pickerCaptionLabel.text = L10n.Description.questionCount
         startButton.setTitle(L10n.Common.start, for: .normal)
@@ -415,11 +365,33 @@ final class QuizDescriptionViewController: UIViewController, QuizDescriptionView
     }
 }
 
+extension QuizDescriptionViewController: UIPickerViewDelegate, UIPickerViewDataSource {
+    func numberOfComponents(in pickerView: UIPickerView) -> Int { 1 }
+
+    func pickerView(_ pickerView: UIPickerView, numberOfRowsInComponent component: Int) -> Int {
+        presenter?.numberOfQuestionsOptionCount ?? 0
+    }
+
+    func pickerView(_ pickerView: UIPickerView, attributedTitleForRow row: Int, forComponent component: Int) -> NSAttributedString? {
+        guard let title = presenter?.numberOfQuestionsTitle(at: row) else { return nil }
+        return NSAttributedString(
+            string: title,
+            attributes: [
+                .foregroundColor: currentAppearance().surfaceTextColor,
+                .font: currentAppearance().typography.font(size: Typography.buttonFontSize, weight: .semibold)
+            ]
+        )
+    }
+}
+
 #if DEBUG
 #Preview("Description") {
-    let presenter = QuizDescriptionPresenter()
-    presenter.themeName = "Технологии"
-    presenter.themeDescription = "Проверь, насколько уверенно ты ориентируешься в гаджетах, IT-компаниях, цифровой культуре и технологических продуктах последних лет."
+    let presenter = QuizDescriptionPresenter(
+        content: QuizDescriptionContent(
+            themeName: "Технологии",
+            themeDescription: "Проверь, насколько уверенно ты ориентируешься в гаджетах, IT-компаниях, цифровой культуре и технологических продуктах последних лет."
+        )
+    )
 
     let viewController = QuizDescriptionViewController()
     viewController.configurePresenter(presenter)

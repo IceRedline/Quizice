@@ -2,13 +2,15 @@ import XCTest
 @testable import Quizice
 
 final class QuizQuestionPresenterFailureStateTests: XCTestCase {
+    private var session: QuizSessionSpy!
+
     override func setUp() {
         super.setUp()
-        resetQuizFactory()
+        session = QuizSessionSpy()
     }
 
     override func tearDown() {
-        resetQuizFactory()
+        session = nil
         super.tearDown()
     }
 
@@ -28,8 +30,8 @@ final class QuizQuestionPresenterFailureStateTests: XCTestCase {
 
     func testChosenThemeWithNoQuestionsShowsUnavailableQuestionState() {
         let theme = makeTheme(name: "Empty Theme", questions: [])
-        QuizFactory.shared.themes = [theme]
-        QuizFactory.shared.chosenTheme = ThemeModel(quizTheme: theme)
+        session.themes = [theme]
+        session.chosenTheme = ThemeModel(quizTheme: theme)
 
         let (presenter, view) = makePresenter()
 
@@ -68,9 +70,9 @@ final class QuizQuestionPresenterFailureStateTests: XCTestCase {
         line: UInt = #line
     ) {
         let theme = makeTheme(name: "Malformed Theme", questions: [question])
-        QuizFactory.shared.themes = [theme]
-        QuizFactory.shared.chosenTheme = ThemeModel(quizTheme: theme)
-        QuizFactory.shared.questionsCount = 1
+        session.themes = [theme]
+        session.chosenTheme = ThemeModel(quizTheme: theme)
+        session.questionsCount = 1
 
         let (presenter, view) = makePresenter()
 
@@ -103,7 +105,7 @@ final class QuizQuestionPresenterFailureStateTests: XCTestCase {
     }
 
     private func makePresenter() -> (QuizQuestionPresenter, QuizQuestionViewControllerSpy) {
-        let presenter = QuizQuestionPresenter()
+        let presenter = QuizQuestionPresenter(session: session)
         let view = QuizQuestionViewControllerSpy()
         presenter.view = view
         view.presenter = presenter
@@ -111,7 +113,7 @@ final class QuizQuestionPresenterFailureStateTests: XCTestCase {
     }
 
     private func makeTheme(name: String, questions: [QuizQuestion]) -> QuizTheme {
-        QuizTheme(theme: name, themeDescription: "Synthetic test theme", questions: questions)
+        QuizTheme(id: name.lowercased().replacingOccurrences(of: " ", with: "_"), theme: name, themeDescription: "Synthetic test theme", questions: questions)
     }
 
     private func makeQuestion(
@@ -122,15 +124,37 @@ final class QuizQuestionPresenterFailureStateTests: XCTestCase {
         QuizQuestion(
             question: question,
             answers: answers,
-            correctAnswer: correctAnswer,
-            explanation: "Synthetic explanation"
+            correctAnswer: correctAnswer
         )
     }
 
-    private func resetQuizFactory() {
-        QuizFactory.shared.themes = nil
-        QuizFactory.shared.chosenTheme = nil
-        QuizFactory.shared.questionsCount = 5
+    func testQuestionWithDuplicatedCorrectAnswerShowsUnavailableQuestionState() {
+        assertMalformedQuestionShowsUnavailable(
+            makeQuestion(question: "Question?", answers: ["A", "A", "B", "C"], correctAnswer: "A")
+        )
+    }
+
+    func testAnswerSelectionUsesOptionID() throws {
+        let question = makeQuestion(question: "Question?", answers: ["A", "B", "C", "D"], correctAnswer: "C")
+        let theme = makeTheme(name: "Valid Theme", questions: [question])
+        session.themes = [theme]
+        session.chosenTheme = ThemeModel(quizTheme: theme)
+        session.questionsCount = 1
+
+        let (presenter, view) = makePresenter()
+        presenter.loadQuestions()
+        presenter.loadQuestion()
+
+        let loadedQuestion = try XCTUnwrap(view.loadedViewModels.first)
+        let correctOption = try XCTUnwrap(loadedQuestion.answers.first { $0.title == "C" })
+        let wrongOption = try XCTUnwrap(loadedQuestion.answers.first { $0.title != "C" })
+
+        XCTAssertEqual(presenter.answerFeedback(for: correctOption.id), .correct)
+        XCTAssertEqual(presenter.answerFeedback(for: wrongOption.id), .wrong)
+
+        presenter.checkAnswer(optionID: correctOption.id)
+
+        XCTAssertEqual(view.answerStateUpdates, [true])
     }
 }
 
@@ -139,6 +163,7 @@ private final class QuizQuestionViewControllerSpy: QuizQuestionViewControllerPro
 
     private(set) var progressUpdates: [Float] = []
     private(set) var timeExpiredCallCount = 0
+    private(set) var loadedViewModels: [QuizQuestionViewModel] = []
     private(set) var loadedQuestions: [LoadedQuestion] = []
     private(set) var unavailableCalls: [UnavailableQuestion] = []
     private(set) var answerStateUpdates: [Bool] = []
@@ -152,18 +177,14 @@ private final class QuizQuestionViewControllerSpy: QuizQuestionViewControllerPro
         timeExpiredCallCount += 1
     }
 
-    func loadQuestionToView(
-        themeName: String,
-        questionText: String,
-        questionNumberText: String,
-        currentAnswers: [String]
-    ) {
+    func loadQuestionToView(_ viewModel: QuizQuestionViewModel) {
+        loadedViewModels.append(viewModel)
         loadedQuestions.append(
             LoadedQuestion(
-                themeName: themeName,
-                questionText: questionText,
-                questionNumberText: questionNumberText,
-                currentAnswers: currentAnswers
+                themeName: viewModel.themeName,
+                questionText: viewModel.questionText,
+                questionNumberText: viewModel.questionNumberText,
+                currentAnswers: viewModel.answers.map(\.title)
             )
         )
     }
@@ -176,7 +197,7 @@ private final class QuizQuestionViewControllerSpy: QuizQuestionViewControllerPro
         answerStateUpdates.append(isTrue)
     }
 
-    func showResults() {
+    func showResults(_ result: QuizResultState) {
         resultsCallCount += 1
     }
 
@@ -190,5 +211,18 @@ private final class QuizQuestionViewControllerSpy: QuizQuestionViewControllerPro
     struct UnavailableQuestion: Equatable {
         let themeName: String?
         let message: String
+    }
+}
+
+private final class QuizSessionSpy: QuizSessionManaging {
+    var themes: [QuizTheme]?
+    var chosenTheme: ThemeModel?
+    var questionsCount: Int = 5
+    var startup1st: Bool = false
+
+    func loadTheme(themeID: String) -> Bool {
+        guard let theme = themes?.first(where: { $0.stableID == themeID }) else { return false }
+        chosenTheme = ThemeModel(quizTheme: theme)
+        return true
     }
 }
