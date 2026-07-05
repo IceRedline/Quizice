@@ -72,6 +72,9 @@ final class ThemesCollectionService: NSObject, UICollectionViewDelegate, UIColle
         static let aiThemeGradientBorderWidth: CGFloat = 1.6
         static let aiThemeGradientPink = UIColor(hex: 0xFF4FD8)
         static let aiThemeGradientBlue = UIColor(hex: 0x36A3FF)
+        static let radarAIThemeGlowOpacity: Float = 0.65
+        static let radarAIThemeGlowRadius: CGFloat = 18
+        static let radarAIThemeGlowOffset = CGSize(width: 0, height: 0)
         static let aiThemeBadgeBackgroundAlpha: CGFloat = 0.18
         static let aiThemeBadgeBorderAlpha: CGFloat = 0.52
         static let aiThemeBadgeCornerRadius: CGFloat = 11
@@ -241,6 +244,7 @@ final class ThemesCollectionService: NSObject, UICollectionViewDelegate, UIColle
         )
         button.layer.borderWidth = 0
         button.layer.borderColor = UIColor.clear.cgColor
+        applyRadarGreenGlowStyleIfNeeded(to: button, appearance: appearance)
 
         let betaBadge = InsetLabel(
             contentInsets: UIEdgeInsets(
@@ -263,29 +267,38 @@ final class ThemesCollectionService: NSObject, UICollectionViewDelegate, UIColle
         betaBadge.isUserInteractionEnabled = false
         betaBadge.translatesAutoresizingMaskIntoConstraints = false
 
-        let gradientBorderView = GradientBorderView(
-            colors: [Appearance.aiThemeGradientPink, Appearance.aiThemeGradientBlue],
-            lineWidth: Appearance.aiThemeGradientBorderWidth
-        )
-        gradientBorderView.accessibilityIdentifier = Content.aiThemeGradientBorderAccessibilityID
-        gradientBorderView.translatesAutoresizingMaskIntoConstraints = false
-
         pin(button, to: cell.contentView)
         button.addSubview(betaBadge)
-        button.addSubview(gradientBorderView)
+        let gradientBorderView: GradientBorderView?
+        if appearance.designStyle == .radar {
+            gradientBorderView = nil
+        } else {
+            let borderView = GradientBorderView(
+                colors: [Appearance.aiThemeGradientPink, Appearance.aiThemeGradientBlue],
+                lineWidth: Appearance.aiThemeGradientBorderWidth
+            )
+            borderView.accessibilityIdentifier = Content.aiThemeGradientBorderAccessibilityID
+            borderView.translatesAutoresizingMaskIntoConstraints = false
+            button.addSubview(borderView)
+            gradientBorderView = borderView
+        }
 
         NSLayoutConstraint.activate([
             betaBadge.trailingAnchor.constraint(equalTo: button.trailingAnchor, constant: -Layout.aiThemeBadgeTrailingInset),
             betaBadge.centerYAnchor.constraint(equalTo: button.centerYAnchor),
 
             betaBadge.leadingAnchor.constraint(greaterThanOrEqualTo: button.centerXAnchor),
-            betaBadge.widthAnchor.constraint(greaterThanOrEqualToConstant: Layout.aiThemeBadgeMinimumWidth),
-
-            gradientBorderView.leadingAnchor.constraint(equalTo: button.leadingAnchor),
-            gradientBorderView.trailingAnchor.constraint(equalTo: button.trailingAnchor),
-            gradientBorderView.topAnchor.constraint(equalTo: button.topAnchor),
-            gradientBorderView.bottomAnchor.constraint(equalTo: button.bottomAnchor)
+            betaBadge.widthAnchor.constraint(greaterThanOrEqualToConstant: Layout.aiThemeBadgeMinimumWidth)
         ])
+
+        if let gradientBorderView {
+            NSLayoutConstraint.activate([
+                gradientBorderView.leadingAnchor.constraint(equalTo: button.leadingAnchor),
+                gradientBorderView.trailingAnchor.constraint(equalTo: button.trailingAnchor),
+                gradientBorderView.topAnchor.constraint(equalTo: button.topAnchor),
+                gradientBorderView.bottomAnchor.constraint(equalTo: button.bottomAnchor)
+            ])
+        }
     }
 
     private func configureSecondaryActionCard(
@@ -477,6 +490,19 @@ final class ThemesCollectionService: NSObject, UICollectionViewDelegate, UIColle
     private func applyRadarTransparentStyleIfNeeded(to button: UIButton, appearance: AppAppearance) {
         guard appearance.designStyle == .radar else { return }
         button.backgroundColor = .clear
+    }
+
+    private func applyRadarGreenGlowStyleIfNeeded(to button: UIButton, appearance: AppAppearance) {
+        guard appearance.designStyle == .radar else { return }
+        button.backgroundColor = .clear
+        button.clipsToBounds = false
+        button.layer.masksToBounds = false
+        button.layer.borderWidth = Appearance.buttonBorderWidth
+        button.layer.borderColor = appearance.accentColor.cgColor
+        button.layer.shadowColor = appearance.accentColor.cgColor
+        button.layer.shadowOpacity = Appearance.radarAIThemeGlowOpacity
+        button.layer.shadowRadius = Appearance.radarAIThemeGlowRadius
+        button.layer.shadowOffset = Appearance.radarAIThemeGlowOffset
     }
 
     private func pin(_ view: UIView, to container: UIView) {

@@ -29,6 +29,11 @@
 "home.themes_collection.accessibility_label" = "Quiz themes";
 "home.unavailable_themes" = "Themes are not available yet";
 "home.welcome" = "Welcome to";
+"home.motivation_prompt.1" = "Let's sharpen your brain";
+"home.motivation_prompt.2" = "Warm up your mind for a new round";
+"home.motivation_prompt.3" = "Let's see what your brain can do";
+"home.motivation_prompt.4" = "Your knowledge takes the stage today";
+"home.motivation_prompt.5" = "Time to charge your head with questions";
 "question.audio_load_failure" = "Audio files were not loaded";
 "question.fallback_theme" = "Quiz";
 "question.number_format" = "Question #%d";
