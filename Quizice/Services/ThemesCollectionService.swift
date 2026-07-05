@@ -78,8 +78,8 @@ final class ThemesCollectionService: NSObject, UICollectionViewDelegate, UIColle
         static let cellShadowOpacity: Float = 0.22
         static let titleFontSize: CGFloat = 24
         static let descriptionFontSize: CGFloat = 15
-        static let statisticsMetricValueFontSize: CGFloat = 22
-        static let statisticsMetricTitleFontSize: CGFloat = 11
+        static let statisticsMetricValueFontSize: CGFloat = 18
+        static let statisticsMetricTitleFontSize: CGFloat = 14
         static let luckyFontSize: CGFloat = 19
         static let betaBadgeFontSize: CGFloat = 12
         static let themeTitleFontSize: CGFloat = 18
