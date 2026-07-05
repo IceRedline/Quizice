@@ -2,7 +2,8 @@ import SwiftUI
 
 private enum Layout {
     static let contentHorizontalInset: CGFloat = 20
-    static let contentTopInset: CGFloat = 76
+    static let contentTopInset: CGFloat = 28
+    static let contentMinimumTopInset: CGFloat = 46
     static let contentBottomInset: CGFloat = 24
     static let titleRowSpacing: CGFloat = 14
     static let titleBottomSpacing: CGFloat = 10
@@ -155,11 +156,13 @@ struct QuizSettingsView: View {
     }
 
     var body: some View {
-        ZStack {
-            settingsBackground
+        GeometryReader { geometry in
+            ZStack {
+                settingsBackground
 
-            ScrollView {
-                content
+                ScrollView {
+                    content(topInset: max(Layout.contentMinimumTopInset, geometry.safeAreaInsets.top + Layout.contentTopInset))
+                }
             }
         }
         .environment(\.appAppearance, appearance)
@@ -191,7 +194,7 @@ struct QuizSettingsView: View {
         }
     }
 
-    private var content: some View {
+    private func content(topInset: CGFloat) -> some View {
         VStack(spacing: Layout.sectionSpacing) {
             settingsTitle
             profileSection
@@ -199,7 +202,7 @@ struct QuizSettingsView: View {
             supportSection
         }
         .padding(.horizontal, Layout.contentHorizontalInset)
-        .padding(.top, Layout.contentTopInset)
+        .padding(.top, topInset)
         .padding(.bottom, Layout.contentBottomInset)
     }
 
