@@ -7,4 +7,5 @@ protocol ThemeCollectionDelegate: AnyObject {
     func aiThemeButtonTouchedUpInside(_ sender: UIButton)
     func feelingLuckyButtonTouchedUpInside(_ sender: UIButton)
     func statisticsButtonTouchedUpInside(_ sender: UIButton)
+    func themesCollectionDidScroll(_ scrollView: UIScrollView)
 }

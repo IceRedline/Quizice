@@ -40,7 +40,22 @@ enum L10n {
         static var statisticsPlayedShort: String { L10n.localized("home.statistics.played_short", comment: "Home statistics card played quizzes metric title") }
         static var themesCollectionAccessibilityLabel: String { L10n.localized("home.themes_collection.accessibility_label", comment: "Home themes collection accessibility label") }
         static var unavailableThemes: String { L10n.localized("home.unavailable_themes", comment: "Home screen empty themes title") }
-        static var welcome: String { L10n.localized("home.welcome", comment: "Home screen welcome text") }
+        static var motivationPrompts: [String] {
+            [
+                L10n.localized("home.motivation_prompt.1", comment: "Home screen random motivation prompt"),
+                L10n.localized("home.motivation_prompt.2", comment: "Home screen random motivation prompt"),
+                L10n.localized("home.motivation_prompt.3", comment: "Home screen random motivation prompt"),
+                L10n.localized("home.motivation_prompt.4", comment: "Home screen random motivation prompt"),
+                L10n.localized("home.motivation_prompt.5", comment: "Home screen random motivation prompt"),
+                L10n.localized("home.motivation_prompt.6", comment: "Home screen random motivation prompt"),
+                L10n.localized("home.motivation_prompt.7", comment: "Home screen random motivation prompt"),
+                L10n.localized("home.motivation_prompt.8", comment: "Home screen random motivation prompt"),
+                L10n.localized("home.motivation_prompt.9", comment: "Home screen random motivation prompt"),
+                L10n.localized("home.motivation_prompt.10", comment: "Home screen random motivation prompt"),
+                L10n.localized("home.motivation_prompt.11", comment: "Home screen random motivation prompt"),
+                L10n.localized("home.motivation_prompt.12", comment: "Home screen random motivation prompt")
+            ]
+        }
 
         static func statisticsAccessibilityValue(playedQuizzes: Int, percentage: Int) -> String {
             L10n.formatted(
