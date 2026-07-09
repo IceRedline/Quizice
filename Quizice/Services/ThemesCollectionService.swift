@@ -19,10 +19,10 @@ final class ThemesCollectionService: NSObject, UICollectionViewDelegate, UIColle
         static let technologyThemeLogoImageName = "theme_logo_tech.png"
         static let cultureThemeLogoImageName = "theme_logo_culture.png"
         static let politicsThemeLogoImageName = "theme_logo_politics"
-        static let musicThemeLogoCleanImageName = "theme_logo_music_clean"
-        static let technologyThemeLogoCleanImageName = "theme_logo_tech_clean"
-        static let cultureThemeLogoCleanImageName = "theme_logo_culture_clean"
-        static let politicsThemeLogoCleanImageName = "theme_logo_politics_clean"
+        static let musicThemeLogoCleanSymbolName = "music.note.square.stack"
+        static let technologyThemeLogoCleanSymbolName = "arcade.stick.console"
+        static let cultureThemeLogoCleanSymbolName = "theatermasks"
+        static let politicsThemeLogoCleanSymbolName = "building.columns"
         static let musicThemeLogoRadarImageName = "theme_logo_music_radar"
         static let technologyThemeLogoRadarImageName = "theme_logo_tech_radar"
         static let cultureThemeLogoRadarImageName = "theme_logo_culture_radar"
@@ -54,6 +54,7 @@ final class ThemesCollectionService: NSObject, UICollectionViewDelegate, UIColle
         static let themeTitleHorizontalInset: CGFloat = 8
         static let themeTitleBottomInset: CGFloat = 6
         static let themeTitleHeight: CGFloat = 56
+        static let cleanThemeSymbolScale: CGFloat = 0.70
         static let cellShadowOffset = CGSize(width: 0, height: 12)
         static let cellShadowRadius: CGFloat = 22
     }
@@ -174,8 +175,8 @@ final class ThemesCollectionService: NSObject, UICollectionViewDelegate, UIColle
         let button = UIButton(type: .custom)
         let themeID = theme.stableID
         let themeName = theme.theme
-        let themeImageName = themeLogoImageName(for: themeID, appearance: appearance)
         let themeTintColor = themeTintColor(for: themeID)
+        let themeBorderColor = appearance.themeCardBorder(baseColor: themeTintColor)
 
         button.addTarget(self, action: #selector(buttonTouchedDown(_:)), for: .touchDown)
         button.addTarget(self, action: #selector(buttonTouchedUpInside(_:)), for: .touchUpInside)
@@ -186,13 +187,15 @@ final class ThemesCollectionService: NSObject, UICollectionViewDelegate, UIColle
         button.backgroundColor = appearance.themeCardBackground(baseColor: themeTintColor)
         button.layer.cornerRadius = appearance.themeCardCornerRadius
         button.layer.borderWidth = appearance.themeCardBorderWidth
-        button.layer.borderColor = appearance.themeCardBorder(baseColor: themeTintColor).cgColor
+        button.layer.borderColor = themeBorderColor.cgColor
         button.clipsToBounds = true
         button.translatesAutoresizingMaskIntoConstraints = false
 
-        let imageView = UIImageView(image: UIImage(named: themeImageName))
+        let imageView = UIImageView(image: themeLogoImage(for: themeID, appearance: appearance))
         imageView.accessibilityIdentifier = themeImageAccessibilityIdentifier(themeID: themeID)
         imageView.contentMode = .scaleAspectFit
+        imageView.tintColor = themeBorderColor
+        imageView.transform = themeLogoTransform(for: appearance)
         imageView.isUserInteractionEnabled = false
         imageView.translatesAutoresizingMaskIntoConstraints = false
 
@@ -528,8 +531,16 @@ final class ThemesCollectionService: NSObject, UICollectionViewDelegate, UIColle
         "\(Content.themeTitleAccessibilityIDPrefix)-\(themeID)"
     }
 
-    private func themeLogoImageName(for themeID: String, appearance: AppAppearance) -> String {
-        ThemeVisualCatalog.logoImageName(for: themeID, designStyle: appearance.designStyle)
+    private func themeLogoImage(for themeID: String, appearance: AppAppearance) -> UIImage? {
+        ThemeVisualCatalog.logoImage(for: themeID, designStyle: appearance.designStyle)
+    }
+
+    private func themeLogoTransform(for appearance: AppAppearance) -> CGAffineTransform {
+        guard appearance.designStyle == .clean else { return .identity }
+        return CGAffineTransform(
+            scaleX: Layout.cleanThemeSymbolScale,
+            y: Layout.cleanThemeSymbolScale
+        )
     }
 
     private func themeTintColor(for themeID: String) -> UIColor {
@@ -568,18 +579,18 @@ final class ThemesCollectionService: NSObject, UICollectionViewDelegate, UIColle
 
 private struct ThemeVisualDescriptor {
     let classicLogoName: String
-    let cleanLogoName: String
+    let cleanSymbolName: String
     let radarLogoName: String
     let tintColorName: String
 
-    func logoName(for designStyle: AppDesignStyle) -> String {
+    func logoImage(for designStyle: AppDesignStyle) -> UIImage? {
         switch designStyle {
         case .clean:
-            return cleanLogoName
+            return UIImage(systemName: cleanSymbolName)?.withRenderingMode(.alwaysTemplate)
         case .radar:
-            return radarLogoName
+            return UIImage(named: radarLogoName)
         case .pixel, .classic:
-            return classicLogoName
+            return UIImage(named: classicLogoName)
         }
     }
 }
@@ -588,32 +599,32 @@ private enum ThemeVisualCatalog {
     private static let descriptors: [String: ThemeVisualDescriptor] = [
         "music": ThemeVisualDescriptor(
             classicLogoName: ThemesCollectionService.Content.musicThemeLogoImageName,
-            cleanLogoName: ThemesCollectionService.Content.musicThemeLogoCleanImageName,
+            cleanSymbolName: ThemesCollectionService.Content.musicThemeLogoCleanSymbolName,
             radarLogoName: ThemesCollectionService.Content.musicThemeLogoRadarImageName,
             tintColorName: ThemesCollectionService.Content.musicThemeTintColorName
         ),
         "technology": ThemeVisualDescriptor(
             classicLogoName: ThemesCollectionService.Content.technologyThemeLogoImageName,
-            cleanLogoName: ThemesCollectionService.Content.technologyThemeLogoCleanImageName,
+            cleanSymbolName: ThemesCollectionService.Content.technologyThemeLogoCleanSymbolName,
             radarLogoName: ThemesCollectionService.Content.technologyThemeLogoRadarImageName,
             tintColorName: ThemesCollectionService.Content.technologyThemeTintColorName
         ),
         "history_culture": ThemeVisualDescriptor(
             classicLogoName: ThemesCollectionService.Content.cultureThemeLogoImageName,
-            cleanLogoName: ThemesCollectionService.Content.cultureThemeLogoCleanImageName,
+            cleanSymbolName: ThemesCollectionService.Content.cultureThemeLogoCleanSymbolName,
             radarLogoName: ThemesCollectionService.Content.cultureThemeLogoRadarImageName,
             tintColorName: ThemesCollectionService.Content.cultureThemeTintColorName
         ),
         "politics_business": ThemeVisualDescriptor(
             classicLogoName: ThemesCollectionService.Content.politicsThemeLogoImageName,
-            cleanLogoName: ThemesCollectionService.Content.politicsThemeLogoCleanImageName,
+            cleanSymbolName: ThemesCollectionService.Content.politicsThemeLogoCleanSymbolName,
             radarLogoName: ThemesCollectionService.Content.politicsThemeLogoRadarImageName,
             tintColorName: ThemesCollectionService.Content.politicsThemeTintColorName
         )
     ]
 
-    static func logoImageName(for themeID: String, designStyle: AppDesignStyle) -> String {
-        descriptors[themeID]?.logoName(for: designStyle) ?? themeID
+    static func logoImage(for themeID: String, designStyle: AppDesignStyle) -> UIImage? {
+        descriptors[themeID]?.logoImage(for: designStyle) ?? UIImage(named: themeID)
     }
 
     static func tintColor(for themeID: String) -> UIColor {

@@ -274,10 +274,10 @@ final class HomeScreenVisualStateTests: XCTestCase {
     func testCollectionServiceThemeCardShowsImageAboveThemeTitle() throws {
         useDesignStyle(.clean)
         let themeAssets = [
-            (themeID: "music", themeName: "Музыка", assetName: "theme_logo_music_clean", tintColorName: "themeMusicTint"),
-            (themeID: "technology", themeName: "Технологии", assetName: "theme_logo_tech_clean", tintColorName: "themeTechnologyTint"),
-            (themeID: "history_culture", themeName: "История и культура", assetName: "theme_logo_culture_clean", tintColorName: "themeCultureTint"),
-            (themeID: "politics_business", themeName: "Политика и бизнес", assetName: "theme_logo_politics_clean", tintColorName: "themePoliticsTint")
+            (themeID: "music", themeName: "Музыка", symbolName: "music.note.square.stack", tintColorName: "themeMusicTint"),
+            (themeID: "technology", themeName: "Технологии", symbolName: "arcade.stick.console", tintColorName: "themeTechnologyTint"),
+            (themeID: "history_culture", themeName: "История и культура", symbolName: "theatermasks", tintColorName: "themeCultureTint"),
+            (themeID: "politics_business", themeName: "Политика и бизнес", symbolName: "building.columns", tintColorName: "themePoliticsTint")
         ]
         QuizFactory.shared.themes = themeAssets.map { makeTheme(name: $0.themeName) }
         let service = ThemesCollectionService()
@@ -293,11 +293,15 @@ final class HomeScreenVisualStateTests: XCTestCase {
             let imageView = try XCTUnwrap(themeCell.contentView.descendant(withAccessibilityIdentifier: "homeThemeImageView-\(themeAsset.themeID)") as? UIImageView)
             let titleLabel = try XCTUnwrap(themeCell.contentView.descendant(withAccessibilityIdentifier: "homeThemeTitleLabel-\(themeAsset.themeID)") as? UILabel)
             let themeButton = try XCTUnwrap(themeCell.contentView.descendant(withAccessibilityIdentifier: themeAsset.themeID) as? UIButton)
-            let expectedImage = try XCTUnwrap(UIImage(named: themeAsset.assetName))
+            let expectedImage = try XCTUnwrap(UIImage(systemName: themeAsset.symbolName)?.withRenderingMode(.alwaysTemplate))
             let tintColor = try XCTUnwrap(UIColor(named: themeAsset.tintColorName))
 
             XCTAssertEqual(imageView.image?.pngData(), expectedImage.pngData())
+            XCTAssertEqual(imageView.image?.renderingMode, .alwaysTemplate)
             XCTAssertEqual(imageView.contentMode, .scaleAspectFit)
+            assertColor(imageView.tintColor, equals: tintColor.withAlphaComponent(0.75))
+            XCTAssertEqual(imageView.transform.a, 0.70, accuracy: 0.01)
+            XCTAssertEqual(imageView.transform.d, 0.70, accuracy: 0.01)
             XCTAssertEqual(titleLabel.text, themeAsset.themeName)
             XCTAssertEqual(titleLabel.textAlignment, .center)
             XCTAssertEqual(titleLabel.numberOfLines, 2)
@@ -307,7 +311,7 @@ final class HomeScreenVisualStateTests: XCTestCase {
             assertColor(titleLabel.textColor, equals: assetColor("themeCleanSurfaceText"))
             assertColor(UIColor(cgColor: themeButton.layer.borderColor ?? UIColor.clear.cgColor), equals: tintColor.withAlphaComponent(0.75))
             XCTAssertEqual(themeButton.layer.borderWidth, 2)
-            XCTAssertGreaterThanOrEqual(imageView.frame.height, 86)
+            XCTAssertGreaterThanOrEqual(imageView.bounds.height, 86)
             XCTAssertLessThan(imageView.frame.minY, titleLabel.frame.minY)
             XCTAssertLessThanOrEqual(imageView.frame.maxY, titleLabel.frame.minY)
             XCTAssertEqual(titleLabel.frame.height, 56, accuracy: 0.5)
