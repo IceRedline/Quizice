@@ -213,6 +213,7 @@ final class QuizQuestionViewController: BaseQuizViewController, QuizQuestionView
         installAppearanceTraitObserver()
         loadAnswerSounds()
         configurePresenter(QuizQuestionPresenter())
+        applyAppearance()
         presenter?.viewDidLoad()
         installLocalizationObserver()
 
@@ -331,6 +332,12 @@ final class QuizQuestionViewController: BaseQuizViewController, QuizQuestionView
     }
     
     private func activateLayoutConstraints(in rootView: UIView) {
+        let questionTextLayoutGuide = UILayoutGuide()
+        questionCardView.addLayoutGuide(questionTextLayoutGuide)
+
+        let questionCenterYConstraint = questionLabel.centerYAnchor.constraint(equalTo: questionTextLayoutGuide.centerYAnchor)
+        questionCenterYConstraint.priority = .defaultHigh
+
         NSLayoutConstraint.activate([
             themeNameLabel.topAnchor.constraint(equalTo: rootView.safeAreaLayoutGuide.topAnchor, constant: Layout.topInset),
             themeNameLabel.leadingAnchor.constraint(equalTo: rootView.leadingAnchor, constant: Layout.rootHorizontalInset),
@@ -353,8 +360,12 @@ final class QuizQuestionViewController: BaseQuizViewController, QuizQuestionView
             timerBar.leadingAnchor.constraint(equalTo: timerContainerView.leadingAnchor, constant: Layout.timerBarHorizontalInset),
             timerBar.trailingAnchor.constraint(equalTo: timerContainerView.trailingAnchor, constant: -Layout.timerBarHorizontalInset),
             timerBar.heightAnchor.constraint(equalToConstant: Layout.timerBarHeight),
-            
-            questionLabel.topAnchor.constraint(equalTo: timerContainerView.bottomAnchor, constant: Layout.questionTopSpacing),
+
+            questionTextLayoutGuide.topAnchor.constraint(equalTo: timerContainerView.bottomAnchor),
+            questionTextLayoutGuide.bottomAnchor.constraint(equalTo: answersStackView.topAnchor),
+
+            questionCenterYConstraint,
+            questionLabel.topAnchor.constraint(greaterThanOrEqualTo: timerContainerView.bottomAnchor, constant: Layout.questionTopSpacing),
             questionLabel.leadingAnchor.constraint(equalTo: questionCardView.leadingAnchor, constant: Layout.questionHorizontalInset),
             questionLabel.trailingAnchor.constraint(equalTo: questionCardView.trailingAnchor, constant: -Layout.questionHorizontalInset),
             
@@ -462,7 +473,7 @@ final class QuizQuestionViewController: BaseQuizViewController, QuizQuestionView
             applyAnswerFeedback(.normal, to: button, appearance: appearance)
             button.isEnabled = true
         }
-        setTimerBarColor(appearance.accentColor)
+        setTimerBarColor(quizThemeAccentColor(for: appearance))
     }
     
     func loadQuestionToView(_ viewModel: QuizQuestionViewModel) {
@@ -599,7 +610,7 @@ final class QuizQuestionViewController: BaseQuizViewController, QuizQuestionView
         currentAnswerOptions = []
         timerBar.progress = .zero
         let appearance = currentAppearance()
-        setTimerBarColor(appearance.accentColor)
+        setTimerBarColor(quizThemeAccentColor(for: appearance))
         answerButtons.forEach { button in
             button.setTitle(Content.disabledAnswerPlaceholder, for: .normal)
             applyAnswerFeedback(.normal, to: button, appearance: appearance)
@@ -765,7 +776,7 @@ final class QuizQuestionViewController: BaseQuizViewController, QuizQuestionView
         timerContainerView?.backgroundColor = appearance.progressTrackColor
         timerContainerView?.layer.cornerRadius = min(appearance.card.cornerRadius, Appearance.timerContainerCornerRadius)
         timerBar?.trackTintColor = appearance.progressTrackColor
-        setTimerBarColor(appearance.accentColor)
+        setTimerBarColor(quizThemeAccentColor(for: appearance))
 
         answerButtons.forEach { button in
             button.titleLabel?.font = appearance.typography.font(size: Typography.answerButtonFontSize, weight: .semibold)
@@ -773,9 +784,17 @@ final class QuizQuestionViewController: BaseQuizViewController, QuizQuestionView
             applyAnswerFeedback(.normal, to: button, appearance: appearance)
         }
 
-        nextButton?.applyActionAppearance(appearance.primaryButton, appearance: appearance, textColor: actionTextColor(isPrimary: true, appearance: appearance))
+        nextButton?.applyActionAppearance(
+            QuizThemeAccentStyle.primaryButtonStyle(themeID: presenter?.themeID, appearance: appearance),
+            appearance: appearance,
+            textColor: actionTextColor(isPrimary: true, appearance: appearance)
+        )
         nextButton?.titleLabel?.font = appearance.typography.font(size: Typography.actionButtonFontSize, weight: .semibold)
-        backButton?.applyActionAppearance(appearance.secondaryButton, appearance: appearance, textColor: actionTextColor(isPrimary: false, appearance: appearance))
+        backButton?.applyActionAppearance(
+            QuizThemeAccentStyle.secondaryButtonStyle(themeID: presenter?.themeID, appearance: appearance),
+            appearance: appearance,
+            textColor: actionTextColor(isPrimary: false, appearance: appearance)
+        )
         backButton?.titleLabel?.font = appearance.typography.font(size: Typography.actionButtonFontSize, weight: .semibold)
     }
 
@@ -783,10 +802,17 @@ final class QuizQuestionViewController: BaseQuizViewController, QuizQuestionView
         if isPrimary && appearance.designStyle == .clean {
             return appearance.resolvedInterfaceStyle == .dark ? appearance.screenTextColor : .black
         }
+        if !isPrimary && appearance.designStyle == .clean {
+            return QuizThemeAccentStyle.secondaryButtonTextColor(themeID: presenter?.themeID, appearance: appearance)
+        }
         if isPrimary && appearance.designStyle == .pixel {
             return .black
         }
         return appearance.screenTextColor
+    }
+
+    private func quizThemeAccentColor(for appearance: AppAppearance) -> UIColor {
+        QuizThemeAccentStyle.accentColor(themeID: presenter?.themeID, appearance: appearance)
     }
     
     func showResults(_ result: QuizResultState) {

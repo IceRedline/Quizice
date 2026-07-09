@@ -90,6 +90,7 @@ final class QuizResultViewController: BaseQuizViewController, QuizResultViewCont
     func configurePresenter(_ presenter: QuizResultPresenterProtocol) {
         self.presenter = presenter
         self.presenter?.view = self
+        applyAppearance()
     }
     
     func updateResultLabels(resultText: String, descriptionText: String) {
@@ -211,7 +212,11 @@ final class QuizResultViewController: BaseQuizViewController, QuizResultViewCont
         resultLabel?.font = appearance.typography.font(size: Typography.resultFontSize, weight: .bold)
         resultDescription?.textColor = appearance.secondarySurfaceTextColor
         resultDescription?.font = appearance.typography.font(size: Typography.descriptionFontSize, weight: .regular)
-        restartButton?.applyActionAppearance(appearance.primaryButton, appearance: appearance, textColor: actionTextColor(appearance: appearance))
+        restartButton?.applyActionAppearance(
+            QuizThemeAccentStyle.primaryButtonStyle(themeID: presenter?.themeID, appearance: appearance),
+            appearance: appearance,
+            textColor: actionTextColor(appearance: appearance)
+        )
         restartButton?.titleLabel?.font = appearance.typography.font(size: Typography.buttonFontSize, weight: .semibold)
     }
 

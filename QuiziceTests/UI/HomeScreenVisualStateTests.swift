@@ -348,7 +348,7 @@ final class HomeScreenVisualStateTests: XCTestCase {
         XCTAssertTrue(themeButton?.clipsToBounds ?? false)
         XCTAssertGreaterThan(themeCell.layer.shadowOpacity, 0)
         XCTAssertEqual(aiThemeButton?.accessibilityLabel, L10n.Home.createWithAI)
-        XCTAssertEqual(aiThemeButton?.layer.cornerRadius, 22)
+        XCTAssertEqual(aiThemeButton?.layer.cornerRadius, 27)
         assertColor(aiThemeButton?.backgroundColor, equals: assetColor("themeWhite"))
         XCTAssertEqual(aiThemeButton?.layer.borderWidth, 0)
         XCTAssertTrue(aiThemeButton?.clipsToBounds ?? false)

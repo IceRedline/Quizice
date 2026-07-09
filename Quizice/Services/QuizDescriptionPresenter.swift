@@ -15,6 +15,9 @@ final class QuizDescriptionPresenter: QuizDescriptionPresenterProtocol {
 
     var themeName: String = L10n.Description.defaultThemeName
     var themeDescription: String = L10n.Description.defaultThemeDescription
+    var themeID: String? {
+        session.chosenTheme?.themeID
+    }
     
     init(session: QuizSessionManaging = QuizFactory.shared, content: QuizDescriptionContent? = nil) {
         self.session = session

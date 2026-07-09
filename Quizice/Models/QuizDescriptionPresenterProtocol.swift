@@ -9,6 +9,7 @@ import Foundation
 
 protocol QuizDescriptionPresenterProtocol {
     var view: QuizDescriptionViewControllerProtocol? { get set }
+    var themeID: String? { get }
     var themeName: String { get set }
     var themeDescription: String { get set }
     
@@ -16,4 +17,8 @@ protocol QuizDescriptionPresenterProtocol {
     var numberOfQuestionsOptionCount: Int { get }
     func numberOfQuestionsTitle(at row: Int) -> String?
     func saveNumberOfQuestions(chosenRow: Int)
+}
+
+extension QuizDescriptionPresenterProtocol {
+    var themeID: String? { nil }
 }
