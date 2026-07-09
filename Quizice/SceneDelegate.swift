@@ -110,22 +110,15 @@ final class QuizFlowCoordinator: NSObject, QuizRouting, UIViewControllerTransiti
     func showQuestion() {
         let viewController = QuizQuestionViewController()
         viewController.router = self
-        viewController.modalPresentationStyle = .custom
-        viewController.transitioningDelegate = self
-        let presentingViewController = navigationController.topViewController
-        cardSlideTransitionAnimator.sourceViewController = presentingViewController as? QuizCardSlideTransitionSource
-        presentingViewController?.present(viewController, animated: true)
+        guard let presentingViewController = navigationController.topViewController else { return }
+        presentWithCardSlide(viewController, from: presentingViewController)
     }
 
     func showResult(_ result: QuizResultState) {
         let viewController = QuizResultViewController()
         viewController.router = self
-        viewController.modalPresentationStyle = .custom
-        viewController.transitioningDelegate = self
         viewController.configurePresenter(QuizResultPresenter(result: result))
-        let presentingViewController = presentedViewController
-        cardSlideTransitionAnimator.sourceViewController = presentingViewController as? QuizCardSlideTransitionSource
-        presentingViewController.present(viewController, animated: true)
+        presentWithCardSlide(viewController, from: presentedViewController)
     }
 
     func showStatistics() {
@@ -187,107 +180,14 @@ final class QuizFlowCoordinator: NSObject, QuizRouting, UIViewControllerTransiti
     ) -> UIViewControllerAnimatedTransitioning? {
         presented is QuizCardSlideTransitionDestination ? cardSlideTransitionAnimator : nil
     }
-}
 
-protocol QuizCardSlideTransitionSource: AnyObject {
-    var cardSlideTransitionSourceView: UIView { get }
-    var cardSlideTransitionHorizontalInset: CGFloat { get }
-}
-
-protocol QuizCardSlideTransitionDestination: AnyObject {
-    var cardSlideTransitionDestinationView: UIView { get }
-    var cardSlideTransitionHorizontalInset: CGFloat { get }
-    var cardSlideTransitionDestinationCompanionViews: [UIView] { get }
-}
-
-extension QuizCardSlideTransitionDestination {
-    var cardSlideTransitionDestinationCompanionViews: [UIView] { [] }
-}
-
-private final class QuizCardSlidePresentationAnimator: NSObject, UIViewControllerAnimatedTransitioning {
-    weak var sourceViewController: QuizCardSlideTransitionSource?
-
-    func transitionDuration(using transitionContext: UIViewControllerContextTransitioning?) -> TimeInterval {
-        QuizCardSlideTransition.duration
-    }
-
-    func animateTransition(using transitionContext: UIViewControllerContextTransitioning) {
-        guard
-            let toViewController = transitionContext.viewController(forKey: .to),
-            let toView = transitionContext.view(forKey: .to)
-        else {
-            transitionContext.completeTransition(false)
-            return
-        }
-
-        let containerView = transitionContext.containerView
-        let finalFrame = transitionContext.finalFrame(for: toViewController)
-        toView.frame = finalFrame.isEmpty ? containerView.bounds : finalFrame
-        containerView.addSubview(toView)
-
-        guard
-            !UIAccessibility.isReduceMotionEnabled,
-            let fromViewController = sourceViewController ?? (transitionContext.viewController(forKey: .from) as? QuizCardSlideTransitionSource),
-            let toViewController = toViewController as? QuizCardSlideTransitionDestination
-        else {
-            sourceViewController = nil
-            transitionContext.completeTransition(!transitionContext.transitionWasCancelled)
-            return
-        }
-
-        toView.setNeedsLayout()
-        toView.layoutIfNeeded()
-
-        let sourceView = fromViewController.cardSlideTransitionSourceView
-        let destinationView = toViewController.cardSlideTransitionDestinationView
-        let destinationCompanionViews = toViewController.cardSlideTransitionDestinationCompanionViews
-        let originalBackgroundColor = toView.backgroundColor
-        let horizontalInset = max(
-            fromViewController.cardSlideTransitionHorizontalInset,
-            toViewController.cardSlideTransitionHorizontalInset
-        )
-        let horizontalOffset = QuizCardSlideTransition.horizontalOffset(
-            in: containerView,
-            horizontalInset: horizontalInset
-        )
-
-        guard
-            horizontalOffset > 0,
-            let sourceSnapshot = sourceView.snapshotView(afterScreenUpdates: false)
-        else {
-            sourceViewController = nil
-            transitionContext.completeTransition(!transitionContext.transitionWasCancelled)
-            return
-        }
-
-        sourceSnapshot.frame = sourceView.convert(sourceView.bounds, to: containerView)
-        sourceView.isHidden = true
-        toView.backgroundColor = .clear
-        destinationView.transform = CGAffineTransform(translationX: horizontalOffset, y: 0)
-        destinationCompanionViews.forEach { $0.alpha = 0 }
-        destinationView.isUserInteractionEnabled = false
-        containerView.addSubview(sourceSnapshot)
-
-        UIView.animate(
-            withDuration: transitionDuration(using: transitionContext),
-            delay: 0,
-            options: QuizCardSlideTransition.options,
-            animations: {
-                sourceSnapshot.transform = CGAffineTransform(translationX: -horizontalOffset, y: 0)
-                destinationView.transform = .identity
-                destinationCompanionViews.forEach { $0.alpha = 1 }
-            },
-            completion: { _ in
-                let completed = !transitionContext.transitionWasCancelled
-                sourceSnapshot.removeFromSuperview()
-                sourceView.isHidden = false
-                destinationView.transform = .identity
-                destinationCompanionViews.forEach { $0.alpha = 1 }
-                destinationView.isUserInteractionEnabled = true
-                toView.backgroundColor = originalBackgroundColor
-                self.sourceViewController = nil
-                transitionContext.completeTransition(completed)
-            }
-        )
+    private func presentWithCardSlide(
+        _ viewController: UIViewController & QuizCardSlideTransitionDestination,
+        from presentingViewController: UIViewController
+    ) {
+        viewController.modalPresentationStyle = .custom
+        viewController.transitioningDelegate = self
+        cardSlideTransitionAnimator.sourceViewController = presentingViewController as? QuizCardSlideTransitionSource
+        presentingViewController.present(viewController, animated: true)
     }
 }
