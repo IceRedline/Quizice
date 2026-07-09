@@ -396,6 +396,7 @@ private struct SettingsActionRow: View {
         Button(action: action) {
             HStack(spacing: Layout.rowSpacing) {
                 SettingsRowHeader(systemImage: systemImage, title: title, subtitle: subtitle)
+                    .layoutPriority(1)
 
                 Spacer(minLength: Layout.rowAccessoryMinimumSpacing)
 
@@ -420,6 +421,7 @@ private struct SettingsValueRow: View {
     var body: some View {
         HStack(spacing: Layout.rowSpacing) {
             SettingsRowHeader(systemImage: systemImage, title: title, subtitle: subtitle)
+                .layoutPriority(1)
 
             Spacer(minLength: Layout.rowAccessoryMinimumSpacing)
 
@@ -428,6 +430,7 @@ private struct SettingsValueRow: View {
                     .font(appearance.typography.swiftUIFont(size: 15, weight: .semibold))
                     .foregroundStyle(Color(uiColor: appearance.surfaceTextColor))
                     .lineLimit(1)
+                    .minimumScaleFactor(0.82)
 
                 Image(systemName: "chevron.down")
                     .font(appearance.typography.swiftUIFont(size: 12, weight: .bold))
@@ -465,6 +468,7 @@ private struct SettingsRowHeader: View {
                     .font(appearance.typography.swiftUIFont(size: 13, weight: .regular))
                     .foregroundStyle(Color(uiColor: appearance.secondarySurfaceTextColor))
                     .lineLimit(2)
+                    .fixedSize(horizontal: false, vertical: true)
             }
         }
     }
