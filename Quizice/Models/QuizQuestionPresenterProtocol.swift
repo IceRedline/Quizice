@@ -9,6 +9,7 @@ import Foundation
 
 protocol QuizQuestionPresenterProtocol {
     var view: QuizQuestionViewControllerProtocol? { get set }
+    var themeID: String? { get }
     var correctAnswers: Int { get set }
     var questionsTotalCount: Int? { get set }
     var currentProgress: Float { get set }
@@ -22,4 +23,8 @@ protocol QuizQuestionPresenterProtocol {
     func checkAnswer(optionID: String)
     func updateQuizState(isCorrect: Bool)
     func resetGameProgress()
+}
+
+extension QuizQuestionPresenterProtocol {
+    var themeID: String? { nil }
 }

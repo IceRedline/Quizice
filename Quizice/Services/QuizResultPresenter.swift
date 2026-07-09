@@ -8,12 +8,21 @@
 import Foundation
 
 final class QuizResultPresenter: QuizResultPresenterProtocol {
+    private let session: QuizSessionManaging
+
     weak var view: QuizResultViewControllerProtocol?
     
     var correctAnswers: Int = 0
     var totalQuestions: Int = 0
+    var themeID: String? {
+        session.chosenTheme?.themeID
+    }
     
-    init(result: QuizResultState = QuizResultState(correctAnswers: 0, totalQuestions: 0)) {
+    init(
+        result: QuizResultState = QuizResultState(correctAnswers: 0, totalQuestions: 0),
+        session: QuizSessionManaging = QuizFactory.shared
+    ) {
+        self.session = session
         self.correctAnswers = result.correctAnswers
         self.totalQuestions = result.totalQuestions
     }

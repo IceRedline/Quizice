@@ -28,6 +28,7 @@ final class QuizDescriptionViewController: BaseQuizViewController, QuizDescripti
         
         static let cardTopInset: CGFloat = 36
         static let cardHorizontalInset: CGFloat = 20
+        static let cardHeight: CGFloat = 510
         static let contentTopInset: CGFloat = 28
         static let contentHorizontalInset: CGFloat = 22
         static let contentBottomInset: CGFloat = 26
@@ -168,6 +169,7 @@ final class QuizDescriptionViewController: BaseQuizViewController, QuizDescripti
     func configurePresenter(_ presenter: QuizDescriptionPresenterProtocol) {
         self.presenter = presenter
         self.presenter?.view = self
+        applyAppearance()
     }
     
     private func configureProgrammaticSubviews(in rootView: UIView) {
@@ -262,6 +264,7 @@ final class QuizDescriptionViewController: BaseQuizViewController, QuizDescripti
             contentCardTopConstraint,
             contentCardView.leadingAnchor.constraint(equalTo: rootView.leadingAnchor, constant: Layout.cardHorizontalInset),
             contentCardView.trailingAnchor.constraint(equalTo: rootView.trailingAnchor, constant: -Layout.cardHorizontalInset),
+            contentCardView.heightAnchor.constraint(equalToConstant: Layout.cardHeight),
             contentCardView.bottomAnchor.constraint(equalTo: startButton.topAnchor, constant: -Layout.actionTopSpacing),
             
             contentStackView.topAnchor.constraint(equalTo: contentCardView.topAnchor, constant: Layout.contentTopInset),
@@ -332,9 +335,17 @@ final class QuizDescriptionViewController: BaseQuizViewController, QuizDescripti
         numberOfQuestionsPickerView?.layer.borderColor = appearance.row.borderColor.cgColor
         numberOfQuestionsPickerView?.reloadAllComponents()
 
-        startButton?.applyActionAppearance(appearance.primaryButton, appearance: appearance, textColor: actionTextColor(for: .primary, appearance: appearance))
+        startButton?.applyActionAppearance(
+            QuizThemeAccentStyle.primaryButtonStyle(themeID: presenter?.themeID, appearance: appearance),
+            appearance: appearance,
+            textColor: actionTextColor(for: .primary, appearance: appearance)
+        )
         startButton?.titleLabel?.font = appearance.typography.font(size: Typography.buttonFontSize, weight: .semibold)
-        backButton?.applyActionAppearance(appearance.secondaryButton, appearance: appearance, textColor: actionTextColor(for: .secondary, appearance: appearance))
+        backButton?.applyActionAppearance(
+            QuizThemeAccentStyle.secondaryButtonStyle(themeID: presenter?.themeID, appearance: appearance),
+            appearance: appearance,
+            textColor: actionTextColor(for: .secondary, appearance: appearance)
+        )
         backButton?.titleLabel?.font = appearance.typography.font(size: Typography.buttonFontSize, weight: .semibold)
     }
 
@@ -342,6 +353,8 @@ final class QuizDescriptionViewController: BaseQuizViewController, QuizDescripti
         switch (style, appearance.designStyle) {
         case (.primary, .clean):
             return appearance.resolvedInterfaceStyle == .dark ? appearance.screenTextColor : UIColor.black
+        case (.secondary, .clean):
+            return QuizThemeAccentStyle.secondaryButtonTextColor(themeID: presenter?.themeID, appearance: appearance)
         case (.primary, .pixel):
             return UIColor.black
         default:

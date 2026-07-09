@@ -252,6 +252,7 @@ final class ThemesCollectionService: NSObject, UICollectionViewDelegate, UIColle
         button.layer.borderWidth = 0
         button.layer.borderColor = UIColor.clear.cgColor
         applyRadarGreenGlowStyleIfNeeded(to: button, appearance: appearance)
+        let aiThemeCornerRadius = Layout.secondaryActionButtonHeight / 2
 
         let betaBadge = InsetLabel(
             contentInsets: UIEdgeInsets(
@@ -282,8 +283,10 @@ final class ThemesCollectionService: NSObject, UICollectionViewDelegate, UIColle
         } else {
             let borderView = GradientBorderView(
                 colors: [Appearance.aiThemeGradientPink, Appearance.aiThemeGradientBlue],
-                lineWidth: Appearance.aiThemeGradientBorderWidth
+                lineWidth: Appearance.aiThemeGradientBorderWidth,
+                cornerRadius: aiThemeCornerRadius
             )
+            button.layer.cornerRadius = aiThemeCornerRadius
             borderView.accessibilityIdentifier = Content.aiThemeGradientBorderAccessibilityID
             borderView.translatesAutoresizingMaskIntoConstraints = false
             button.addSubview(borderView)
@@ -595,7 +598,7 @@ private struct ThemeVisualDescriptor {
     }
 }
 
-private enum ThemeVisualCatalog {
+enum ThemeVisualCatalog {
     private static let descriptors: [String: ThemeVisualDescriptor] = [
         "music": ThemeVisualDescriptor(
             classicLogoName: ThemesCollectionService.Content.musicThemeLogoImageName,
@@ -669,9 +672,11 @@ private final class GradientBorderView: UIView {
     private let gradientLayer = CAGradientLayer()
     private let borderMaskLayer = CAShapeLayer()
     private let lineWidth: CGFloat
+    private let cornerRadius: CGFloat?
 
-    init(colors: [UIColor], lineWidth: CGFloat) {
+    init(colors: [UIColor], lineWidth: CGFloat, cornerRadius: CGFloat? = nil) {
         self.lineWidth = lineWidth
+        self.cornerRadius = cornerRadius
         super.init(frame: .zero)
         isUserInteractionEnabled = false
         backgroundColor = .clear
@@ -690,15 +695,22 @@ private final class GradientBorderView: UIView {
     override func layoutSubviews() {
         super.layoutSubviews()
         gradientLayer.frame = bounds
-        let inset = lineWidth / 2
-        let cornerRadius = max((superview?.layer.cornerRadius ?? 0) - inset, 0)
+
+        let cornerRadius = cornerRadius ?? superview?.layer.cornerRadius ?? layer.cornerRadius
+        let innerBounds = bounds.insetBy(dx: lineWidth, dy: lineWidth)
+        let borderPath = UIBezierPath(roundedRect: bounds, cornerRadius: cornerRadius)
+        borderPath.append(
+            UIBezierPath(
+                roundedRect: innerBounds,
+                cornerRadius: max(cornerRadius - lineWidth, 0)
+            )
+        )
+
         borderMaskLayer.frame = bounds
-        borderMaskLayer.fillColor = UIColor.clear.cgColor
-        borderMaskLayer.strokeColor = UIColor.black.cgColor
-        borderMaskLayer.lineWidth = lineWidth
-        borderMaskLayer.path = UIBezierPath(
-            roundedRect: bounds.insetBy(dx: inset, dy: inset),
-            cornerRadius: cornerRadius
-        ).cgPath
+        borderMaskLayer.fillColor = UIColor.black.cgColor
+        borderMaskLayer.fillRule = .evenOdd
+        borderMaskLayer.strokeColor = nil
+        borderMaskLayer.lineWidth = 0
+        borderMaskLayer.path = borderPath.cgPath
     }
 }

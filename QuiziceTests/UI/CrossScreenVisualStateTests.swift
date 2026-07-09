@@ -95,6 +95,19 @@ final class CrossScreenVisualStateTests: XCTestCase {
         XCTAssertTrue(backButton.isEnabled)
     }
 
+    func testDescriptionCardKeepsMusicReferenceHeightAcrossThemes() throws {
+        let musicCardHeight = try descriptionCardHeight(
+            themeName: "Музыка",
+            themeDescription: "В данной викторине вам предстоит угадывать исполнителей и названия песен. Проверьте свои музыкальные знания, вспомните хиты разных эпох и получите удовольствие от путешествия по миру музыки."
+        )
+        let technologyCardHeight = try descriptionCardHeight(
+            themeName: "Технологии",
+            themeDescription: "Проверьте знания о гаджетах, языках программирования, компьютерной истории и цифровой культуре."
+        )
+
+        XCTAssertEqual(technologyCardHeight, musicCardHeight, accuracy: 1)
+    }
+
     func testDescriptionStartFadesActionButtonsAndRoutesToQuestion() throws {
         let viewController = QuizDescriptionViewController()
         let router = CrossScreenRouterSpy()
@@ -456,6 +469,18 @@ final class CrossScreenVisualStateTests: XCTestCase {
         XCTAssertNotNil(resultViewController.view.descendant(withAccessibilityIdentifier: "resultRestartButton"))
         XCTAssertNotNil(statisticsViewController.view.descendant(withAccessibilityIdentifier: "statisticsSummaryCardView"))
         XCTAssertNotNil(statisticsViewController.view.descendant(withAccessibilityIdentifier: "statisticsBackButton"))
+    }
+
+    private func descriptionCardHeight(themeName: String, themeDescription: String) throws -> CGFloat {
+        let viewController = QuizDescriptionViewController()
+        viewController.loadViewIfNeeded()
+        viewController.view.frame = CGRect(x: 0, y: 0, width: 390, height: 844)
+        viewController.updateLabels(themeName: themeName, themeDescription: themeDescription)
+        viewController.view.setNeedsLayout()
+        viewController.view.layoutIfNeeded()
+
+        let cardView = try XCTUnwrap(viewController.view.descendant(withAccessibilityIdentifier: "descriptionContentCardView"))
+        return cardView.frame.height
     }
 
     private func questionAnswerButtons(in viewController: QuizQuestionViewController) -> [UIButton] {
