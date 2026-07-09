@@ -3,14 +3,13 @@ import UIKit
 import SwiftUI
 #endif
 
-final class QuizDescriptionViewController: BaseQuizViewController, QuizDescriptionViewControllerProtocol {
+final class QuizDescriptionViewController: BaseQuizViewController, QuizDescriptionViewControllerProtocol, QuizCardSlideTransitionSource {
     private enum Content {
         static let backgroundImageName = "backgroundImage"
     }
     
     private enum AccessibilityID {
         static let rootView = "descriptionRootView"
-        static let scrollView = "descriptionScrollView"
         static let contentCardView = "descriptionContentCardView"
         static let themeNameLabel = "descriptionThemeNameLabel"
         static let textLabel = "descriptionTextLabel"
@@ -27,18 +26,19 @@ final class QuizDescriptionViewController: BaseQuizViewController, QuizDescripti
         static let descriptionBottomSpacing: CGFloat = 26
         static let pickerCaptionBottomSpacing: CGFloat = 8
         static let pickerBottomSpacing: CGFloat = 28
-        static let startButtonBottomSpacing: CGFloat = 12
         
         static let cardTopInset: CGFloat = 36
         static let cardHorizontalInset: CGFloat = 20
-        static let cardBottomInset: CGFloat = 28
-        static let cardMinimumHeightReduction: CGFloat = 64
         static let contentTopInset: CGFloat = 28
         static let contentHorizontalInset: CGFloat = 22
         static let contentBottomInset: CGFloat = 26
         static let pickerHeight: CGFloat = 136
         static let primaryButtonHeight: CGFloat = 54
         static let secondaryButtonHeight: CGFloat = 50
+        static let actionTopSpacing: CGFloat = 22
+        static let actionButtonWidth: CGFloat = 238
+        static let actionButtonSpacing: CGFloat = 12
+        static let bottomMaximumInset: CGFloat = 22
     }
     
     private enum Typography {
@@ -121,7 +121,6 @@ final class QuizDescriptionViewController: BaseQuizViewController, QuizDescripti
         }
     }
     
-    private var scrollView: UIScrollView!
     private var contentCardView: UIView!
     private var contentStackView: UIStackView!
     private var themeNameLabel: UILabel!
@@ -134,6 +133,14 @@ final class QuizDescriptionViewController: BaseQuizViewController, QuizDescripti
     weak var router: QuizRouting?
     
     var presenter: QuizDescriptionPresenterProtocol?
+
+    var cardSlideTransitionSourceView: UIView { contentCardView }
+    var cardSlideTransitionHorizontalInset: CGFloat { Layout.cardHorizontalInset }
+
+    private var descriptionActionViews: [UIView] {
+        let views: [UIView?] = [startButton, backButton]
+        return views.compactMap { $0 }
+    }
     
     override func loadView() {
         let rootView = UIView()
@@ -165,7 +172,6 @@ final class QuizDescriptionViewController: BaseQuizViewController, QuizDescripti
     }
     
     private func configureProgrammaticSubviews(in rootView: UIView) {
-        configureScrollView()
         configureContentCardView()
         configureLabels()
         configurePickerView()
@@ -173,13 +179,6 @@ final class QuizDescriptionViewController: BaseQuizViewController, QuizDescripti
         configureContentStackView()
         addSubviews(to: rootView)
         activateLayoutConstraints(in: rootView)
-    }
-    
-    private func configureScrollView() {
-        scrollView = UIScrollView()
-        scrollView.accessibilityIdentifier = AccessibilityID.scrollView
-        scrollView.alwaysBounceVertical = true
-        scrollView.translatesAutoresizingMaskIntoConstraints = false
     }
     
     private func configureContentCardView() {
@@ -235,9 +234,7 @@ final class QuizDescriptionViewController: BaseQuizViewController, QuizDescripti
             themeNameLabel,
             themeDescriptionLabel,
             pickerCaptionLabel,
-            numberOfQuestionsPickerView,
-            startButton,
-            backButton
+            numberOfQuestionsPickerView
         ])
         contentStackView.accessibilityIdentifier = AccessibilityID.contentStackView
         contentStackView.axis = .vertical
@@ -247,28 +244,21 @@ final class QuizDescriptionViewController: BaseQuizViewController, QuizDescripti
         contentStackView.setCustomSpacing(Layout.descriptionBottomSpacing, after: themeDescriptionLabel)
         contentStackView.setCustomSpacing(Layout.pickerCaptionBottomSpacing, after: pickerCaptionLabel)
         contentStackView.setCustomSpacing(Layout.pickerBottomSpacing, after: numberOfQuestionsPickerView)
-        contentStackView.setCustomSpacing(Layout.startButtonBottomSpacing, after: startButton)
         contentStackView.translatesAutoresizingMaskIntoConstraints = false
     }
     
     private func addSubviews(to rootView: UIView) {
-        rootView.addSubview(scrollView)
-        scrollView.addSubview(contentCardView)
+        rootView.addSubview(contentCardView)
+        [startButton, backButton].forEach(rootView.addSubview)
         contentCardView.addSubview(contentStackView)
     }
     
     private func activateLayoutConstraints(in rootView: UIView) {
         NSLayoutConstraint.activate([
-            scrollView.topAnchor.constraint(equalTo: rootView.safeAreaLayoutGuide.topAnchor),
-            scrollView.leadingAnchor.constraint(equalTo: rootView.leadingAnchor),
-            scrollView.trailingAnchor.constraint(equalTo: rootView.trailingAnchor),
-            scrollView.bottomAnchor.constraint(equalTo: rootView.safeAreaLayoutGuide.bottomAnchor),
-            
-            contentCardView.topAnchor.constraint(equalTo: scrollView.contentLayoutGuide.topAnchor, constant: Layout.cardTopInset),
-            contentCardView.leadingAnchor.constraint(equalTo: scrollView.frameLayoutGuide.leadingAnchor, constant: Layout.cardHorizontalInset),
-            contentCardView.trailingAnchor.constraint(equalTo: scrollView.frameLayoutGuide.trailingAnchor, constant: -Layout.cardHorizontalInset),
-            contentCardView.bottomAnchor.constraint(equalTo: scrollView.contentLayoutGuide.bottomAnchor, constant: -Layout.cardBottomInset),
-            contentCardView.heightAnchor.constraint(greaterThanOrEqualTo: scrollView.frameLayoutGuide.heightAnchor, constant: -Layout.cardMinimumHeightReduction),
+            contentCardView.topAnchor.constraint(equalTo: rootView.safeAreaLayoutGuide.topAnchor, constant: Layout.cardTopInset),
+            contentCardView.leadingAnchor.constraint(equalTo: rootView.leadingAnchor, constant: Layout.cardHorizontalInset),
+            contentCardView.trailingAnchor.constraint(equalTo: rootView.trailingAnchor, constant: -Layout.cardHorizontalInset),
+            contentCardView.bottomAnchor.constraint(equalTo: startButton.topAnchor, constant: -Layout.actionTopSpacing),
             
             contentStackView.topAnchor.constraint(equalTo: contentCardView.topAnchor, constant: Layout.contentTopInset),
             contentStackView.leadingAnchor.constraint(equalTo: contentCardView.leadingAnchor, constant: Layout.contentHorizontalInset),
@@ -276,9 +266,16 @@ final class QuizDescriptionViewController: BaseQuizViewController, QuizDescripti
             contentStackView.bottomAnchor.constraint(lessThanOrEqualTo: contentCardView.bottomAnchor, constant: -Layout.contentBottomInset),
             
             numberOfQuestionsPickerView.heightAnchor.constraint(equalToConstant: Layout.pickerHeight),
+
+            startButton.centerXAnchor.constraint(equalTo: rootView.centerXAnchor),
+            startButton.widthAnchor.constraint(equalToConstant: Layout.actionButtonWidth),
             startButton.heightAnchor.constraint(equalToConstant: Layout.primaryButtonHeight),
+
+            backButton.topAnchor.constraint(equalTo: startButton.bottomAnchor, constant: Layout.actionButtonSpacing),
+            backButton.centerXAnchor.constraint(equalTo: rootView.centerXAnchor),
+            backButton.widthAnchor.constraint(equalToConstant: Layout.actionButtonWidth),
             backButton.heightAnchor.constraint(equalToConstant: Layout.secondaryButtonHeight),
-            backButton.bottomAnchor.constraint(equalTo: contentCardView.bottomAnchor, constant: -Layout.contentBottomInset)
+            backButton.bottomAnchor.constraint(equalTo: rootView.safeAreaLayoutGuide.bottomAnchor, constant: -Layout.bottomMaximumInset)
         ])
     }
     
@@ -350,7 +347,26 @@ final class QuizDescriptionViewController: BaseQuizViewController, QuizDescripti
     
     @objc private func startButtonTapped() {
         presenter?.saveNumberOfQuestions(chosenRow: numberOfQuestionsPickerView.selectedRow(inComponent: .zero))
+        fadeActionButtonsForQuestionTransition()
         router?.showQuestion()
+    }
+
+    private func fadeActionButtonsForQuestionTransition() {
+        let changes = {
+            self.descriptionActionViews.forEach { $0.alpha = 0 }
+        }
+
+        guard !UIAccessibility.isReduceMotionEnabled else {
+            changes()
+            return
+        }
+
+        UIView.animate(
+            withDuration: QuizCardSlideTransition.duration,
+            delay: 0,
+            options: QuizCardSlideTransition.options,
+            animations: changes
+        )
     }
     
     @objc private func backButtonTapped() {
