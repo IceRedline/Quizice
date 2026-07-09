@@ -720,7 +720,7 @@ enum QuizThemeAccentStyle {
         guard appearance.designStyle == .clean, let themeID else {
             return appearance.accentColor
         }
-        return ThemeVisualCatalog.tintColor(for: themeID)
+        return ThemeVisualCatalog.tintColorIfAvailable(for: themeID) ?? appearance.accentColor
     }
 
     static func primaryButtonStyle(themeID: String?, appearance: AppAppearance) -> AppSurfaceStyle {
