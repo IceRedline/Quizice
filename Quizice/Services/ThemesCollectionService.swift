@@ -19,10 +19,10 @@ final class ThemesCollectionService: NSObject, UICollectionViewDelegate, UIColle
         static let technologyThemeLogoImageName = "theme_logo_tech.png"
         static let cultureThemeLogoImageName = "theme_logo_culture.png"
         static let politicsThemeLogoImageName = "theme_logo_politics"
-        static let musicThemeLogoCleanImageName = "theme_logo_music_clean"
-        static let technologyThemeLogoCleanImageName = "theme_logo_tech_clean"
-        static let cultureThemeLogoCleanImageName = "theme_logo_culture_clean"
-        static let politicsThemeLogoCleanImageName = "theme_logo_politics_clean"
+        static let musicThemeLogoCleanSymbolName = "music.note.square.stack"
+        static let technologyThemeLogoCleanSymbolName = "gamecontroller"
+        static let cultureThemeLogoCleanSymbolName = "theatermasks"
+        static let politicsThemeLogoCleanSymbolName = "building.columns"
         static let musicThemeLogoRadarImageName = "theme_logo_music_radar"
         static let technologyThemeLogoRadarImageName = "theme_logo_tech_radar"
         static let cultureThemeLogoRadarImageName = "theme_logo_culture_radar"
@@ -54,6 +54,7 @@ final class ThemesCollectionService: NSObject, UICollectionViewDelegate, UIColle
         static let themeTitleHorizontalInset: CGFloat = 8
         static let themeTitleBottomInset: CGFloat = 6
         static let themeTitleHeight: CGFloat = 56
+        static let cleanThemeSymbolScale: CGFloat = 0.70
         static let cellShadowOffset = CGSize(width: 0, height: 12)
         static let cellShadowRadius: CGFloat = 22
     }
@@ -174,8 +175,8 @@ final class ThemesCollectionService: NSObject, UICollectionViewDelegate, UIColle
         let button = UIButton(type: .custom)
         let themeID = theme.stableID
         let themeName = theme.theme
-        let themeImageName = themeLogoImageName(for: themeID, appearance: appearance)
         let themeTintColor = themeTintColor(for: themeID)
+        let themeBorderColor = appearance.themeCardBorder(baseColor: themeTintColor)
 
         button.addTarget(self, action: #selector(buttonTouchedDown(_:)), for: .touchDown)
         button.addTarget(self, action: #selector(buttonTouchedUpInside(_:)), for: .touchUpInside)
@@ -186,13 +187,15 @@ final class ThemesCollectionService: NSObject, UICollectionViewDelegate, UIColle
         button.backgroundColor = appearance.themeCardBackground(baseColor: themeTintColor)
         button.layer.cornerRadius = appearance.themeCardCornerRadius
         button.layer.borderWidth = appearance.themeCardBorderWidth
-        button.layer.borderColor = appearance.themeCardBorder(baseColor: themeTintColor).cgColor
+        button.layer.borderColor = themeBorderColor.cgColor
         button.clipsToBounds = true
         button.translatesAutoresizingMaskIntoConstraints = false
 
-        let imageView = UIImageView(image: UIImage(named: themeImageName))
+        let imageView = UIImageView(image: themeLogoImage(for: themeID, appearance: appearance))
         imageView.accessibilityIdentifier = themeImageAccessibilityIdentifier(themeID: themeID)
         imageView.contentMode = .scaleAspectFit
+        imageView.tintColor = themeBorderColor
+        imageView.transform = themeLogoTransform(for: appearance)
         imageView.isUserInteractionEnabled = false
         imageView.translatesAutoresizingMaskIntoConstraints = false
 
@@ -249,6 +252,7 @@ final class ThemesCollectionService: NSObject, UICollectionViewDelegate, UIColle
         button.layer.borderWidth = 0
         button.layer.borderColor = UIColor.clear.cgColor
         applyRadarGreenGlowStyleIfNeeded(to: button, appearance: appearance)
+        let aiThemeCornerRadius = Layout.secondaryActionButtonHeight / 2
 
         let betaBadge = InsetLabel(
             contentInsets: UIEdgeInsets(
@@ -279,8 +283,10 @@ final class ThemesCollectionService: NSObject, UICollectionViewDelegate, UIColle
         } else {
             let borderView = GradientBorderView(
                 colors: [Appearance.aiThemeGradientPink, Appearance.aiThemeGradientBlue],
-                lineWidth: Appearance.aiThemeGradientBorderWidth
+                lineWidth: Appearance.aiThemeGradientBorderWidth,
+                cornerRadius: aiThemeCornerRadius
             )
+            button.layer.cornerRadius = aiThemeCornerRadius
             borderView.accessibilityIdentifier = Content.aiThemeGradientBorderAccessibilityID
             borderView.translatesAutoresizingMaskIntoConstraints = false
             button.addSubview(borderView)
@@ -528,8 +534,16 @@ final class ThemesCollectionService: NSObject, UICollectionViewDelegate, UIColle
         "\(Content.themeTitleAccessibilityIDPrefix)-\(themeID)"
     }
 
-    private func themeLogoImageName(for themeID: String, appearance: AppAppearance) -> String {
-        ThemeVisualCatalog.logoImageName(for: themeID, designStyle: appearance.designStyle)
+    private func themeLogoImage(for themeID: String, appearance: AppAppearance) -> UIImage? {
+        ThemeVisualCatalog.logoImage(for: themeID, designStyle: appearance.designStyle)
+    }
+
+    private func themeLogoTransform(for appearance: AppAppearance) -> CGAffineTransform {
+        guard appearance.designStyle == .clean else { return .identity }
+        return CGAffineTransform(
+            scaleX: Layout.cleanThemeSymbolScale,
+            y: Layout.cleanThemeSymbolScale
+        )
     }
 
     private func themeTintColor(for themeID: String) -> UIColor {
@@ -568,57 +582,67 @@ final class ThemesCollectionService: NSObject, UICollectionViewDelegate, UIColle
 
 private struct ThemeVisualDescriptor {
     let classicLogoName: String
-    let cleanLogoName: String
+    let cleanSymbolName: String
+    let fallbackCleanSymbolName: String
     let radarLogoName: String
     let tintColorName: String
 
-    func logoName(for designStyle: AppDesignStyle) -> String {
+    func logoImage(for designStyle: AppDesignStyle) -> UIImage? {
         switch designStyle {
         case .clean:
-            return cleanLogoName
+            let symbolImage = UIImage(systemName: cleanSymbolName) ?? UIImage(systemName: fallbackCleanSymbolName)
+            return symbolImage?.withRenderingMode(.alwaysTemplate)
         case .radar:
-            return radarLogoName
+            return UIImage(named: radarLogoName)
         case .pixel, .classic:
-            return classicLogoName
+            return UIImage(named: classicLogoName)
         }
     }
 }
 
-private enum ThemeVisualCatalog {
+enum ThemeVisualCatalog {
     private static let descriptors: [String: ThemeVisualDescriptor] = [
         "music": ThemeVisualDescriptor(
             classicLogoName: ThemesCollectionService.Content.musicThemeLogoImageName,
-            cleanLogoName: ThemesCollectionService.Content.musicThemeLogoCleanImageName,
+            cleanSymbolName: ThemesCollectionService.Content.musicThemeLogoCleanSymbolName,
+            fallbackCleanSymbolName: "music.note",
             radarLogoName: ThemesCollectionService.Content.musicThemeLogoRadarImageName,
             tintColorName: ThemesCollectionService.Content.musicThemeTintColorName
         ),
         "technology": ThemeVisualDescriptor(
             classicLogoName: ThemesCollectionService.Content.technologyThemeLogoImageName,
-            cleanLogoName: ThemesCollectionService.Content.technologyThemeLogoCleanImageName,
+            cleanSymbolName: ThemesCollectionService.Content.technologyThemeLogoCleanSymbolName,
+            fallbackCleanSymbolName: ThemesCollectionService.Content.technologyThemeLogoCleanSymbolName,
             radarLogoName: ThemesCollectionService.Content.technologyThemeLogoRadarImageName,
             tintColorName: ThemesCollectionService.Content.technologyThemeTintColorName
         ),
         "history_culture": ThemeVisualDescriptor(
             classicLogoName: ThemesCollectionService.Content.cultureThemeLogoImageName,
-            cleanLogoName: ThemesCollectionService.Content.cultureThemeLogoCleanImageName,
+            cleanSymbolName: ThemesCollectionService.Content.cultureThemeLogoCleanSymbolName,
+            fallbackCleanSymbolName: "theatermasks.fill",
             radarLogoName: ThemesCollectionService.Content.cultureThemeLogoRadarImageName,
             tintColorName: ThemesCollectionService.Content.cultureThemeTintColorName
         ),
         "politics_business": ThemeVisualDescriptor(
             classicLogoName: ThemesCollectionService.Content.politicsThemeLogoImageName,
-            cleanLogoName: ThemesCollectionService.Content.politicsThemeLogoCleanImageName,
+            cleanSymbolName: ThemesCollectionService.Content.politicsThemeLogoCleanSymbolName,
+            fallbackCleanSymbolName: "building.columns.fill",
             radarLogoName: ThemesCollectionService.Content.politicsThemeLogoRadarImageName,
             tintColorName: ThemesCollectionService.Content.politicsThemeTintColorName
         )
     ]
 
-    static func logoImageName(for themeID: String, designStyle: AppDesignStyle) -> String {
-        descriptors[themeID]?.logoName(for: designStyle) ?? themeID
+    static func logoImage(for themeID: String, designStyle: AppDesignStyle) -> UIImage? {
+        descriptors[themeID]?.logoImage(for: designStyle) ?? UIImage(named: themeID)
     }
 
     static func tintColor(for themeID: String) -> UIColor {
-        guard let colorName = descriptors[themeID]?.tintColorName else { return .white }
-        return UIColor(named: colorName) ?? .white
+        tintColorIfAvailable(for: themeID) ?? .white
+    }
+
+    static func tintColorIfAvailable(for themeID: String) -> UIColor? {
+        guard let colorName = descriptors[themeID]?.tintColorName else { return nil }
+        return UIColor(named: colorName)
     }
 }
 
@@ -658,9 +682,11 @@ private final class GradientBorderView: UIView {
     private let gradientLayer = CAGradientLayer()
     private let borderMaskLayer = CAShapeLayer()
     private let lineWidth: CGFloat
+    private let cornerRadius: CGFloat?
 
-    init(colors: [UIColor], lineWidth: CGFloat) {
+    init(colors: [UIColor], lineWidth: CGFloat, cornerRadius: CGFloat? = nil) {
         self.lineWidth = lineWidth
+        self.cornerRadius = cornerRadius
         super.init(frame: .zero)
         isUserInteractionEnabled = false
         backgroundColor = .clear
@@ -679,15 +705,22 @@ private final class GradientBorderView: UIView {
     override func layoutSubviews() {
         super.layoutSubviews()
         gradientLayer.frame = bounds
-        let inset = lineWidth / 2
-        let cornerRadius = max((superview?.layer.cornerRadius ?? 0) - inset, 0)
+
+        let cornerRadius = cornerRadius ?? superview?.layer.cornerRadius ?? layer.cornerRadius
+        let innerBounds = bounds.insetBy(dx: lineWidth, dy: lineWidth)
+        let borderPath = UIBezierPath(roundedRect: bounds, cornerRadius: cornerRadius)
+        borderPath.append(
+            UIBezierPath(
+                roundedRect: innerBounds,
+                cornerRadius: max(cornerRadius - lineWidth, 0)
+            )
+        )
+
         borderMaskLayer.frame = bounds
-        borderMaskLayer.fillColor = UIColor.clear.cgColor
-        borderMaskLayer.strokeColor = UIColor.black.cgColor
-        borderMaskLayer.lineWidth = lineWidth
-        borderMaskLayer.path = UIBezierPath(
-            roundedRect: bounds.insetBy(dx: inset, dy: inset),
-            cornerRadius: cornerRadius
-        ).cgPath
+        borderMaskLayer.fillColor = UIColor.black.cgColor
+        borderMaskLayer.fillRule = .evenOdd
+        borderMaskLayer.strokeColor = nil
+        borderMaskLayer.lineWidth = 0
+        borderMaskLayer.path = borderPath.cgPath
     }
 }
