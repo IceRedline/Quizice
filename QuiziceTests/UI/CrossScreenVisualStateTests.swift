@@ -83,6 +83,12 @@ final class CrossScreenVisualStateTests: XCTestCase {
         XCTAssertNil(viewController.view.descendant(withAccessibilityIdentifier: "descriptionScrollView"))
         XCTAssertFalse(startButton.isDescendant(of: cardView))
         XCTAssertFalse(backButton.isDescendant(of: cardView))
+        XCTAssertEqual(
+            cardView.bounds.maxY - pickerView.convert(pickerView.bounds, to: cardView).maxY,
+            26,
+            accuracy: 1
+        )
+        XCTAssertEqual(startButton.frame.minY - cardView.frame.maxY, 22, accuracy: 1)
         XCTAssertFalse(viewController.view.hasAmbiguousLayout)
         XCTAssertFalse(pickerView.hasAmbiguousLayout)
         XCTAssertTrue(startButton.isEnabled)
