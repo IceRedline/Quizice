@@ -42,6 +42,18 @@ final class QuizFlowCoordinatorAdditionalTests: XCTestCase {
         XCTAssertEqual(harness.navigationController.popCallCount, 1)
     }
 
+    func testCloseQuestionReturnsToHomeInsteadOfDescription() {
+        let harness = makeHarness()
+        harness.coordinator.start()
+
+        harness.coordinator.closeQuestion()
+
+        XCTAssertEqual(harness.navigationController.popToRootCallCount, 1)
+        XCTAssertEqual(harness.navigationController.popToRootAnimationFlags, [false])
+        XCTAssertEqual(harness.navigationController.dismissCallCount, 1)
+        XCTAssertEqual(harness.navigationController.dismissAnimationFlags, [true])
+    }
+
     func testModalRoutesPresentQuestionResultSettingsAndAIThemeCreation() {
         let harness = makeHarness()
         harness.coordinator.start()
@@ -49,19 +61,27 @@ final class QuizFlowCoordinatorAdditionalTests: XCTestCase {
 
         harness.coordinator.showQuestion()
         XCTAssertEqual(harness.navigationController.presentedControllers.count, 1)
-        XCTAssertEqual(harness.navigationController.presentedControllers.last?.modalPresentationStyle, .fullScreen)
+        XCTAssertEqual(harness.navigationController.presentedControllers.last?.modalPresentationStyle, .custom)
+        XCTAssertEqual(harness.navigationController.presentedAnimationFlags.last, true)
+        let questionViewController = harness.navigationController.presentedControllers.last as? QuizQuestionViewController
+        XCTAssertNotNil(questionViewController?.transitioningDelegate)
 
         harness.coordinator.showResult(QuizResultState(correctAnswers: 2, totalQuestions: 3))
         XCTAssertEqual(harness.navigationController.presentedControllers.count, 2)
-        XCTAssertEqual(harness.navigationController.presentedControllers.last?.modalPresentationStyle, .fullScreen)
+        XCTAssertEqual(harness.navigationController.presentedControllers.last?.modalPresentationStyle, .custom)
+        XCTAssertEqual(harness.navigationController.presentedAnimationFlags.last, true)
+        let resultViewController = harness.navigationController.presentedControllers.last as? QuizResultViewController
+        XCTAssertNotNil(resultViewController?.transitioningDelegate)
 
         harness.coordinator.showSettings()
         XCTAssertEqual(harness.navigationController.presentedControllers.count, 3)
         XCTAssertEqual(harness.navigationController.presentedControllers.last?.modalPresentationStyle, .pageSheet)
+        XCTAssertEqual(harness.navigationController.presentedAnimationFlags.last, true)
 
         harness.coordinator.showAIThemeCreation()
         XCTAssertEqual(harness.navigationController.presentedControllers.count, 4)
         XCTAssertEqual(harness.navigationController.presentedControllers.last?.modalPresentationStyle, .pageSheet)
+        XCTAssertEqual(harness.navigationController.presentedAnimationFlags.last, true)
     }
 
     private func makeHarness() -> (
@@ -84,7 +104,12 @@ final class QuizFlowCoordinatorAdditionalTests: XCTestCase {
 
 private final class RoutingNavigationControllerSpy: UINavigationController {
     private(set) var presentedControllers: [UIViewController] = []
+    private(set) var presentedAnimationFlags: [Bool] = []
     private(set) var popCallCount = 0
+    private(set) var popToRootCallCount = 0
+    private(set) var popToRootAnimationFlags: [Bool] = []
+    private(set) var dismissCallCount = 0
+    private(set) var dismissAnimationFlags: [Bool] = []
     var topViewControllerOverride: UIViewController?
 
     override var topViewController: UIViewController? {
@@ -93,12 +118,25 @@ private final class RoutingNavigationControllerSpy: UINavigationController {
 
     override func present(_ viewControllerToPresent: UIViewController, animated flag: Bool, completion: (() -> Void)? = nil) {
         presentedControllers.append(viewControllerToPresent)
+        presentedAnimationFlags.append(flag)
         completion?()
     }
 
     override func popViewController(animated: Bool) -> UIViewController? {
         popCallCount += 1
         return viewControllers.popLast()
+    }
+
+    override func popToRootViewController(animated: Bool) -> [UIViewController]? {
+        popToRootCallCount += 1
+        popToRootAnimationFlags.append(animated)
+        return []
+    }
+
+    override func dismiss(animated flag: Bool, completion: (() -> Void)? = nil) {
+        dismissCallCount += 1
+        dismissAnimationFlags.append(flag)
+        completion?()
     }
 }
 

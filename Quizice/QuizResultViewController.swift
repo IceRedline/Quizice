@@ -3,7 +3,7 @@ import UIKit
 import SwiftUI
 #endif
 
-final class QuizResultViewController: BaseQuizViewController, QuizResultViewControllerProtocol {
+final class QuizResultViewController: BaseQuizViewController, QuizResultViewControllerProtocol, QuizCardSlideTransitionDestination {
     private enum Content {
         static let backgroundImageName = "backgroundImage"
     }
@@ -56,7 +56,7 @@ final class QuizResultViewController: BaseQuizViewController, QuizResultViewCont
         static let buttonShadowRadius: CGFloat = 10
         static let buttonShadowOffset = CGSize(width: 0, height: 6)
     }
-    
+
     private var resultCardView: UIView!
     private var contentStackView: UIStackView!
     private var resultLabel: UILabel!
@@ -66,6 +66,9 @@ final class QuizResultViewController: BaseQuizViewController, QuizResultViewCont
     weak var router: QuizRouting?
     
     var presenter: QuizResultPresenterProtocol?
+
+    var cardSlideTransitionDestinationView: UIView { resultCardView }
+    var cardSlideTransitionHorizontalInset: CGFloat { Layout.cardHorizontalInset }
     
     override func loadView() {
         let rootView = UIView()
@@ -221,7 +224,7 @@ final class QuizResultViewController: BaseQuizViewController, QuizResultViewCont
         }
         return appearance.screenTextColor
     }
-    
+
     @IBAction func backButtonTapped() {
         router?.restartQuiz()
     }

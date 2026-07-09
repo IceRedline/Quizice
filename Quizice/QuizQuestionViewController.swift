@@ -4,7 +4,7 @@ import AVKit
 import SwiftUI
 #endif
 
-final class QuizQuestionViewController: BaseQuizViewController, QuizQuestionViewControllerProtocol {
+final class QuizQuestionViewController: BaseQuizViewController, QuizQuestionViewControllerProtocol, QuizCardSlideTransitionSource, QuizCardSlideTransitionDestination {
     private enum Content {
         static let backgroundImageName = "backgroundImage"
         static let correctSoundName = "Quizice Correct"
@@ -105,9 +105,7 @@ final class QuizQuestionViewController: BaseQuizViewController, QuizQuestionView
         static let answerFeedbackDuration: Double = 0.15
         static let answerFeedbackOptions: UIView.AnimationOptions = [.curveEaseInOut, .allowUserInteraction]
         static let nextButtonEnableDuration: TimeInterval = 1
-        static let questionTransitionDuration: TimeInterval = 0.34
         static let questionNumberTransitionDuration: TimeInterval = 0.18
-        static let questionTransitionOptions: UIView.AnimationOptions = [.curveEaseInOut]
     }
     
     private enum ActionButtonStyle {
@@ -182,9 +180,22 @@ final class QuizQuestionViewController: BaseQuizViewController, QuizQuestionView
     private weak var outgoingQuestionCardSnapshot: UIView?
     
     var presenter: QuizQuestionPresenterProtocol?
+
+    var cardSlideTransitionSourceView: UIView { questionCardView }
+    var cardSlideTransitionDestinationView: UIView { questionCardView }
+    var cardSlideTransitionHorizontalInset: CGFloat { Layout.cardHorizontalInset }
+    var cardSlideTransitionDestinationCompanionViews: [UIView] {
+        let views: [UIView?] = [themeNameLabel, questionNumberLabel]
+        return views.compactMap { $0 }
+    }
     
     private var answerButtons: [UIButton] {
         [answer1Button, answer2Button, answer3Button, answer4Button]
+    }
+
+    private var questionChromeViews: [UIView] {
+        let views: [UIView?] = [themeNameLabel, questionNumberLabel, nextButton, backButton]
+        return views.compactMap { $0 }
     }
     
     override func loadView() {
@@ -509,7 +520,10 @@ final class QuizQuestionViewController: BaseQuizViewController, QuizQuestionView
         containerView.insertSubview(outgoingCardSnapshot, aboveSubview: questionCardView)
         outgoingQuestionCardSnapshot = outgoingCardSnapshot
 
-        let horizontalOffset = containerView.bounds.width + Layout.cardHorizontalInset
+        let horizontalOffset = QuizCardSlideTransition.horizontalOffset(
+            in: containerView,
+            horizontalInset: Layout.cardHorizontalInset
+        )
         questionCardView.transform = CGAffineTransform(translationX: horizontalOffset, y: 0)
         applyQuestion(viewModel, updatesQuestionNumber: false)
 
@@ -523,9 +537,9 @@ final class QuizQuestionViewController: BaseQuizViewController, QuizQuestionView
         )
 
         UIView.animate(
-            withDuration: AnimationTiming.questionTransitionDuration,
+            withDuration: QuizCardSlideTransition.duration,
             delay: 0,
-            options: AnimationTiming.questionTransitionOptions,
+            options: QuizCardSlideTransition.options,
             animations: {
                 outgoingCardSnapshot.transform = CGAffineTransform(translationX: -horizontalOffset, y: 0)
                 self.questionCardView.transform = .identity
@@ -776,7 +790,26 @@ final class QuizQuestionViewController: BaseQuizViewController, QuizQuestionView
     }
     
     func showResults(_ result: QuizResultState) {
+        fadeQuestionChromeForResultTransition()
         router?.showResult(result)
+    }
+
+    private func fadeQuestionChromeForResultTransition() {
+        let changes = {
+            self.questionChromeViews.forEach { $0.alpha = 0 }
+        }
+
+        guard !UIAccessibility.isReduceMotionEnabled else {
+            changes()
+            return
+        }
+
+        UIView.animate(
+            withDuration: QuizCardSlideTransition.duration,
+            delay: 0,
+            options: QuizCardSlideTransition.options,
+            animations: changes
+        )
     }
     
     private func resetSoundPlayers() {
@@ -817,6 +850,15 @@ final class QuizQuestionViewController: BaseQuizViewController, QuizQuestionView
         guard isViewLoaded else { return }
         nextButton.setTitle(L10n.Common.next, for: .normal)
         backButton.setTitle(L10n.Common.back, for: .normal)
+    }
+}
+
+enum QuizCardSlideTransition {
+    static let duration: TimeInterval = 0.34
+    static let options: UIView.AnimationOptions = [.curveEaseInOut]
+
+    static func horizontalOffset(in containerView: UIView, horizontalInset: CGFloat) -> CGFloat {
+        containerView.bounds.width + horizontalInset
     }
 }
 
