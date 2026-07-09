@@ -853,15 +853,6 @@ final class QuizQuestionViewController: BaseQuizViewController, QuizQuestionView
     }
 }
 
-enum QuizCardSlideTransition {
-    static let duration: TimeInterval = 0.34
-    static let options: UIView.AnimationOptions = [.curveEaseInOut]
-
-    static func horizontalOffset(in containerView: UIView, horizontalInset: CGFloat) -> CGFloat {
-        containerView.bounds.width + horizontalInset
-    }
-}
-
 #if DEBUG
 #Preview("Question") {
     let viewController = QuizQuestionViewController()
