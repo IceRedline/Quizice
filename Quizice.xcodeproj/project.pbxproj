@@ -89,7 +89,6 @@
 		993C1BC22D8D5EC200AD9BE4 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		993C1BC32D8D5EC200AD9BE4 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		993C1BC42D8D5EC200AD9BE4 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
-		993C1BC72D8D5EC200AD9BE4 /* Base */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = Base; path = Base.lproj/Localizable.strings; sourceTree = "<group>"; };
 		99C0F1002E50000100C0DE01 /* ru */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = ru; path = ru.lproj/Localizable.strings; sourceTree = "<group>"; };
 		99C0F1012E50000100C0DE01 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/Localizable.strings; sourceTree = "<group>"; };
 		99C0F1022E50000100C0DE01 /* es */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = es; path = es.lproj/Localizable.strings; sourceTree = "<group>"; };
@@ -549,7 +548,6 @@
 		993C1BC62D8D5EC200AD9BE4 /* Localizable.strings */ = {
 			isa = PBXVariantGroup;
 			children = (
-				993C1BC72D8D5EC200AD9BE4 /* Base */,
 				99C0F1002E50000100C0DE01 /* ru */,
 				99C0F1012E50000100C0DE01 /* en */,
 				99C0F1022E50000100C0DE01 /* es */,

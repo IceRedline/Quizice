@@ -30,7 +30,6 @@ final class CrossScreenVisualStateTests: XCTestCase {
         )
 
         XCTAssertNotNil(viewController.view.descendant(withAccessibilityIdentifier: "descriptionRootView"))
-        XCTAssertNotNil(viewController.view.descendant(withAccessibilityIdentifier: "descriptionScrollView"))
         XCTAssertNotNil(viewController.view.descendant(withAccessibilityIdentifier: "descriptionContentCardView"))
         XCTAssertNotNil(viewController.view.descendant(withAccessibilityIdentifier: "descriptionThemeNameLabel"))
         XCTAssertNotNil(viewController.view.descendant(withAccessibilityIdentifier: "descriptionTextLabel"))
@@ -58,6 +57,8 @@ final class CrossScreenVisualStateTests: XCTestCase {
         XCTAssertEqual(backButton.title(for: .normal), L10n.Common.back)
         XCTAssertEqual(backButton.layer.cornerRadius, 22)
         XCTAssertEqual(backButton.layer.borderWidth, 1)
+        XCTAssertFalse(startButton.isDescendant(of: cardView))
+        XCTAssertFalse(backButton.isDescendant(of: cardView))
     }
 
     func testDescriptionScreenKeepsControlsReachableWithEmptyAndLongPresenterText() throws {
@@ -69,7 +70,7 @@ final class CrossScreenVisualStateTests: XCTestCase {
         viewController.view.setNeedsLayout()
         viewController.view.layoutIfNeeded()
 
-        let scrollView = try XCTUnwrap(viewController.view.descendant(withAccessibilityIdentifier: "descriptionScrollView") as? UIScrollView)
+        let cardView = try XCTUnwrap(viewController.view.descendant(withAccessibilityIdentifier: "descriptionContentCardView"))
         let themeLabel = try XCTUnwrap(viewController.view.descendant(withAccessibilityIdentifier: "descriptionThemeNameLabel") as? UILabel)
         let descriptionLabel = try XCTUnwrap(viewController.view.descendant(withAccessibilityIdentifier: "descriptionTextLabel") as? UILabel)
         let pickerView = try XCTUnwrap(viewController.view.descendant(withAccessibilityIdentifier: "descriptionQuestionCountPicker") as? UIPickerView)
@@ -79,11 +80,51 @@ final class CrossScreenVisualStateTests: XCTestCase {
         XCTAssertEqual(themeLabel.text, "")
         XCTAssertFalse(descriptionLabel.text?.isEmpty ?? true)
         XCTAssertEqual(descriptionLabel.numberOfLines, 0)
-        XCTAssertTrue(scrollView.alwaysBounceVertical)
+        XCTAssertNil(viewController.view.descendant(withAccessibilityIdentifier: "descriptionScrollView"))
+        XCTAssertFalse(startButton.isDescendant(of: cardView))
+        XCTAssertFalse(backButton.isDescendant(of: cardView))
+        XCTAssertEqual(
+            cardView.bounds.maxY - pickerView.convert(pickerView.bounds, to: cardView).maxY,
+            26,
+            accuracy: 1
+        )
+        XCTAssertEqual(startButton.frame.minY - cardView.frame.maxY, 22, accuracy: 1)
         XCTAssertFalse(viewController.view.hasAmbiguousLayout)
         XCTAssertFalse(pickerView.hasAmbiguousLayout)
         XCTAssertTrue(startButton.isEnabled)
         XCTAssertTrue(backButton.isEnabled)
+    }
+
+    func testDescriptionCardKeepsMusicReferenceHeightAcrossThemes() throws {
+        let musicCardHeight = try descriptionCardHeight(
+            themeName: "Музыка",
+            themeDescription: "В данной викторине вам предстоит угадывать исполнителей и названия песен. Проверьте свои музыкальные знания, вспомните хиты разных эпох и получите удовольствие от путешествия по миру музыки."
+        )
+        let technologyCardHeight = try descriptionCardHeight(
+            themeName: "Технологии",
+            themeDescription: "Проверьте знания о гаджетах, языках программирования, компьютерной истории и цифровой культуре."
+        )
+
+        XCTAssertEqual(technologyCardHeight, musicCardHeight, accuracy: 1)
+    }
+
+    func testDescriptionStartFadesActionButtonsAndRoutesToQuestion() throws {
+        let viewController = QuizDescriptionViewController()
+        let router = CrossScreenRouterSpy()
+        viewController.router = router
+        viewController.loadViewIfNeeded()
+
+        let startButton = try XCTUnwrap(viewController.view.descendant(withAccessibilityIdentifier: "descriptionStartButton") as? UIButton)
+        let backButton = try XCTUnwrap(viewController.view.descendant(withAccessibilityIdentifier: "descriptionBackButton") as? UIButton)
+
+        XCTAssertEqual(startButton.alpha, 1)
+        XCTAssertEqual(backButton.alpha, 1)
+
+        startButton.sendActions(for: .touchUpInside)
+
+        XCTAssertEqual(startButton.alpha, 0)
+        XCTAssertEqual(backButton.alpha, 0)
+        XCTAssertEqual(router.showQuestionCallCount, 1)
     }
 
     func testQuestionScreenExposesPolishedLayoutAnchorsAndAnswerControls() {
@@ -105,7 +146,10 @@ final class CrossScreenVisualStateTests: XCTestCase {
         XCTAssertNotNil(viewController.view.descendant(withAccessibilityIdentifier: "questionBackButton"))
 
         let answerButtons = questionAnswerButtons(in: viewController)
+        let transitionDestination = viewController as QuizCardSlideTransitionDestination
+        let companionViewIDs = transitionDestination.cardSlideTransitionDestinationCompanionViews.compactMap { $0.accessibilityIdentifier }
         XCTAssertEqual(answerButtons.count, 4)
+        XCTAssertEqual(companionViewIDs, ["questionThemeLabel", "questionNumberLabel"])
         XCTAssertTrue(answerButtons.allSatisfy(\.isEnabled))
         XCTAssertTrue(answerButtons.allSatisfy { $0.layer.cornerRadius >= 16 })
         XCTAssertTrue(answerButtons.allSatisfy { $0.backgroundColor == currentAppearance().answerDefaultColor })
@@ -113,6 +157,31 @@ final class CrossScreenVisualStateTests: XCTestCase {
         let timerBar = viewController.view.descendant(withAccessibilityIdentifier: "questionTimerProgressView") as? UIProgressView
         assertColor(timerBar?.progressTintColor, equals: currentAppearance().accentColor)
         assertColor(timerBar?.tintColor, equals: currentAppearance().accentColor)
+    }
+
+    func testQuestionScreenFadesHeaderAndActionButtonsWhenShowingResult() throws {
+        QuizFactory.shared.chosenTheme = makeQuestionTheme()
+        QuizFactory.shared.questionsCount = 1
+
+        let viewController = QuizQuestionViewController()
+        let router = CrossScreenRouterSpy()
+        viewController.router = router
+        viewController.loadViewIfNeeded()
+        defer { viewController.presenter?.stopTimer() }
+
+        let chromeViews = try [
+            XCTUnwrap(viewController.view.descendant(withAccessibilityIdentifier: "questionThemeLabel")),
+            XCTUnwrap(viewController.view.descendant(withAccessibilityIdentifier: "questionNumberLabel")),
+            XCTUnwrap(viewController.view.descendant(withAccessibilityIdentifier: "questionNextButton")),
+            XCTUnwrap(viewController.view.descendant(withAccessibilityIdentifier: "questionBackButton"))
+        ]
+
+        XCTAssertTrue(chromeViews.allSatisfy { $0.alpha == 1 })
+
+        viewController.showResults(QuizResultState(correctAnswers: 1, totalQuestions: 1))
+
+        XCTAssertTrue(chromeViews.allSatisfy { $0.alpha == 0 })
+        XCTAssertEqual(router.results, [QuizResultState(correctAnswers: 1, totalQuestions: 1)])
     }
 
     func testQuestionScreenUpdatesExistingCardWhenNextQuestionViewModelIsLoaded() throws {
@@ -402,6 +471,18 @@ final class CrossScreenVisualStateTests: XCTestCase {
         XCTAssertNotNil(statisticsViewController.view.descendant(withAccessibilityIdentifier: "statisticsBackButton"))
     }
 
+    private func descriptionCardHeight(themeName: String, themeDescription: String) throws -> CGFloat {
+        let viewController = QuizDescriptionViewController()
+        viewController.loadViewIfNeeded()
+        viewController.view.frame = CGRect(x: 0, y: 0, width: 390, height: 844)
+        viewController.updateLabels(themeName: themeName, themeDescription: themeDescription)
+        viewController.view.setNeedsLayout()
+        viewController.view.layoutIfNeeded()
+
+        let cardView = try XCTUnwrap(viewController.view.descendant(withAccessibilityIdentifier: "descriptionContentCardView"))
+        return cardView.frame.height
+    }
+
     private func questionAnswerButtons(in viewController: QuizQuestionViewController) -> [UIButton] {
         (1...4).compactMap { index in
             viewController.view.descendant(withAccessibilityIdentifier: "questionAnswerButton\(index)") as? UIButton
@@ -469,6 +550,22 @@ final class CrossScreenVisualStateTests: XCTestCase {
         defaults.removePersistentDomain(forName: suiteName)
         return (StatisticsStore(userDefaults: defaults), defaults, suiteName)
     }
+}
+
+private final class CrossScreenRouterSpy: QuizRouting {
+    private(set) var results: [QuizResultState] = []
+    private(set) var showQuestionCallCount = 0
+
+    func showDescription() {}
+    func showQuestion() { showQuestionCallCount += 1 }
+    func showResult(_ result: QuizResultState) { results.append(result) }
+    func showStatistics() {}
+    func showAIThemeCreation() {}
+    func showSettings() {}
+    func closeDescription() {}
+    func closeStatistics() {}
+    func closeQuestion() {}
+    func restartQuiz() {}
 }
 
 private extension UIView {

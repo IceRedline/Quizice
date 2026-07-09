@@ -70,11 +70,12 @@ protocol QuizRouting: AnyObject {
     func restartQuiz()
 }
 
-final class QuizFlowCoordinator: QuizRouting {
+final class QuizFlowCoordinator: NSObject, QuizRouting, UIViewControllerTransitioningDelegate {
     private let window: UIWindow
     private let navigationController: UINavigationController
     private let themeRepository: ThemeRepository
     private let session: QuizSessionManaging
+    private let cardSlideTransitionAnimator = QuizCardSlidePresentationAnimator()
 
     init(
         window: UIWindow,
@@ -86,6 +87,7 @@ final class QuizFlowCoordinator: QuizRouting {
         self.navigationController = navigationController
         self.themeRepository = themeRepository
         self.session = session
+        super.init()
     }
 
     func start() {
@@ -108,16 +110,15 @@ final class QuizFlowCoordinator: QuizRouting {
     func showQuestion() {
         let viewController = QuizQuestionViewController()
         viewController.router = self
-        viewController.modalPresentationStyle = .fullScreen
-        navigationController.topViewController?.present(viewController, animated: true)
+        guard let presentingViewController = navigationController.topViewController else { return }
+        presentWithCardSlide(viewController, from: presentingViewController)
     }
 
     func showResult(_ result: QuizResultState) {
         let viewController = QuizResultViewController()
         viewController.router = self
-        viewController.modalPresentationStyle = .fullScreen
         viewController.configurePresenter(QuizResultPresenter(result: result))
-        presentedViewController.present(viewController, animated: true)
+        presentWithCardSlide(viewController, from: presentedViewController)
     }
 
     func showStatistics() {
@@ -155,6 +156,7 @@ final class QuizFlowCoordinator: QuizRouting {
     }
 
     func closeQuestion() {
+        navigationController.popToRootViewController(animated: false)
         navigationController.dismiss(animated: true)
     }
 
@@ -169,5 +171,23 @@ final class QuizFlowCoordinator: QuizRouting {
             viewController = presented
         }
         return viewController
+    }
+
+    func animationController(
+        forPresented presented: UIViewController,
+        presenting: UIViewController,
+        source: UIViewController
+    ) -> UIViewControllerAnimatedTransitioning? {
+        presented is QuizCardSlideTransitionDestination ? cardSlideTransitionAnimator : nil
+    }
+
+    private func presentWithCardSlide(
+        _ viewController: UIViewController & QuizCardSlideTransitionDestination,
+        from presentingViewController: UIViewController
+    ) {
+        viewController.modalPresentationStyle = .custom
+        viewController.transitioningDelegate = self
+        cardSlideTransitionAnimator.sourceViewController = presentingViewController as? QuizCardSlideTransitionSource
+        presentingViewController.present(viewController, animated: true)
     }
 }

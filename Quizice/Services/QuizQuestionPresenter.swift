@@ -26,6 +26,9 @@ final class QuizQuestionPresenter: QuizQuestionPresenterProtocol {
     var currentProgress: Float = 0.2
     private var hasRecordedCompletedAttempt = false
     private var currentAnswerOptions: [QuizAnswerOption] = []
+    var themeID: String? {
+        session.chosenTheme?.themeID
+    }
     
     init(session: QuizSessionManaging = QuizFactory.shared, statisticsStore: StatisticsStore = StatisticsStore()) {
         self.session = session

@@ -116,12 +116,22 @@ final class AppAppearanceStore {
         AppAppearance(
             designStyle: designStyle,
             cleanColorSchemePreference: cleanColorSchemePreference,
-            traitCollection: traitCollection
+            traitCollection: effectiveTraitCollection(compatibleWith: traitCollection)
         )
     }
 
     func notifyChange() {
         notificationCenter.post(name: .appAppearanceDidChange, object: self)
+    }
+
+    private func effectiveTraitCollection(compatibleWith traitCollection: UITraitCollection) -> UITraitCollection {
+        guard designStyle == .clean, cleanColorSchemePreference == .system else {
+            return traitCollection
+        }
+
+        let systemStyle = UIScreen.main.traitCollection.userInterfaceStyle
+        guard systemStyle != .unspecified else { return traitCollection }
+        return UITraitCollection(userInterfaceStyle: systemStyle)
     }
 }
 
@@ -702,6 +712,45 @@ extension UIButton {
         setTitleColor(textColor ?? appearance.screenTextColor, for: .normal)
         setTitleColor(appearance.disabledTextColor, for: .disabled)
         tintColor = textColor ?? appearance.screenTextColor
+    }
+}
+
+enum QuizThemeAccentStyle {
+    static func accentColor(themeID: String?, appearance: AppAppearance) -> UIColor {
+        guard appearance.designStyle == .clean, let themeID else {
+            return appearance.accentColor
+        }
+        return ThemeVisualCatalog.tintColorIfAvailable(for: themeID) ?? appearance.accentColor
+    }
+
+    static func primaryButtonStyle(themeID: String?, appearance: AppAppearance) -> AppSurfaceStyle {
+        guard appearance.designStyle == .clean else { return appearance.primaryButton }
+        let accentColor = accentColor(themeID: themeID, appearance: appearance)
+        return AppSurfaceStyle(
+            backgroundColor: accentColor,
+            borderColor: accentColor,
+            borderWidth: appearance.primaryButton.borderWidth,
+            cornerRadius: appearance.primaryButton.cornerRadius,
+            shadow: appearance.primaryButton.shadow
+        )
+    }
+
+    static func secondaryButtonStyle(themeID: String?, appearance: AppAppearance) -> AppSurfaceStyle {
+        guard appearance.designStyle == .clean else { return appearance.secondaryButton }
+        let accentColor = accentColor(themeID: themeID, appearance: appearance)
+        let borderAlpha: CGFloat = appearance.resolvedInterfaceStyle == .dark ? 0.56 : 0.44
+        return AppSurfaceStyle(
+            backgroundColor: appearance.secondaryButton.backgroundColor,
+            borderColor: accentColor.withAlphaComponent(borderAlpha),
+            borderWidth: appearance.secondaryButton.borderWidth,
+            cornerRadius: appearance.secondaryButton.cornerRadius,
+            shadow: appearance.secondaryButton.shadow
+        )
+    }
+
+    static func secondaryButtonTextColor(themeID: String?, appearance: AppAppearance) -> UIColor {
+        guard appearance.designStyle == .clean else { return appearance.screenTextColor }
+        return accentColor(themeID: themeID, appearance: appearance)
     }
 }
 

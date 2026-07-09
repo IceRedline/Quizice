@@ -4,7 +4,7 @@ import AVKit
 import SwiftUI
 #endif
 
-final class QuizQuestionViewController: BaseQuizViewController, QuizQuestionViewControllerProtocol {
+final class QuizQuestionViewController: BaseQuizViewController, QuizQuestionViewControllerProtocol, QuizCardSlideTransitionSource, QuizCardSlideTransitionDestination {
     private enum Content {
         static let backgroundImageName = "backgroundImage"
         static let correctSoundName = "Quizice Correct"
@@ -105,9 +105,7 @@ final class QuizQuestionViewController: BaseQuizViewController, QuizQuestionView
         static let answerFeedbackDuration: Double = 0.15
         static let answerFeedbackOptions: UIView.AnimationOptions = [.curveEaseInOut, .allowUserInteraction]
         static let nextButtonEnableDuration: TimeInterval = 1
-        static let questionTransitionDuration: TimeInterval = 0.34
         static let questionNumberTransitionDuration: TimeInterval = 0.18
-        static let questionTransitionOptions: UIView.AnimationOptions = [.curveEaseInOut]
     }
     
     private enum ActionButtonStyle {
@@ -182,9 +180,22 @@ final class QuizQuestionViewController: BaseQuizViewController, QuizQuestionView
     private weak var outgoingQuestionCardSnapshot: UIView?
     
     var presenter: QuizQuestionPresenterProtocol?
+
+    var cardSlideTransitionSourceView: UIView { questionCardView }
+    var cardSlideTransitionDestinationView: UIView { questionCardView }
+    var cardSlideTransitionHorizontalInset: CGFloat { Layout.cardHorizontalInset }
+    var cardSlideTransitionDestinationCompanionViews: [UIView] {
+        let views: [UIView?] = [themeNameLabel, questionNumberLabel]
+        return views.compactMap { $0 }
+    }
     
     private var answerButtons: [UIButton] {
         [answer1Button, answer2Button, answer3Button, answer4Button]
+    }
+
+    private var questionChromeViews: [UIView] {
+        let views: [UIView?] = [themeNameLabel, questionNumberLabel, nextButton, backButton]
+        return views.compactMap { $0 }
     }
     
     override func loadView() {
@@ -202,6 +213,7 @@ final class QuizQuestionViewController: BaseQuizViewController, QuizQuestionView
         installAppearanceTraitObserver()
         loadAnswerSounds()
         configurePresenter(QuizQuestionPresenter())
+        applyAppearance()
         presenter?.viewDidLoad()
         installLocalizationObserver()
 
@@ -320,6 +332,12 @@ final class QuizQuestionViewController: BaseQuizViewController, QuizQuestionView
     }
     
     private func activateLayoutConstraints(in rootView: UIView) {
+        let questionTextLayoutGuide = UILayoutGuide()
+        questionCardView.addLayoutGuide(questionTextLayoutGuide)
+
+        let questionCenterYConstraint = questionLabel.centerYAnchor.constraint(equalTo: questionTextLayoutGuide.centerYAnchor)
+        questionCenterYConstraint.priority = .defaultHigh
+
         NSLayoutConstraint.activate([
             themeNameLabel.topAnchor.constraint(equalTo: rootView.safeAreaLayoutGuide.topAnchor, constant: Layout.topInset),
             themeNameLabel.leadingAnchor.constraint(equalTo: rootView.leadingAnchor, constant: Layout.rootHorizontalInset),
@@ -342,8 +360,12 @@ final class QuizQuestionViewController: BaseQuizViewController, QuizQuestionView
             timerBar.leadingAnchor.constraint(equalTo: timerContainerView.leadingAnchor, constant: Layout.timerBarHorizontalInset),
             timerBar.trailingAnchor.constraint(equalTo: timerContainerView.trailingAnchor, constant: -Layout.timerBarHorizontalInset),
             timerBar.heightAnchor.constraint(equalToConstant: Layout.timerBarHeight),
-            
-            questionLabel.topAnchor.constraint(equalTo: timerContainerView.bottomAnchor, constant: Layout.questionTopSpacing),
+
+            questionTextLayoutGuide.topAnchor.constraint(equalTo: timerContainerView.bottomAnchor),
+            questionTextLayoutGuide.bottomAnchor.constraint(equalTo: answersStackView.topAnchor),
+
+            questionCenterYConstraint,
+            questionLabel.topAnchor.constraint(greaterThanOrEqualTo: timerContainerView.bottomAnchor, constant: Layout.questionTopSpacing),
             questionLabel.leadingAnchor.constraint(equalTo: questionCardView.leadingAnchor, constant: Layout.questionHorizontalInset),
             questionLabel.trailingAnchor.constraint(equalTo: questionCardView.trailingAnchor, constant: -Layout.questionHorizontalInset),
             
@@ -451,7 +473,7 @@ final class QuizQuestionViewController: BaseQuizViewController, QuizQuestionView
             applyAnswerFeedback(.normal, to: button, appearance: appearance)
             button.isEnabled = true
         }
-        setTimerBarColor(appearance.accentColor)
+        setTimerBarColor(quizThemeAccentColor(for: appearance))
     }
     
     func loadQuestionToView(_ viewModel: QuizQuestionViewModel) {
@@ -509,7 +531,10 @@ final class QuizQuestionViewController: BaseQuizViewController, QuizQuestionView
         containerView.insertSubview(outgoingCardSnapshot, aboveSubview: questionCardView)
         outgoingQuestionCardSnapshot = outgoingCardSnapshot
 
-        let horizontalOffset = containerView.bounds.width + Layout.cardHorizontalInset
+        let horizontalOffset = QuizCardSlideTransition.horizontalOffset(
+            in: containerView,
+            horizontalInset: Layout.cardHorizontalInset
+        )
         questionCardView.transform = CGAffineTransform(translationX: horizontalOffset, y: 0)
         applyQuestion(viewModel, updatesQuestionNumber: false)
 
@@ -523,9 +548,9 @@ final class QuizQuestionViewController: BaseQuizViewController, QuizQuestionView
         )
 
         UIView.animate(
-            withDuration: AnimationTiming.questionTransitionDuration,
+            withDuration: QuizCardSlideTransition.duration,
             delay: 0,
-            options: AnimationTiming.questionTransitionOptions,
+            options: QuizCardSlideTransition.options,
             animations: {
                 outgoingCardSnapshot.transform = CGAffineTransform(translationX: -horizontalOffset, y: 0)
                 self.questionCardView.transform = .identity
@@ -585,7 +610,7 @@ final class QuizQuestionViewController: BaseQuizViewController, QuizQuestionView
         currentAnswerOptions = []
         timerBar.progress = .zero
         let appearance = currentAppearance()
-        setTimerBarColor(appearance.accentColor)
+        setTimerBarColor(quizThemeAccentColor(for: appearance))
         answerButtons.forEach { button in
             button.setTitle(Content.disabledAnswerPlaceholder, for: .normal)
             applyAnswerFeedback(.normal, to: button, appearance: appearance)
@@ -751,7 +776,7 @@ final class QuizQuestionViewController: BaseQuizViewController, QuizQuestionView
         timerContainerView?.backgroundColor = appearance.progressTrackColor
         timerContainerView?.layer.cornerRadius = min(appearance.card.cornerRadius, Appearance.timerContainerCornerRadius)
         timerBar?.trackTintColor = appearance.progressTrackColor
-        setTimerBarColor(appearance.accentColor)
+        setTimerBarColor(quizThemeAccentColor(for: appearance))
 
         answerButtons.forEach { button in
             button.titleLabel?.font = appearance.typography.font(size: Typography.answerButtonFontSize, weight: .semibold)
@@ -759,9 +784,17 @@ final class QuizQuestionViewController: BaseQuizViewController, QuizQuestionView
             applyAnswerFeedback(.normal, to: button, appearance: appearance)
         }
 
-        nextButton?.applyActionAppearance(appearance.primaryButton, appearance: appearance, textColor: actionTextColor(isPrimary: true, appearance: appearance))
+        nextButton?.applyActionAppearance(
+            QuizThemeAccentStyle.primaryButtonStyle(themeID: presenter?.themeID, appearance: appearance),
+            appearance: appearance,
+            textColor: actionTextColor(isPrimary: true, appearance: appearance)
+        )
         nextButton?.titleLabel?.font = appearance.typography.font(size: Typography.actionButtonFontSize, weight: .semibold)
-        backButton?.applyActionAppearance(appearance.secondaryButton, appearance: appearance, textColor: actionTextColor(isPrimary: false, appearance: appearance))
+        backButton?.applyActionAppearance(
+            QuizThemeAccentStyle.secondaryButtonStyle(themeID: presenter?.themeID, appearance: appearance),
+            appearance: appearance,
+            textColor: actionTextColor(isPrimary: false, appearance: appearance)
+        )
         backButton?.titleLabel?.font = appearance.typography.font(size: Typography.actionButtonFontSize, weight: .semibold)
     }
 
@@ -769,14 +802,40 @@ final class QuizQuestionViewController: BaseQuizViewController, QuizQuestionView
         if isPrimary && appearance.designStyle == .clean {
             return appearance.resolvedInterfaceStyle == .dark ? appearance.screenTextColor : .black
         }
+        if !isPrimary && appearance.designStyle == .clean {
+            return QuizThemeAccentStyle.secondaryButtonTextColor(themeID: presenter?.themeID, appearance: appearance)
+        }
         if isPrimary && appearance.designStyle == .pixel {
             return .black
         }
         return appearance.screenTextColor
     }
+
+    private func quizThemeAccentColor(for appearance: AppAppearance) -> UIColor {
+        QuizThemeAccentStyle.accentColor(themeID: presenter?.themeID, appearance: appearance)
+    }
     
     func showResults(_ result: QuizResultState) {
+        fadeQuestionChromeForResultTransition()
         router?.showResult(result)
+    }
+
+    private func fadeQuestionChromeForResultTransition() {
+        let changes = {
+            self.questionChromeViews.forEach { $0.alpha = 0 }
+        }
+
+        guard !UIAccessibility.isReduceMotionEnabled else {
+            changes()
+            return
+        }
+
+        UIView.animate(
+            withDuration: QuizCardSlideTransition.duration,
+            delay: 0,
+            options: QuizCardSlideTransition.options,
+            animations: changes
+        )
     }
     
     private func resetSoundPlayers() {
