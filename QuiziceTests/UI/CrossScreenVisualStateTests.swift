@@ -232,6 +232,30 @@ final class CrossScreenVisualStateTests: XCTestCase {
         XCTAssertFalse(timerBar?.accessibilityValue?.isEmpty ?? true)
     }
 
+    func testQuestionTextIsCenteredBetweenProgressBarAndFirstAnswer() throws {
+        QuizFactory.shared.chosenTheme = makeQuestionTheme()
+        QuizFactory.shared.questionsCount = 1
+
+        let viewController = QuizQuestionViewController()
+        viewController.loadViewIfNeeded()
+        defer { viewController.presenter?.stopTimer() }
+        viewController.view.frame = CGRect(x: 0, y: 0, width: 390, height: 844)
+        viewController.view.layoutIfNeeded()
+
+        let cardView = try XCTUnwrap(viewController.view.descendant(withAccessibilityIdentifier: "questionCardView"))
+        let progressBar = try XCTUnwrap(viewController.view.descendant(withAccessibilityIdentifier: "questionTimerProgressView"))
+        let questionLabel = try XCTUnwrap(viewController.view.descendant(withAccessibilityIdentifier: "questionTextLabel"))
+        let firstAnswer = try XCTUnwrap(viewController.view.descendant(withAccessibilityIdentifier: "questionAnswerButton1"))
+        let progressFrame = progressBar.convert(progressBar.bounds, to: cardView)
+        let questionFrame = questionLabel.convert(questionLabel.bounds, to: cardView)
+        let firstAnswerFrame = firstAnswer.convert(firstAnswer.bounds, to: cardView)
+        let availableGapMidY = (progressFrame.maxY + firstAnswerFrame.minY) / 2
+
+        XCTAssertEqual(questionFrame.midY, availableGapMidY, accuracy: 0.5)
+        XCTAssertGreaterThanOrEqual(questionFrame.minY - progressFrame.maxY, 24)
+        XCTAssertGreaterThanOrEqual(firstAnswerFrame.minY - questionFrame.maxY, 24)
+    }
+
     func testQuestionScreenFadesHeaderAndActionButtonsWhenShowingResult() throws {
         QuizFactory.shared.chosenTheme = makeQuestionTheme()
         QuizFactory.shared.questionsCount = 1
