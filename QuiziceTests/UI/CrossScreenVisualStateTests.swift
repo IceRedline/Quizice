@@ -116,6 +116,30 @@ final class CrossScreenVisualStateTests: XCTestCase {
         XCTAssertEqual(musicCardHeight, 510, accuracy: 0.5)
     }
 
+    func testDescriptionTextIsCenteredBetweenThemeNameAndQuestionCountLabel() throws {
+        let viewController = QuizDescriptionViewController()
+        viewController.loadViewIfNeeded()
+        viewController.view.frame = CGRect(x: 0, y: 0, width: 390, height: 844)
+        viewController.updateLabels(
+            themeName: "Музыка",
+            themeDescription: "Проверьте знания о любимых исполнителях и песнях."
+        )
+        viewController.view.layoutIfNeeded()
+
+        let cardView = try XCTUnwrap(viewController.view.descendant(withAccessibilityIdentifier: "descriptionContentCardView"))
+        let themeLabel = try XCTUnwrap(viewController.view.descendant(withAccessibilityIdentifier: "descriptionThemeNameLabel"))
+        let descriptionLabel = try XCTUnwrap(viewController.view.descendant(withAccessibilityIdentifier: "descriptionTextLabel"))
+        let questionCountLabel = try XCTUnwrap(viewController.view.descendant(withAccessibilityIdentifier: "descriptionPickerCaptionLabel"))
+        let themeFrame = themeLabel.convert(themeLabel.bounds, to: cardView)
+        let descriptionFrame = descriptionLabel.convert(descriptionLabel.bounds, to: cardView)
+        let questionCountFrame = questionCountLabel.convert(questionCountLabel.bounds, to: cardView)
+        let availableGapMidY = (themeFrame.maxY + questionCountFrame.minY) / 2
+
+        XCTAssertEqual(descriptionFrame.midY, availableGapMidY, accuracy: 0.5)
+        XCTAssertGreaterThanOrEqual(descriptionFrame.minY - themeFrame.maxY, 32)
+        XCTAssertGreaterThanOrEqual(questionCountFrame.minY - descriptionFrame.maxY, 32)
+    }
+
     func testDescriptionStartButtonStaysPinnedWhenCardContentGrows() throws {
         let viewController = QuizDescriptionViewController()
         viewController.loadViewIfNeeded()

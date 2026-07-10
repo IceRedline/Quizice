@@ -22,14 +22,12 @@ final class QuizDescriptionViewController: BaseQuizViewController, QuizDescripti
     }
     
     private enum Layout {
-        static let contentStackSpacing: CGFloat = 18
-        static let themeNameBottomSpacing: CGFloat = 24
-        static let descriptionBottomSpacing: CGFloat = 26
+        static let descriptionSurroundingMinimumSpacing: CGFloat = 32
         static let pickerCaptionBottomSpacing: CGFloat = 8
         
-        static let cardTopInset: CGFloat = 72
+        static let cardTopInset: CGFloat = 100
         static let cardHorizontalInset: CGFloat = 20
-        static let contentTopInset: CGFloat = 28
+        static let contentTopInset: CGFloat = 50
         static let contentHorizontalInset: CGFloat = 22
         static let contentBottomInset: CGFloat = 26
         static let stableCardMinimumHeight: CGFloat = 510
@@ -132,7 +130,8 @@ final class QuizDescriptionViewController: BaseQuizViewController, QuizDescripti
     private var themeDescriptionLabel: UILabel!
     private var pickerCaptionLabel: UILabel!
     private var numberOfQuestionsPickerView: UIPickerView!
-    private var contentSpacerView: UIView!
+    private var descriptionTopSpacerView: UIView!
+    private var descriptionBottomSpacerView: UIView!
     
     private var startButton: UIButton!
     private var backButton: UIButton!
@@ -246,25 +245,26 @@ final class QuizDescriptionViewController: BaseQuizViewController, QuizDescripti
     }
     
     private func configureContentStackView() {
-        contentSpacerView = UIView()
-        contentSpacerView.setContentHuggingPriority(.defaultLow, for: .vertical)
-        contentSpacerView.setContentCompressionResistancePriority(.defaultLow, for: .vertical)
-        contentSpacerView.translatesAutoresizingMaskIntoConstraints = false
+        descriptionTopSpacerView = UIView()
+        descriptionBottomSpacerView = UIView()
+        [descriptionTopSpacerView, descriptionBottomSpacerView].forEach { spacerView in
+            spacerView.setContentHuggingPriority(.defaultLow, for: .vertical)
+            spacerView.setContentCompressionResistancePriority(.defaultLow, for: .vertical)
+            spacerView.translatesAutoresizingMaskIntoConstraints = false
+        }
 
         contentStackView = UIStackView(arrangedSubviews: [
             themeNameLabel,
+            descriptionTopSpacerView,
             themeDescriptionLabel,
-            contentSpacerView,
+            descriptionBottomSpacerView,
             pickerCaptionLabel,
             numberOfQuestionsPickerView
         ])
         contentStackView.accessibilityIdentifier = AccessibilityID.contentStackView
         contentStackView.axis = .vertical
         contentStackView.alignment = .fill
-        contentStackView.spacing = Layout.contentStackSpacing
-        contentStackView.setCustomSpacing(Layout.themeNameBottomSpacing, after: themeNameLabel)
-        contentStackView.setCustomSpacing(Layout.descriptionBottomSpacing, after: themeDescriptionLabel)
-        contentStackView.setCustomSpacing(.zero, after: contentSpacerView)
+        contentStackView.spacing = .zero
         contentStackView.setCustomSpacing(Layout.pickerCaptionBottomSpacing, after: pickerCaptionLabel)
         contentStackView.translatesAutoresizingMaskIntoConstraints = false
     }
@@ -307,6 +307,14 @@ final class QuizDescriptionViewController: BaseQuizViewController, QuizDescripti
             contentStackView.bottomAnchor.constraint(equalTo: contentCardView.bottomAnchor, constant: -Layout.contentBottomInset),
 
             contentCardView.heightAnchor.constraint(greaterThanOrEqualToConstant: Layout.stableCardMinimumHeight),
+
+            descriptionTopSpacerView.heightAnchor.constraint(
+                greaterThanOrEqualToConstant: Layout.descriptionSurroundingMinimumSpacing
+            ),
+            descriptionBottomSpacerView.heightAnchor.constraint(
+                greaterThanOrEqualToConstant: Layout.descriptionSurroundingMinimumSpacing
+            ),
+            descriptionTopSpacerView.heightAnchor.constraint(equalTo: descriptionBottomSpacerView.heightAnchor),
             
             numberOfQuestionsPickerView.heightAnchor.constraint(equalToConstant: Layout.pickerHeight),
 
