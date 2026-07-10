@@ -34,11 +34,17 @@ struct QuizAIThemeCreationView: View {
     @State private var prompt = ""
     @State private var isSubmitting = false
     @State private var isShowingError = false
+    @State private var submitTask: Task<Void, Never>?
 
     private let service: AIQuizThemeServiceProtocol
+    private let onGenerated: (QuizTheme) -> Void
 
-    init(service: AIQuizThemeServiceProtocol = MockAIQuizThemeService()) {
+    init(
+        service: AIQuizThemeServiceProtocol = MockAIQuizThemeService(),
+        onGenerated: @escaping (QuizTheme) -> Void = { _ in }
+    ) {
         self.service = service
+        self.onGenerated = onGenerated
     }
 
     private var selectedTheme: CleanColorSchemePreference {
@@ -103,6 +109,9 @@ struct QuizAIThemeCreationView: View {
         } message: {
             Text(L10n.AITheme.errorMessage)
         }
+        .onDisappear {
+            cancelSubmission()
+        }
     }
 
     @ViewBuilder
@@ -148,6 +157,7 @@ struct QuizAIThemeCreationView: View {
             }
 
             Button {
+                cancelSubmission()
                 dismiss()
             } label: {
                 Image(systemName: "xmark")
@@ -210,9 +220,7 @@ struct QuizAIThemeCreationView: View {
 
     private var submitButton: some View {
         Button {
-            Task {
-                await submitTheme()
-            }
+            startSubmission()
         } label: {
             HStack(spacing: Layout.buttonContentSpacing) {
                 if isSubmitting {
@@ -255,19 +263,56 @@ struct QuizAIThemeCreationView: View {
         return appearance.disabledTextColor
     }
 
-    private func submitTheme() async {
+    private func startSubmission() {
         let prompt = trimmedPrompt
-        guard !prompt.isEmpty else { return }
+        guard !prompt.isEmpty else {
+            AppLog.quiz.debug("AI quiz submission ignored: empty prompt")
+            return
+        }
+        guard !isSubmitting else {
+            AppLog.quiz.debug("AI quiz submission ignored: request already in progress")
+            return
+        }
 
         isSubmitting = true
-        defer { isSubmitting = false }
+        isShowingError = false
+        let locale = selectedLocale
+        AppLog.quiz.info(
+            "AI quiz submission started: locale=\(locale.identifier, privacy: .public) prompt_length=\(prompt.count, privacy: .public)"
+        )
+        submitTask = Task {
+            await submitTheme(prompt: prompt, locale: locale)
+        }
+    }
+
+    private func submitTheme(prompt: String, locale: Locale) async {
+        defer {
+            isSubmitting = false
+            submitTask = nil
+        }
 
         do {
-            _ = try await service.generateQuizTheme(for: prompt, locale: selectedLocale)
-            dismiss()
+            let theme = try await service.generateQuizTheme(for: prompt, locale: locale)
+            try Task.checkCancellation()
+            AppLog.quiz.debug("AI quiz submission succeeded; handing result to coordinator")
+            onGenerated(theme)
+        } catch is CancellationError {
+            AppLog.quiz.debug("AI quiz submission task cancelled")
+            return
         } catch {
+            guard !Task.isCancelled else { return }
+            let errorType = String(describing: type(of: error))
+            AppLog.quiz.error(
+                "AI quiz submission failed; showing alert. error_type=\(errorType, privacy: .public)"
+            )
             isShowingError = true
         }
+    }
+
+    private func cancelSubmission() {
+        submitTask?.cancel()
+        submitTask = nil
+        isSubmitting = false
     }
 }
 
