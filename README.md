@@ -30,6 +30,7 @@ The AI quiz generator calls the saved Yandex AI Studio agent only in Debug build
 4. Edit the local scheme, open **Run → Arguments**, and add the enabled
    environment variable `YANDEX_AI_API_KEY` with the API-key secret as its value.
 
-The key is intentionally read from the Xcode launch environment and is never
+The first Debug launch reads the key from the Xcode environment and stores it in
+the device Keychain, so later Debug launches work without Xcode. The key is never
 stored in source control. Release builds do not perform direct AI Studio calls;
 use an authenticated backend proxy before enabling this feature in production.
