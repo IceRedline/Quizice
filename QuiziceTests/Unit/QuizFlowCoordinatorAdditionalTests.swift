@@ -84,9 +84,40 @@ final class QuizFlowCoordinatorAdditionalTests: XCTestCase {
         XCTAssertEqual(harness.navigationController.presentedAnimationFlags.last, true)
     }
 
+    func testGeneratedAIThemeUpdatesSessionAndShowsDescriptionAfterSheetDismissal() {
+        let harness = makeHarness()
+        harness.coordinator.start()
+        let generatedTheme = SnapshotSupport.makeTheme(
+            id: "ai-generated",
+            name: "Generated theme",
+            questions: (1...5).map { index in
+                QuizQuestion(
+                    question: "Question \(index)?",
+                    answers: ["A", "B", "C", "D"],
+                    correctAnswer: "A"
+                )
+            }
+        )
+        let creationViewController = DeferredDismissViewControllerSpy()
+
+        harness.coordinator.handleGeneratedAITheme(generatedTheme, dismissing: creationViewController)
+
+        XCTAssertTrue(harness.session.chosenTheme?.quizTheme === generatedTheme)
+        XCTAssertEqual(harness.session.questionsCount, 5)
+        XCTAssertEqual(creationViewController.dismissAnimationFlags, [true])
+        XCTAssertTrue(harness.navigationController.pushedControllers.isEmpty)
+
+        creationViewController.completeDismissal()
+
+        XCTAssertEqual(harness.navigationController.pushedControllers.count, 1)
+        XCTAssertTrue(harness.navigationController.pushedControllers.last is QuizDescriptionViewController)
+        XCTAssertEqual(harness.navigationController.pushAnimationFlags, [true])
+    }
+
     private func makeHarness() -> (
         coordinator: QuizFlowCoordinator,
-        navigationController: RoutingNavigationControllerSpy
+        navigationController: RoutingNavigationControllerSpy,
+        session: RoutingSession
     ) {
         let window = UIWindow(frame: CGRect(x: 0, y: 0, width: 390, height: 844))
         let navigationController = RoutingNavigationControllerSpy()
@@ -96,9 +127,10 @@ final class QuizFlowCoordinatorAdditionalTests: XCTestCase {
             window: window,
             navigationController: navigationController,
             themeRepository: RoutingThemeRepository(themes: []),
-            session: session
+            session: session,
+            aiQuizThemeService: MockAIQuizThemeService()
         )
-        return (coordinator, navigationController)
+        return (coordinator, navigationController, session)
     }
 }
 
@@ -110,6 +142,8 @@ private final class RoutingNavigationControllerSpy: UINavigationController {
     private(set) var popToRootAnimationFlags: [Bool] = []
     private(set) var dismissCallCount = 0
     private(set) var dismissAnimationFlags: [Bool] = []
+    private(set) var pushedControllers: [UIViewController] = []
+    private(set) var pushAnimationFlags: [Bool] = []
     var topViewControllerOverride: UIViewController?
 
     override var topViewController: UIViewController? {
@@ -127,6 +161,12 @@ private final class RoutingNavigationControllerSpy: UINavigationController {
         return viewControllers.popLast()
     }
 
+    override func pushViewController(_ viewController: UIViewController, animated: Bool) {
+        pushedControllers.append(viewController)
+        pushAnimationFlags.append(animated)
+        super.pushViewController(viewController, animated: animated)
+    }
+
     override func popToRootViewController(animated: Bool) -> [UIViewController]? {
         popToRootCallCount += 1
         popToRootAnimationFlags.append(animated)
@@ -136,6 +176,22 @@ private final class RoutingNavigationControllerSpy: UINavigationController {
     override func dismiss(animated flag: Bool, completion: (() -> Void)? = nil) {
         dismissCallCount += 1
         dismissAnimationFlags.append(flag)
+        completion?()
+    }
+}
+
+private final class DeferredDismissViewControllerSpy: UIViewController {
+    private(set) var dismissAnimationFlags: [Bool] = []
+    private var dismissalCompletion: (() -> Void)?
+
+    override func dismiss(animated flag: Bool, completion: (() -> Void)? = nil) {
+        dismissAnimationFlags.append(flag)
+        dismissalCompletion = completion
+    }
+
+    func completeDismissal() {
+        let completion = dismissalCompletion
+        dismissalCompletion = nil
         completion?()
     }
 }
