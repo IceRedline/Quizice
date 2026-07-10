@@ -13,8 +13,10 @@ final class QuizResultViewController: BaseQuizViewController, QuizResultViewCont
         static let cardView = "resultCardView"
         static let scoreLabel = "resultScoreLabel"
         static let descriptionLabel = "resultDescriptionLabel"
-        static let restartButton = "resultRestartButton"
+        static let replayButton = "resultReplayButton"
+        static let themesButton = "resultThemesButton"
         static let contentStackView = "resultContentStackView"
+        static let scrollView = "resultScrollView"
     }
     
     private enum Layout {
@@ -26,7 +28,9 @@ final class QuizResultViewController: BaseQuizViewController, QuizResultViewCont
         static let contentTopInset: CGFloat = 34
         static let contentHorizontalInset: CGFloat = 24
         static let contentBottomInset: CGFloat = 30
-        static let restartButtonHeight: CGFloat = 56
+        static let actionButtonHeight: CGFloat = 56
+        static let maximumContentWidth: CGFloat = 430
+        static let actionButtonSpacing: CGFloat = 12
     }
     
     private enum Typography {
@@ -57,12 +61,14 @@ final class QuizResultViewController: BaseQuizViewController, QuizResultViewCont
         static let buttonShadowOffset = CGSize(width: 0, height: 6)
     }
 
+    private var scrollView: UIScrollView!
     private var resultCardView: UIView!
     private var contentStackView: UIStackView!
     private var resultLabel: UILabel!
     private var resultDescription: UILabel!
     
-    private var restartButton: UIButton!
+    private var replayButton: UIButton!
+    private var themesButton: UIButton!
     weak var router: QuizRouting?
     
     var presenter: QuizResultPresenterProtocol?
@@ -101,7 +107,7 @@ final class QuizResultViewController: BaseQuizViewController, QuizResultViewCont
     private func configureProgrammaticSubviews(in rootView: UIView) {
         configureResultCardView()
         configureLabels()
-        configureRestartButton()
+        configureActionButtons()
         configureContentStackView()
         addSubviews(to: rootView)
         activateLayoutConstraints(in: rootView)
@@ -125,21 +131,32 @@ final class QuizResultViewController: BaseQuizViewController, QuizResultViewCont
         let typography = currentAppearance().typography
         resultLabel = makeLabel(font: typography.font(size: Typography.resultFontSize, weight: .bold), accessibilityIdentifier: AccessibilityID.scoreLabel)
         resultLabel.numberOfLines = Typography.unlimitedNumberOfLines
-        resultLabel.adjustsFontSizeToFitWidth = true
-        resultLabel.minimumScaleFactor = Typography.resultMinimumScaleFactor
         
         resultDescription = makeLabel(font: typography.font(size: Typography.descriptionFontSize, weight: .regular), accessibilityIdentifier: AccessibilityID.descriptionLabel)
         resultDescription.numberOfLines = Typography.unlimitedNumberOfLines
         resultDescription.textColor = UIColor.white.withAlphaComponent(Appearance.descriptionTextAlpha)
     }
     
-    private func configureRestartButton() {
-        restartButton = makeActionButton(title: L10n.Result.restart, accessibilityIdentifier: AccessibilityID.restartButton)
-        restartButton.addTarget(self, action: #selector(backButtonTapped), for: .touchUpInside)
+    private func configureActionButtons() {
+        replayButton = makeActionButton(
+            title: L10n.Result.playAgain,
+            accessibilityIdentifier: AccessibilityID.replayButton
+        )
+        replayButton.addTarget(self, action: #selector(replayButtonTapped), for: .touchUpInside)
+
+        themesButton = makeActionButton(
+            title: L10n.Result.toThemes,
+            accessibilityIdentifier: AccessibilityID.themesButton
+        )
+        themesButton.addTarget(self, action: #selector(themesButtonTapped), for: .touchUpInside)
     }
     
     private func configureContentStackView() {
-        contentStackView = UIStackView(arrangedSubviews: [resultLabel, resultDescription, restartButton])
+        let actionsStackView = UIStackView(arrangedSubviews: [replayButton, themesButton])
+        actionsStackView.axis = .vertical
+        actionsStackView.spacing = Layout.actionButtonSpacing
+
+        contentStackView = UIStackView(arrangedSubviews: [resultLabel, resultDescription, actionsStackView])
         contentStackView.accessibilityIdentifier = AccessibilityID.contentStackView
         contentStackView.axis = .vertical
         contentStackView.alignment = .fill
@@ -150,25 +167,47 @@ final class QuizResultViewController: BaseQuizViewController, QuizResultViewCont
     }
     
     private func addSubviews(to rootView: UIView) {
-        rootView.addSubview(resultCardView)
+        scrollView = UIScrollView()
+        scrollView.accessibilityIdentifier = AccessibilityID.scrollView
+        scrollView.alwaysBounceVertical = false
+        scrollView.translatesAutoresizingMaskIntoConstraints = false
+        rootView.addSubview(scrollView)
+        scrollView.addSubview(resultCardView)
         resultCardView.addSubview(contentStackView)
     }
     
     private func activateLayoutConstraints(in rootView: UIView) {
         NSLayoutConstraint.activate([
-            resultCardView.centerYAnchor.constraint(equalTo: rootView.safeAreaLayoutGuide.centerYAnchor),
-            resultCardView.leadingAnchor.constraint(equalTo: rootView.leadingAnchor, constant: Layout.cardHorizontalInset),
-            resultCardView.trailingAnchor.constraint(equalTo: rootView.trailingAnchor, constant: -Layout.cardHorizontalInset),
-            resultCardView.topAnchor.constraint(greaterThanOrEqualTo: rootView.safeAreaLayoutGuide.topAnchor, constant: Layout.cardVerticalMinimumInset),
-            resultCardView.bottomAnchor.constraint(lessThanOrEqualTo: rootView.safeAreaLayoutGuide.bottomAnchor, constant: -Layout.cardVerticalMinimumInset),
+            scrollView.topAnchor.constraint(equalTo: rootView.safeAreaLayoutGuide.topAnchor),
+            scrollView.leadingAnchor.constraint(equalTo: rootView.leadingAnchor),
+            scrollView.trailingAnchor.constraint(equalTo: rootView.trailingAnchor),
+            scrollView.bottomAnchor.constraint(equalTo: rootView.safeAreaLayoutGuide.bottomAnchor),
+            scrollView.contentLayoutGuide.widthAnchor.constraint(equalTo: scrollView.frameLayoutGuide.widthAnchor),
+            scrollView.contentLayoutGuide.heightAnchor.constraint(greaterThanOrEqualTo: scrollView.frameLayoutGuide.heightAnchor),
+
+            resultCardView.centerXAnchor.constraint(equalTo: scrollView.frameLayoutGuide.centerXAnchor),
+            resultCardView.centerYAnchor.constraint(equalTo: scrollView.contentLayoutGuide.centerYAnchor),
+            resultCardView.leadingAnchor.constraint(greaterThanOrEqualTo: scrollView.contentLayoutGuide.leadingAnchor, constant: Layout.cardHorizontalInset),
+            resultCardView.trailingAnchor.constraint(lessThanOrEqualTo: scrollView.contentLayoutGuide.trailingAnchor, constant: -Layout.cardHorizontalInset),
+            resultCardView.widthAnchor.constraint(lessThanOrEqualToConstant: Layout.maximumContentWidth),
+            resultCardView.topAnchor.constraint(greaterThanOrEqualTo: scrollView.contentLayoutGuide.topAnchor, constant: Layout.cardVerticalMinimumInset),
+            resultCardView.bottomAnchor.constraint(lessThanOrEqualTo: scrollView.contentLayoutGuide.bottomAnchor, constant: -Layout.cardVerticalMinimumInset),
             
             contentStackView.topAnchor.constraint(equalTo: resultCardView.topAnchor, constant: Layout.contentTopInset),
             contentStackView.leadingAnchor.constraint(equalTo: resultCardView.leadingAnchor, constant: Layout.contentHorizontalInset),
             contentStackView.trailingAnchor.constraint(equalTo: resultCardView.trailingAnchor, constant: -Layout.contentHorizontalInset),
             contentStackView.bottomAnchor.constraint(equalTo: resultCardView.bottomAnchor, constant: -Layout.contentBottomInset),
             
-            restartButton.heightAnchor.constraint(equalToConstant: Layout.restartButtonHeight)
+            replayButton.heightAnchor.constraint(greaterThanOrEqualToConstant: Layout.actionButtonHeight),
+            themesButton.heightAnchor.constraint(greaterThanOrEqualToConstant: Layout.actionButtonHeight)
         ])
+
+        let cardWidthConstraint = resultCardView.widthAnchor.constraint(
+            equalTo: scrollView.frameLayoutGuide.widthAnchor,
+            constant: -(Layout.cardHorizontalInset * 2)
+        )
+        cardWidthConstraint.priority = .defaultHigh
+        cardWidthConstraint.isActive = true
     }
     
     private func makeLabel(font: UIFont, accessibilityIdentifier: String) -> UILabel {
@@ -176,6 +215,7 @@ final class QuizResultViewController: BaseQuizViewController, QuizResultViewCont
         label.accessibilityIdentifier = accessibilityIdentifier
         label.textColor = .white
         label.font = font
+        label.adjustsFontForContentSizeCategory = true
         label.textAlignment = .center
         label.translatesAutoresizingMaskIntoConstraints = false
         return label
@@ -198,6 +238,7 @@ final class QuizResultViewController: BaseQuizViewController, QuizResultViewCont
         button.layer.shadowRadius = Appearance.buttonShadowRadius
         button.layer.shadowOffset = Appearance.buttonShadowOffset
         button.translatesAutoresizingMaskIntoConstraints = false
+        button.installPressFeedback()
         return button
     }
 
@@ -212,12 +253,18 @@ final class QuizResultViewController: BaseQuizViewController, QuizResultViewCont
         resultLabel?.font = appearance.typography.font(size: Typography.resultFontSize, weight: .bold)
         resultDescription?.textColor = appearance.secondarySurfaceTextColor
         resultDescription?.font = appearance.typography.font(size: Typography.descriptionFontSize, weight: .regular)
-        restartButton?.applyActionAppearance(
+        replayButton?.applyActionAppearance(
             QuizThemeAccentStyle.primaryButtonStyle(themeID: presenter?.themeID, appearance: appearance),
             appearance: appearance,
             textColor: actionTextColor(appearance: appearance)
         )
-        restartButton?.titleLabel?.font = appearance.typography.font(size: Typography.buttonFontSize, weight: .semibold)
+        replayButton?.titleLabel?.font = appearance.typography.font(size: Typography.buttonFontSize, weight: .semibold)
+        themesButton?.applyActionAppearance(
+            QuizThemeAccentStyle.secondaryButtonStyle(themeID: presenter?.themeID, appearance: appearance),
+            appearance: appearance,
+            textColor: QuizThemeAccentStyle.secondaryButtonTextColor(themeID: presenter?.themeID, appearance: appearance)
+        )
+        themesButton?.titleLabel?.font = appearance.typography.font(size: Typography.buttonFontSize, weight: .semibold)
     }
 
     private func actionTextColor(appearance: AppAppearance) -> UIColor {
@@ -230,13 +277,18 @@ final class QuizResultViewController: BaseQuizViewController, QuizResultViewCont
         return appearance.screenTextColor
     }
 
-    @IBAction func backButtonTapped() {
-        router?.restartQuiz()
+    @objc private func replayButtonTapped() {
+        router?.replayQuiz()
+    }
+
+    @objc private func themesButtonTapped() {
+        router?.returnToThemes()
     }
 
     override func applyLocalizedStrings() {
         guard isViewLoaded else { return }
-        restartButton.setTitle(L10n.Result.restart, for: .normal)
+        replayButton.setTitle(L10n.Result.playAgain, for: .normal)
+        themesButton.setTitle(L10n.Result.toThemes, for: .normal)
         presenter?.viewDidLoad()
     }
 }

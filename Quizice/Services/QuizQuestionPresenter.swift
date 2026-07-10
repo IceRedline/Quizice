@@ -53,7 +53,21 @@ final class QuizQuestionPresenter: QuizQuestionPresenterProtocol {
         stopTimer()
         remainingTime = totalTime
         view?.updateProgress(1.0)
-        
+
+        scheduleTimer()
+    }
+
+    func pauseTimer() {
+        timer?.invalidate()
+        timer = nil
+    }
+
+    func resumeTimer() {
+        guard timer == nil, hasActiveQuestion, remainingTime > 0 else { return }
+        scheduleTimer()
+    }
+
+    private func scheduleTimer() {
         timer = Timer.scheduledTimer(withTimeInterval: tickInterval, repeats: true) { [weak self] _ in
             guard let self = self else { return }
             
@@ -183,6 +197,7 @@ final class QuizQuestionPresenter: QuizQuestionPresenterProtocol {
     
     func resetGameProgress() {
         stopTimer()
+        remainingTime = totalTime
         chosenThemeQuestionsArray = []
         currentQuestion = nil
         currentAnswerOptions = []

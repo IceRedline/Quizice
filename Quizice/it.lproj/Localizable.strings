@@ -42,11 +42,14 @@
 "home.motivation_prompt.11" = "È ora di\nverificare i fatti";
 "home.motivation_prompt.12" = "Un quiz\nper qualche minuto";
 "question.audio_load_failure" = "I file audio non sono stati caricati";
+"question.exit_alert.message" = "I progressi di questo round andranno persi.";
+"question.exit_alert.title" = "Uscire dal quiz?";
 "question.fallback_theme" = "Quiz";
 "question.number_format" = "Domanda n. %d";
 "question.unavailable.message" = "Questo tema non ha ancora domande disponibili. Torna indietro e scegli un altro tema.";
 "question.unavailable_answer" = "Non disponibile";
 "question.unavailable_number" = "Domande non disponibili";
+"question.time_remaining" = "Tempo rimanente";
 "result.description.fallback" = "Descrizione del risultato non disponibile";
 "result.description.high_score" = "Quasi al livello del creatore del quiz. Ottimo lavoro!";
 "result.description.invalid_score" = "Qualcosa è andato storto. Non ho capito quante risposte fossero corrette.";
@@ -57,6 +60,8 @@
 "result.description.perfect_score" = "Leggenda, genio, vittoria facilissima.";
 "result.description.very_low_score" = "Dovresti assolutamente riprovare.";
 "result.restart" = "Ricomincia";
+"result.play_again" = "Gioca di nuovo";
+"result.to_themes" = "Scegli un tema";
 "result.text_format" = "Il tuo risultato:\n %d/%d";
 "settings.alert.action" = "Capito";
 "settings.close" = "Chiudi";
