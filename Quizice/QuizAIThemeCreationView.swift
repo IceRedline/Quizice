@@ -9,7 +9,7 @@ struct QuizAIThemeCreationView: View {
 
     private enum Layout {
         static let contentHorizontalInset: CGFloat = 20
-        static let contentTopInset: CGFloat = 76
+        static let contentTopInset: CGFloat = 48
         static let contentBottomInset: CGFloat = 24
         static let titleRowSpacing: CGFloat = 14
         static let titleBottomSpacing: CGFloat = 18
@@ -92,17 +92,20 @@ struct QuizAIThemeCreationView: View {
     }
 
     var body: some View {
-        ZStack {
-            aiThemeBackground
+        GeometryReader { geometry in
+            ZStack(alignment: .top) {
+                aiThemeBackground
+                    .accessibilityIdentifier(AccessibilityID.rootView)
 
-            ScrollView {
                 content
+                    .frame(width: geometry.size.width, alignment: .top)
             }
+            .frame(width: geometry.size.width, height: geometry.size.height, alignment: .top)
         }
-        .accessibilityIdentifier(AccessibilityID.rootView)
         .environment(\.appAppearance, appearance)
         .preferredColorScheme(appearance.swiftUIColorScheme)
         .tint(Color(uiColor: appearance.screenTextColor))
+        .ignoresSafeArea(.container, edges: .top)
         .ignoresSafeArea(.keyboard, edges: .bottom)
         .alert(L10n.AITheme.errorTitle, isPresented: $isShowingError) {
             Button(L10n.Settings.alertAction, role: .cancel) {}
@@ -186,7 +189,7 @@ struct QuizAIThemeCreationView: View {
                     .foregroundStyle(Color(uiColor: appearance.surfaceTextColor))
                     .scrollContentBackground(.hidden)
                     .padding(Layout.editorPadding)
-                    .frame(minHeight: Layout.editorMinHeight)
+                    .frame(height: Layout.editorMinHeight)
                     .background(
                         Color(uiColor: appearance.row.backgroundColor),
                         in: RoundedRectangle(cornerRadius: appearance.row.cornerRadius, style: .continuous)
