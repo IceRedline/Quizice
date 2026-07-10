@@ -47,6 +47,7 @@
 		99B400182E20000100B40001 /* CrossScreenVisualStateTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99B400192E20000100B40001 /* CrossScreenVisualStateTests.swift */; };
 		99C0FFEF2E50000100C0DE01 /* L10n.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99C0FFEE2E50000100C0DE01 /* L10n.swift */; };
 		99C0FFF52E50000100C0DE01 /* LocalizationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99C0FFF42E50000100C0DE01 /* LocalizationTests.swift */; };
+		99A1AA012F10000100A1AA01 /* YandexAIQuizThemeServiceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99A1AA022F10000100A1AA01 /* YandexAIQuizThemeServiceTests.swift */; };
 		99D100022E70000100D10001 /* AppAppearance.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99D100012E70000100D10001 /* AppAppearance.swift */; };
 		99D1000A2E70000100D10001 /* Inter.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 99D100062E70000100D10001 /* Inter.ttf */; };
 		99D1000B2E70000100D10001 /* JetBrainsMono.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 99D100072E70000100D10001 /* JetBrainsMono.ttf */; };
@@ -137,6 +138,7 @@
 		99B400192E20000100B40001 /* CrossScreenVisualStateTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CrossScreenVisualStateTests.swift; sourceTree = "<group>"; };
 		99C0FFEE2E50000100C0DE01 /* L10n.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = L10n.swift; sourceTree = "<group>"; };
 		99C0FFF42E50000100C0DE01 /* LocalizationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocalizationTests.swift; sourceTree = "<group>"; };
+		99A1AA022F10000100A1AA01 /* YandexAIQuizThemeServiceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = YandexAIQuizThemeServiceTests.swift; sourceTree = "<group>"; };
 		99D100012E70000100D10001 /* AppAppearance.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppAppearance.swift; sourceTree = "<group>"; };
 		99D100062E70000100D10001 /* Inter.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = Inter.ttf; sourceTree = "<group>"; };
 		99D100072E70000100D10001 /* JetBrainsMono.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = JetBrainsMono.ttf; sourceTree = "<group>"; };
@@ -316,6 +318,7 @@
 				99B400132E20000100B40001 /* StatisticsStoreTests.swift */,
 				99B400152E20000100B40001 /* QuizQuestionPresenterFailureStateTests.swift */,
 				99C0FFF42E50000100C0DE01 /* LocalizationTests.swift */,
+				99A1AA022F10000100A1AA01 /* YandexAIQuizThemeServiceTests.swift */,
 			);
 			path = Unit;
 			sourceTree = "<group>";
@@ -518,6 +521,7 @@
 				99B400162E20000100B40001 /* HomeScreenVisualStateTests.swift in Sources */,
 				99B400182E20000100B40001 /* CrossScreenVisualStateTests.swift in Sources */,
 				99C0FFF52E50000100C0DE01 /* LocalizationTests.swift in Sources */,
+				99A1AA012F10000100A1AA01 /* YandexAIQuizThemeServiceTests.swift in Sources */,
 				99F000012EA0000100F00001 /* SnapshotSupport.swift in Sources */,
 				99F0000D2EA0000100F00001 /* ComponentSnapshotTests.swift in Sources */,
 				99F0000F2EA0000100F00001 /* HomeCardSnapshotTests.swift in Sources */,
