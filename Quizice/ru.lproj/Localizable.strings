@@ -42,11 +42,14 @@
 "home.motivation_prompt.11" = "Время\nпроверить факты";
 "home.motivation_prompt.12" = "Квиз\nна пару минут";
 "question.audio_load_failure" = "Аудиофайлы не были загружены";
+"question.exit_alert.message" = "Прогресс текущего раунда будет потерян.";
+"question.exit_alert.title" = "Выйти из викторины?";
 "question.fallback_theme" = "Викторина";
 "question.number_format" = "Вопрос №%d";
 "question.unavailable.message" = "В этой теме пока нет доступных вопросов. Вернитесь назад и выберите другую тему.";
 "question.unavailable_answer" = "Недоступно";
 "question.unavailable_number" = "Вопросы недоступны";
+"question.time_remaining" = "Осталось времени";
 "result.description.fallback" = "Описание результата недоступно";
 "result.description.high_score" = "Ещё чуть-чуть и был бы как сам создатель квиза, молодец!";
 "result.description.invalid_score" = "Что-то пошло не так! Я не смог понять, сколько ответов правильные(";
@@ -57,6 +60,8 @@
 "result.description.perfect_score" = "Легенда, гений, соло легчайше для величайшего!";
 "result.description.very_low_score" = "Тебе точно стоит попробовать ещё раз!";
 "result.restart" = "Начать заново";
+"result.play_again" = "Сыграть ещё раз";
+"result.to_themes" = "К выбору темы";
 "result.text_format" = "Твой результат:\n %d/%d";
 "settings.alert.action" = "Понятно";
 "settings.close" = "Закрыть";

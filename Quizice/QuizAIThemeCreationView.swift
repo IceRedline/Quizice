@@ -13,7 +13,8 @@ struct QuizAIThemeCreationView: View {
         static let contentBottomInset: CGFloat = 24
         static let titleRowSpacing: CGFloat = 14
         static let titleBottomSpacing: CGFloat = 18
-        static let closeButtonSize: CGFloat = 40
+        static let closeButtonVisualSize: CGFloat = 36
+        static let closeButtonHitSize: CGFloat = 44
         static let cardSpacing: CGFloat = 16
         static let cardPadding: CGFloat = 16
         static let editorMinHeight: CGFloat = 150
@@ -153,7 +154,7 @@ struct QuizAIThemeCreationView: View {
                 Image(systemName: "xmark")
                     .font(appearance.typography.swiftUIFont(size: 15, weight: .bold))
                     .foregroundStyle(Color(uiColor: appearance.screenTextColor))
-                    .frame(width: Layout.closeButtonSize, height: Layout.closeButtonSize)
+                    .frame(width: Layout.closeButtonVisualSize, height: Layout.closeButtonVisualSize)
                     .background(
                         Color(uiColor: appearance.iconButton.backgroundColor),
                         in: RoundedRectangle(cornerRadius: appearance.iconButton.cornerRadius, style: .continuous)
@@ -162,8 +163,9 @@ struct QuizAIThemeCreationView: View {
                         RoundedRectangle(cornerRadius: appearance.iconButton.cornerRadius, style: .continuous)
                             .stroke(Color(uiColor: appearance.iconButton.borderColor), lineWidth: appearance.iconButton.borderWidth)
                     )
+                    .frame(minWidth: Layout.closeButtonHitSize, minHeight: Layout.closeButtonHitSize)
             }
-            .buttonStyle(.plain)
+            .buttonStyle(QuizPressButtonStyle())
             .accessibilityLabel(L10n.Settings.close)
         }
     }
@@ -234,7 +236,7 @@ struct QuizAIThemeCreationView: View {
                     .stroke(Color(uiColor: submitButtonBorderColor), lineWidth: appearance.primaryButton.borderWidth)
             )
         }
-        .buttonStyle(.plain)
+        .buttonStyle(QuizPressButtonStyle())
         .disabled(!canSubmit)
         .opacity(canSubmit ? 1 : Appearance.disabledOpacity)
         .accessibilityIdentifier(AccessibilityID.submitButton)

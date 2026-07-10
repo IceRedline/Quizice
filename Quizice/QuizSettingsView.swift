@@ -229,8 +229,9 @@ struct QuizSettingsView: View {
                         RoundedRectangle(cornerRadius: appearance.iconButton.cornerRadius, style: .continuous)
                             .stroke(Color(uiColor: appearance.iconButton.borderColor), lineWidth: appearance.iconButton.borderWidth)
                     )
+                    .frame(minWidth: 44, minHeight: 44)
             }
-            .buttonStyle(.plain)
+            .buttonStyle(QuizPressButtonStyle())
         }
             .padding(.bottom, Layout.titleBottomSpacing)
     }
@@ -406,7 +407,7 @@ private struct SettingsActionRow: View {
             }
             .contentShape(Rectangle())
         }
-        .buttonStyle(.plain)
+        .buttonStyle(QuizPressButtonStyle())
     }
 }
 
@@ -429,8 +430,8 @@ private struct SettingsValueRow: View {
                 Text(value)
                     .font(appearance.typography.swiftUIFont(size: 15, weight: .semibold))
                     .foregroundStyle(Color(uiColor: appearance.surfaceTextColor))
-                    .lineLimit(1)
-                    .minimumScaleFactor(0.82)
+                    .multilineTextAlignment(.trailing)
+                    .fixedSize(horizontal: false, vertical: true)
 
                 Image(systemName: "chevron.down")
                     .font(appearance.typography.swiftUIFont(size: 12, weight: .bold))

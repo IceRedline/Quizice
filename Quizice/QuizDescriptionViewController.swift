@@ -18,6 +18,7 @@ final class QuizDescriptionViewController: BaseQuizViewController, QuizDescripti
         static let startButton = "descriptionStartButton"
         static let backButton = "descriptionBackButton"
         static let contentStackView = "descriptionContentStackView"
+        static let scrollView = "descriptionScrollView"
     }
     
     private enum Layout {
@@ -26,19 +27,21 @@ final class QuizDescriptionViewController: BaseQuizViewController, QuizDescripti
         static let descriptionBottomSpacing: CGFloat = 26
         static let pickerCaptionBottomSpacing: CGFloat = 8
         
-        static let cardTopInset: CGFloat = 36
+        static let cardTopInset: CGFloat = 72
         static let cardHorizontalInset: CGFloat = 20
-        static let cardHeight: CGFloat = 510
         static let contentTopInset: CGFloat = 28
         static let contentHorizontalInset: CGFloat = 22
         static let contentBottomInset: CGFloat = 26
         static let pickerHeight: CGFloat = 136
         static let primaryButtonHeight: CGFloat = 54
-        static let secondaryButtonHeight: CGFloat = 50
         static let actionTopSpacing: CGFloat = 22
+        static let cardBottomInset: CGFloat = 18
         static let actionButtonWidth: CGFloat = 238
-        static let actionButtonSpacing: CGFloat = 12
         static let bottomMaximumInset: CGFloat = 22
+        static let backButtonSize: CGFloat = 44
+        static let backButtonTopInset: CGFloat = 16
+        static let backButtonLeadingInset: CGFloat = 20
+        static let maximumContentWidth: CGFloat = 430
     }
     
     private enum Typography {
@@ -122,6 +125,7 @@ final class QuizDescriptionViewController: BaseQuizViewController, QuizDescripti
     }
     
     private var contentCardView: UIView!
+    private var scrollView: UIScrollView!
     private var contentStackView: UIStackView!
     private var themeNameLabel: UILabel!
     private var themeDescriptionLabel: UILabel!
@@ -200,8 +204,6 @@ final class QuizDescriptionViewController: BaseQuizViewController, QuizDescripti
         let typography = currentAppearance().typography
         themeNameLabel = makeLabel(font: typography.font(size: Typography.themeNameFontSize, weight: .bold), accessibilityIdentifier: AccessibilityID.themeNameLabel)
         themeNameLabel.numberOfLines = Typography.unlimitedNumberOfLines
-        themeNameLabel.adjustsFontSizeToFitWidth = true
-        themeNameLabel.minimumScaleFactor = Typography.themeNameMinimumScaleFactor
         
         themeDescriptionLabel = makeLabel(font: typography.font(size: Typography.descriptionFontSize, weight: .regular), accessibilityIdentifier: AccessibilityID.textLabel)
         themeDescriptionLabel.numberOfLines = Typography.unlimitedNumberOfLines
@@ -225,9 +227,20 @@ final class QuizDescriptionViewController: BaseQuizViewController, QuizDescripti
     private func configureButtons() {
         startButton = makeActionButton(title: L10n.Common.start, accessibilityIdentifier: AccessibilityID.startButton, style: .primary)
         startButton.addTarget(self, action: #selector(startButtonTapped), for: .touchUpInside)
-        
-        backButton = makeActionButton(title: L10n.Common.back, accessibilityIdentifier: AccessibilityID.backButton, style: .secondary)
+
+        backButton = UIButton(type: .system)
+        backButton.accessibilityIdentifier = AccessibilityID.backButton
+        backButton.accessibilityLabel = L10n.Common.back
+        backButton.setImage(
+            UIImage(
+                systemName: "chevron.left",
+                withConfiguration: UIImage.SymbolConfiguration(pointSize: 16, weight: .bold)
+            ),
+            for: .normal
+        )
+        backButton.translatesAutoresizingMaskIntoConstraints = false
         backButton.addTarget(self, action: #selector(backButtonTapped), for: .touchUpInside)
+        backButton.installPressFeedback()
     }
     
     private func configureContentStackView() {
@@ -248,24 +261,36 @@ final class QuizDescriptionViewController: BaseQuizViewController, QuizDescripti
     }
     
     private func addSubviews(to rootView: UIView) {
-        rootView.addSubview(contentCardView)
-        [startButton, backButton].forEach(rootView.addSubview)
+        scrollView = UIScrollView()
+        scrollView.accessibilityIdentifier = AccessibilityID.scrollView
+        scrollView.alwaysBounceVertical = false
+        scrollView.translatesAutoresizingMaskIntoConstraints = false
+        rootView.addSubview(scrollView)
+        rootView.addSubview(backButton)
+        rootView.addSubview(startButton)
+        scrollView.addSubview(contentCardView)
         contentCardView.addSubview(contentStackView)
     }
     
     private func activateLayoutConstraints(in rootView: UIView) {
-        let contentCardTopConstraint = contentCardView.topAnchor.constraint(
-            greaterThanOrEqualTo: rootView.safeAreaLayoutGuide.topAnchor,
-            constant: Layout.cardTopInset
-        )
-        contentCardTopConstraint.priority = .defaultHigh
-
         NSLayoutConstraint.activate([
-            contentCardTopConstraint,
-            contentCardView.leadingAnchor.constraint(equalTo: rootView.leadingAnchor, constant: Layout.cardHorizontalInset),
-            contentCardView.trailingAnchor.constraint(equalTo: rootView.trailingAnchor, constant: -Layout.cardHorizontalInset),
-            contentCardView.heightAnchor.constraint(equalToConstant: Layout.cardHeight),
-            contentCardView.bottomAnchor.constraint(equalTo: startButton.topAnchor, constant: -Layout.actionTopSpacing),
+            scrollView.topAnchor.constraint(equalTo: rootView.safeAreaLayoutGuide.topAnchor),
+            scrollView.leadingAnchor.constraint(equalTo: rootView.leadingAnchor),
+            scrollView.trailingAnchor.constraint(equalTo: rootView.trailingAnchor),
+            scrollView.bottomAnchor.constraint(equalTo: startButton.topAnchor, constant: -Layout.actionTopSpacing),
+            scrollView.contentLayoutGuide.widthAnchor.constraint(equalTo: scrollView.frameLayoutGuide.widthAnchor),
+
+            backButton.topAnchor.constraint(equalTo: rootView.safeAreaLayoutGuide.topAnchor, constant: Layout.backButtonTopInset),
+            backButton.leadingAnchor.constraint(equalTo: rootView.leadingAnchor, constant: Layout.backButtonLeadingInset),
+            backButton.widthAnchor.constraint(equalToConstant: Layout.backButtonSize),
+            backButton.heightAnchor.constraint(equalToConstant: Layout.backButtonSize),
+
+            contentCardView.topAnchor.constraint(equalTo: scrollView.contentLayoutGuide.topAnchor, constant: Layout.cardTopInset),
+            contentCardView.centerXAnchor.constraint(equalTo: scrollView.frameLayoutGuide.centerXAnchor),
+            contentCardView.leadingAnchor.constraint(greaterThanOrEqualTo: scrollView.contentLayoutGuide.leadingAnchor, constant: Layout.cardHorizontalInset),
+            contentCardView.trailingAnchor.constraint(lessThanOrEqualTo: scrollView.contentLayoutGuide.trailingAnchor, constant: -Layout.cardHorizontalInset),
+            contentCardView.widthAnchor.constraint(lessThanOrEqualToConstant: Layout.maximumContentWidth),
+            contentCardView.bottomAnchor.constraint(equalTo: scrollView.contentLayoutGuide.bottomAnchor, constant: -Layout.cardBottomInset),
             
             contentStackView.topAnchor.constraint(equalTo: contentCardView.topAnchor, constant: Layout.contentTopInset),
             contentStackView.leadingAnchor.constraint(equalTo: contentCardView.leadingAnchor, constant: Layout.contentHorizontalInset),
@@ -276,14 +301,16 @@ final class QuizDescriptionViewController: BaseQuizViewController, QuizDescripti
 
             startButton.centerXAnchor.constraint(equalTo: rootView.centerXAnchor),
             startButton.widthAnchor.constraint(equalToConstant: Layout.actionButtonWidth),
-            startButton.heightAnchor.constraint(equalToConstant: Layout.primaryButtonHeight),
-
-            backButton.topAnchor.constraint(equalTo: startButton.bottomAnchor, constant: Layout.actionButtonSpacing),
-            backButton.centerXAnchor.constraint(equalTo: rootView.centerXAnchor),
-            backButton.widthAnchor.constraint(equalToConstant: Layout.actionButtonWidth),
-            backButton.heightAnchor.constraint(equalToConstant: Layout.secondaryButtonHeight),
-            backButton.bottomAnchor.constraint(equalTo: rootView.safeAreaLayoutGuide.bottomAnchor, constant: -Layout.bottomMaximumInset)
+            startButton.heightAnchor.constraint(greaterThanOrEqualToConstant: Layout.primaryButtonHeight),
+            startButton.bottomAnchor.constraint(equalTo: rootView.safeAreaLayoutGuide.bottomAnchor, constant: -Layout.bottomMaximumInset)
         ])
+
+        let cardWidthConstraint = contentCardView.widthAnchor.constraint(
+            equalTo: scrollView.frameLayoutGuide.widthAnchor,
+            constant: -(Layout.cardHorizontalInset * 2)
+        )
+        cardWidthConstraint.priority = .defaultHigh
+        cardWidthConstraint.isActive = true
     }
     
     private func makeLabel(font: UIFont, accessibilityIdentifier: String) -> UILabel {
@@ -291,6 +318,7 @@ final class QuizDescriptionViewController: BaseQuizViewController, QuizDescripti
         label.accessibilityIdentifier = accessibilityIdentifier
         label.textColor = .white
         label.font = font
+        label.adjustsFontForContentSizeCategory = true
         label.textAlignment = .center
         label.translatesAutoresizingMaskIntoConstraints = false
         return label
@@ -303,6 +331,7 @@ final class QuizDescriptionViewController: BaseQuizViewController, QuizDescripti
         button.setTitleColor(.white, for: .normal)
         button.setTitleColor(UIColor.white.withAlphaComponent(Appearance.disabledButtonTitleAlpha), for: .disabled)
         button.titleLabel?.font = currentAppearance().typography.font(size: Typography.buttonFontSize, weight: .semibold)
+        button.titleLabel?.adjustsFontForContentSizeCategory = true
         button.backgroundColor = UIColor.white.withAlphaComponent(style.backgroundAlpha)
         button.layer.cornerRadius = style.cornerRadius
         button.layer.borderWidth = Appearance.buttonBorderWidth
@@ -312,6 +341,7 @@ final class QuizDescriptionViewController: BaseQuizViewController, QuizDescripti
         button.layer.shadowRadius = Appearance.buttonShadowRadius
         button.layer.shadowOffset = Appearance.buttonShadowOffset
         button.translatesAutoresizingMaskIntoConstraints = false
+        button.installPressFeedback()
         return button
     }
 
@@ -342,11 +372,10 @@ final class QuizDescriptionViewController: BaseQuizViewController, QuizDescripti
         )
         startButton?.titleLabel?.font = appearance.typography.font(size: Typography.buttonFontSize, weight: .semibold)
         backButton?.applyActionAppearance(
-            QuizThemeAccentStyle.secondaryButtonStyle(themeID: presenter?.themeID, appearance: appearance),
+            appearance.iconButton,
             appearance: appearance,
-            textColor: actionTextColor(for: .secondary, appearance: appearance)
+            textColor: appearance.screenTextColor
         )
-        backButton?.titleLabel?.font = appearance.typography.font(size: Typography.buttonFontSize, weight: .semibold)
     }
 
     private func actionTextColor(for style: ActionButtonStyle, appearance: AppAppearance) -> UIColor {
@@ -379,7 +408,7 @@ final class QuizDescriptionViewController: BaseQuizViewController, QuizDescripti
         }
 
         UIView.animate(
-            withDuration: QuizCardSlideTransition.duration,
+            withDuration: QuizCardSlideTransition.presentationDuration,
             delay: 0,
             options: QuizCardSlideTransition.options,
             animations: changes
@@ -394,7 +423,7 @@ final class QuizDescriptionViewController: BaseQuizViewController, QuizDescripti
         guard isViewLoaded else { return }
         pickerCaptionLabel.text = L10n.Description.questionCount
         startButton.setTitle(L10n.Common.start, for: .normal)
-        backButton.setTitle(L10n.Common.back, for: .normal)
+        backButton.accessibilityLabel = L10n.Common.back
     }
 }
 

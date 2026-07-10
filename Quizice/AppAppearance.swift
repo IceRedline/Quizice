@@ -187,17 +187,46 @@ struct AppTypography {
     func number() -> UIFont { font(size: 28, weight: .bold) }
 
     func font(size: CGFloat, weight: UIFont.Weight) -> UIFont {
+        let textStyle = uiTextStyle(for: size)
+        let baseFont: UIFont
         if let name = fontFamily.fontName(weight: weight) {
-            return UIFontMetrics.default.scaledFont(for: UIFont(name: name, size: size) ?? fallbackFont(size: size, weight: weight))
+            baseFont = UIFont(name: name, size: size) ?? fallbackFont(size: size, weight: weight)
+        } else {
+            baseFont = fallbackFont(size: size, weight: weight)
         }
-        return UIFontMetrics.default.scaledFont(for: fallbackFont(size: size, weight: weight))
+        return UIFontMetrics(forTextStyle: textStyle).scaledFont(for: baseFont)
     }
 
     func swiftUIFont(size: CGFloat, weight: Font.Weight) -> Font {
+        let textStyle = swiftUITextStyle(for: size)
         if let name = fontFamily.fontName(weight: weight.uiFontWeight) {
-            return .custom(name, size: size)
+            return .custom(name, size: size, relativeTo: textStyle)
         }
-        return .system(size: size, weight: weight)
+        return .system(textStyle, design: .default, weight: weight)
+    }
+
+    private func uiTextStyle(for size: CGFloat) -> UIFont.TextStyle {
+        switch size {
+        case 36...: return .largeTitle
+        case 30...: return .title1
+        case 24...: return .title2
+        case 20...: return .title3
+        case 17...: return .body
+        case 15...: return .subheadline
+        default: return .caption1
+        }
+    }
+
+    private func swiftUITextStyle(for size: CGFloat) -> Font.TextStyle {
+        switch size {
+        case 36...: return .largeTitle
+        case 30...: return .title
+        case 24...: return .title2
+        case 20...: return .title3
+        case 17...: return .body
+        case 15...: return .subheadline
+        default: return .caption
+        }
     }
 
     private func fallbackFont(size: CGFloat, weight: UIFont.Weight) -> UIFont {
