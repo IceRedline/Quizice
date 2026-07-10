@@ -54,6 +54,36 @@ final class QuizFlowCoordinatorAdditionalTests: XCTestCase {
         XCTAssertEqual(harness.navigationController.dismissAnimationFlags, [true])
     }
 
+    func testReplayPreservesSelectionAndPresentsFreshQuestionController() throws {
+        let harness = makeHarness()
+        harness.coordinator.start()
+        harness.navigationController.topViewControllerOverride = harness.navigationController
+        let session = harness.session
+        let selectedThemeID = session.chosenTheme?.themeID
+        session.questionsCount = 10
+
+        harness.coordinator.showQuestion()
+        let firstQuestion = try XCTUnwrap(harness.navigationController.presentedControllers.last as? QuizQuestionViewController)
+
+        harness.coordinator.replayQuiz()
+
+        let replayedQuestion = try XCTUnwrap(harness.navigationController.presentedControllers.last as? QuizQuestionViewController)
+        XCTAssertFalse(firstQuestion === replayedQuestion)
+        XCTAssertEqual(session.chosenTheme?.themeID, selectedThemeID)
+        XCTAssertEqual(session.questionsCount, 10)
+        XCTAssertEqual(harness.navigationController.dismissAnimationFlags.last, false)
+    }
+
+    func testReturnToThemesReachesNavigationRoot() {
+        let harness = makeHarness()
+        harness.coordinator.start()
+
+        harness.coordinator.returnToThemes()
+
+        XCTAssertEqual(harness.navigationController.popToRootAnimationFlags, [false])
+        XCTAssertEqual(harness.navigationController.dismissAnimationFlags, [true])
+    }
+
     func testModalRoutesPresentQuestionResultSettingsAndAIThemeCreation() {
         let harness = makeHarness()
         harness.coordinator.start()

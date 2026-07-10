@@ -46,6 +46,32 @@ final class LocalizationTests: XCTestCase {
         XCTAssertEqual(L10n.Settings.language, "Langue")
     }
 
+    func testDesignPolishCopyExistsInEverySupportedLocalization() throws {
+        let root = localizedDataRoot()
+        let languages = ["ru", "en", "es", "de", "it", "fr"]
+        let requiredKeys = [
+            "question.exit_alert.title",
+            "question.exit_alert.message",
+            "question.time_remaining",
+            "result.play_again",
+            "result.to_themes"
+        ]
+
+        for language in languages {
+            let url = root.appendingPathComponent("\(language).lproj/Localizable.strings")
+            let data = try Data(contentsOf: url)
+            var format = PropertyListSerialization.PropertyListFormat.openStep
+            let strings = try XCTUnwrap(
+                PropertyListSerialization.propertyList(from: data, options: [], format: &format) as? [String: String]
+            )
+
+            for key in requiredKeys {
+                let value = try XCTUnwrap(strings[key], "Missing \(key) in \(language)")
+                XCTAssertFalse(value.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty, "Empty \(key) in \(language)")
+            }
+        }
+    }
+
     func testLocalizedDataFilesKeepStableThemeShapeAndValidAnswers() throws {
         let root = localizedDataRoot()
         let languages = ["ru", "en", "es", "de", "it", "fr"]

@@ -139,6 +139,33 @@ final class HomeScreenVisualStateTests: XCTestCase {
         XCTAssertEqual(blurredTextImageView.alpha, 0, accuracy: 0.001)
     }
 
+    func testHomeMotivationGlowSurvivesReturningFromTheme() throws {
+        QuizFactory.shared.themes = [
+            makeTheme(name: "Музыка"),
+            makeTheme(name: "Технологии"),
+            makeTheme(name: "История и культура"),
+            makeTheme(name: "Политика и бизнес")
+        ]
+
+        let viewController = makeHomeViewController(in: CGRect(x: 0, y: 0, width: 390, height: 430))
+        let collectionView = try XCTUnwrap(viewController.view.descendant(withAccessibilityIdentifier: "homeThemesCollectionView") as? UICollectionView)
+        let motivationLabel = try XCTUnwrap(viewController.view.descendant(withAccessibilityIdentifier: "homeMotivationLabel") as? UILabel)
+        let blurredTextImageView = try XCTUnwrap(viewController.view.descendant(withAccessibilityIdentifier: "homeMotivationBlurredImageView") as? UIImageView)
+        let topInset = collectionView.adjustedContentInset.top
+
+        collectionView.contentOffset.y = -topInset + 18
+        collectionView.delegate?.scrollViewDidScroll?(collectionView)
+        let titleBeforeReturn = motivationLabel.text
+        let glowAlphaBeforeReturn = blurredTextImageView.alpha
+        XCTAssertNotNil(blurredTextImageView.image)
+
+        viewController.viewWillAppear(false)
+
+        XCTAssertEqual(motivationLabel.text, titleBeforeReturn)
+        XCTAssertEqual(blurredTextImageView.alpha, glowAlphaBeforeReturn, accuracy: 0.001)
+        XCTAssertNotNil(blurredTextImageView.image)
+    }
+
     func testHomeCollectionIsLayeredAboveMotivationHeader() throws {
         QuizFactory.shared.themes = [
             makeTheme(name: "Музыка"),
@@ -155,7 +182,7 @@ final class HomeScreenVisualStateTests: XCTestCase {
         XCTAssertLessThan(headerStackView.layer.zPosition, screenStackView.layer.zPosition)
     }
 
-    func testHomeScreenHidesStartupAnimatedViewsBeforeFirstRenderedFrame() throws {
+    func testHomeScreenIsVisibleAndInteractiveBeforeFirstRenderedFrame() throws {
         QuizFactory.shared.startup1st = true
 
         let viewController = QuizViewController()
@@ -163,11 +190,14 @@ final class HomeScreenVisualStateTests: XCTestCase {
 
         let motivationLabel = try XCTUnwrap(viewController.view.descendant(withAccessibilityIdentifier: "homeMotivationLabel"))
         let collectionView = try XCTUnwrap(viewController.view.descendant(withAccessibilityIdentifier: "homeThemesCollectionView"))
-        let settingsButton = try XCTUnwrap(viewController.view.descendant(withAccessibilityIdentifier: "homeSettingsButton"))
+        let settingsButton = try XCTUnwrap(viewController.view.descendant(withAccessibilityIdentifier: "homeSettingsButton") as? UIButton)
 
-        XCTAssertEqual(motivationLabel.alpha, 0)
-        XCTAssertEqual(collectionView.alpha, 0)
-        XCTAssertEqual(settingsButton.alpha, 0)
+        XCTAssertGreaterThan(motivationLabel.alpha, 0)
+        XCTAssertGreaterThan(collectionView.alpha, 0)
+        XCTAssertGreaterThan(settingsButton.alpha, 0)
+        XCTAssertTrue(collectionView.isUserInteractionEnabled)
+        XCTAssertTrue(settingsButton.isUserInteractionEnabled)
+        XCTAssertTrue(settingsButton.isEnabled)
     }
 
     func testHomeShellHasNoAmbiguousLayout() {
@@ -195,6 +225,35 @@ final class HomeScreenVisualStateTests: XCTestCase {
         settingsButton.sendActions(for: .touchUpInside)
 
         XCTAssertEqual(router.showSettingsCallCount, 1)
+    }
+
+    func testRadarSettingsSurfaceStaysBehindGearArtwork() throws {
+        UserDefaults.standard.set(AppDesignStyle.radar.rawValue, forKey: AppAppearanceStore.Keys.designStyle)
+        QuizFactory.shared.themes = [makeTheme(name: "Музыка")]
+
+        let viewController = makeHomeViewController(in: CGRect(x: 0, y: 0, width: 390, height: 844))
+        let settingsButton = try XCTUnwrap(viewController.view.descendant(withAccessibilityIdentifier: "homeSettingsButton") as? UIButton)
+        let visualSurface = try XCTUnwrap(viewController.view.descendant(withAccessibilityIdentifier: "homeSettingsVisualSurface"))
+        let imageView = try XCTUnwrap(settingsButton.imageView)
+        let surfaceIndex = try XCTUnwrap(settingsButton.subviews.firstIndex(of: visualSurface))
+        let imageIndex = try XCTUnwrap(settingsButton.subviews.firstIndex(of: imageView))
+
+        XCTAssertLessThan(surfaceIndex, imageIndex)
+        XCTAssertNotNil(settingsButton.image(for: .normal))
+        XCTAssertEqual(settingsButton.bounds.size, CGSize(width: 44, height: 44))
+        XCTAssertEqual(visualSurface.bounds.size, CGSize(width: 36, height: 36))
+    }
+
+    func testClassicSettingsSurfaceIsCircular() throws {
+        UserDefaults.standard.set(AppDesignStyle.classic.rawValue, forKey: AppAppearanceStore.Keys.designStyle)
+        QuizFactory.shared.themes = [makeTheme(name: "Музыка")]
+
+        let viewController = makeHomeViewController(in: CGRect(x: 0, y: 0, width: 390, height: 844))
+        let visualSurface = try XCTUnwrap(viewController.view.descendant(withAccessibilityIdentifier: "homeSettingsVisualSurface"))
+
+        XCTAssertEqual(visualSurface.bounds.size, CGSize(width: 36, height: 36))
+        XCTAssertEqual(visualSurface.layer.cornerRadius, visualSurface.bounds.height / 2, accuracy: 0.001)
+        XCTAssertEqual(visualSurface.layer.cornerCurve, .circular)
     }
 
     func testHomeAIThemeButtonPresentsAIThemeCreationScreen() throws {
@@ -397,17 +456,29 @@ final class HomeScreenVisualStateTests: XCTestCase {
         let playedValueLabel = try XCTUnwrap(statisticsCell.contentView.descendant(withAccessibilityIdentifier: "homeStatisticsPlayedValueLabel") as? UILabel)
         let accuracyTitleLabel = try XCTUnwrap(statisticsCell.contentView.descendant(withAccessibilityIdentifier: "homeStatisticsAccuracyTitleLabel") as? UILabel)
         let accuracyValueLabel = try XCTUnwrap(statisticsCell.contentView.descendant(withAccessibilityIdentifier: "homeStatisticsAccuracyValueLabel") as? UILabel)
+        let descriptionLabel = try XCTUnwrap(statisticsCell.contentView.descendant(withAccessibilityIdentifier: "homeStatisticsDescriptionLabel") as? UILabel)
 
         XCTAssertEqual(playedTitleLabel.text, L10n.Home.statisticsPlayedShort)
+        XCTAssertEqual(playedTitleLabel.numberOfLines, 1)
         XCTAssertEqual(playedValueLabel.text, "0")
         XCTAssertEqual(accuracyTitleLabel.text, L10n.Home.statisticsAccuracyShort)
         XCTAssertEqual(accuracyValueLabel.text, "0%")
+        XCTAssertEqual(descriptionLabel.text, L10n.Home.statisticsDescription)
+        XCTAssertEqual(descriptionLabel.numberOfLines, 2)
         let playedRowStack = try XCTUnwrap(playedTitleLabel.superview as? UIStackView)
         let accuracyRowStack = try XCTUnwrap(accuracyTitleLabel.superview as? UIStackView)
         let metricsStack = try XCTUnwrap(playedRowStack.superview as? UIStackView)
         XCTAssertTrue(playedRowStack === playedValueLabel.superview)
         XCTAssertTrue(accuracyRowStack === accuracyValueLabel.superview)
         XCTAssertTrue(metricsStack === accuracyRowStack.superview)
+        XCTAssertLessThanOrEqual(
+            playedTitleLabel.sizeThatFits(CGSize(width: .greatestFiniteMagnitude, height: playedTitleLabel.bounds.height)).width,
+            playedTitleLabel.bounds.width + 0.5
+        )
+        XCTAssertLessThanOrEqual(
+            descriptionLabel.sizeThatFits(CGSize(width: descriptionLabel.bounds.width, height: .greatestFiniteMagnitude)).height,
+            descriptionLabel.bounds.height + 0.5
+        )
         XCTAssertEqual(playedRowStack.axis, .horizontal)
         XCTAssertEqual(accuracyRowStack.axis, .horizontal)
         XCTAssertEqual(metricsStack.axis, .vertical)
@@ -659,7 +730,8 @@ private final class HomeRouterSpy: QuizRouting {
     private(set) var closeDescriptionCallCount = 0
     private(set) var closeStatisticsCallCount = 0
     private(set) var closeQuestionCallCount = 0
-    private(set) var restartQuizCallCount = 0
+    private(set) var replayQuizCallCount = 0
+    private(set) var returnToThemesCallCount = 0
 
     func showDescription() { showDescriptionCallCount += 1 }
     func showQuestion() { showQuestionCallCount += 1 }
@@ -670,7 +742,8 @@ private final class HomeRouterSpy: QuizRouting {
     func closeDescription() { closeDescriptionCallCount += 1 }
     func closeStatistics() { closeStatisticsCallCount += 1 }
     func closeQuestion() { closeQuestionCallCount += 1 }
-    func restartQuiz() { restartQuizCallCount += 1 }
+    func replayQuiz() { replayQuizCallCount += 1 }
+    func returnToThemes() { returnToThemesCallCount += 1 }
 }
 
 private extension UIView {

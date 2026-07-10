@@ -67,7 +67,8 @@ protocol QuizRouting: AnyObject {
     func closeDescription()
     func closeStatistics()
     func closeQuestion()
-    func restartQuiz()
+    func replayQuiz()
+    func returnToThemes()
 }
 
 final class QuizFlowCoordinator: NSObject, QuizRouting, UIViewControllerTransitioningDelegate {
@@ -178,11 +179,16 @@ final class QuizFlowCoordinator: NSObject, QuizRouting, UIViewControllerTransiti
     }
 
     func closeQuestion() {
-        navigationController.popToRootViewController(animated: false)
-        navigationController.dismiss(animated: true)
+        returnToThemes()
     }
 
-    func restartQuiz() {
+    func replayQuiz() {
+        navigationController.dismiss(animated: false) { [weak self] in
+            self?.showQuestion()
+        }
+    }
+
+    func returnToThemes() {
         navigationController.popToRootViewController(animated: false)
         navigationController.dismiss(animated: true)
     }

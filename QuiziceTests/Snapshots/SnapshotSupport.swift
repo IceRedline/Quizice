@@ -7,6 +7,9 @@ import XCTest
 @MainActor
 enum SnapshotSupport {
     static let componentSize = CGSize(width: 390, height: 220)
+    private static var snapshotRecordMode: SnapshotTestingConfiguration.Record? {
+        ProcessInfo.processInfo.environment["QUIZICE_RECORD_SNAPSHOTS"] == "1" ? .all : nil
+    }
 
     static func setUp(
         designStyle: AppDesignStyle = .clean,
@@ -30,15 +33,24 @@ enum SnapshotSupport {
     static func assertScreen(
         _ viewController: UIViewController,
         named name: String,
+        size: CGSize? = nil,
+        contentSizeCategory: UIContentSizeCategory? = nil,
         file: StaticString = #filePath,
         testName: String = #function,
         line: UInt = #line
     ) {
-        prepare(viewController)
+        prepare(viewController, size: size, contentSizeCategory: contentSizeCategory)
+        let snapshotting: Snapshotting<UIViewController, UIImage>
+        if let size {
+            snapshotting = .image(size: size)
+        } else {
+            snapshotting = .image(on: .iPhoneX)
+        }
         assertSnapshot(
             of: viewController,
-            as: .image(on: .iPhoneX),
+            as: snapshotting,
             named: name,
+            record: snapshotRecordMode,
             file: file,
             testName: testName,
             line: line
@@ -64,6 +76,7 @@ enum SnapshotSupport {
             of: viewController,
             as: .image(size: size),
             named: name,
+            record: snapshotRecordMode,
             file: file,
             testName: testName,
             line: line
@@ -99,7 +112,14 @@ enum SnapshotSupport {
     ) -> UICollectionViewCell {
         setUp(designStyle: designStyle, cleanColorScheme: cleanColorScheme)
         let repository = SnapshotThemeRepository(themes: themes)
-        let service = ThemesCollectionService(themeRepository: repository)
+        let suiteName = "SnapshotSupport.collectionCell.\(UUID().uuidString)"
+        let defaults = UserDefaults(suiteName: suiteName)!
+        defaults.removePersistentDomain(forName: suiteName)
+        defer { defaults.removePersistentDomain(forName: suiteName) }
+        let service = ThemesCollectionService(
+            themeRepository: repository,
+            statisticsStore: StatisticsStore(userDefaults: defaults, key: "attempts")
+        )
         let collectionView = makeCollectionView()
         collectionView.dataSource = service
         collectionView.delegate = service
@@ -132,7 +152,14 @@ enum SnapshotSupport {
         QuizTheme(id: id, theme: name, themeDescription: description, questions: questions)
     }
 
-    private static func prepare(_ viewController: UIViewController, size: CGSize? = nil) {
+    private static func prepare(
+        _ viewController: UIViewController,
+        size: CGSize? = nil,
+        contentSizeCategory: UIContentSizeCategory? = nil
+    ) {
+        if let contentSizeCategory {
+            viewController.traitOverrides.preferredContentSizeCategory = contentSizeCategory
+        }
         viewController.loadViewIfNeeded()
         if let size {
             viewController.view.frame = CGRect(origin: .zero, size: size)

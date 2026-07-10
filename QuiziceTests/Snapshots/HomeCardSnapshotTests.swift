@@ -39,6 +39,28 @@ final class HomeCardSnapshotTests: XCTestCase {
         )
     }
 
+    func testClassicAIThemeActionCardSnapshot() {
+        let cell = SnapshotSupport.makeCollectionCell(item: 2, themes: themes, designStyle: .classic)
+
+        SnapshotSupport.assertComponent(
+            cell.contentView,
+            named: "classic-ai-theme-card",
+            size: CGSize(width: 390, height: 140),
+            backgroundAppearance: SnapshotSupport.appearance(designStyle: .classic)
+        )
+    }
+
+    func testRadarAIThemeActionCardSnapshot() {
+        let cell = SnapshotSupport.makeCollectionCell(item: 2, themes: themes, designStyle: .radar)
+
+        SnapshotSupport.assertComponent(
+            cell.contentView,
+            named: "radar-ai-theme-card",
+            size: CGSize(width: 390, height: 140),
+            backgroundAppearance: SnapshotSupport.appearance(designStyle: .radar)
+        )
+    }
+
     func testFeelingLuckyActionCardSnapshot() {
         let cell = SnapshotSupport.makeCollectionCell(item: 3, themes: themes, designStyle: .radar)
 

@@ -179,7 +179,7 @@ final class QuizDescriptionPresenterTests: XCTestCase {
 
 @MainActor
 final class QuizFlowCoordinatorTests: XCTestCase {
-    func testRestartDismissesFlowAndKeepsExistingWindowRootController() {
+    func testReturnToThemesDismissesFlowAndKeepsExistingWindowRootController() {
         let window = UIWindow(frame: CGRect(x: 0, y: 0, width: 390, height: 844))
         let navigationController = NavigationControllerSpy()
         let coordinator = QuizFlowCoordinator(
@@ -188,11 +188,11 @@ final class QuizFlowCoordinatorTests: XCTestCase {
             session: PresenterTestSession()
         )
         coordinator.start()
-        let rootBeforeRestart = window.rootViewController
+        let rootBeforeReturn = window.rootViewController
 
-        coordinator.restartQuiz()
+        coordinator.returnToThemes()
 
-        XCTAssertTrue(window.rootViewController === rootBeforeRestart)
+        XCTAssertTrue(window.rootViewController === rootBeforeReturn)
         XCTAssertEqual(navigationController.dismissCallCount, 1)
         XCTAssertEqual(navigationController.popToRootCallCount, 1)
         XCTAssertEqual(navigationController.events, [.popToRoot(animated: false), .dismiss(animated: true)])

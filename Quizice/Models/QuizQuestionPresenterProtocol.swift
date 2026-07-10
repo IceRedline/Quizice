@@ -16,6 +16,8 @@ protocol QuizQuestionPresenterProtocol {
     
     func viewDidLoad()
     func startTimer()
+    func pauseTimer()
+    func resumeTimer()
     func stopTimer()
     func loadQuestion()
     func checkQuestionNumberAndProceed()
