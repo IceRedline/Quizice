@@ -102,7 +102,7 @@ final class CrossScreenVisualStateTests: XCTestCase {
         XCTAssertTrue(backButton.isEnabled)
     }
 
-    func testDescriptionCardGrowsWithContentInsteadOfUsingAFixedHeight() throws {
+    func testDescriptionCardKeepsStableSizeAcrossThemeDescriptions() throws {
         let musicCardHeight = try descriptionCardHeight(
             themeName: "Музыка",
             themeDescription: "В данной викторине вам предстоит угадывать исполнителей и названия песен. Проверьте свои музыкальные знания, вспомните хиты разных эпох и получите удовольствие от путешествия по миру музыки."
@@ -112,7 +112,8 @@ final class CrossScreenVisualStateTests: XCTestCase {
             themeDescription: "Проверьте знания о гаджетах, языках программирования, компьютерной истории и цифровой культуре."
         )
 
-        XCTAssertGreaterThan(musicCardHeight, technologyCardHeight)
+        XCTAssertEqual(musicCardHeight, technologyCardHeight, accuracy: 0.5)
+        XCTAssertEqual(musicCardHeight, 510, accuracy: 0.5)
     }
 
     func testDescriptionStartButtonStaysPinnedWhenCardContentGrows() throws {
@@ -125,7 +126,9 @@ final class CrossScreenVisualStateTests: XCTestCase {
 
         let startButton = try XCTUnwrap(viewController.view.descendant(withAccessibilityIdentifier: "descriptionStartButton") as? UIButton)
         let scrollView = try XCTUnwrap(viewController.view.descendant(withAccessibilityIdentifier: "descriptionScrollView") as? UIScrollView)
+        let cardView = try XCTUnwrap(viewController.view.descendant(withAccessibilityIdentifier: "descriptionContentCardView"))
         let pinnedButtonY = startButton.frame.minY
+        let stableCardHeight = cardView.frame.height
 
         viewController.updateLabels(
             themeName: "Музыка",
@@ -135,6 +138,7 @@ final class CrossScreenVisualStateTests: XCTestCase {
         viewController.view.layoutIfNeeded()
 
         XCTAssertEqual(startButton.frame.minY, pinnedButtonY, accuracy: 0.5)
+        XCTAssertGreaterThan(cardView.frame.height, stableCardHeight)
         XCTAssertFalse(startButton.isDescendant(of: scrollView))
         XCTAssertGreaterThan(scrollView.contentSize.height, scrollView.bounds.height)
     }
