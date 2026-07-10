@@ -78,7 +78,10 @@ enum L10n {
 
     enum Question {
         static var audioLoadFailure: String { L10n.localized("question.audio_load_failure", comment: "Console message when answer sounds fail to load") }
+        static var exitAlertMessage: String { L10n.localized("question.exit_alert.message", comment: "Message shown before discarding current quiz progress") }
+        static var exitAlertTitle: String { L10n.localized("question.exit_alert.title", comment: "Title shown before discarding current quiz progress") }
         static var fallbackTheme: String { L10n.localized("question.fallback_theme", comment: "Fallback quiz theme name") }
+        static var timeRemaining: String { L10n.localized("question.time_remaining", comment: "Quiz timer accessibility label") }
         static var unavailableAnswer: String { L10n.localized("question.unavailable_answer", comment: "Unavailable answer placeholder") }
         static var unavailableMessage: String { L10n.localized("question.unavailable.message", comment: "Message when selected theme has no usable questions") }
         static var unavailableNumber: String { L10n.localized("question.unavailable_number", comment: "Unavailable question number label") }
@@ -97,7 +100,8 @@ enum L10n {
         static var mediumScoreDescription: String { L10n.localized("result.description.medium_score", comment: "Result description for medium scores") }
         static var noQuestionsDescription: String { L10n.localized("result.description.no_questions", comment: "Result description for attempts without questions") }
         static var perfectScoreDescription: String { L10n.localized("result.description.perfect_score", comment: "Result description for perfect scores") }
-        static var restart: String { L10n.localized("result.restart", comment: "Restart quiz button title") }
+        static var playAgain: String { L10n.localized("result.play_again", comment: "Replay current quiz button title") }
+        static var toThemes: String { L10n.localized("result.to_themes", comment: "Return to quiz themes button title") }
         static var veryLowScoreDescription: String { L10n.localized("result.description.very_low_score", comment: "Result description for very low scores") }
 
         static func text(correctAnswers: Int, totalQuestions: Int) -> String {

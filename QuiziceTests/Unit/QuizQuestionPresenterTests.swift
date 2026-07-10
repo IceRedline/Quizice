@@ -135,6 +135,39 @@ final class QuizQuestionPresenterTests: XCTestCase {
         XCTAssertEqual(presenter.currentProgress, 0.2)
     }
 
+    func testPauseAndResumeContinueFromRemainingTimerProgress() throws {
+        let session = QuestionPresenterSession()
+        session.questionsCount = 1
+        session.chosenTheme = ThemeModel(quizTheme: SnapshotSupport.makeTheme(
+            id: "timer",
+            name: "Timer",
+            questions: [makeQuestion("Question?", correctAnswer: "A")]
+        ))
+        let view = QuestionPresenterViewSpy()
+        let presenter = QuizQuestionPresenter(session: session, statisticsStore: makeStatisticsHarness().store)
+        presenter.view = view
+        presenter.loadQuestions()
+        presenter.loadQuestion()
+
+        presenter.startTimer()
+        RunLoop.main.run(until: Date().addingTimeInterval(0.08))
+        let progressBeforePause = try XCTUnwrap(view.progressUpdates.last)
+
+        presenter.pauseTimer()
+        let pausedUpdateCount = view.progressUpdates.count
+        RunLoop.main.run(until: Date().addingTimeInterval(0.06))
+        XCTAssertEqual(view.progressUpdates.count, pausedUpdateCount)
+
+        presenter.resumeTimer()
+        RunLoop.main.run(until: Date().addingTimeInterval(0.06))
+        presenter.stopTimer()
+
+        XCTAssertGreaterThan(view.progressUpdates.count, pausedUpdateCount)
+        let firstResumedProgress = view.progressUpdates[pausedUpdateCount]
+        XCTAssertLessThan(firstResumedProgress, progressBeforePause)
+        XCTAssertLessThan(firstResumedProgress, 1)
+    }
+
     private func makeQuestion(_ text: String, correctAnswer: String) -> QuizQuestion {
         QuizQuestion(question: text, answers: ["A", "B", "C", "D"], correctAnswer: correctAnswer)
     }

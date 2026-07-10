@@ -17,6 +17,7 @@ final class StatisticsViewController: BaseQuizViewController {
         static let summaryCardView = "statisticsSummaryCardView"
         static let emptyStateLabel = "statisticsEmptyStateLabel"
         static let rowsStackView = "statisticsRowsStackView"
+        static let scrollView = "statisticsScrollView"
         
         static let playedQuizzesRow = "statisticsPlayedQuizzes"
         static let playedQuizzesValueLabel = "statisticsPlayedQuizzesValueLabel"
@@ -31,8 +32,7 @@ final class StatisticsViewController: BaseQuizViewController {
     private enum Layout {
         static let backButtonTopInset: CGFloat = 16
         static let backButtonLeadingInset: CGFloat = 20
-        static let backButtonMinimumWidth: CGFloat = 72
-        static let backButtonHeight: CGFloat = 40
+        static let backButtonSize: CGFloat = 44
         static let titleTopSpacing: CGFloat = 26
         static let titleHorizontalInset: CGFloat = 24
         static let subtitleTopSpacing: CGFloat = 10
@@ -46,6 +46,7 @@ final class StatisticsViewController: BaseQuizViewController {
         static let rowsHorizontalInset: CGFloat = 18
         static let rowsBottomInset: CGFloat = 22
         static let rowsStackSpacing: CGFloat = 14
+        static let maximumContentWidth: CGFloat = 430
         
         static let rowMinimumHeight: CGFloat = 78
         static let rowHorizontalInset: CGFloat = 18
@@ -90,6 +91,7 @@ final class StatisticsViewController: BaseQuizViewController {
     private let statisticsStore: StatisticsStore
 
     private let backButton = UIButton(type: .system)
+    private let scrollView = UIScrollView()
     private let titleLabel = UILabel()
     private let subtitleLabel = UILabel()
     private let summaryCardView = UIView()
@@ -153,7 +155,13 @@ final class StatisticsViewController: BaseQuizViewController {
     }
     
     private func configureBackButton() {
-        backButton.setTitle(L10n.Common.back, for: .normal)
+        backButton.setImage(
+            UIImage(
+                systemName: "chevron.left",
+                withConfiguration: UIImage.SymbolConfiguration(pointSize: 16, weight: .bold)
+            ),
+            for: .normal
+        )
         backButton.setTitleColor(.white, for: .normal)
         backButton.titleLabel?.font = currentAppearance().typography.font(size: Typography.backButtonFontSize, weight: .semibold)
         backButton.backgroundColor = UIColor.white.withAlphaComponent(Appearance.backButtonBackgroundAlpha)
@@ -164,6 +172,7 @@ final class StatisticsViewController: BaseQuizViewController {
         backButton.accessibilityIdentifier = AccessibilityID.backButton
         backButton.accessibilityLabel = L10n.Common.back
         backButton.addTarget(self, action: #selector(backButtonTapped), for: .touchUpInside)
+        backButton.installPressFeedback()
     }
     
     private func configureTitleLabel() {
@@ -182,6 +191,7 @@ final class StatisticsViewController: BaseQuizViewController {
         subtitleLabel.text = L10n.Statistics.subtitleWithStats
         subtitleLabel.textColor = UIColor.white.withAlphaComponent(Appearance.subtitleTextAlpha)
         subtitleLabel.font = currentAppearance().typography.font(size: Typography.subtitleFontSize, weight: .medium)
+        subtitleLabel.adjustsFontForContentSizeCategory = true
         subtitleLabel.textAlignment = .center
         subtitleLabel.numberOfLines = Typography.unlimitedNumberOfLines
         subtitleLabel.translatesAutoresizingMaskIntoConstraints = false
@@ -206,6 +216,7 @@ final class StatisticsViewController: BaseQuizViewController {
         emptyStateLabel.text = L10n.Statistics.emptyStateText
         emptyStateLabel.textColor = UIColor.white.withAlphaComponent(Appearance.emptyStateTextAlpha)
         emptyStateLabel.font = currentAppearance().typography.font(size: Typography.emptyStateFontSize, weight: .regular)
+        emptyStateLabel.adjustsFontForContentSizeCategory = true
         emptyStateLabel.textAlignment = .center
         emptyStateLabel.numberOfLines = Typography.unlimitedNumberOfLines
         emptyStateLabel.translatesAutoresizingMaskIntoConstraints = false
@@ -252,28 +263,43 @@ final class StatisticsViewController: BaseQuizViewController {
     
     private func addSubviews(to rootView: UIView) {
         [emptyStateLabel, stackView].forEach(summaryCardView.addSubview)
-        [backButton, titleLabel, subtitleLabel, summaryCardView].forEach(rootView.addSubview)
+        scrollView.alwaysBounceVertical = false
+        scrollView.accessibilityIdentifier = AccessibilityID.scrollView
+        scrollView.translatesAutoresizingMaskIntoConstraints = false
+        rootView.addSubview(scrollView)
+        rootView.addSubview(backButton)
+        [titleLabel, subtitleLabel, summaryCardView].forEach(scrollView.addSubview)
     }
     
     private func activateLayoutConstraints(in rootView: UIView) {
         NSLayoutConstraint.activate([
             backButton.topAnchor.constraint(equalTo: rootView.safeAreaLayoutGuide.topAnchor, constant: Layout.backButtonTopInset),
             backButton.leadingAnchor.constraint(equalTo: rootView.leadingAnchor, constant: Layout.backButtonLeadingInset),
-            backButton.widthAnchor.constraint(greaterThanOrEqualToConstant: Layout.backButtonMinimumWidth),
-            backButton.heightAnchor.constraint(equalToConstant: Layout.backButtonHeight),
+            backButton.widthAnchor.constraint(equalToConstant: Layout.backButtonSize),
+            backButton.heightAnchor.constraint(equalToConstant: Layout.backButtonSize),
 
-            titleLabel.topAnchor.constraint(equalTo: backButton.bottomAnchor, constant: Layout.titleTopSpacing),
-            titleLabel.leadingAnchor.constraint(equalTo: rootView.leadingAnchor, constant: Layout.titleHorizontalInset),
-            titleLabel.trailingAnchor.constraint(equalTo: rootView.trailingAnchor, constant: -Layout.titleHorizontalInset),
+            scrollView.topAnchor.constraint(equalTo: rootView.safeAreaLayoutGuide.topAnchor),
+            scrollView.leadingAnchor.constraint(equalTo: rootView.leadingAnchor),
+            scrollView.trailingAnchor.constraint(equalTo: rootView.trailingAnchor),
+            scrollView.bottomAnchor.constraint(equalTo: rootView.safeAreaLayoutGuide.bottomAnchor),
+            scrollView.contentLayoutGuide.widthAnchor.constraint(equalTo: scrollView.frameLayoutGuide.widthAnchor),
+
+            titleLabel.topAnchor.constraint(equalTo: scrollView.contentLayoutGuide.topAnchor, constant: Layout.backButtonTopInset + Layout.backButtonSize + Layout.titleTopSpacing),
+            titleLabel.centerXAnchor.constraint(equalTo: scrollView.frameLayoutGuide.centerXAnchor),
+            titleLabel.leadingAnchor.constraint(greaterThanOrEqualTo: scrollView.contentLayoutGuide.leadingAnchor, constant: Layout.titleHorizontalInset),
+            titleLabel.trailingAnchor.constraint(lessThanOrEqualTo: scrollView.contentLayoutGuide.trailingAnchor, constant: -Layout.titleHorizontalInset),
+            titleLabel.widthAnchor.constraint(lessThanOrEqualToConstant: Layout.maximumContentWidth),
 
             subtitleLabel.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: Layout.subtitleTopSpacing),
-            subtitleLabel.leadingAnchor.constraint(equalTo: rootView.leadingAnchor, constant: Layout.subtitleHorizontalInset),
-            subtitleLabel.trailingAnchor.constraint(equalTo: rootView.trailingAnchor, constant: -Layout.subtitleHorizontalInset),
+            subtitleLabel.leadingAnchor.constraint(equalTo: titleLabel.leadingAnchor),
+            subtitleLabel.trailingAnchor.constraint(equalTo: titleLabel.trailingAnchor),
 
             summaryCardView.topAnchor.constraint(equalTo: subtitleLabel.bottomAnchor, constant: Layout.cardTopSpacing),
-            summaryCardView.leadingAnchor.constraint(equalTo: rootView.leadingAnchor, constant: Layout.cardHorizontalInset),
-            summaryCardView.trailingAnchor.constraint(equalTo: rootView.trailingAnchor, constant: -Layout.cardHorizontalInset),
-            summaryCardView.bottomAnchor.constraint(lessThanOrEqualTo: rootView.safeAreaLayoutGuide.bottomAnchor, constant: -Layout.cardBottomMaximumInset),
+            summaryCardView.centerXAnchor.constraint(equalTo: scrollView.frameLayoutGuide.centerXAnchor),
+            summaryCardView.leadingAnchor.constraint(greaterThanOrEqualTo: scrollView.contentLayoutGuide.leadingAnchor, constant: Layout.cardHorizontalInset),
+            summaryCardView.trailingAnchor.constraint(lessThanOrEqualTo: scrollView.contentLayoutGuide.trailingAnchor, constant: -Layout.cardHorizontalInset),
+            summaryCardView.widthAnchor.constraint(lessThanOrEqualToConstant: Layout.maximumContentWidth),
+            summaryCardView.bottomAnchor.constraint(equalTo: scrollView.contentLayoutGuide.bottomAnchor, constant: -Layout.cardBottomMaximumInset),
 
             emptyStateLabel.topAnchor.constraint(equalTo: summaryCardView.topAnchor, constant: Layout.emptyStateTopInset),
             emptyStateLabel.leadingAnchor.constraint(equalTo: summaryCardView.leadingAnchor, constant: Layout.emptyStateHorizontalInset),
@@ -284,6 +310,20 @@ final class StatisticsViewController: BaseQuizViewController {
             stackView.trailingAnchor.constraint(equalTo: summaryCardView.trailingAnchor, constant: -Layout.rowsHorizontalInset),
             stackView.bottomAnchor.constraint(equalTo: summaryCardView.bottomAnchor, constant: -Layout.rowsBottomInset)
         ])
+
+        let titleWidthConstraint = titleLabel.widthAnchor.constraint(
+            equalTo: scrollView.frameLayoutGuide.widthAnchor,
+            constant: -(Layout.titleHorizontalInset * 2)
+        )
+        titleWidthConstraint.priority = .defaultHigh
+        titleWidthConstraint.isActive = true
+
+        let cardWidthConstraint = summaryCardView.widthAnchor.constraint(
+            equalTo: scrollView.frameLayoutGuide.widthAnchor,
+            constant: -(Layout.cardHorizontalInset * 2)
+        )
+        cardWidthConstraint.priority = .defaultHigh
+        cardWidthConstraint.isActive = true
     }
 
     @objc private func backButtonTapped() {
@@ -309,15 +349,15 @@ final class StatisticsViewController: BaseQuizViewController {
         titleLabel.text = title
         titleLabel.textColor = UIColor.white.withAlphaComponent(Appearance.rowTitleTextAlpha)
         titleLabel.font = currentAppearance().typography.font(size: Typography.rowTitleFontSize, weight: .medium)
+        titleLabel.adjustsFontForContentSizeCategory = true
         titleLabel.numberOfLines = Typography.unlimitedNumberOfLines
         titleLabel.translatesAutoresizingMaskIntoConstraints = false
         rowTitleLabels.append(titleLabel)
 
         valueLabel.textColor = .white
         valueLabel.font = currentAppearance().typography.font(size: Typography.rowValueFontSize, weight: .bold)
+        valueLabel.adjustsFontForContentSizeCategory = true
         valueLabel.textAlignment = .right
-        valueLabel.adjustsFontSizeToFitWidth = true
-        valueLabel.minimumScaleFactor = Typography.rowValueMinimumScaleFactor
         valueLabel.translatesAutoresizingMaskIntoConstraints = false
         valueLabel.accessibilityIdentifier = valueAccessibilityIdentifier
 
@@ -344,8 +384,7 @@ final class StatisticsViewController: BaseQuizViewController {
         appearance.applyBackground(to: view)
         overrideUserInterfaceStyle = appearance.resolvedInterfaceStyle
 
-        backButton.applyActionAppearance(appearance.secondaryButton, appearance: appearance)
-        backButton.titleLabel?.font = appearance.typography.font(size: Typography.backButtonFontSize, weight: .semibold)
+        backButton.applyActionAppearance(appearance.iconButton, appearance: appearance)
         titleLabel.textColor = appearance.screenTextColor
         titleLabel.font = appearance.typography.font(size: Typography.titleFontSize, weight: .bold)
         subtitleLabel.textColor = appearance.secondaryScreenTextColor
@@ -407,7 +446,6 @@ final class StatisticsViewController: BaseQuizViewController {
         guard isViewLoaded else { return }
         title = L10n.Statistics.title
         view.accessibilityLabel = L10n.Statistics.accessibilityLabel
-        backButton.setTitle(L10n.Common.back, for: .normal)
         backButton.accessibilityLabel = L10n.Common.back
         titleLabel.text = L10n.Statistics.title
         titleLabel.accessibilityLabel = L10n.Statistics.title
