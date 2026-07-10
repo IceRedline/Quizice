@@ -32,6 +32,7 @@ final class QuizDescriptionViewController: BaseQuizViewController, QuizDescripti
         static let contentTopInset: CGFloat = 28
         static let contentHorizontalInset: CGFloat = 22
         static let contentBottomInset: CGFloat = 26
+        static let stableCardMinimumHeight: CGFloat = 510
         static let pickerHeight: CGFloat = 136
         static let primaryButtonHeight: CGFloat = 54
         static let actionTopSpacing: CGFloat = 22
@@ -131,6 +132,7 @@ final class QuizDescriptionViewController: BaseQuizViewController, QuizDescripti
     private var themeDescriptionLabel: UILabel!
     private var pickerCaptionLabel: UILabel!
     private var numberOfQuestionsPickerView: UIPickerView!
+    private var contentSpacerView: UIView!
     
     private var startButton: UIButton!
     private var backButton: UIButton!
@@ -244,9 +246,15 @@ final class QuizDescriptionViewController: BaseQuizViewController, QuizDescripti
     }
     
     private func configureContentStackView() {
+        contentSpacerView = UIView()
+        contentSpacerView.setContentHuggingPriority(.defaultLow, for: .vertical)
+        contentSpacerView.setContentCompressionResistancePriority(.defaultLow, for: .vertical)
+        contentSpacerView.translatesAutoresizingMaskIntoConstraints = false
+
         contentStackView = UIStackView(arrangedSubviews: [
             themeNameLabel,
             themeDescriptionLabel,
+            contentSpacerView,
             pickerCaptionLabel,
             numberOfQuestionsPickerView
         ])
@@ -256,6 +264,7 @@ final class QuizDescriptionViewController: BaseQuizViewController, QuizDescripti
         contentStackView.spacing = Layout.contentStackSpacing
         contentStackView.setCustomSpacing(Layout.themeNameBottomSpacing, after: themeNameLabel)
         contentStackView.setCustomSpacing(Layout.descriptionBottomSpacing, after: themeDescriptionLabel)
+        contentStackView.setCustomSpacing(.zero, after: contentSpacerView)
         contentStackView.setCustomSpacing(Layout.pickerCaptionBottomSpacing, after: pickerCaptionLabel)
         contentStackView.translatesAutoresizingMaskIntoConstraints = false
     }
@@ -296,6 +305,8 @@ final class QuizDescriptionViewController: BaseQuizViewController, QuizDescripti
             contentStackView.leadingAnchor.constraint(equalTo: contentCardView.leadingAnchor, constant: Layout.contentHorizontalInset),
             contentStackView.trailingAnchor.constraint(equalTo: contentCardView.trailingAnchor, constant: -Layout.contentHorizontalInset),
             contentStackView.bottomAnchor.constraint(equalTo: contentCardView.bottomAnchor, constant: -Layout.contentBottomInset),
+
+            contentCardView.heightAnchor.constraint(greaterThanOrEqualToConstant: Layout.stableCardMinimumHeight),
             
             numberOfQuestionsPickerView.heightAnchor.constraint(equalToConstant: Layout.pickerHeight),
 
