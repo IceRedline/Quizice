@@ -39,9 +39,8 @@ final class QuizQuestionViewController: BaseQuizViewController, QuizQuestionView
         static let timerContainerHeight: CGFloat = 14
         static let timerBarHorizontalInset: CGFloat = 4
         static let timerBarHeight: CGFloat = 8
-        static let questionTopSpacing: CGFloat = 24
+        static let questionSurroundingMinimumSpacing: CGFloat = 24
         static let questionHorizontalInset: CGFloat = 22
-        static let answersTopSpacing: CGFloat = 24
         static let answersHorizontalInset: CGFloat = 18
         static let answerMinimumHeight: CGFloat = 52
         static let answersBottomInset: CGFloat = 20
@@ -164,6 +163,8 @@ final class QuizQuestionViewController: BaseQuizViewController, QuizQuestionView
     private var scrollView: UIScrollView!
     private var timerContainerView: UIView!
     private var timerBar: UIProgressView!
+    private var questionTopSpacingGuide: UILayoutGuide!
+    private var questionBottomSpacingGuide: UILayoutGuide!
     private var answersStackView: UIStackView!
     private var answer1Button: UIButton!
     private var answer2Button: UIButton!
@@ -354,6 +355,10 @@ final class QuizQuestionViewController: BaseQuizViewController, QuizQuestionView
         scrollView.addSubview(questionCardView)
         [timerContainerView, questionLabel, answersStackView].forEach(questionCardView.addSubview)
         timerContainerView.addSubview(timerBar)
+        questionTopSpacingGuide = UILayoutGuide()
+        questionBottomSpacingGuide = UILayoutGuide()
+        questionCardView.addLayoutGuide(questionTopSpacingGuide)
+        questionCardView.addLayoutGuide(questionBottomSpacingGuide)
     }
     
     private func activateLayoutConstraints(in rootView: UIView) {
@@ -394,11 +399,22 @@ final class QuizQuestionViewController: BaseQuizViewController, QuizQuestionView
             timerBar.trailingAnchor.constraint(equalTo: timerContainerView.trailingAnchor, constant: -Layout.timerBarHorizontalInset),
             timerBar.heightAnchor.constraint(equalToConstant: Layout.timerBarHeight),
 
-            questionLabel.topAnchor.constraint(equalTo: timerContainerView.bottomAnchor, constant: Layout.questionTopSpacing),
+            questionTopSpacingGuide.topAnchor.constraint(equalTo: timerBar.bottomAnchor),
+            questionTopSpacingGuide.bottomAnchor.constraint(equalTo: questionLabel.topAnchor),
+            questionTopSpacingGuide.heightAnchor.constraint(
+                greaterThanOrEqualToConstant: Layout.questionSurroundingMinimumSpacing
+            ),
+
             questionLabel.leadingAnchor.constraint(equalTo: questionCardView.leadingAnchor, constant: Layout.questionHorizontalInset),
             questionLabel.trailingAnchor.constraint(equalTo: questionCardView.trailingAnchor, constant: -Layout.questionHorizontalInset),
-            
-            answersStackView.topAnchor.constraint(greaterThanOrEqualTo: questionLabel.bottomAnchor, constant: Layout.answersTopSpacing),
+
+            questionBottomSpacingGuide.topAnchor.constraint(equalTo: questionLabel.bottomAnchor),
+            questionBottomSpacingGuide.bottomAnchor.constraint(equalTo: answersStackView.topAnchor),
+            questionBottomSpacingGuide.heightAnchor.constraint(
+                greaterThanOrEqualToConstant: Layout.questionSurroundingMinimumSpacing
+            ),
+            questionTopSpacingGuide.heightAnchor.constraint(equalTo: questionBottomSpacingGuide.heightAnchor),
+
             answersStackView.leadingAnchor.constraint(equalTo: questionCardView.leadingAnchor, constant: Layout.answersHorizontalInset),
             answersStackView.trailingAnchor.constraint(equalTo: questionCardView.trailingAnchor, constant: -Layout.answersHorizontalInset),
             answersStackView.bottomAnchor.constraint(equalTo: questionCardView.bottomAnchor, constant: -Layout.answersBottomInset),
