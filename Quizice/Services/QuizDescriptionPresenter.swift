@@ -8,7 +8,7 @@
 import Foundation
 
 final class QuizDescriptionPresenter: QuizDescriptionPresenterProtocol {
-    private let numberOfQuestionsOptions: [Int] = [5, 10, 15]
+    private let supportedNumberOfQuestionsOptions: [Int] = [5, 10, 15]
     private let session: QuizSessionManaging
 
     weak var view: QuizDescriptionViewControllerProtocol?
@@ -36,8 +36,9 @@ final class QuizDescriptionPresenter: QuizDescriptionPresenterProtocol {
     }
 
     func numberOfQuestionsTitle(at row: Int) -> String? {
-        guard numberOfQuestionsOptions.indices.contains(row) else { return nil }
-        return String(numberOfQuestionsOptions[row])
+        let options = numberOfQuestionsOptions
+        guard options.indices.contains(row) else { return nil }
+        return String(options[row])
     }
     
     func getLabelsText() {
@@ -45,7 +46,24 @@ final class QuizDescriptionPresenter: QuizDescriptionPresenterProtocol {
     }
     
     func saveNumberOfQuestions(chosenRow: Int) {
-        guard numberOfQuestionsOptions.indices.contains(chosenRow) else { return }
-        session.questionsCount = numberOfQuestionsOptions[chosenRow]
+        let options = numberOfQuestionsOptions
+        guard options.indices.contains(chosenRow) else { return }
+        session.questionsCount = options[chosenRow]
+    }
+
+    private var numberOfQuestionsOptions: [Int] {
+        guard let chosenTheme = session.chosenTheme else {
+            return supportedNumberOfQuestionsOptions
+        }
+
+        let usableQuestionCount = chosenTheme.questionsAndAnswers.filter(Self.isUsableQuestion).count
+        return supportedNumberOfQuestionsOptions.filter { $0 <= usableQuestionCount }
+    }
+
+    private static func isUsableQuestion(_ question: QuestionModel) -> Bool {
+        !question.questionText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty &&
+        question.answers.count >= 4 &&
+        !question.correctAnswer.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty &&
+        question.answers.filter { $0 == question.correctAnswer }.count == 1
     }
 }

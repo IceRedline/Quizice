@@ -75,18 +75,21 @@ final class QuizFlowCoordinator: NSObject, QuizRouting, UIViewControllerTransiti
     private let navigationController: UINavigationController
     private let themeRepository: ThemeRepository
     private let session: QuizSessionManaging
+    private let aiQuizThemeService: AIQuizThemeServiceProtocol
     private let cardSlideTransitionAnimator = QuizCardSlidePresentationAnimator()
 
     init(
         window: UIWindow,
         navigationController: UINavigationController = UINavigationController(),
         themeRepository: ThemeRepository = QuizFactory.shared,
-        session: QuizSessionManaging = QuizFactory.shared
+        session: QuizSessionManaging = QuizFactory.shared,
+        aiQuizThemeService: AIQuizThemeServiceProtocol? = nil
     ) {
         self.window = window
         self.navigationController = navigationController
         self.themeRepository = themeRepository
         self.session = session
+        self.aiQuizThemeService = aiQuizThemeService ?? Self.makeDefaultAIQuizThemeService()
         super.init()
     }
 
@@ -128,13 +131,32 @@ final class QuizFlowCoordinator: NSObject, QuizRouting, UIViewControllerTransiti
     }
 
     func showAIThemeCreation() {
-        let viewController = UIHostingController(rootView: QuizAIThemeCreationView(service: MockAIQuizThemeService()))
+        AppLog.quiz.debug("Opening AI quiz theme creation sheet")
+        let viewControllerReference = WeakViewControllerReference()
+        let rootView = QuizAIThemeCreationView(service: aiQuizThemeService) { [weak self, viewControllerReference] theme in
+            guard let viewController = viewControllerReference.viewController else {
+                AppLog.quiz.error("AI quiz result could not be handled: creation sheet reference is missing")
+                return
+            }
+            self?.handleGeneratedAITheme(theme, dismissing: viewController)
+        }
+        let viewController = UIHostingController(rootView: rootView)
+        viewControllerReference.viewController = viewController
         viewController.modalPresentationStyle = .pageSheet
         if let sheetPresentationController = viewController.sheetPresentationController {
             sheetPresentationController.detents = [.large()]
             sheetPresentationController.prefersGrabberVisible = true
         }
         presentedViewController.present(viewController, animated: true)
+    }
+
+    func handleGeneratedAITheme(_ theme: QuizTheme, dismissing viewController: UIViewController) {
+        AppLog.quiz.info("AI quiz result accepted: questions=\(theme.questions.count, privacy: .public)")
+        session.chosenTheme = ThemeModel(quizTheme: theme)
+        session.questionsCount = 5
+        viewController.dismiss(animated: true) { [weak self] in
+            self?.showDescription()
+        }
     }
 
     func showSettings() {
@@ -190,4 +212,17 @@ final class QuizFlowCoordinator: NSObject, QuizRouting, UIViewControllerTransiti
         cardSlideTransitionAnimator.sourceViewController = presentingViewController as? QuizCardSlideTransitionSource
         presentingViewController.present(viewController, animated: true)
     }
+
+    private static func makeDefaultAIQuizThemeService() -> AIQuizThemeServiceProtocol {
+        #if DEBUG
+        let apiKey = ProcessInfo.processInfo.environment["YANDEX_AI_API_KEY"]
+        return YandexAIQuizThemeService(apiKey: apiKey)
+        #else
+        return YandexAIQuizThemeService(apiKey: nil)
+        #endif
+    }
+}
+
+private final class WeakViewControllerReference {
+    weak var viewController: UIViewController?
 }

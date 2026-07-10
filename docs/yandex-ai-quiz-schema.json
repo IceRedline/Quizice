@@ -1,0 +1,45 @@
+{
+  "type": "object",
+  "properties": {
+    "theme": {
+      "type": "string"
+    },
+    "themeDescription": {
+      "type": "string"
+    },
+    "questions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "question": {
+            "type": "string"
+          },
+          "answers": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "correctAnswer": {
+            "type": "string"
+          },
+          "explanation": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "question",
+          "answers",
+          "correctAnswer",
+          "explanation"
+        ]
+      }
+    }
+  },
+  "required": [
+    "theme",
+    "themeDescription",
+    "questions"
+  ]
+}
