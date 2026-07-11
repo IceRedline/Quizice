@@ -10,6 +10,7 @@ final class ThemesCollectionService: NSObject, UICollectionViewDelegate, UIColle
         static let aiThemeGradientBorderAccessibilityID = "homeCreateWithAIGradientBorder"
         static let feelingLuckyAccessibilityID = "homeFeelingLuckyButton"
         static let statisticsAccessibilityID = "homeStatisticsCard"
+        static let statisticsTitleAccessibilityID = "homeStatisticsTitleLabel"
         static let statisticsDescriptionAccessibilityID = "homeStatisticsDescriptionLabel"
         static let statisticsPlayedValueAccessibilityID = "homeStatisticsPlayedValueLabel"
         static let statisticsPlayedTitleAccessibilityID = "homeStatisticsPlayedTitleLabel"
@@ -40,6 +41,7 @@ final class ThemesCollectionService: NSObject, UICollectionViewDelegate, UIColle
         static let itemSpacing: CGFloat = 16
         static let secondaryActionButtonHeight: CGFloat = 54
         static let statisticsCardHeight: CGFloat = 112
+        static let lastItemBottomInset: CGFloat = 24
         static let cardContentHorizontalInset: CGFloat = 24
         static let aiThemeBadgeTrailingInset: CGFloat = 16
         static let aiThemeBadgeHorizontalInset: CGFloat = 10
@@ -88,6 +90,8 @@ final class ThemesCollectionService: NSObject, UICollectionViewDelegate, UIColle
         static let luckyFontSize: CGFloat = 19
         static let betaBadgeFontSize: CGFloat = 12
         static let themeTitleFontSize: CGFloat = 18
+        static let themeTitleMinimumScaleFactor: CGFloat = 0.72
+        static let statisticsTitleMinimumScaleFactor: CGFloat = 0.72
     }
 
     weak var delegate: ThemeCollectionDelegate?
@@ -142,7 +146,10 @@ final class ThemesCollectionService: NSObject, UICollectionViewDelegate, UIColle
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
         let availableWidth = max(collectionView.bounds.width - Layout.sectionInsets.left - Layout.sectionInsets.right, 0)
         if indexPath.item == statisticsIndex {
-            return CGSize(width: availableWidth, height: Layout.statisticsCardHeight)
+            return CGSize(
+                width: availableWidth,
+                height: Layout.statisticsCardHeight + Layout.lastItemBottomInset
+            )
         }
 
         if indexPath.item == aiThemeIndex || indexPath.item == feelingLuckyIndex {
@@ -200,16 +207,18 @@ final class ThemesCollectionService: NSObject, UICollectionViewDelegate, UIColle
         imageView.isUserInteractionEnabled = false
         imageView.translatesAutoresizingMaskIntoConstraints = false
 
-        let titleLabel = UILabel()
+        let titleLabel = MultilineFittingLabel(
+            baseFont: appearance.typography.font(size: Appearance.themeTitleFontSize, weight: .semibold),
+            minimumScaleFactor: Appearance.themeTitleMinimumScaleFactor
+        )
         titleLabel.accessibilityIdentifier = themeTitleAccessibilityIdentifier(themeID: themeID)
         titleLabel.text = themeName
         titleLabel.textColor = appearance.themeCardTextColor(baseColor: themeTintColor)
-        titleLabel.font = appearance.typography.font(size: Appearance.themeTitleFontSize, weight: .semibold)
         titleLabel.adjustsFontForContentSizeCategory = true
         titleLabel.textAlignment = .center
         titleLabel.numberOfLines = 2
         titleLabel.lineBreakMode = .byWordWrapping
-        titleLabel.adjustsFontSizeToFitWidth = false
+        titleLabel.allowsDefaultTighteningForTruncation = true
         titleLabel.isUserInteractionEnabled = false
         titleLabel.translatesAutoresizingMaskIntoConstraints = false
 
@@ -394,11 +403,16 @@ final class ThemesCollectionService: NSObject, UICollectionViewDelegate, UIColle
         button.addTarget(self, action: #selector(buttonTouchedUpOutside(_:)), for: .touchUpOutside)
 
         let titleLabel = UILabel()
+        titleLabel.accessibilityIdentifier = Content.statisticsTitleAccessibilityID
         titleLabel.text = L10n.Statistics.title
         titleLabel.textColor = appearance.surfaceTextColor
         titleLabel.font = appearance.typography.font(size: Appearance.titleFontSize, weight: .bold)
         titleLabel.adjustsFontForContentSizeCategory = true
         titleLabel.textAlignment = .left
+        titleLabel.numberOfLines = 1
+        titleLabel.adjustsFontSizeToFitWidth = true
+        titleLabel.minimumScaleFactor = Appearance.statisticsTitleMinimumScaleFactor
+        titleLabel.allowsDefaultTighteningForTruncation = true
         titleLabel.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
         titleLabel.translatesAutoresizingMaskIntoConstraints = false
 
@@ -457,7 +471,7 @@ final class ThemesCollectionService: NSObject, UICollectionViewDelegate, UIColle
         contentStackView.isUserInteractionEnabled = false
         contentStackView.translatesAutoresizingMaskIntoConstraints = false
 
-        pin(button, to: cell.contentView)
+        pin(button, to: cell.contentView, bottomInset: Layout.lastItemBottomInset)
         button.addSubview(contentStackView)
 
         NSLayoutConstraint.activate([
@@ -531,14 +545,14 @@ final class ThemesCollectionService: NSObject, UICollectionViewDelegate, UIColle
         button.layer.shadowOffset = Appearance.radarAIThemeGlowOffset
     }
 
-    private func pin(_ view: UIView, to container: UIView) {
+    private func pin(_ view: UIView, to container: UIView, bottomInset: CGFloat = .zero) {
         container.addSubview(view)
 
         NSLayoutConstraint.activate([
             view.leadingAnchor.constraint(equalTo: container.leadingAnchor),
             view.trailingAnchor.constraint(equalTo: container.trailingAnchor),
             view.topAnchor.constraint(equalTo: container.topAnchor),
-            view.bottomAnchor.constraint(equalTo: container.bottomAnchor)
+            view.bottomAnchor.constraint(equalTo: container.bottomAnchor, constant: -bottomInset)
         ])
     }
 
@@ -665,6 +679,77 @@ enum ThemeVisualCatalog {
 private extension Array {
     subscript(safe index: Index) -> Element? {
         indices.contains(index) ? self[index] : nil
+    }
+}
+
+private final class MultilineFittingLabel: UILabel {
+    private enum Fitting {
+        static let iterations = 10
+        static let tolerance: CGFloat = 0.1
+    }
+
+    private let baseFont: UIFont
+    private let fittingMinimumScaleFactor: CGFloat
+
+    init(baseFont: UIFont, minimumScaleFactor: CGFloat) {
+        self.baseFont = baseFont
+        self.fittingMinimumScaleFactor = minimumScaleFactor
+        super.init(frame: .zero)
+        font = baseFont
+    }
+
+    @available(*, unavailable)
+    required init?(coder: NSCoder) {
+        nil
+    }
+
+    override func layoutSubviews() {
+        super.layoutSubviews()
+        fitFontToBounds()
+    }
+
+    private func fitFontToBounds() {
+        guard let text, !text.isEmpty, bounds.width > 0, bounds.height > 0 else { return }
+
+        let minimumPointSize = baseFont.pointSize * fittingMinimumScaleFactor
+        guard !textFits(text, font: baseFont) else {
+            applyFontIfNeeded(baseFont)
+            return
+        }
+
+        var lowerBound = minimumPointSize
+        var upperBound = baseFont.pointSize
+        for _ in 0..<Fitting.iterations {
+            let candidatePointSize = (lowerBound + upperBound) / 2
+            let candidateFont = baseFont.withSize(candidatePointSize)
+            if textFits(text, font: candidateFont) {
+                lowerBound = candidatePointSize
+            } else {
+                upperBound = candidatePointSize
+            }
+        }
+
+        applyFontIfNeeded(baseFont.withSize(lowerBound))
+    }
+
+    private func textFits(_ text: String, font: UIFont) -> Bool {
+        let maximumLineHeight = numberOfLines > 0
+            ? font.lineHeight * CGFloat(numberOfLines)
+            : bounds.height
+        let maximumHeight = min(bounds.height, maximumLineHeight)
+        let requiredBounds = (text as NSString).boundingRect(
+            with: CGSize(width: bounds.width, height: .greatestFiniteMagnitude),
+            options: [.usesLineFragmentOrigin, .usesFontLeading],
+            attributes: [.font: font],
+            context: nil
+        )
+        return ceil(requiredBounds.height) <= ceil(maximumHeight) + Fitting.tolerance
+    }
+
+    private func applyFontIfNeeded(_ fittedFont: UIFont) {
+        guard abs(font.pointSize - fittedFont.pointSize) > Fitting.tolerance else { return }
+        font = fittedFont
+        invalidateIntrinsicContentSize()
     }
 }
 
