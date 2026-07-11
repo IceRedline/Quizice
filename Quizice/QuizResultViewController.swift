@@ -271,9 +271,6 @@ final class QuizResultViewController: BaseQuizViewController, QuizResultViewCont
         if appearance.designStyle == .clean {
             return appearance.resolvedInterfaceStyle == .dark ? appearance.screenTextColor : .black
         }
-        if appearance.designStyle == .pixel {
-            return .black
-        }
         return appearance.screenTextColor
     }
 
