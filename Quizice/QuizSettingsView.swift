@@ -126,6 +126,12 @@ struct QuizSettingsView: View {
     @AppStorage(AppLocalizationStore.Keys.language) private var selectedLanguageID = AppLanguagePreference.system.rawValue
     @AppStorage("quizice.settings.icon") private var selectedIconID = AppIcon.classic.rawValue
     @State private var activeAlert: SettingsAlert?
+    @State private var didTrackScreen = false
+    private let analytics: AnalyticsTracking
+
+    init(analytics: AnalyticsTracking = AppMetricaAnalyticsTracker.shared) {
+        self.analytics = analytics
+    }
 
     private var selectedTheme: CleanColorSchemePreference {
         CleanColorSchemePreference(rawValue: selectedThemeID) ?? .system
@@ -175,6 +181,11 @@ struct QuizSettingsView: View {
                 message: Text(alert.message),
                 dismissButton: .default(Text(L10n.Settings.alertAction))
             )
+        }
+        .onAppear {
+            guard !didTrackScreen else { return }
+            didTrackScreen = true
+            analytics.track(.screenView(screen: .settings))
         }
     }
 
@@ -244,6 +255,7 @@ struct QuizSettingsView: View {
                 title: L10n.Settings.profile,
                 subtitle: L10n.Settings.profileSubtitle
             ) {
+                analytics.track(.settingsAction(.profile))
                 activeAlert = .profile
             }
         }
@@ -254,8 +266,10 @@ struct QuizSettingsView: View {
             Menu {
                 ForEach(AppDesignStyle.settingsOrder) { designStyle in
                     Button(designStyle.title) {
+                        let oldValue = selectedDesignStyleID
                         selectedDesignStyleID = designStyle.rawValue
                         AppAppearanceStore.shared.notifyChange()
+                        trackSettingChange(setting: "design", oldValue: oldValue, newValue: designStyle.rawValue)
                     }
                     .disabled(!designStyle.isSelectable)
                 }
@@ -275,7 +289,9 @@ struct QuizSettingsView: View {
             Menu {
                 ForEach(AppLanguagePreference.allCases) { language in
                     Button(language.title) {
+                        let oldValue = selectedLanguageID
                         AppLocalizationStore.shared.languagePreference = language
+                        trackSettingChange(setting: "language", oldValue: oldValue, newValue: language.rawValue)
                     }
                 }
             } label: {
@@ -295,8 +311,10 @@ struct QuizSettingsView: View {
                 Menu {
                     ForEach(CleanColorSchemePreference.allCases) { theme in
                         Button(theme.title) {
+                            let oldValue = selectedThemeID
                             selectedThemeID = theme.rawValue
                             AppAppearanceStore.shared.notifyChange()
+                            trackSettingChange(setting: "theme", oldValue: oldValue, newValue: theme.rawValue)
                         }
                     }
                 } label: {
@@ -329,7 +347,9 @@ struct QuizSettingsView: View {
                             isSelected: selectedIcon == icon,
                             isEnabled: isEnabled
                         ) {
+                            let oldValue = selectedIconID
                             selectedIconID = icon.rawValue
+                            trackSettingChange(setting: "icon", oldValue: oldValue, newValue: icon.rawValue)
                             activeAlert = .restart(icon.title)
                         }
                     }
@@ -345,9 +365,15 @@ struct QuizSettingsView: View {
                 title: L10n.Settings.feedback,
                 subtitle: L10n.Settings.feedbackSubtitle
             ) {
+                analytics.track(.settingsAction(.feedback))
                 activeAlert = .feedback
             }
         }
+    }
+
+    private func trackSettingChange(setting: String, oldValue: String, newValue: String) {
+        guard oldValue != newValue else { return }
+        analytics.track(.settingChanged(setting: setting, oldValue: oldValue, newValue: newValue))
     }
 }
 

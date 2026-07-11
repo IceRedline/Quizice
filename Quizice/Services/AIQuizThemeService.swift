@@ -30,6 +30,25 @@ enum YandexAIQuizThemeServiceError: Error, Equatable {
     case invalidContract(YandexAIQuizContractViolation)
 }
 
+extension YandexAIQuizThemeServiceError {
+    var analyticsCode: String {
+        switch self {
+        case .unavailableInRelease: return "unavailable_in_release"
+        case .missingAPIKey: return "missing_api_key"
+        case .emptyPrompt: return "empty_prompt"
+        case .requestEncodingFailed: return "request_encoding_failed"
+        case .network: return "network"
+        case .invalidHTTPResponse: return "invalid_http_response"
+        case .httpStatus: return "http_status"
+        case .generationStatus: return "generation_status"
+        case .invalidResponseJSON: return "invalid_response_json"
+        case .missingOutputText: return "missing_output_text"
+        case .invalidQuizJSON: return "invalid_quiz_json"
+        case .invalidContract: return "invalid_contract"
+        }
+    }
+}
+
 private extension YandexAIQuizContractViolation {
     var diagnosticDescription: String {
         switch self {
