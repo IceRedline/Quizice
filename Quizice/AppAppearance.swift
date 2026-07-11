@@ -186,7 +186,11 @@ struct AppTypography {
     func button() -> UIFont { font(size: 19, weight: .semibold) }
     func number() -> UIFont { font(size: 28, weight: .bold) }
 
-    func font(size: CGFloat, weight: UIFont.Weight) -> UIFont {
+    func font(
+        size: CGFloat,
+        weight: UIFont.Weight,
+        compatibleWith traitCollection: UITraitCollection? = nil
+    ) -> UIFont {
         let textStyle = uiTextStyle(for: size)
         let baseFont: UIFont
         if let name = fontFamily.fontName(weight: weight) {
@@ -194,7 +198,10 @@ struct AppTypography {
         } else {
             baseFont = fallbackFont(size: size, weight: weight)
         }
-        return UIFontMetrics(forTextStyle: textStyle).scaledFont(for: baseFont)
+        return UIFontMetrics(forTextStyle: textStyle).scaledFont(
+            for: baseFont,
+            compatibleWith: traitCollection
+        )
     }
 
     func swiftUIFont(size: CGFloat, weight: Font.Weight) -> Font {

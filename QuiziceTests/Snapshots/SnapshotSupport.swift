@@ -7,6 +7,11 @@ import XCTest
 @MainActor
 enum SnapshotSupport {
     static let componentSize = CGSize(width: 390, height: 220)
+    static let iPhone17Pro = ViewImageConfig(
+        safeArea: UIEdgeInsets(top: 62, left: 0, bottom: 34, right: 0),
+        size: CGSize(width: 402, height: 874),
+        traits: ViewImageConfig.iPhone13Pro.traits
+    )
     private static var snapshotRecordMode: SnapshotTestingConfiguration.Record? {
         ProcessInfo.processInfo.environment["QUIZICE_RECORD_SNAPSHOTS"] == "1" ? .all : nil
     }

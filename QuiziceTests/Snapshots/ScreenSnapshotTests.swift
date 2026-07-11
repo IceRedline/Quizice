@@ -62,20 +62,50 @@ final class ScreenSnapshotTests: XCTestCase {
         SnapshotSupport.assertScreen(makeQuestionViewController(), named: "clean-question", size: portraitSize)
     }
 
-    func testRadarLongContentCompactQuestionSnapshot() {
-        SnapshotSupport.setUp(designStyle: .radar)
+    func testClassicLongAnswerModernPortraitSnapshot() {
+        SnapshotSupport.setUp(designStyle: .classic)
 
         SnapshotSupport.assertScreen(
-            makeLongContentQuestionViewController(),
-            named: "radar-long-content-iphone-se",
+            makeLongAnswerQuestionViewController(),
+            named: "classic-long-answer-iphone-17-pro",
+            device: SnapshotSupport.iPhone17Pro
+        )
+    }
+
+    func testClassicLongAnswerCompactPortraitSnapshot() {
+        SnapshotSupport.setUp(designStyle: .classic)
+
+        SnapshotSupport.assertScreen(
+            makeLongAnswerQuestionViewController(),
+            named: "classic-long-answer-iphone-se",
             device: .iPhone8
         )
     }
 
-    func testCleanLongQuestionCompactPortraitSnapshot() {
+    func testRadarLongAnswerModernPortraitSnapshot() {
+        SnapshotSupport.setUp(designStyle: .radar)
+
         SnapshotSupport.assertScreen(
-            makeLongContentQuestionViewController(),
-            named: "clean-long-question-iphone-se",
+            makeLongAnswerQuestionViewController(),
+            named: "radar-long-answer-iphone-17-pro",
+            device: SnapshotSupport.iPhone17Pro
+        )
+    }
+
+    func testRadarLongAnswerCompactPortraitSnapshot() {
+        SnapshotSupport.setUp(designStyle: .radar)
+
+        SnapshotSupport.assertScreen(
+            makeLongAnswerQuestionViewController(),
+            named: "radar-long-answer-iphone-se",
+            device: .iPhone8
+        )
+    }
+
+    func testCleanLongAnswerCompactPortraitSnapshot() {
+        SnapshotSupport.assertScreen(
+            makeLongAnswerQuestionViewController(),
+            named: "clean-long-answer-iphone-se",
             device: .iPhone8
         )
     }
@@ -168,7 +198,9 @@ final class ScreenSnapshotTests: XCTestCase {
 
     private func makeQuestionViewController(
         themeName: String = "Музыка",
-        questionText: String = "Какой инструмент обычно ассоциируется с рок-группой?"
+        questionText: String = "Какой инструмент обычно ассоциируется с рок-группой?",
+        questionNumberText: String = L10n.Question.number(1),
+        answerTitles: [String] = ["Гитара", "Скрипка", "Флейта", "Арфа"]
     ) -> QuizQuestionViewController {
         let viewController = QuizQuestionViewController()
         viewController.loadViewIfNeeded()
@@ -176,23 +208,27 @@ final class ScreenSnapshotTests: XCTestCase {
             QuizQuestionViewModel(
                 themeName: themeName,
                 questionText: questionText,
-                questionNumberText: L10n.Question.number(1),
-                answers: [
-                    QuizAnswerOption(id: "0", title: "Гитара"),
-                    QuizAnswerOption(id: "1", title: "Скрипка"),
-                    QuizAnswerOption(id: "2", title: "Флейта"),
-                    QuizAnswerOption(id: "3", title: "Арфа")
-                ]
+                questionNumberText: questionNumberText,
+                answers: answerTitles.enumerated().map { index, title in
+                    QuizAnswerOption(id: "\(index)", title: title)
+                }
             )
         )
         viewController.updateProgress(0.62)
         return viewController
     }
 
-    private func makeLongContentQuestionViewController() -> QuizQuestionViewController {
+    private func makeLongAnswerQuestionViewController() -> QuizQuestionViewController {
         makeQuestionViewController(
-            themeName: "История и культура",
-            questionText: "Как называется технология, позволяющая увеличить производительность процессора за счет временного повышения тактовой частоты?"
+            themeName: "Цитаты философов",
+            questionText: "Какое из высказываний принадлежит Иммануилу Канту?",
+            questionNumberText: L10n.Question.number(2),
+            answerTitles: [
+                "«Поступай так, чтобы максима твоей воли могла бы быть всеобщим законом»",
+                "«Бытие определяет сознание»",
+                "«Человек — это то, что должно быть преодолено»",
+                "«Жизнь — это страдание»"
+            ]
         )
     }
 
