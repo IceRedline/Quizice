@@ -189,6 +189,7 @@ final class QuizQuestionViewController: BaseQuizViewController, QuizQuestionView
     private var soundOfIncorrectAnswerPlayer: AVAudioPlayer!
     weak var router: QuizRouting?
     private var currentAnswerOptions: [QuizAnswerOption] = []
+    var analytics: AnalyticsTracking = AppMetricaAnalyticsTracker.shared
     private var hasLoadedQuestion = false
     private var isQuestionTransitionInProgress = false
     private var isFittingContentFonts = false
@@ -227,7 +228,9 @@ final class QuizQuestionViewController: BaseQuizViewController, QuizQuestionView
         installAppearanceObserver()
         installAppearanceTraitObserver()
         loadAnswerSounds()
-        configurePresenter(QuizQuestionPresenter())
+        if presenter == nil {
+            configurePresenter(QuizQuestionPresenter(analytics: analytics))
+        }
         applyAppearance()
         presenter?.viewDidLoad()
         installLocalizationObserver()
@@ -238,6 +241,11 @@ final class QuizQuestionViewController: BaseQuizViewController, QuizQuestionView
     override func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
         fitContentFonts()
+    }
+
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+        analytics.track(.screenView(screen: .quizQuestion, themeID: presenter?.analyticsProgress.themeID))
     }
 
     // MARK: - Timer methods
@@ -258,7 +266,7 @@ final class QuizQuestionViewController: BaseQuizViewController, QuizQuestionView
         nextButton.isEnabled = true
     }
     
-    private func configurePresenter(_ presenter: QuizQuestionPresenterProtocol) {
+    func configurePresenter(_ presenter: QuizQuestionPresenterProtocol) {
         self.presenter = presenter
         self.presenter?.view = self
     }
@@ -1134,6 +1142,7 @@ final class QuizQuestionViewController: BaseQuizViewController, QuizQuestionView
     @objc private func closeButtonTapped() {
         guard presentedViewController == nil else { return }
         presenter?.pauseTimer()
+        analytics.track(.quizExitRequested(presenter?.analyticsProgress ?? .empty))
 
         let alert = UIAlertController(
             title: L10n.Question.exitAlertTitle,
@@ -1150,10 +1159,12 @@ final class QuizQuestionViewController: BaseQuizViewController, QuizQuestionView
     }
 
     func cancelExitConfirmation() {
+        analytics.track(.quizExitCancelled(presenter?.analyticsProgress ?? .empty))
         presenter?.resumeTimer()
     }
 
     func confirmExitAndReturnToThemes() {
+        analytics.track(.quizAbandoned(presenter?.analyticsProgress ?? .empty))
         presenter?.resetGameProgress()
         router?.closeQuestion()
     }
@@ -1164,6 +1175,15 @@ final class QuizQuestionViewController: BaseQuizViewController, QuizQuestionView
         closeButton.accessibilityLabel = L10n.Common.exit
         timerBar.accessibilityLabel = L10n.Question.timeRemaining
     }
+}
+
+private extension AnalyticsQuizProgress {
+    static let empty = AnalyticsQuizProgress(
+        themeID: nil,
+        answeredQuestions: 0,
+        totalQuestions: 0,
+        correctAnswers: 0
+    )
 }
 
 #if DEBUG

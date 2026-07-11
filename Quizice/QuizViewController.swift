@@ -120,6 +120,7 @@ final class QuizViewController: BaseQuizViewController, QuizViewControllerProtoc
     private let themeRepository: ThemeRepository
     private let session: QuizSessionManaging
     private let statisticsStore: StatisticsStore
+    private let analytics: AnalyticsTracking
     private let themesCollectionService: ThemesCollectionService
     private let motivationPromptProvider: (String?) -> String
     private let animationsEngine = Animations()
@@ -137,11 +138,13 @@ final class QuizViewController: BaseQuizViewController, QuizViewControllerProtoc
         themeRepository: ThemeRepository = QuizFactory.shared,
         session: QuizSessionManaging = QuizFactory.shared,
         statisticsStore: StatisticsStore = StatisticsStore(),
+        analytics: AnalyticsTracking = AppMetricaAnalyticsTracker.shared,
         motivationPromptProvider: @escaping (String?) -> String = QuizViewController.randomMotivationPrompt
     ) {
         self.themeRepository = themeRepository
         self.session = session
         self.statisticsStore = statisticsStore
+        self.analytics = analytics
         self.motivationPromptProvider = motivationPromptProvider
         self.themesCollectionService = ThemesCollectionService(
             themeRepository: themeRepository,
@@ -205,6 +208,7 @@ final class QuizViewController: BaseQuizViewController, QuizViewControllerProtoc
 
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
+        analytics.track(.screenView(screen: .home))
 
         if session.startup1st {
             animateViewsAndPlaySound()
@@ -587,6 +591,7 @@ final class QuizViewController: BaseQuizViewController, QuizViewControllerProtoc
             updateThemeAvailabilityMessage()
             return
         }
+        analytics.track(.themeSelected(themeID: themeID, method: .manual))
         showDescriptionViewController()
     }
 
@@ -646,6 +651,7 @@ final class QuizViewController: BaseQuizViewController, QuizViewControllerProtoc
             updateThemeAvailabilityMessage()
             return
         }
+        analytics.track(.themeSelected(themeID: themeID, method: .random))
         showDescriptionViewController()
     }
 

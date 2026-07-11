@@ -12,6 +12,7 @@ protocol QuizDescriptionPresenterProtocol {
     var themeID: String? { get }
     var themeName: String { get set }
     var themeDescription: String { get set }
+    var selectedQuestionCount: Int { get }
     
     func viewDidLoad()
     var numberOfQuestionsOptionCount: Int { get }
@@ -21,4 +22,5 @@ protocol QuizDescriptionPresenterProtocol {
 
 extension QuizDescriptionPresenterProtocol {
     var themeID: String? { nil }
+    var selectedQuestionCount: Int { 0 }
 }
