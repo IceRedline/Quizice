@@ -55,11 +55,14 @@ final class AppAppearanceTests: XCTestCase {
     func testThemeCardStylingDiffersByDesignStyle() {
         let baseColor = UIColor.systemBlue
         let clean = SnapshotSupport.appearance(designStyle: .clean)
+        let cleanDark = SnapshotSupport.appearance(designStyle: .clean, cleanColorScheme: .dark)
         let radar = SnapshotSupport.appearance(designStyle: .radar)
         let classic = SnapshotSupport.appearance(designStyle: .classic)
 
         XCTAssertTrue(clean.themeCardBackground(baseColor: baseColor).isEqual(clean.card.backgroundColor))
         XCTAssertTrue(clean.themeCardTextColor(baseColor: baseColor).isEqual(clean.surfaceTextColor))
+        XCTAssertEqual(clean.themeCardShadow.opacity, 0)
+        XCTAssertGreaterThan(cleanDark.themeCardShadow.opacity, 0)
         XCTAssertTrue(radar.themeCardTextColor(baseColor: baseColor).isEqual(radar.accentColor))
         XCTAssertFalse(classic.themeCardBackground(baseColor: baseColor).isEqual(baseColor))
     }
