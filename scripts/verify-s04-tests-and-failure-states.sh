@@ -15,7 +15,7 @@ set -euo pipefail
 # - keeps failures loud and actionable for local developer/CI-style invocation.
 #
 # To intentionally refresh image snapshots locally, run the XCTest command below
-# with SNAPSHOT_TESTING_RECORD=all, inspect the changed PNGs, then rerun this
+# with QUIZICE_RECORD_SNAPSHOTS=1, inspect the changed PNGs, then rerun this
 # verifier without recording.
 
 readonly PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
@@ -36,11 +36,15 @@ readonly COMPONENT_SNAPSHOT_TESTS="QuiziceTests/Snapshots/ComponentSnapshotTests
 readonly HOME_CARD_SNAPSHOT_TESTS="QuiziceTests/Snapshots/HomeCardSnapshotTests.swift"
 readonly SCREEN_SNAPSHOT_TESTS="QuiziceTests/Snapshots/ScreenSnapshotTests.swift"
 readonly SWIFTUI_SNAPSHOT_TESTS="QuiziceTests/Snapshots/SwiftUISnapshotTests.swift"
+readonly HOME_VISUAL_TESTS="QuiziceTests/UI/HomeScreenVisualStateTests.swift"
+readonly CROSS_SCREEN_VISUAL_TESTS="QuiziceTests/UI/CrossScreenVisualStateTests.swift"
 readonly APP_APPEARANCE_TESTS="QuiziceTests/Unit/AppAppearanceTests.swift"
 readonly QUIZ_PRESENTER_TESTS="QuiziceTests/Unit/QuizPresenterTests.swift"
 readonly QUESTION_PRESENTER_TESTS="QuiziceTests/Unit/QuizQuestionPresenterTests.swift"
 readonly QUIZ_FACTORY_TESTS="QuiziceTests/Unit/QuizFactoryTests.swift"
 readonly QUIZ_COORDINATOR_TESTS="QuiziceTests/Unit/QuizFlowCoordinatorAdditionalTests.swift"
+readonly SNAPSHOT_RUNTIME_IDENTIFIER="com.apple.CoreSimulator.SimRuntime.iOS-26-2"
+readonly SNAPSHOT_HOST_DEVICE_TYPE_SUFFIX=".iPhone-16e"
 readonly MIN_LINE_COVERAGE_PERCENT=80
 
 TEMP_FILES=()
@@ -231,10 +235,17 @@ assert_data_json_unchanged() {
 }
 
 select_ios_simulator_udid() {
+  if [[ -n "${QUIZICE_SIMULATOR_UDID:-}" ]]; then
+    printf '%s\n' "$QUIZICE_SIMULATOR_UDID"
+    return
+  fi
+
   xcrun simctl list devices available -j | python3 -c '
 import json
 import sys
 
+preferred_runtime = sys.argv[1]
+preferred_device_type_suffix = sys.argv[2]
 try:
     payload = json.load(sys.stdin)
 except Exception as exc:
@@ -242,38 +253,46 @@ except Exception as exc:
 
 devices_by_runtime = payload.get("devices", {})
 candidates = []
-preferred_names = {
-    "iPhone 16": 0,
-    "iPhone 16 Pro": 1,
-    "iPhone 15": 2,
-    "iPhone 15 Pro": 3,
-}
 for runtime, devices in devices_by_runtime.items():
-    if "iOS" not in runtime:
+    if runtime != preferred_runtime:
         continue
     for device in devices:
         if not device.get("isAvailable", False):
             continue
         name = device.get("name", "")
-        # Prefer normal iPhone simulators over watches, TVs, iPads, or unavailable variants.
-        if not name.startswith("iPhone"):
+        device_type = device.get("deviceTypeIdentifier", "")
+        if not device_type.endswith(preferred_device_type_suffix):
             continue
         state = device.get("state", "")
         udid = device.get("udid", "")
         if udid:
-            # Snapshot references are device-sensitive. Prefer the pinned CI-era
-            # iPhone before considering already-booted newer local simulators.
-            preferred_rank = preferred_names.get(name, 100)
             boot_rank = 0 if state == "Booted" else 1
-            candidates.append((preferred_rank, boot_rank, runtime, name, udid))
+            candidates.append((boot_rank, name, udid))
 
 if not candidates:
-    raise SystemExit("no available iOS iPhone Simulator found")
+    raise SystemExit(
+        "snapshot host unavailable: create an iPhone 16e on iOS 26.2 "
+        "or set QUIZICE_SIMULATOR_UDID to an explicitly compatible simulator"
+    )
 
-for _, _, _, _, udid in sorted(candidates):
+for _, _, udid in sorted(candidates):
     print(udid)
     break
-'
+' "$SNAPSHOT_RUNTIME_IDENTIFIER" "$SNAPSHOT_HOST_DEVICE_TYPE_SUFFIX"
+}
+
+assert_snapshot_recording_disabled() {
+  local simulator_udid="$1"
+  local key
+  local value
+
+  for key in QUIZICE_RECORD_SNAPSHOTS SNAPSHOT_TESTING_RECORD; do
+    value="${!key:-}"
+    [[ -z "$value" ]] || fail "$key must be unset while running the verifier"
+
+    value="$(xcrun simctl spawn "$simulator_udid" launchctl getenv "$key" 2>/dev/null || true)"
+    [[ -z "$value" ]] || fail "$key is set in the selected simulator; unset it before verification"
+  done
 }
 
 check_project_and_test_wiring() {
@@ -289,6 +308,8 @@ check_project_and_test_wiring() {
   require_file "$HOME_CARD_SNAPSHOT_TESTS"
   require_file "$SCREEN_SNAPSHOT_TESTS"
   require_file "$SWIFTUI_SNAPSHOT_TESTS"
+  require_file "$HOME_VISUAL_TESTS"
+  require_file "$CROSS_SCREEN_VISUAL_TESTS"
   require_file "$APP_APPEARANCE_TESTS"
   require_file "$QUIZ_PRESENTER_TESTS"
   require_file "$QUESTION_PRESENTER_TESTS"
@@ -385,8 +406,26 @@ check_snapshot_coverage_markers() {
   require_fixed_string "$COMPONENT_SNAPSHOT_TESTS" 'testPrimaryButtonsAcrossDesignStyles' 'Component snapshots must cover primary buttons across styles'
   require_fixed_string "$COMPONENT_SNAPSHOT_TESTS" 'testSecondaryButtonsAcrossDesignStyles' 'Component snapshots must cover secondary buttons across styles'
   require_fixed_string "$HOME_CARD_SNAPSHOT_TESTS" 'testThemeCardSnapshot' 'Home card snapshots must cover theme cards'
+  require_fixed_string "$HOME_CARD_SNAPSHOT_TESTS" 'testRadarLongThemeCompactCardSnapshot' 'Home card snapshots must cover long Radar titles on compact phones'
+  require_fixed_string "$HOME_CARD_SNAPSHOT_TESTS" 'testCompactStatisticsCardSnapshot' 'Home card snapshots must cover compact statistics layout'
   require_fixed_string "$SCREEN_SNAPSHOT_TESTS" 'testHomeScreenSnapshot' 'Screen snapshots must cover home'
+  require_fixed_string "$SCREEN_SNAPSHOT_TESTS" 'testHomeCompactPortraitSnapshot' 'Screen snapshots must cover the home screen on iPhone SE geometry'
+  require_fixed_string "$SCREEN_SNAPSHOT_TESTS" 'testHomeCompactPortraitBottomSnapshot' 'Screen snapshots must cover the final home item and its internal bottom spacing'
+  require_fixed_string "$SCREEN_SNAPSHOT_TESTS" 'testClassicLongAnswerModernPortraitSnapshot' 'Screen snapshots must reproduce long answers on iPhone 17 Pro Classic layout'
+  require_fixed_string "$SCREEN_SNAPSHOT_TESTS" 'testClassicLongAnswerCompactPortraitSnapshot' 'Screen snapshots must reproduce long answers on compact Classic layout'
+  require_fixed_string "$SCREEN_SNAPSHOT_TESTS" 'testRadarLongAnswerModernPortraitSnapshot' 'Screen snapshots must cover long answers on iPhone 17 Pro Radar layout'
+  require_fixed_string "$SCREEN_SNAPSHOT_TESTS" 'testRadarLongAnswerCompactPortraitSnapshot' 'Screen snapshots must cover long answers on compact Radar layout'
+  require_fixed_string "$SCREEN_SNAPSHOT_TESTS" 'testCleanLongAnswerCompactPortraitSnapshot' 'Screen snapshots must cover long answers on compact Clean layout'
+  require_fixed_string "$SCREEN_SNAPSHOT_TESTS" '«Поступай так, чтобы максима твоей воли могла бы быть всеобщим законом»' 'Screen snapshots must reproduce the reported long-answer fixture'
   require_fixed_string "$SWIFTUI_SNAPSHOT_TESTS" 'testSettingsViewSnapshot' 'SwiftUI snapshots must cover settings'
+  require_fixed_string "$SWIFTUI_SNAPSHOT_TESTS" 'testClassicSettingsCompactPortraitSnapshot' 'SwiftUI snapshots must cover Classic settings on iPhone SE geometry'
+  require_fixed_string "$HOME_VISUAL_TESTS" 'testCleanSettingsSurfaceIsCircular' 'Home visual tests must keep the Clean settings surface circular'
+  require_fixed_string "$HOME_VISUAL_TESTS" 'XCTAssertEqual(themeCell.layer.shadowOpacity, 0)' 'Home visual tests must keep Clean light theme cards shadowless'
+  require_fixed_string "$HOME_VISUAL_TESTS" 'testCompactStatisticsTitleShrinksAndLastItemOwnsBottomSpacing' 'Home visual tests must cover compact statistics text and last-item-owned spacing'
+  require_fixed_string "$CROSS_SCREEN_VISUAL_TESTS" 'testLongAnswersShrinkWithoutClippingAcrossSelectableStylesAndPhoneSizes' 'Cross-screen visual tests must cover long-answer fitting across selectable styles and phone sizes'
+  require_fixed_string "$CROSS_SCREEN_VISUAL_TESTS" 'testLongAnswersRespectAccessibilityContentSizeWhileFitting' 'Cross-screen visual tests must preserve Dynamic Type while fitting long answers'
+  require_fixed_string "$CROSS_SCREEN_VISUAL_TESTS" 'testQuestionNextButtonStaysPinnedWhenExtremeAnswerGrowsCard' 'Cross-screen visual tests must cover the readable-font fallback for extreme answers'
+  require_fixed_string "$CROSS_SCREEN_VISUAL_TESTS" 'testQuestionAdvanceResetsScrolledLongAnswerCardToTop' 'Cross-screen visual tests must reset long-answer scroll position when advancing'
   require_fixed_string "$APP_APPEARANCE_TESTS" 'testAllDesignStylesResolveExpectedSurfaceFamilies' 'Appearance tests must cover all design styles'
   require_fixed_string "$QUESTION_PRESENTER_TESTS" 'testCorrectAnswerRecordsSingleCompletedAttemptAndEmitsResult' 'Question presenter tests must cover result emission and statistics recording'
   require_fixed_string "$QUIZ_FACTORY_TESTS" 'testSwiftDataThemeStoreReplacesFetchesAndClearsThemes' 'Factory tests must cover in-memory SwiftData theme store behavior'
@@ -451,6 +490,7 @@ run_unit_tests() {
   simulator_udid="$(select_ios_simulator_udid)"
   [[ -n "$simulator_udid" ]] || fail "simulator selection returned an empty UDID"
   printf 'Selected iOS Simulator: %s\n' "$simulator_udid"
+  assert_snapshot_recording_disabled "$simulator_udid"
 
   log_section "XCTest suite"
   local test_log
@@ -467,6 +507,7 @@ run_unit_tests() {
     -configuration "$CONFIGURATION" \
     -destination "platform=iOS Simulator,id=$simulator_udid" \
     CODE_SIGNING_ALLOWED=NO \
+    -parallel-testing-enabled NO \
     -enableCodeCoverage YES \
     -resultBundlePath "$result_bundle" \
     test | tee "$test_log"; then
@@ -487,6 +528,16 @@ run_unit_tests() {
     'ComponentSnapshotTests did not appear to execute'
   require_extended_regex "$test_log" "Test Suite 'ScreenSnapshotTests' passed|Test case 'ScreenSnapshotTests\\." \
     'ScreenSnapshotTests did not appear to execute'
+  require_extended_regex "$test_log" "Test Suite 'HomeCardSnapshotTests' passed|Test case 'HomeCardSnapshotTests\\." \
+    'HomeCardSnapshotTests did not appear to execute'
+  require_extended_regex "$test_log" "Test Suite 'SwiftUISnapshotTests' passed|Test case 'SwiftUISnapshotTests\\." \
+    'SwiftUISnapshotTests did not appear to execute'
+  require_extended_regex "$test_log" "Test Suite 'HomeScreenVisualStateTests' passed|Test case 'HomeScreenVisualStateTests\\." \
+    'HomeScreenVisualStateTests did not appear to execute'
+  require_extended_regex "$test_log" "Test Suite 'CrossScreenVisualStateTests' passed|Test case 'CrossScreenVisualStateTests\\." \
+    'CrossScreenVisualStateTests did not appear to execute'
+  require_extended_regex "$test_log" "Test Suite 'AppAppearanceTests' passed|Test case 'AppAppearanceTests\\." \
+    'AppAppearanceTests did not appear to execute'
 
   printf 'XCTest suite: PASS\n'
   check_coverage "$result_bundle"

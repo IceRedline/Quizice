@@ -399,7 +399,7 @@ final class QuizViewController: BaseQuizViewController, QuizViewControllerProtoc
         settingsButton?.layer.shadowOpacity = 0
         settingsButton?.tintColor = appearance.screenTextColor
         settingsButtonVisualSurface?.applySurfaceStyle(appearance.iconButton)
-        if appearance.designStyle == .classic {
+        if appearance.designStyle == .classic || appearance.designStyle == .clean {
             settingsButtonVisualSurface?.layer.cornerRadius = Layout.settingsButtonVisualSize / 2
             settingsButtonVisualSurface?.layer.cornerCurve = .circular
         }

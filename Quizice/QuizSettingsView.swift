@@ -18,6 +18,7 @@ private enum Layout {
     static let rowAccessoryMinimumSpacing: CGFloat = 12
     static let rowIconSize: CGFloat = 36
     static let rowTextSpacing: CGFloat = 3
+    static let rowValueMinimumScaleFactor: CGFloat = 0.72
     static let iconChoicesSpacing: CGFloat = 10
     static let iconChoiceContentSpacing: CGFloat = 8
     static let iconChoiceImageSize: CGFloat = 48
@@ -431,12 +432,16 @@ private struct SettingsValueRow: View {
                     .font(appearance.typography.swiftUIFont(size: 15, weight: .semibold))
                     .foregroundStyle(Color(uiColor: appearance.surfaceTextColor))
                     .multilineTextAlignment(.trailing)
-                    .fixedSize(horizontal: false, vertical: true)
+                    .lineLimit(1)
+                    .minimumScaleFactor(Layout.rowValueMinimumScaleFactor)
+                    .allowsTightening(true)
+                    .layoutPriority(1)
 
                 Image(systemName: "chevron.down")
                     .font(appearance.typography.swiftUIFont(size: 12, weight: .bold))
                     .foregroundStyle(Color(uiColor: appearance.secondarySurfaceTextColor))
             }
+            .layoutPriority(1)
         }
         .contentShape(Rectangle())
     }
