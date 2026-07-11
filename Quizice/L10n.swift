@@ -20,6 +20,7 @@ enum L10n {
     }
 
     enum Description {
+        static var aiQuestionCountFixed: String { L10n.localized("description.ai_question_count_fixed", comment: "Fixed AI question count picker hint") }
         static var defaultThemeDescription: String { L10n.localized("description.default_theme_description", comment: "Default theme description fallback") }
         static var defaultThemeName: String { L10n.localized("description.default_theme_name", comment: "Default theme name fallback") }
         static var questionCount: String { L10n.localized("description.question_count", comment: "Question count picker caption") }
@@ -68,12 +69,65 @@ enum L10n {
     }
 
     enum AITheme {
+        enum Difficulty {
+            static var easy: String { L10n.localized("ai_theme.difficulty.easy", comment: "Easy AI quiz difficulty") }
+            static var medium: String { L10n.localized("ai_theme.difficulty.medium", comment: "Medium AI quiz difficulty") }
+            static var hard: String { L10n.localized("ai_theme.difficulty.hard", comment: "Hard AI quiz difficulty") }
+        }
+
+        enum Progress {
+            static var analyzing: String { L10n.localized("ai_theme.progress.analyzing", comment: "AI generation analyzing phase") }
+            static var sending: String { L10n.localized("ai_theme.progress.sending", comment: "AI generation sending phase") }
+            static var generating: String { L10n.localized("ai_theme.progress.generating", comment: "AI generation composing phase") }
+            static var almostReady: String { L10n.localized("ai_theme.progress.almost_ready", comment: "AI generation almost ready phase") }
+        }
+
+        enum Error {
+            enum Refusal {
+                static var title: String { L10n.localized("ai_theme.error.refusal.title", comment: "AI refusal title") }
+                static var message: String { L10n.localized("ai_theme.error.refusal.message", comment: "AI refusal message") }
+            }
+
+            enum Network {
+                static var title: String { L10n.localized("ai_theme.error.network.title", comment: "AI network error title") }
+                static var message: String { L10n.localized("ai_theme.error.network.message", comment: "AI network error message") }
+            }
+
+            enum Service {
+                static var title: String { L10n.localized("ai_theme.error.service.title", comment: "AI service error title") }
+                static var message: String { L10n.localized("ai_theme.error.service.message", comment: "AI service error message") }
+            }
+
+            enum InvalidQuiz {
+                static var title: String { L10n.localized("ai_theme.error.invalid_quiz.title", comment: "Invalid generated quiz title") }
+                static var message: String { L10n.localized("ai_theme.error.invalid_quiz.message", comment: "Invalid generated quiz message") }
+            }
+
+            enum Unavailable {
+                static var title: String { L10n.localized("ai_theme.error.unavailable.title", comment: "AI unavailable title") }
+                static var message: String { L10n.localized("ai_theme.error.unavailable.message", comment: "AI unavailable message") }
+            }
+        }
+
+        static var difficulty: String { L10n.localized("ai_theme.difficulty", comment: "AI quiz difficulty selector title") }
+        static var editTheme: String { L10n.localized("ai_theme.edit_theme", comment: "Edit AI quiz theme action") }
         static var errorMessage: String { L10n.localized("ai_theme.error_message", comment: "AI theme creation error message") }
         static var errorTitle: String { L10n.localized("ai_theme.error_title", comment: "AI theme creation error title") }
+        static var generating: String { L10n.localized("ai_theme.generating", comment: "AI generation button title") }
         static var promptPlaceholder: String { L10n.localized("ai_theme.prompt_placeholder", comment: "AI theme prompt placeholder") }
+        static var questionCount: String { L10n.localized("ai_theme.question_count", comment: "AI quiz question count selector title") }
+        static var retry: String { L10n.localized("ai_theme.retry", comment: "Retry AI generation action") }
         static var submit: String { L10n.localized("ai_theme.submit", comment: "AI theme creation submit button title") }
         static var subtitle: String { L10n.localized("ai_theme.subtitle", comment: "AI theme creation subtitle") }
         static var title: String { L10n.localized("ai_theme.title", comment: "AI theme creation screen title") }
+
+        static func questionCountAccessibility(count: Int) -> String {
+            L10n.formatted(
+                "ai_theme.question_count.accessibility_format",
+                comment: "AI quiz question count accessibility label",
+                count
+            )
+        }
     }
 
     enum Question {

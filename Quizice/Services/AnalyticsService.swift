@@ -58,8 +58,8 @@ enum AnalyticsEvent {
     case quizCompleted(themeID: String?, correctAnswers: Int, totalQuestions: Int)
     case quizResultAction(themeID: String?, action: AnalyticsResultAction)
     case statisticsViewed(attemptsCount: Int, totalQuestions: Int, accuracyPercent: Int)
-    case aiGenerationStarted(locale: String, promptLength: Int)
-    case aiGenerationSucceeded(locale: String, questionCount: Int, durationMilliseconds: Int)
+    case aiGenerationStarted(locale: String, promptLength: Int, questionCount: Int, difficulty: AIQuizDifficulty)
+    case aiGenerationSucceeded(locale: String, questionCount: Int, difficulty: AIQuizDifficulty, durationMilliseconds: Int)
     case aiGenerationFailed(locale: String, errorCode: String, durationMilliseconds: Int)
     case aiGenerationCancelled(locale: String, durationMilliseconds: Int)
     case settingChanged(setting: String, oldValue: String, newValue: String)
@@ -119,12 +119,18 @@ enum AnalyticsEvent {
                 "total_questions": max(totalQuestions, 0),
                 "accuracy_percent": min(max(accuracyPercent, 0), 100)
             ]
-        case let .aiGenerationStarted(locale, promptLength):
-            return ["locale": locale, "prompt_length": max(promptLength, 0)]
-        case let .aiGenerationSucceeded(locale, questionCount, durationMilliseconds):
+        case let .aiGenerationStarted(locale, promptLength, questionCount, difficulty):
+            return [
+                "locale": locale,
+                "prompt_length": max(promptLength, 0),
+                "question_count": max(questionCount, 0),
+                "difficulty": difficulty.rawValue
+            ]
+        case let .aiGenerationSucceeded(locale, questionCount, difficulty, durationMilliseconds):
             return [
                 "locale": locale,
                 "question_count": max(questionCount, 0),
+                "difficulty": difficulty.rawValue,
                 "duration_ms": max(durationMilliseconds, 0)
             ]
         case let .aiGenerationFailed(locale, errorCode, durationMilliseconds):

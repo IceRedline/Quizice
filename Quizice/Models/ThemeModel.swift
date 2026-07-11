@@ -13,6 +13,10 @@ struct ThemeModel {
     var themeID: String {
         quizTheme.stableID
     }
+
+    var isAIGenerated: Bool {
+        themeID.hasPrefix("ai-")
+    }
     
     var themeName: String {
         quizTheme.theme

@@ -83,6 +83,37 @@ final class QuizPresenterTests: XCTestCase {
         XCTAssertEqual(session.questionsCount, 5)
     }
 
+    func testAIGeneratedThemeLocksTheGeneratedQuestionCount() {
+        let session = QuizPresenterSession()
+        session.chosenTheme = ThemeModel(quizTheme: SnapshotSupport.makeTheme(
+            id: "ai-generated",
+            name: "Generated",
+            questions: makeQuestions(count: 10)
+        ))
+        session.questionsCount = 10
+
+        let presenter = QuizDescriptionPresenter(session: session)
+
+        XCTAssertFalse(presenter.isQuestionCountSelectionEnabled)
+        XCTAssertEqual(presenter.selectedQuestionCountRow, 1)
+        XCTAssertEqual(presenter.selectedQuestionCount, 10)
+    }
+
+    func testCatalogThemeKeepsQuestionCountSelectionEnabled() {
+        let session = QuizPresenterSession()
+        session.chosenTheme = ThemeModel(quizTheme: SnapshotSupport.makeTheme(
+            id: "technology",
+            name: "Technology",
+            questions: makeQuestions(count: 15)
+        ))
+        session.questionsCount = 5
+
+        let presenter = QuizDescriptionPresenter(session: session)
+
+        XCTAssertTrue(presenter.isQuestionCountSelectionEnabled)
+        XCTAssertEqual(presenter.selectedQuestionCountRow, 0)
+    }
+
     func testDescriptionPresenterCountsOnlyUsableQuestions() {
         let session = QuizPresenterSession()
         let unusableQuestion = QuizQuestion(

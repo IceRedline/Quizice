@@ -19,6 +19,12 @@ final class QuizDescriptionPresenter: QuizDescriptionPresenterProtocol {
         session.chosenTheme?.themeID
     }
     var selectedQuestionCount: Int { session.questionsCount }
+    var selectedQuestionCountRow: Int? {
+        numberOfQuestionsOptions.firstIndex(of: selectedQuestionCount)
+    }
+    var isQuestionCountSelectionEnabled: Bool {
+        !(session.chosenTheme?.isAIGenerated ?? false)
+    }
     
     init(session: QuizSessionManaging = QuizFactory.shared, content: QuizDescriptionContent? = nil) {
         self.session = session

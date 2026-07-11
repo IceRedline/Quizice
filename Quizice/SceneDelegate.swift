@@ -174,7 +174,7 @@ final class QuizFlowCoordinator: NSObject, QuizRouting, UIViewControllerTransiti
     func handleGeneratedAITheme(_ theme: QuizTheme, dismissing viewController: UIViewController) {
         AppLog.quiz.info("AI quiz result accepted: questions=\(theme.questions.count, privacy: .public)")
         session.chosenTheme = ThemeModel(quizTheme: theme)
-        session.questionsCount = 5
+        session.questionsCount = theme.questions.count
         analytics.track(.themeSelected(themeID: theme.stableID, method: .ai))
         viewController.dismiss(animated: true) { [weak self] in
             self?.showDescription()
