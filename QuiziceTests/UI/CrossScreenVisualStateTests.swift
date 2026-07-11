@@ -294,51 +294,116 @@ final class CrossScreenVisualStateTests: XCTestCase {
         XCTAssertLessThanOrEqual(minimumWidth, themeLabel.bounds.width + 0.5)
     }
 
-    func testRadarLongQuestionShrinksWithoutTruncatingOnCompactPhone() throws {
-        UserDefaults.standard.set(AppDesignStyle.radar.rawValue, forKey: AppAppearanceStore.Keys.designStyle)
+    func testLongAnswersShrinkWithoutClippingAcrossSelectableStylesAndPhoneSizes() throws {
+        let styles: [AppDesignStyle] = [.classic, .radar, .clean]
+        let phoneSizes = [
+            CGSize(width: 402, height: 874),
+            CGSize(width: 375, height: 667),
+            CGSize(width: 320, height: 568)
+        ]
+        let longAnswers = philosopherQuoteAnswers
+
+        for style in styles {
+            UserDefaults.standard.set(style.rawValue, forKey: AppAppearanceStore.Keys.designStyle)
+
+            for phoneSize in phoneSizes {
+                QuizFactory.shared.chosenTheme = makeQuestionTheme()
+                QuizFactory.shared.questionsCount = 1
+
+                let viewController = QuizQuestionViewController()
+                viewController.loadViewIfNeeded()
+                viewController.view.frame = CGRect(origin: .zero, size: phoneSize)
+                viewController.loadQuestionToView(
+                    QuizQuestionViewModel(
+                        themeName: "Цитаты философов",
+                        questionText: "Какое из высказываний принадлежит Иммануилу Канту?",
+                        questionNumberText: "Вопрос №2",
+                        answers: longAnswers.enumerated().map { index, title in
+                            QuizAnswerOption(id: "long-answer-\(index)", title: title)
+                        }
+                    )
+                )
+                viewController.view.setNeedsLayout()
+                viewController.view.layoutIfNeeded()
+                viewController.view.layoutIfNeeded()
+
+                try assertAnswerLabelsFit(in: viewController, expectedTitles: longAnswers)
+
+                let baseFont = currentAppearance().typography.font(size: 18, weight: .semibold)
+                let firstAnswerLabel = try XCTUnwrap(questionAnswerButtons(in: viewController).first?.titleLabel)
+                XCTAssertLessThan(firstAnswerLabel.font.pointSize, baseFont.pointSize)
+                XCTAssertGreaterThanOrEqual(firstAnswerLabel.font.pointSize, baseFont.pointSize * 0.72 - 0.1)
+
+                let shortAnswers = ["A", "B", "C", "D"]
+                viewController.loadQuestionToView(
+                    QuizQuestionViewModel(
+                        themeName: "Короткая тема",
+                        questionText: "Короткий вопрос?",
+                        questionNumberText: "Вопрос №3",
+                        answers: shortAnswers.enumerated().map { index, title in
+                            QuizAnswerOption(id: "short-answer-\(index)", title: title)
+                        }
+                    )
+                )
+                viewController.view.setNeedsLayout()
+                viewController.view.layoutIfNeeded()
+                viewController.view.layoutIfNeeded()
+
+                let shortAnswerButtons = questionAnswerButtons(in: viewController)
+                XCTAssertEqual(shortAnswerButtons.count, shortAnswers.count)
+                XCTAssertTrue(shortAnswerButtons.allSatisfy {
+                    abs(($0.titleLabel?.font.pointSize ?? 0) - baseFont.pointSize) <= 0.1
+                })
+                viewController.presenter?.stopTimer()
+            }
+        }
+    }
+
+    func testLongAnswersRespectAccessibilityContentSizeWhileFitting() throws {
+        UserDefaults.standard.set(AppDesignStyle.classic.rawValue, forKey: AppAppearanceStore.Keys.designStyle)
         QuizFactory.shared.chosenTheme = makeQuestionTheme()
         QuizFactory.shared.questionsCount = 1
 
         let viewController = QuizQuestionViewController()
+        viewController.traitOverrides.preferredContentSizeCategory = .accessibilityExtraExtraExtraLarge
         viewController.loadViewIfNeeded()
         defer { viewController.presenter?.stopTimer() }
         viewController.view.frame = CGRect(x: 0, y: 0, width: 375, height: 667)
-        let longQuestion = "Как называется технология, позволяющая увеличить производительность процессора за счет временного повышения тактовой частоты?"
         viewController.loadQuestionToView(
             QuizQuestionViewModel(
-                themeName: "История и культура",
-                questionText: longQuestion,
-                questionNumberText: "Вопрос №1",
-                answers: [
-                    QuizAnswerOption(id: "long-question-0", title: "Turbo Boost"),
-                    QuizAnswerOption(id: "long-question-1", title: "Hyper-Threading"),
-                    QuizAnswerOption(id: "long-question-2", title: "Secure Boot"),
-                    QuizAnswerOption(id: "long-question-3", title: "Ray Tracing")
-                ]
+                themeName: "Цитаты философов",
+                questionText: "Какое из высказываний принадлежит Иммануилу Канту?",
+                questionNumberText: "Вопрос №2",
+                answers: philosopherQuoteAnswers.enumerated().map { index, title in
+                    QuizAnswerOption(id: "accessibility-answer-\(index)", title: title)
+                }
             )
         )
         viewController.view.setNeedsLayout()
         viewController.view.layoutIfNeeded()
         viewController.view.layoutIfNeeded()
 
-        let questionLabel = try XCTUnwrap(
-            viewController.view.descendant(withAccessibilityIdentifier: "questionTextLabel") as? UILabel
-        )
-        let baseFont = currentAppearance().typography.font(size: 26, weight: .bold)
-        let requiredHeight = ceil(
-            (longQuestion as NSString).boundingRect(
-                with: CGSize(width: questionLabel.bounds.width, height: .greatestFiniteMagnitude),
-                options: [.usesLineFragmentOrigin, .usesFontLeading],
-                attributes: [.font: questionLabel.font!],
-                context: nil
-            ).height
-        )
+        try assertAnswerLabelsFit(in: viewController, expectedTitles: philosopherQuoteAnswers)
 
-        XCTAssertEqual(questionLabel.text, longQuestion)
-        XCTAssertEqual(questionLabel.numberOfLines, 0)
-        XCTAssertLessThan(questionLabel.font.pointSize, baseFont.pointSize)
-        XCTAssertGreaterThanOrEqual(questionLabel.font.pointSize, baseFont.pointSize * 0.72 - 0.1)
-        XCTAssertLessThanOrEqual(requiredHeight, questionLabel.bounds.height + 0.5)
+        let typography = currentAppearance().typography
+        let defaultFont = typography.font(
+            size: 18,
+            weight: .semibold,
+            compatibleWith: UITraitCollection(preferredContentSizeCategory: .large)
+        )
+        let accessibilityFont = typography.font(
+            size: 18,
+            weight: .semibold,
+            compatibleWith: viewController.traitCollection
+        )
+        let firstAnswerLabel = try XCTUnwrap(questionAnswerButtons(in: viewController).first?.titleLabel)
+
+        XCTAssertGreaterThan(accessibilityFont.pointSize, defaultFont.pointSize)
+        XCTAssertLessThan(firstAnswerLabel.font.pointSize, accessibilityFont.pointSize)
+        XCTAssertGreaterThanOrEqual(
+            firstAnswerLabel.font.pointSize,
+            accessibilityFont.pointSize * 0.72 - 0.1
+        )
     }
 
     func testQuestionScreenFadesHeaderAndActionButtonsWhenShowingResult() throws {
@@ -401,7 +466,7 @@ final class CrossScreenVisualStateTests: XCTestCase {
         XCTAssertFalse(nextButton.isEnabled)
     }
 
-    func testQuestionNextButtonStaysPinnedWhenCardContentGrows() throws {
+    func testQuestionNextButtonStaysPinnedWhenExtremeAnswerGrowsCard() throws {
         QuizFactory.shared.chosenTheme = makeQuestionTheme()
         QuizFactory.shared.questionsCount = 1
 
@@ -430,27 +495,93 @@ final class CrossScreenVisualStateTests: XCTestCase {
         let cardView = try XCTUnwrap(viewController.view.descendant(withAccessibilityIdentifier: "questionCardView"))
         let pinnedButtonY = nextButton.frame.minY
         let shortCardHeight = cardView.frame.height
+        let extremeAnswer = String(
+            repeating: "Это экстремально длинный вариант ответа, который должен полностью оставаться внутри кнопки. ",
+            count: 8
+        )
 
         viewController.loadQuestionToView(
             QuizQuestionViewModel(
                 themeName: "Музыка",
-                questionText: String(repeating: "Это экстремально длинный текст вопроса, который после минимального уменьшения шрифта должен оставаться доступным через прокрутку. ", count: 10),
+                questionText: "Какой вариант верный?",
                 questionNumberText: "Вопрос №2",
                 answers: [
-                    QuizAnswerOption(id: "long-0", title: "Очень длинный вариант ответа A"),
-                    QuizAnswerOption(id: "long-1", title: "Очень длинный вариант ответа B"),
-                    QuizAnswerOption(id: "long-2", title: "Очень длинный вариант ответа C"),
-                    QuizAnswerOption(id: "long-3", title: "Очень длинный вариант ответа D")
+                    QuizAnswerOption(id: "long-0", title: extremeAnswer),
+                    QuizAnswerOption(id: "long-1", title: "B"),
+                    QuizAnswerOption(id: "long-2", title: "C"),
+                    QuizAnswerOption(id: "long-3", title: "D")
+                ]
+            )
+        )
+        viewController.view.setNeedsLayout()
+        viewController.view.layoutIfNeeded()
+        viewController.view.layoutIfNeeded()
+
+        let longAnswerButton = try XCTUnwrap(questionAnswerButtons(in: viewController).first)
+        let longAnswerLabel = try XCTUnwrap(longAnswerButton.titleLabel)
+        let baseFont = currentAppearance().typography.font(size: 18, weight: .semibold)
+
+        XCTAssertGreaterThan(cardView.frame.height, shortCardHeight)
+        XCTAssertGreaterThan(longAnswerButton.bounds.height, 52)
+        XCTAssertEqual(longAnswerLabel.font.pointSize, baseFont.pointSize * 0.72, accuracy: 0.1)
+        try assertAnswerLabelsFit(in: viewController, expectedTitles: [extremeAnswer, "B", "C", "D"])
+        XCTAssertEqual(nextButton.frame.minY, pinnedButtonY, accuracy: 0.5)
+        XCTAssertFalse(nextButton.isDescendant(of: scrollView))
+        XCTAssertLessThanOrEqual(scrollView.frame.maxY, nextButton.frame.minY)
+        XCTAssertGreaterThan(scrollView.contentSize.height, scrollView.bounds.height)
+    }
+
+    func testQuestionAdvanceResetsScrolledLongAnswerCardToTop() throws {
+        QuizFactory.shared.chosenTheme = makeQuestionTheme()
+        QuizFactory.shared.questionsCount = 1
+
+        let viewController = QuizQuestionViewController()
+        viewController.loadViewIfNeeded()
+        defer { viewController.presenter?.stopTimer() }
+        viewController.view.frame = CGRect(x: 0, y: 0, width: 375, height: 667)
+        let extremeAnswer = String(
+            repeating: "Это экстремально длинный вариант ответа, который делает карточку прокручиваемой. ",
+            count: 8
+        )
+        viewController.loadQuestionToView(
+            QuizQuestionViewModel(
+                themeName: "Цитаты философов",
+                questionText: "Какой вариант верный?",
+                questionNumberText: "Вопрос №2",
+                answers: [
+                    QuizAnswerOption(id: "scroll-answer-0", title: extremeAnswer),
+                    QuizAnswerOption(id: "scroll-answer-1", title: "B"),
+                    QuizAnswerOption(id: "scroll-answer-2", title: "C"),
+                    QuizAnswerOption(id: "scroll-answer-3", title: "D")
                 ]
             )
         )
         viewController.view.layoutIfNeeded()
 
-        XCTAssertGreaterThan(cardView.frame.height, shortCardHeight)
-        XCTAssertEqual(nextButton.frame.minY, pinnedButtonY, accuracy: 0.5)
-        XCTAssertFalse(nextButton.isDescendant(of: scrollView))
-        XCTAssertLessThanOrEqual(scrollView.frame.maxY, nextButton.frame.minY)
-        XCTAssertGreaterThan(scrollView.contentSize.height, scrollView.bounds.height)
+        let scrollView = try XCTUnwrap(
+            viewController.view.descendant(withAccessibilityIdentifier: "questionScrollView") as? UIScrollView
+        )
+        let maximumOffsetY = scrollView.contentSize.height - scrollView.bounds.height + scrollView.adjustedContentInset.bottom
+        XCTAssertGreaterThan(maximumOffsetY, -scrollView.adjustedContentInset.top)
+        scrollView.setContentOffset(CGPoint(x: 0, y: maximumOffsetY), animated: false)
+        XCTAssertGreaterThan(scrollView.contentOffset.y, -scrollView.adjustedContentInset.top)
+
+        viewController.loadQuestionToView(
+            QuizQuestionViewModel(
+                themeName: "Следующая тема",
+                questionText: "Следующий короткий вопрос?",
+                questionNumberText: "Вопрос №3",
+                answers: [
+                    QuizAnswerOption(id: "next-0", title: "A"),
+                    QuizAnswerOption(id: "next-1", title: "B"),
+                    QuizAnswerOption(id: "next-2", title: "C"),
+                    QuizAnswerOption(id: "next-3", title: "D")
+                ]
+            )
+        )
+        viewController.view.layoutIfNeeded()
+
+        XCTAssertEqual(scrollView.contentOffset.y, -scrollView.adjustedContentInset.top, accuracy: 0.5)
     }
 
     func testQuestionScreenPreservesPresenterDrivenAnswerFeedbackState() throws {
@@ -792,6 +923,54 @@ final class CrossScreenVisualStateTests: XCTestCase {
     private func questionAnswerButtons(in viewController: QuizQuestionViewController) -> [UIButton] {
         (1...4).compactMap { index in
             viewController.view.descendant(withAccessibilityIdentifier: "questionAnswerButton\(index)") as? UIButton
+        }
+    }
+
+    private var philosopherQuoteAnswers: [String] {
+        [
+            "«Поступай так, чтобы максима твоей воли могла бы быть всеобщим законом»",
+            "«Бытие определяет сознание»",
+            "«Человек — это то, что должно быть преодолено»",
+            "«Жизнь — это страдание»"
+        ]
+    }
+
+    private func assertAnswerLabelsFit(
+        in viewController: QuizQuestionViewController,
+        expectedTitles: [String],
+        file: StaticString = #filePath,
+        line: UInt = #line
+    ) throws {
+        let buttons = questionAnswerButtons(in: viewController)
+        XCTAssertEqual(buttons.count, expectedTitles.count, file: file, line: line)
+
+        for (button, expectedTitle) in zip(buttons, expectedTitles) {
+            let titleLabel = try XCTUnwrap(button.titleLabel, file: file, line: line)
+            let requiredBounds = (expectedTitle as NSString).boundingRect(
+                with: CGSize(width: titleLabel.bounds.width, height: .greatestFiniteMagnitude),
+                options: [.usesLineFragmentOrigin, .usesFontLeading],
+                attributes: [.font: titleLabel.font!],
+                context: nil
+            )
+            let titleFrame = titleLabel.convert(titleLabel.bounds, to: button)
+
+            XCTAssertEqual(button.title(for: .normal), expectedTitle, file: file, line: line)
+            XCTAssertEqual(titleLabel.numberOfLines, 0, file: file, line: line)
+            XCTAssertEqual(titleLabel.lineBreakMode, .byWordWrapping, file: file, line: line)
+            XCTAssertGreaterThan(titleLabel.bounds.width, 0, file: file, line: line)
+            XCTAssertLessThanOrEqual(
+                ceil(requiredBounds.height),
+                titleLabel.bounds.height + 0.5,
+                "Answer \(expectedTitle) at \(titleLabel.font.pointSize)pt requires \(ceil(requiredBounds.height))pt but has \(titleLabel.bounds.height)pt in button \(button.bounds)",
+                file: file,
+                line: line
+            )
+            XCTAssertTrue(
+                button.bounds.insetBy(dx: -0.5, dy: -0.5).contains(titleFrame),
+                "Answer title frame \(titleFrame) escapes button bounds \(button.bounds)",
+                file: file,
+                line: line
+            )
         }
     }
 

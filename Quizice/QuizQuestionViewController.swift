@@ -43,6 +43,8 @@ final class QuizQuestionViewController: BaseQuizViewController, QuizQuestionView
         static let questionHorizontalInset: CGFloat = 22
         static let answersHorizontalInset: CGFloat = 18
         static let answerMinimumHeight: CGFloat = 52
+        static let answerContentHorizontalInset: CGFloat = 12
+        static let answerContentVerticalInset: CGFloat = 6
         static let answersBottomInset: CGFloat = 20
         static let actionTopSpacing: CGFloat = 22
         static let cardBottomInset: CGFloat = 18
@@ -62,9 +64,8 @@ final class QuizQuestionViewController: BaseQuizViewController, QuizQuestionView
         static let answerButtonFontSize: CGFloat = 18
         static let actionButtonFontSize: CGFloat = 20
         static let themeMinimumScaleFactor: CGFloat = 0.70
-        static let questionMinimumScaleFactor: CGFloat = 0.72
-        static let questionPreferredLineCount = 5
-        static let questionFontSearchIterations = 10
+        static let answerMinimumScaleFactor: CGFloat = 0.72
+        static let answerFontSearchIterations = 10
         static let fontSizeComparisonTolerance: CGFloat = 0.1
         static let unlimitedNumberOfLines = 0
         static let answerButtonNumberOfLines = 0
@@ -175,6 +176,7 @@ final class QuizQuestionViewController: BaseQuizViewController, QuizQuestionView
     private var answer2Button: UIButton!
     private var answer3Button: UIButton!
     private var answer4Button: UIButton!
+    private var answerHeightConstraints: [NSLayoutConstraint] = []
     private var nextButton: UIButton!
     private var closeButton: UIButton!
     
@@ -231,7 +233,7 @@ final class QuizQuestionViewController: BaseQuizViewController, QuizQuestionView
 
     override func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
-        fitQuestionFont()
+        fitAnswerFonts()
     }
 
     // MARK: - Timer methods
@@ -301,7 +303,6 @@ final class QuizQuestionViewController: BaseQuizViewController, QuizQuestionView
         questionLabel = makeLabel(font: currentAppearance().typography.font(size: Typography.questionFontSize, weight: .bold))
         questionLabel.accessibilityIdentifier = AccessibilityID.questionTextLabel
         questionLabel.numberOfLines = Typography.unlimitedNumberOfLines
-        questionLabel.lineBreakMode = .byWordWrapping
     }
     
     private func configureTimerViews() {
@@ -453,8 +454,10 @@ final class QuizQuestionViewController: BaseQuizViewController, QuizQuestionView
             constant: -Layout.cardBottomInset
         ).isActive = true
 
-        answerButtons.forEach { button in
-            button.heightAnchor.constraint(greaterThanOrEqualToConstant: Layout.answerMinimumHeight).isActive = true
+        answerHeightConstraints = answerButtons.map { button in
+            let constraint = button.heightAnchor.constraint(greaterThanOrEqualToConstant: Layout.answerMinimumHeight)
+            constraint.isActive = true
+            return constraint
         }
     }
     
@@ -491,6 +494,7 @@ final class QuizQuestionViewController: BaseQuizViewController, QuizQuestionView
         button.titleLabel?.font = currentAppearance().typography.font(size: Typography.answerButtonFontSize, weight: .semibold)
         button.titleLabel?.adjustsFontForContentSizeCategory = true
         button.titleLabel?.numberOfLines = Typography.answerButtonNumberOfLines
+        button.titleLabel?.lineBreakMode = .byWordWrapping
         button.titleLabel?.textAlignment = .center
         button.backgroundColor = .defaultButton
         button.layer.cornerRadius = Appearance.answerCornerRadius
@@ -573,17 +577,22 @@ final class QuizQuestionViewController: BaseQuizViewController, QuizQuestionView
     }
 
     private func applyQuestion(_ viewModel: QuizQuestionViewModel, updatesQuestionNumber: Bool) {
+        resetQuestionScrollPosition()
         resetAllColors()
         
         timerBar.progress = presenter?.currentProgress ?? .zero
         themeNameLabel.text = viewModel.themeName
         questionLabel.text = viewModel.questionText
-        fitQuestionFont()
         applyAnswers(viewModel.answers)
         if updatesQuestionNumber {
             questionNumberLabel.text = viewModel.questionNumberText
         }
         nextButton.isEnabled = false
+    }
+
+    private func resetQuestionScrollPosition() {
+        let topOffset = CGPoint(x: 0, y: -scrollView.adjustedContentInset.top)
+        scrollView.setContentOffset(topOffset, animated: false)
     }
 
     private func animateQuestionTransition(to viewModel: QuizQuestionViewModel) {
@@ -670,6 +679,10 @@ final class QuizQuestionViewController: BaseQuizViewController, QuizQuestionView
             button.setTitle(hasAnswer ? currentAnswers[index].title : L10n.Question.unavailableAnswer, for: .normal)
             button.isEnabled = hasAnswer
         }
+        view.setNeedsLayout()
+        view.layoutIfNeeded()
+        fitAnswerFonts()
+        view.layoutIfNeeded()
     }
     
     func showQuestionUnavailable(themeName: String?, message: String) {
@@ -682,7 +695,6 @@ final class QuizQuestionViewController: BaseQuizViewController, QuizQuestionView
         themeNameLabel.text = themeName ?? L10n.Question.fallbackTheme
         questionNumberLabel.text = L10n.Question.unavailableNumber
         questionLabel.text = message
-        fitQuestionFont()
         currentAnswerOptions = []
         timerBar.progress = .zero
         let appearance = currentAppearance()
@@ -692,6 +704,10 @@ final class QuizQuestionViewController: BaseQuizViewController, QuizQuestionView
             applyAnswerFeedback(.normal, to: button, appearance: appearance)
             button.isEnabled = false
         }
+        view.setNeedsLayout()
+        view.layoutIfNeeded()
+        fitAnswerFonts()
+        view.layoutIfNeeded()
         nextButton.isEnabled = false
     }
     
@@ -848,7 +864,6 @@ final class QuizQuestionViewController: BaseQuizViewController, QuizQuestionView
         questionCardView?.applySurfaceStyle(appearance.card)
         questionLabel?.textColor = appearance.surfaceTextColor
         questionLabel?.font = appearance.typography.font(size: Typography.questionFontSize, weight: .bold)
-        fitQuestionFont()
 
         timerContainerView?.backgroundColor = appearance.progressTrackColor
         timerContainerView?.layer.cornerRadius = min(appearance.card.cornerRadius, Appearance.timerContainerCornerRadius)
@@ -860,6 +875,7 @@ final class QuizQuestionViewController: BaseQuizViewController, QuizQuestionView
             button.layer.cornerRadius = min(appearance.row.cornerRadius, Appearance.answerCornerRadius)
             applyAnswerFeedback(.normal, to: button, appearance: appearance)
         }
+        fitAnswerFonts()
 
         nextButton?.applyActionAppearance(
             QuizThemeAccentStyle.primaryButtonStyle(themeID: presenter?.themeID, appearance: appearance),
@@ -891,54 +907,89 @@ final class QuizQuestionViewController: BaseQuizViewController, QuizQuestionView
         QuizThemeAccentStyle.accentColor(themeID: presenter?.themeID, appearance: appearance)
     }
 
-    private func fitQuestionFont() {
-        guard
-            let questionLabel,
-            let text = questionLabel.text,
-            !text.isEmpty,
-            questionLabel.bounds.width > .zero
-        else { return }
+    private func fitAnswerFonts() {
+        let baseFont = currentAppearance().typography.font(
+            size: Typography.answerButtonFontSize,
+            weight: .semibold,
+            compatibleWith: view.traitCollection
+        )
+        let minimumPointSize = baseFont.pointSize * Typography.answerMinimumScaleFactor
+        let targetContentHeight = Layout.answerMinimumHeight - (Layout.answerContentVerticalInset * 2)
+        var requiresLayout = false
 
-        let baseFont = currentAppearance().typography.font(size: Typography.questionFontSize, weight: .bold)
-        let minimumFontSize = baseFont.pointSize * Typography.questionMinimumScaleFactor
-        let targetHeight = ceil(baseFont.lineHeight * CGFloat(Typography.questionPreferredLineCount))
+        for (index, button) in answerButtons.enumerated() {
+            guard let titleLabel = button.titleLabel else { continue }
+            let text = button.title(for: .normal) ?? ""
+            let contentWidth = button.bounds.width - (Layout.answerContentHorizontalInset * 2)
 
-        func textHeight(fontSize: CGFloat) -> CGFloat {
-            ceil(
-                (text as NSString).boundingRect(
-                    with: CGSize(width: questionLabel.bounds.width, height: .greatestFiniteMagnitude),
-                    options: [.usesLineFragmentOrigin, .usesFontLeading],
-                    attributes: [.font: baseFont.withSize(fontSize)],
-                    context: nil
-                ).height
-            )
-        }
-
-        var lowerBound = minimumFontSize
-        var upperBound = baseFont.pointSize
-
-        if textHeight(fontSize: upperBound) <= targetHeight {
-            lowerBound = upperBound
-        } else if textHeight(fontSize: lowerBound) <= targetHeight {
-            for _ in 0..<Typography.questionFontSearchIterations {
-                let candidate = (lowerBound + upperBound) / 2
-                if textHeight(fontSize: candidate) <= targetHeight {
-                    lowerBound = candidate
-                } else {
-                    upperBound = candidate
+            guard !text.isEmpty, contentWidth > .zero else {
+                applyAnswerFont(baseFont, to: button)
+                if answerHeightConstraints.indices.contains(index) {
+                    answerHeightConstraints[index].constant = Layout.answerMinimumHeight
                 }
+                continue
+            }
+
+            func textHeight(at pointSize: CGFloat) -> CGFloat {
+                ceil(
+                    (text as NSString).boundingRect(
+                        with: CGSize(width: contentWidth, height: .greatestFiniteMagnitude),
+                        options: [.usesLineFragmentOrigin, .usesFontLeading],
+                        attributes: [.font: baseFont.withSize(pointSize)],
+                        context: nil
+                    ).height
+                )
+            }
+
+            var fittedPointSize = baseFont.pointSize
+            if textHeight(at: fittedPointSize) > targetContentHeight {
+                var lowerBound = minimumPointSize
+                var upperBound = baseFont.pointSize
+
+                if textHeight(at: lowerBound) <= targetContentHeight {
+                    for _ in 0..<Typography.answerFontSearchIterations {
+                        let candidate = (lowerBound + upperBound) / 2
+                        if textHeight(at: candidate) <= targetContentHeight {
+                            lowerBound = candidate
+                        } else {
+                            upperBound = candidate
+                        }
+                    }
+                }
+                fittedPointSize = lowerBound
+            }
+
+            let fittedFont = baseFont.withSize(fittedPointSize)
+            applyAnswerFont(fittedFont, to: button)
+            titleLabel.preferredMaxLayoutWidth = contentWidth
+
+            let requiredHeight = max(
+                Layout.answerMinimumHeight,
+                textHeight(at: fittedPointSize) + (Layout.answerContentVerticalInset * 2)
+            )
+            if answerHeightConstraints.indices.contains(index),
+               abs(answerHeightConstraints[index].constant - requiredHeight) > Typography.fontSizeComparisonTolerance {
+                answerHeightConstraints[index].constant = requiredHeight
+                requiresLayout = true
             }
         }
 
-        let fittedFont = baseFont.withSize(lowerBound)
-        guard
-            questionLabel.font.fontName != fittedFont.fontName
-                || abs(questionLabel.font.pointSize - fittedFont.pointSize) > Typography.fontSizeComparisonTolerance
-        else { return }
+        if requiresLayout {
+            questionCardView?.setNeedsLayout()
+            scrollView?.setNeedsLayout()
+            view.setNeedsLayout()
+        }
+    }
 
-        questionLabel.font = fittedFont
-        questionLabel.invalidateIntrinsicContentSize()
-        questionCardView?.setNeedsLayout()
+    private func applyAnswerFont(_ font: UIFont, to button: UIButton) {
+        guard let titleLabel = button.titleLabel else { return }
+        if titleLabel.font.fontName != font.fontName
+            || abs(titleLabel.font.pointSize - font.pointSize) > Typography.fontSizeComparisonTolerance {
+            titleLabel.font = font
+            titleLabel.invalidateIntrinsicContentSize()
+            button.invalidateIntrinsicContentSize()
+            button.setNeedsLayout()
+        }
     }
     
     func showResults(_ result: QuizResultState) {
