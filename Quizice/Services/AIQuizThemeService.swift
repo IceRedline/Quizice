@@ -168,7 +168,7 @@ extension YandexAIQuizThemeServiceError: LocalizedError {
 final class YandexAIQuizThemeService: AIQuizThemeServiceProtocol {
     static let endpoint = URL(string: "https://ai.api.cloud.yandex.net/v1/responses")!
     static let projectID = "b1g37dgcjvpr020nel5a"
-    static let promptID = "fvtmcnp0js8f37p1m5om"
+    static let promptID = "fvto67v1ev0p2b7r4v5i"
 
     private static let supportedLanguageCodes: Set<String> = ["ru", "en", "es", "de", "it", "fr"]
 
