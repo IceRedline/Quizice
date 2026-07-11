@@ -10,6 +10,7 @@ import Foundation
 final class QuizQuestionPresenter: QuizQuestionPresenterProtocol {
     private let session: QuizSessionManaging
     private let statisticsStore: StatisticsStore
+    private let analytics: AnalyticsTracking
     
     weak var view: QuizQuestionViewControllerProtocol?
     
@@ -30,9 +31,14 @@ final class QuizQuestionPresenter: QuizQuestionPresenterProtocol {
         session.chosenTheme?.themeID
     }
     
-    init(session: QuizSessionManaging = QuizFactory.shared, statisticsStore: StatisticsStore = StatisticsStore()) {
+    init(
+        session: QuizSessionManaging = QuizFactory.shared,
+        statisticsStore: StatisticsStore = StatisticsStore(),
+        analytics: AnalyticsTracking = AppMetricaAnalyticsTracker.shared
+    ) {
         self.session = session
         self.statisticsStore = statisticsStore
+        self.analytics = analytics
     }
     
     func viewDidLoad() {
@@ -82,7 +88,8 @@ final class QuizQuestionPresenter: QuizQuestionPresenterProtocol {
         }
     }
     
-    private func timeExpired() {
+    func timeExpired() {
+        trackAnswer(outcome: .timeout)
         view?.showTimeExpired()
         updateQuizState(isCorrect: false)
     }
@@ -175,6 +182,7 @@ final class QuizQuestionPresenter: QuizQuestionPresenterProtocol {
         guard hasActiveQuestion else { return }
         
         let isCorrect = isCorrectAnswer(optionID: optionID)
+        trackAnswer(outcome: isCorrect ? .correct : .incorrect)
         view?.correctAnswerTapped(isTrue: isCorrect)
         updateQuizState(isCorrect: isCorrect)
     }
@@ -212,6 +220,34 @@ final class QuizQuestionPresenter: QuizQuestionPresenterProtocol {
         guard hasRecordedCompletedAttempt == false, totalQuestions > 0 else { return }
         hasRecordedCompletedAttempt = true
         statisticsStore.recordAttempt(correctAnswers: correctAnswers, totalQuestions: totalQuestions)
+        analytics.track(
+            .quizCompleted(
+                themeID: themeID,
+                correctAnswers: correctAnswers,
+                totalQuestions: totalQuestions
+            )
+        )
+    }
+
+    var analyticsProgress: AnalyticsQuizProgress {
+        AnalyticsQuizProgress(
+            themeID: themeID,
+            answeredQuestions: currentQuestionIndex,
+            totalQuestions: questionsTotalCount ?? 0,
+            correctAnswers: correctAnswers
+        )
+    }
+
+    private func trackAnswer(outcome: AnalyticsAnswerOutcome) {
+        guard let questionsTotalCount, questionsTotalCount > 0 else { return }
+        analytics.track(
+            .quizAnswered(
+                themeID: themeID,
+                questionIndex: currentQuestionIndex + 1,
+                totalQuestions: questionsTotalCount,
+                outcome: outcome
+            )
+        )
     }
     
     private var hasActiveQuestion: Bool {

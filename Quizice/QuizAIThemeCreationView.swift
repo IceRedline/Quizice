@@ -36,15 +36,21 @@ struct QuizAIThemeCreationView: View {
     @State private var isSubmitting = false
     @State private var isShowingError = false
     @State private var submitTask: Task<Void, Never>?
+    @State private var submissionStartedAt: Date?
+    @State private var submissionLocaleIdentifier: String?
+    @State private var didTrackScreen = false
 
     private let service: AIQuizThemeServiceProtocol
+    private let analytics: AnalyticsTracking
     private let onGenerated: (QuizTheme) -> Void
 
     init(
         service: AIQuizThemeServiceProtocol = MockAIQuizThemeService(),
+        analytics: AnalyticsTracking = AppMetricaAnalyticsTracker.shared,
         onGenerated: @escaping (QuizTheme) -> Void = { _ in }
     ) {
         self.service = service
+        self.analytics = analytics
         self.onGenerated = onGenerated
     }
 
@@ -115,6 +121,11 @@ struct QuizAIThemeCreationView: View {
         }
         .onDisappear {
             cancelSubmission()
+        }
+        .onAppear {
+            guard !didTrackScreen else { return }
+            didTrackScreen = true
+            analytics.track(.screenView(screen: .aiThemeCreation))
         }
     }
 
@@ -282,6 +293,9 @@ struct QuizAIThemeCreationView: View {
         isSubmitting = true
         isShowingError = false
         let locale = selectedLocale
+        submissionStartedAt = Date()
+        submissionLocaleIdentifier = locale.identifier
+        analytics.track(.aiGenerationStarted(locale: locale.identifier, promptLength: prompt.count))
         AppLog.quiz.info(
             "AI quiz submission started: locale=\(locale.identifier, privacy: .public) prompt_length=\(prompt.count, privacy: .public)"
         )
@@ -294,12 +308,21 @@ struct QuizAIThemeCreationView: View {
         defer {
             isSubmitting = false
             submitTask = nil
+            submissionStartedAt = nil
+            submissionLocaleIdentifier = nil
         }
 
         do {
             let theme = try await service.generateQuizTheme(for: prompt, locale: locale)
             try Task.checkCancellation()
             AppLog.quiz.debug("AI quiz submission succeeded; handing result to coordinator")
+            analytics.track(
+                .aiGenerationSucceeded(
+                    locale: locale.identifier,
+                    questionCount: theme.questions.count,
+                    durationMilliseconds: submissionDurationMilliseconds()
+                )
+            )
             onGenerated(theme)
         } catch is CancellationError {
             AppLog.quiz.debug("AI quiz submission task cancelled")
@@ -310,14 +333,38 @@ struct QuizAIThemeCreationView: View {
             AppLog.quiz.error(
                 "AI quiz submission failed; showing alert. error_type=\(errorType, privacy: .public)"
             )
+            let errorCode = (error as? YandexAIQuizThemeServiceError)?.analyticsCode ?? "unexpected"
+            analytics.track(
+                .aiGenerationFailed(
+                    locale: locale.identifier,
+                    errorCode: errorCode,
+                    durationMilliseconds: submissionDurationMilliseconds()
+                )
+            )
+            analytics.reportOperationalError(error, context: .aiGeneration(code: errorCode))
             isShowingError = true
         }
     }
 
     private func cancelSubmission() {
+        if isSubmitting {
+            analytics.track(
+                .aiGenerationCancelled(
+                    locale: submissionLocaleIdentifier ?? selectedLocale.identifier,
+                    durationMilliseconds: submissionDurationMilliseconds()
+                )
+            )
+        }
         submitTask?.cancel()
         submitTask = nil
         isSubmitting = false
+        submissionStartedAt = nil
+        submissionLocaleIdentifier = nil
+    }
+
+    private func submissionDurationMilliseconds() -> Int {
+        guard let submissionStartedAt else { return 0 }
+        return max(Int(Date().timeIntervalSince(submissionStartedAt) * 1_000), 0)
     }
 }
 

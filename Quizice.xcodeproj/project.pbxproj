@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		2BAB27033002BE0300D7E4FD /* AppMetricaCore in Frameworks */ = {isa = PBXBuildFile; productRef = 2BAB27023002BE0300D7E4FD /* AppMetricaCore */; };
+		2BAB27053002BE0300D7E4FD /* AppMetricaCrashes in Frameworks */ = {isa = PBXBuildFile; productRef = 2BAB27043002BE0300D7E4FD /* AppMetricaCrashes */; };
 		993C1BCB2D8D5EC200AD9BE4 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 993C1BC12D8D5EC200AD9BE4 /* AppDelegate.swift */; };
 		993C1BCC2D8D5EC200AD9BE4 /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 993C1BC82D8D5EC200AD9BE4 /* SceneDelegate.swift */; };
 		993C1BCE2D8D5EC200AD9BE4 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 993C1BC22D8D5EC200AD9BE4 /* Assets.xcassets */; };
@@ -37,6 +39,7 @@
 		99A000012E10000100A00001 /* StatisticsSummary.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99A000022E10000100A00001 /* StatisticsSummary.swift */; };
 		99A000032E10000100A00001 /* StatisticsStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99A000042E10000100A00001 /* StatisticsStore.swift */; };
 		99A000052E10000100A00001 /* StatisticsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99A000062E10000100A00001 /* StatisticsViewController.swift */; };
+		99A1AA012F10000100A1AA01 /* YandexAIQuizThemeServiceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99A1AA022F10000100A1AA01 /* YandexAIQuizThemeServiceTests.swift */; };
 		99ADC9632D907844006DDC18 /* QuestionModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99ADC9622D907844006DDC18 /* QuestionModel.swift */; };
 		99B400022E20000100B40001 /* QuiziceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99B400012E20000100B40001 /* QuiziceTests.swift */; };
 		99B400102E20000100B40001 /* StatisticsSummaryTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99B400112E20000100B40001 /* StatisticsSummaryTests.swift */; };
@@ -47,13 +50,14 @@
 		99C0FFEF2E50000100C0DE01 /* L10n.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99C0FFEE2E50000100C0DE01 /* L10n.swift */; };
 		99C0FFF12E50000100C0DE01 /* AppLocalization.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99C0FFF02E50000100C0DE01 /* AppLocalization.swift */; };
 		99C0FFF52E50000100C0DE01 /* LocalizationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99C0FFF42E50000100C0DE01 /* LocalizationTests.swift */; };
-		99A1AA012F10000100A1AA01 /* YandexAIQuizThemeServiceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99A1AA022F10000100A1AA01 /* YandexAIQuizThemeServiceTests.swift */; };
 		99D100022E70000100D10001 /* AppAppearance.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99D100012E70000100D10001 /* AppAppearance.swift */; };
 		99D1000A2E70000100D10001 /* Inter.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 99D100062E70000100D10001 /* Inter.ttf */; };
 		99D1000B2E70000100D10001 /* JetBrainsMono.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 99D100072E70000100D10001 /* JetBrainsMono.ttf */; };
 		99D1000D2E70000100D10001 /* Manrope.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 99D100092E70000100D10001 /* Manrope.ttf */; };
 		99E200012E90000100E20001 /* QuizAIThemeCreationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99E200022E90000100E20001 /* QuizAIThemeCreationView.swift */; };
 		99E200032E90000100E20001 /* AIQuizThemeService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99E200042E90000100E20001 /* AIQuizThemeService.swift */; };
+		99E300012F20000100E30001 /* AnalyticsService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99E300022F20000100E30001 /* AnalyticsService.swift */; };
+		99E300032F20000100E30001 /* AnalyticsServiceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99E300042F20000100E30001 /* AnalyticsServiceTests.swift */; };
 		99F000012EA0000100F00001 /* SnapshotSupport.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99F000002EA0000100F00001 /* SnapshotSupport.swift */; };
 		99F000032EA0000100F00001 /* AppAppearanceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99F000022EA0000100F00001 /* AppAppearanceTests.swift */; };
 		99F000052EA0000100F00001 /* QuizPresenterTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99F000042EA0000100F00001 /* QuizPresenterTests.swift */; };
@@ -114,6 +118,7 @@
 		99A000022E10000100A00001 /* StatisticsSummary.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatisticsSummary.swift; sourceTree = "<group>"; };
 		99A000042E10000100A00001 /* StatisticsStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatisticsStore.swift; sourceTree = "<group>"; };
 		99A000062E10000100A00001 /* StatisticsViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatisticsViewController.swift; sourceTree = "<group>"; };
+		99A1AA022F10000100A1AA01 /* YandexAIQuizThemeServiceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = YandexAIQuizThemeServiceTests.swift; sourceTree = "<group>"; };
 		99ADC9622D907844006DDC18 /* QuestionModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuestionModel.swift; sourceTree = "<group>"; };
 		99B400012E20000100B40001 /* QuiziceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuiziceTests.swift; sourceTree = "<group>"; };
 		99B400032E20000100B40001 /* QuiziceTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = QuiziceTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -137,13 +142,14 @@
 		99C0FFEE2E50000100C0DE01 /* L10n.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = L10n.swift; sourceTree = "<group>"; };
 		99C0FFF02E50000100C0DE01 /* AppLocalization.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppLocalization.swift; sourceTree = "<group>"; };
 		99C0FFF42E50000100C0DE01 /* LocalizationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocalizationTests.swift; sourceTree = "<group>"; };
-		99A1AA022F10000100A1AA01 /* YandexAIQuizThemeServiceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = YandexAIQuizThemeServiceTests.swift; sourceTree = "<group>"; };
 		99D100012E70000100D10001 /* AppAppearance.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppAppearance.swift; sourceTree = "<group>"; };
 		99D100062E70000100D10001 /* Inter.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = Inter.ttf; sourceTree = "<group>"; };
 		99D100072E70000100D10001 /* JetBrainsMono.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = JetBrainsMono.ttf; sourceTree = "<group>"; };
 		99D100092E70000100D10001 /* Manrope.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = Manrope.ttf; sourceTree = "<group>"; };
 		99E200022E90000100E20001 /* QuizAIThemeCreationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuizAIThemeCreationView.swift; sourceTree = "<group>"; };
 		99E200042E90000100E20001 /* AIQuizThemeService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AIQuizThemeService.swift; sourceTree = "<group>"; };
+		99E300022F20000100E30001 /* AnalyticsService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnalyticsService.swift; sourceTree = "<group>"; };
+		99E300042F20000100E30001 /* AnalyticsServiceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnalyticsServiceTests.swift; sourceTree = "<group>"; };
 		99F000002EA0000100F00001 /* SnapshotSupport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SnapshotSupport.swift; sourceTree = "<group>"; };
 		99F000022EA0000100F00001 /* AppAppearanceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppAppearanceTests.swift; sourceTree = "<group>"; };
 		99F000042EA0000100F00001 /* QuizPresenterTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuizPresenterTests.swift; sourceTree = "<group>"; };
@@ -167,6 +173,8 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				2BAB27053002BE0300D7E4FD /* AppMetricaCrashes in Frameworks */,
+				2BAB27033002BE0300D7E4FD /* AppMetricaCore in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -250,6 +258,7 @@
 		993C1BE32D8D606400AD9BE4 /* Services */ = {
 			isa = PBXGroup;
 			children = (
+				99E300022F20000100E30001 /* AnalyticsService.swift */,
 				993C1BE12D8D606100AD9BE4 /* Animations.swift */,
 				9945AF2D2DA4F27D00B15A77 /* ThemesCollectionService.swift */,
 				9945AF312DA50F6A00B15A77 /* ThemeCollectionDelegate.swift */,
@@ -305,6 +314,7 @@
 		99F000142EA0000100F00001 /* Unit */ = {
 			isa = PBXGroup;
 			children = (
+				99E300042F20000100E30001 /* AnalyticsServiceTests.swift */,
 				99B400012E20000100B40001 /* QuiziceTests.swift */,
 				99F000022EA0000100F00001 /* AppAppearanceTests.swift */,
 				99F000042EA0000100F00001 /* QuizPresenterTests.swift */,
@@ -358,6 +368,8 @@
 			);
 			name = Quizice;
 			packageProductDependencies = (
+				2BAB27023002BE0300D7E4FD /* AppMetricaCore */,
+				2BAB27043002BE0300D7E4FD /* AppMetricaCrashes */,
 			);
 			productName = Quizice;
 			productReference = 993C1BA92D8D5E8900AD9BE4 /* Quizice.app */;
@@ -419,6 +431,7 @@
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
 				99F000302EA0000100F00001 /* XCRemoteSwiftPackageReference "swift-snapshot-testing" */,
+				2BAB26FD3002BE0300D7E4FD /* XCRemoteSwiftPackageReference "appmetrica-sdk-ios" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 993C1BAA2D8D5E8900AD9BE4 /* Products */;
@@ -463,6 +476,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				99E300012F20000100E30001 /* AnalyticsService.swift in Sources */,
 				99FCF02D2D96A544006341F4 /* QuizDescriptionPresenterProtocol.swift in Sources */,
 				99FCF02B2D96A522006341F4 /* QuizDescriptionPresenter.swift in Sources */,
 				9945AFA42DA5C34200B15A77 /* QuizViewControllerProtocol.swift in Sources */,
@@ -505,6 +519,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				99E300032F20000100E30001 /* AnalyticsServiceTests.swift in Sources */,
 				99B400022E20000100B40001 /* QuiziceTests.swift in Sources */,
 				99F000032EA0000100F00001 /* AppAppearanceTests.swift in Sources */,
 				99F000052EA0000100F00001 /* QuizPresenterTests.swift in Sources */,
@@ -577,6 +592,7 @@
 		993C1BBD2D8D5E8A00AD9BE4 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				APPMETRICA_API_KEY = "f86ee459-cc9e-4cbf-82cc-a3b614e80da7";
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
@@ -609,6 +625,7 @@
 		993C1BBE2D8D5E8A00AD9BE4 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				APPMETRICA_API_KEY = "f86ee459-cc9e-4cbf-82cc-a3b614e80da7";
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
@@ -848,6 +865,14 @@
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
+		2BAB26FD3002BE0300D7E4FD /* XCRemoteSwiftPackageReference "appmetrica-sdk-ios" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/appmetrica/appmetrica-sdk-ios";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 6.4.0;
+			};
+		};
 		99F000302EA0000100F00001 /* XCRemoteSwiftPackageReference "swift-snapshot-testing" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/pointfreeco/swift-snapshot-testing";
@@ -859,6 +884,16 @@
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
+		2BAB27023002BE0300D7E4FD /* AppMetricaCore */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 2BAB26FD3002BE0300D7E4FD /* XCRemoteSwiftPackageReference "appmetrica-sdk-ios" */;
+			productName = AppMetricaCore;
+		};
+		2BAB27043002BE0300D7E4FD /* AppMetricaCrashes */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 2BAB26FD3002BE0300D7E4FD /* XCRemoteSwiftPackageReference "appmetrica-sdk-ios" */;
+			productName = AppMetricaCrashes;
+		};
 		99F000202EA0000100F00001 /* SnapshotTesting */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = 99F000302EA0000100F00001 /* XCRemoteSwiftPackageReference "swift-snapshot-testing" */;

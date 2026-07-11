@@ -89,6 +89,7 @@ final class StatisticsViewController: BaseQuizViewController {
     }
     
     private let statisticsStore: StatisticsStore
+    private let analytics: AnalyticsTracking
 
     private let backButton = UIButton(type: .system)
     private let scrollView = UIScrollView()
@@ -109,8 +110,12 @@ final class StatisticsViewController: BaseQuizViewController {
     private var percentageRow: UIView!
     private var bestResultRow: UIView!
 
-    init(statisticsStore: StatisticsStore = StatisticsStore()) {
+    init(
+        statisticsStore: StatisticsStore = StatisticsStore(),
+        analytics: AnalyticsTracking = AppMetricaAnalyticsTracker.shared
+    ) {
         self.statisticsStore = statisticsStore
+        self.analytics = analytics
         super.init(nibName: nil, bundle: nil)
     }
 
@@ -139,7 +144,16 @@ final class StatisticsViewController: BaseQuizViewController {
 
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
-        render(summary: statisticsStore.loadSummary())
+        let summary = statisticsStore.loadSummary()
+        render(summary: summary)
+        analytics.track(.screenView(screen: .statistics))
+        analytics.track(
+            .statisticsViewed(
+                attemptsCount: summary.playedQuizzes,
+                totalQuestions: summary.totalQuestions,
+                accuracyPercent: summary.percentage
+            )
+        )
     }
 
     private func configureProgrammaticSubviews(in rootView: UIView) {

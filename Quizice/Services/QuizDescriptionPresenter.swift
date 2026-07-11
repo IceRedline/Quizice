@@ -18,6 +18,7 @@ final class QuizDescriptionPresenter: QuizDescriptionPresenterProtocol {
     var themeID: String? {
         session.chosenTheme?.themeID
     }
+    var selectedQuestionCount: Int { session.questionsCount }
     
     init(session: QuizSessionManaging = QuizFactory.shared, content: QuizDescriptionContent? = nil) {
         self.session = session
