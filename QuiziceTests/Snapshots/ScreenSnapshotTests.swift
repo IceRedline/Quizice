@@ -1,12 +1,12 @@
 import UIKit
 import XCTest
+import SnapshotTesting
 @testable import Quizice
 
 @MainActor
 final class ScreenSnapshotTests: XCTestCase {
     private let portraitSize = CGSize(width: 390, height: 844)
     private let landscapeSize = CGSize(width: 844, height: 390)
-    private let compactPortraitSize = CGSize(width: 375, height: 667)
     private var defaultsSuiteNames: [String] = []
 
     override func setUp() {
@@ -22,26 +22,36 @@ final class ScreenSnapshotTests: XCTestCase {
     }
 
     func testHomeScreenSnapshot() {
-        let suiteName = "ScreenSnapshotTests.home.\(UUID().uuidString)"
-        let defaults = UserDefaults(suiteName: suiteName)!
-        defaults.removePersistentDomain(forName: suiteName)
-        let statisticsStore = StatisticsStore(userDefaults: defaults, key: "attempts")
-        QuizFactory.shared.themes = [
-            SnapshotSupport.makeTheme(id: "music", name: "Музыка"),
-            SnapshotSupport.makeTheme(id: "technology", name: "Технологии"),
-            SnapshotSupport.makeTheme(id: "history_culture", name: "История и культура"),
-            SnapshotSupport.makeTheme(id: "politics_business", name: "Политика и бизнес")
-        ]
-        QuizFactory.shared.startup1st = false
+        SnapshotSupport.assertScreen(makeHomeViewController(), named: "clean-home", size: portraitSize)
+    }
 
-        let viewController = QuizViewController(
-            statisticsStore: statisticsStore,
-            motivationPromptProvider: { _ in "Время\nпроверить факты" }
+    func testHomeCompactPortraitSnapshot() {
+        SnapshotSupport.assertScreen(
+            makeHomeViewController(),
+            named: "clean-home-iphone-se",
+            device: .iPhone8
         )
+    }
 
-        SnapshotSupport.assertScreen(viewController, named: "clean-home", size: portraitSize)
+    func testHomeCompactPortraitBottomSnapshot() {
+        let viewController = BottomScrolledHomeSnapshotViewController(
+            homeViewController: makeHomeViewController()
+        )
+        SnapshotSupport.assertScreen(
+            viewController,
+            named: "clean-home-iphone-se-bottom",
+            device: .iPhone8
+        )
+    }
 
-        defaults.removePersistentDomain(forName: suiteName)
+    func testRadarHomeCompactPortraitSnapshot() {
+        SnapshotSupport.setUp(designStyle: .radar)
+
+        SnapshotSupport.assertScreen(
+            makeHomeViewController(),
+            named: "radar-home-iphone-se",
+            device: .iPhone8
+        )
     }
 
     func testDescriptionScreenSnapshot() {
@@ -50,6 +60,24 @@ final class ScreenSnapshotTests: XCTestCase {
 
     func testQuestionScreenSnapshot() {
         SnapshotSupport.assertScreen(makeQuestionViewController(), named: "clean-question", size: portraitSize)
+    }
+
+    func testRadarLongContentCompactQuestionSnapshot() {
+        SnapshotSupport.setUp(designStyle: .radar)
+
+        SnapshotSupport.assertScreen(
+            makeLongContentQuestionViewController(),
+            named: "radar-long-content-iphone-se",
+            device: .iPhone8
+        )
+    }
+
+    func testCleanLongQuestionCompactPortraitSnapshot() {
+        SnapshotSupport.assertScreen(
+            makeLongContentQuestionViewController(),
+            named: "clean-long-question-iphone-se",
+            device: .iPhone8
+        )
     }
 
     func testResultScreenSnapshot() {
@@ -77,7 +105,7 @@ final class ScreenSnapshotTests: XCTestCase {
     }
 
     func testQuestionAdaptiveCanvasSnapshots() {
-        assertAdaptiveSnapshots(makeViewController: makeQuestionViewController, screenName: "question")
+        assertAdaptiveSnapshots(makeViewController: { self.makeQuestionViewController() }, screenName: "question")
     }
 
     func testResultAdaptiveCanvasSnapshots() {
@@ -100,7 +128,7 @@ final class ScreenSnapshotTests: XCTestCase {
         SnapshotSupport.assertScreen(
             makeViewController(),
             named: "clean-\(screenName)-compact-portrait",
-            size: compactPortraitSize
+            device: .iPhone8
         )
         SnapshotSupport.assertScreen(
             makeViewController(),
@@ -120,13 +148,34 @@ final class ScreenSnapshotTests: XCTestCase {
         return viewController
     }
 
-    private func makeQuestionViewController() -> QuizQuestionViewController {
+    private func makeHomeViewController() -> QuizViewController {
+        let suiteName = "ScreenSnapshotTests.home.\(UUID().uuidString)"
+        defaultsSuiteNames.append(suiteName)
+        let defaults = UserDefaults(suiteName: suiteName)!
+        defaults.removePersistentDomain(forName: suiteName)
+        QuizFactory.shared.themes = [
+            SnapshotSupport.makeTheme(id: "music", name: "Музыка"),
+            SnapshotSupport.makeTheme(id: "technology", name: "Технологии"),
+            SnapshotSupport.makeTheme(id: "history_culture", name: "История и культура"),
+            SnapshotSupport.makeTheme(id: "politics_business", name: "Политика и бизнес")
+        ]
+        QuizFactory.shared.startup1st = false
+        return QuizViewController(
+            statisticsStore: StatisticsStore(userDefaults: defaults, key: "attempts"),
+            motivationPromptProvider: { _ in "Время\nпроверить факты" }
+        )
+    }
+
+    private func makeQuestionViewController(
+        themeName: String = "Музыка",
+        questionText: String = "Какой инструмент обычно ассоциируется с рок-группой?"
+    ) -> QuizQuestionViewController {
         let viewController = QuizQuestionViewController()
         viewController.loadViewIfNeeded()
         viewController.loadQuestionToView(
             QuizQuestionViewModel(
-                themeName: "Музыка",
-                questionText: "Какой инструмент обычно ассоциируется с рок-группой?",
+                themeName: themeName,
+                questionText: questionText,
                 questionNumberText: L10n.Question.number(1),
                 answers: [
                     QuizAnswerOption(id: "0", title: "Гитара"),
@@ -138,6 +187,13 @@ final class ScreenSnapshotTests: XCTestCase {
         )
         viewController.updateProgress(0.62)
         return viewController
+    }
+
+    private func makeLongContentQuestionViewController() -> QuizQuestionViewController {
+        makeQuestionViewController(
+            themeName: "История и культура",
+            questionText: "Как называется технология, позволяющая увеличить производительность процессора за счет временного повышения тактовой частоты?"
+        )
     }
 
     private func makeResultViewController() -> QuizResultViewController {
@@ -162,5 +218,50 @@ final class ScreenSnapshotTests: XCTestCase {
         viewController.loadViewIfNeeded()
         viewController.viewWillAppear(false)
         return viewController
+    }
+}
+
+@MainActor
+private final class BottomScrolledHomeSnapshotViewController: UIViewController {
+    private let homeViewController: QuizViewController
+
+    init(homeViewController: QuizViewController) {
+        self.homeViewController = homeViewController
+        super.init(nibName: nil, bundle: nil)
+    }
+
+    @available(*, unavailable)
+    required init?(coder: NSCoder) {
+        nil
+    }
+
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        addChild(homeViewController)
+        view.addSubview(homeViewController.view)
+        homeViewController.view.translatesAutoresizingMaskIntoConstraints = false
+        NSLayoutConstraint.activate([
+            homeViewController.view.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            homeViewController.view.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            homeViewController.view.topAnchor.constraint(equalTo: view.topAnchor),
+            homeViewController.view.bottomAnchor.constraint(equalTo: view.bottomAnchor)
+        ])
+        homeViewController.didMove(toParent: self)
+    }
+
+    override func viewDidLayoutSubviews() {
+        super.viewDidLayoutSubviews()
+        homeViewController.view.layoutIfNeeded()
+        guard let collectionView = homeViewController.view.snapshotDescendant(
+            withAccessibilityIdentifier: "homeThemesCollectionView"
+        ) as? UICollectionView else { return }
+
+        collectionView.layoutIfNeeded()
+        let maximumOffset = max(
+            -collectionView.adjustedContentInset.top,
+            collectionView.contentSize.height - collectionView.bounds.height + collectionView.adjustedContentInset.bottom
+        )
+        collectionView.contentOffset.y = maximumOffset
+        collectionView.delegate?.scrollViewDidScroll?(collectionView)
     }
 }

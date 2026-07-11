@@ -469,7 +469,9 @@ struct AppAppearance {
             ),
             themeCardCornerRadius: 28,
             themeCardBorderWidth: 2,
-            themeCardShadow: AppShadowStyle(color: .black, opacity: isDark ? 0.16 : 0.10, radius: 14, offset: CGSize(width: 0, height: 8))
+            themeCardShadow: isDark
+                ? AppShadowStyle(color: .black, opacity: 0.16, radius: 14, offset: CGSize(width: 0, height: 8))
+                : .none
         )
     }
 

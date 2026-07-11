@@ -1,6 +1,7 @@
 import SwiftUI
 import UIKit
 import XCTest
+import SnapshotTesting
 @testable import Quizice
 
 @MainActor
@@ -16,16 +17,36 @@ final class SwiftUISnapshotTests: XCTestCase {
     }
 
     func testSettingsViewSnapshot() {
-        let viewController = UIHostingController(rootView: QuizSettingsView())
+        let viewController = makeHostingController(rootView: QuizSettingsView())
 
         SnapshotSupport.assertScreen(viewController, named: "clean-settings")
     }
 
+    func testClassicSettingsCompactPortraitSnapshot() {
+        SnapshotSupport.setUp(designStyle: .classic)
+        let viewController = makeHostingController(rootView: QuizSettingsView())
+
+        SnapshotSupport.assertScreen(
+            viewController,
+            named: "classic-settings-iphone-se",
+            device: .iPhone8
+        )
+    }
+
     func testAIThemeCreationViewSnapshot() {
-        let viewController = UIHostingController(
+        let viewController = makeHostingController(
             rootView: QuizAIThemeCreationView(service: MockAIQuizThemeService())
         )
 
         SnapshotSupport.assertScreen(viewController, named: "clean-ai-theme-creation")
+    }
+
+    private func makeHostingController<Content: View>(rootView: Content) -> UIHostingController<Content> {
+        let viewController = UIHostingController(rootView: rootView)
+        viewController.loadViewIfNeeded()
+        AppAppearanceStore.shared
+            .appearance(compatibleWith: viewController.traitCollection)
+            .applyBackground(to: viewController.view)
+        return viewController
     }
 }

@@ -256,6 +256,18 @@ final class HomeScreenVisualStateTests: XCTestCase {
         XCTAssertEqual(visualSurface.layer.cornerCurve, .circular)
     }
 
+    func testCleanSettingsSurfaceIsCircular() throws {
+        useDesignStyle(.clean)
+        QuizFactory.shared.themes = [makeTheme(name: "Музыка")]
+
+        let viewController = makeHomeViewController(in: CGRect(x: 0, y: 0, width: 375, height: 667))
+        let visualSurface = try XCTUnwrap(viewController.view.descendant(withAccessibilityIdentifier: "homeSettingsVisualSurface"))
+
+        XCTAssertEqual(visualSurface.bounds.size, CGSize(width: 36, height: 36))
+        XCTAssertEqual(visualSurface.layer.cornerRadius, visualSurface.bounds.height / 2, accuracy: 0.001)
+        XCTAssertEqual(visualSurface.layer.cornerCurve, .circular)
+    }
+
     func testHomeAIThemeButtonPresentsAIThemeCreationScreen() throws {
         QuizFactory.shared.themes = [makeTheme(name: "Музыка")]
 
@@ -322,7 +334,7 @@ final class HomeScreenVisualStateTests: XCTestCase {
         XCTAssertEqual(feelingLuckySize.width, 342)
         XCTAssertEqual(feelingLuckySize.height, 54)
         XCTAssertEqual(statisticsSize.width, 342)
-        XCTAssertEqual(statisticsSize.height, 112)
+        XCTAssertEqual(statisticsSize.height, 136)
         XCTAssertEqual(inset.left, 24)
         XCTAssertEqual(inset.right, 24)
         XCTAssertEqual(inset.bottom, 0)
@@ -366,7 +378,6 @@ final class HomeScreenVisualStateTests: XCTestCase {
             XCTAssertEqual(titleLabel.textAlignment, .center)
             XCTAssertEqual(titleLabel.numberOfLines, 2)
             XCTAssertEqual(titleLabel.lineBreakMode, .byWordWrapping)
-            XCTAssertFalse(titleLabel.adjustsFontSizeToFitWidth)
             assertColor(themeButton.backgroundColor, equals: assetColor("themeWhite"))
             assertColor(titleLabel.textColor, equals: assetColor("themeCleanSurfaceText"))
             assertColor(UIColor(cgColor: themeButton.layer.borderColor ?? UIColor.clear.cgColor), equals: tintColor.withAlphaComponent(0.75))
@@ -381,6 +392,44 @@ final class HomeScreenVisualStateTests: XCTestCase {
             let requiredTitleHeight = titleLabel.sizeThatFits(fittingSize).height
             XCTAssertLessThanOrEqual(requiredTitleHeight, titleLabel.bounds.height + 0.5)
         }
+    }
+
+    func testCompactRadarThemeTitleShrinksAcrossTwoLinesWithoutTruncation() throws {
+        useDesignStyle(.radar)
+        let theme = makeTheme(name: "История Древнего Рима")
+        QuizFactory.shared.themes = [theme]
+        let service = ThemesCollectionService()
+        let collectionView = makeCollectionView(width: 320)
+        let indexPath = IndexPath(item: 0, section: 0)
+        let itemSize = service.collectionView(
+            collectionView,
+            layout: collectionView.collectionViewLayout,
+            sizeForItemAt: indexPath
+        )
+        let themeCell = service.collectionView(collectionView, cellForItemAt: indexPath)
+        themeCell.frame = CGRect(origin: .zero, size: itemSize)
+        themeCell.contentView.frame = themeCell.bounds
+        themeCell.layoutIfNeeded()
+        themeCell.contentView.layoutIfNeeded()
+
+        let titleIdentifier = "\(ThemesCollectionService.Content.themeTitleAccessibilityIDPrefix)-\(theme.stableID)"
+        let titleLabel = try XCTUnwrap(
+            themeCell.contentView.descendant(withAccessibilityIdentifier: titleIdentifier) as? UILabel
+        )
+        let baseFont = AppAppearanceStore.shared
+            .appearance(compatibleWith: collectionView.traitCollection)
+            .typography
+            .font(size: 18, weight: .semibold)
+        let requiredHeight = (titleLabel.text! as NSString).boundingRect(
+            with: CGSize(width: titleLabel.bounds.width, height: .greatestFiniteMagnitude),
+            options: [.usesLineFragmentOrigin, .usesFontLeading],
+            attributes: [.font: titleLabel.font!],
+            context: nil
+        ).height
+
+        XCTAssertLessThan(titleLabel.font.pointSize, baseFont.pointSize)
+        XCTAssertGreaterThanOrEqual(titleLabel.font.pointSize, baseFont.pointSize * 0.72 - 0.1)
+        XCTAssertLessThanOrEqual(ceil(requiredHeight), ceil(titleLabel.bounds.height) + 0.5)
     }
 
     func testCollectionServiceAppliesPolishedCardStylingWithoutChangingIdentifiers() {
@@ -406,7 +455,7 @@ final class HomeScreenVisualStateTests: XCTestCase {
         XCTAssertEqual(themeButton?.layer.cornerRadius, 28)
         XCTAssertEqual(themeButton?.layer.borderWidth, 2)
         XCTAssertTrue(themeButton?.clipsToBounds ?? false)
-        XCTAssertGreaterThan(themeCell.layer.shadowOpacity, 0)
+        XCTAssertEqual(themeCell.layer.shadowOpacity, 0)
         XCTAssertEqual(aiThemeButton?.accessibilityLabel, L10n.Home.createWithAI)
         XCTAssertEqual(aiThemeButton?.layer.cornerRadius, 27)
         assertColor(aiThemeButton?.backgroundColor, equals: assetColor("themeWhite"))
@@ -440,6 +489,59 @@ final class HomeScreenVisualStateTests: XCTestCase {
         XCTAssertGreaterThanOrEqual(statisticsCell.layer.shadowOpacity, 0)
     }
 
+    func testCleanDarkThemeCardsKeepTheirDepthShadow() {
+        useDesignStyle(.clean)
+        UserDefaults.standard.set(
+            CleanColorSchemePreference.dark.rawValue,
+            forKey: AppAppearanceStore.Keys.cleanColorScheme
+        )
+        QuizFactory.shared.themes = [makeTheme(name: "Музыка")]
+
+        let service = ThemesCollectionService()
+        let themeCell = service.collectionView(makeCollectionView(), cellForItemAt: IndexPath(item: 0, section: 0))
+
+        XCTAssertGreaterThan(themeCell.layer.shadowOpacity, 0)
+    }
+
+    func testCompactStatisticsTitleShrinksAndLastItemOwnsBottomSpacing() throws {
+        useDesignStyle(.clean)
+        QuizFactory.shared.themes = [makeTheme(name: "Музыка")]
+        let service = ThemesCollectionService()
+        let collectionView = makeCollectionView(width: 320)
+        let indexPath = IndexPath(item: 3, section: 0)
+        let itemSize = service.collectionView(
+            collectionView,
+            layout: collectionView.collectionViewLayout,
+            sizeForItemAt: indexPath
+        )
+        let statisticsCell = service.collectionView(collectionView, cellForItemAt: indexPath)
+        statisticsCell.frame = CGRect(origin: .zero, size: itemSize)
+        statisticsCell.contentView.frame = statisticsCell.bounds
+        statisticsCell.layoutIfNeeded()
+        statisticsCell.contentView.layoutIfNeeded()
+
+        let statisticsButton = try XCTUnwrap(
+            statisticsCell.contentView.descendant(withAccessibilityIdentifier: "homeStatisticsCard") as? UIButton
+        )
+        let titleLabel = try XCTUnwrap(
+            statisticsCell.contentView.descendant(withAccessibilityIdentifier: "homeStatisticsTitleLabel") as? UILabel
+        )
+        let sectionInsets = service.collectionView(
+            collectionView,
+            layout: collectionView.collectionViewLayout,
+            insetForSectionAt: 0
+        )
+
+        XCTAssertEqual(itemSize.height, 136)
+        XCTAssertEqual(statisticsButton.frame.height, 112, accuracy: 0.5)
+        XCTAssertEqual(statisticsCell.bounds.maxY - statisticsButton.frame.maxY, 24, accuracy: 0.5)
+        XCTAssertEqual(sectionInsets.bottom, 0)
+        XCTAssertEqual(titleLabel.numberOfLines, 1)
+        XCTAssertTrue(titleLabel.adjustsFontSizeToFitWidth)
+        XCTAssertEqual(titleLabel.minimumScaleFactor, 0.72, accuracy: 0.001)
+        XCTAssertGreaterThan(titleLabel.bounds.width, 0)
+    }
+
     func testCollectionServiceRendersEmptyStatisticsSummaryOnHomeCard() throws {
         QuizFactory.shared.themes = [makeTheme(name: "Музыка")]
         let statisticsStore = makeStatisticsStore()
@@ -447,11 +549,12 @@ final class HomeScreenVisualStateTests: XCTestCase {
         let collectionView = makeCollectionView()
 
         let statisticsCell = service.collectionView(collectionView, cellForItemAt: IndexPath(item: 3, section: 0))
-        statisticsCell.frame = CGRect(x: 0, y: 0, width: 342, height: 112)
+        statisticsCell.frame = CGRect(x: 0, y: 0, width: 342, height: 136)
         statisticsCell.contentView.frame = statisticsCell.bounds
         statisticsCell.layoutIfNeeded()
         statisticsCell.contentView.layoutIfNeeded()
         let statisticsButton = try XCTUnwrap(statisticsCell.contentView.descendant(withAccessibilityIdentifier: "homeStatisticsCard") as? UIButton)
+        let statisticsTitleLabel = try XCTUnwrap(statisticsCell.contentView.descendant(withAccessibilityIdentifier: "homeStatisticsTitleLabel") as? UILabel)
         let playedTitleLabel = try XCTUnwrap(statisticsCell.contentView.descendant(withAccessibilityIdentifier: "homeStatisticsPlayedTitleLabel") as? UILabel)
         let playedValueLabel = try XCTUnwrap(statisticsCell.contentView.descendant(withAccessibilityIdentifier: "homeStatisticsPlayedValueLabel") as? UILabel)
         let accuracyTitleLabel = try XCTUnwrap(statisticsCell.contentView.descendant(withAccessibilityIdentifier: "homeStatisticsAccuracyTitleLabel") as? UILabel)
@@ -465,6 +568,10 @@ final class HomeScreenVisualStateTests: XCTestCase {
         XCTAssertEqual(accuracyValueLabel.text, "0%")
         XCTAssertEqual(descriptionLabel.text, L10n.Home.statisticsDescription)
         XCTAssertEqual(descriptionLabel.numberOfLines, 2)
+        XCTAssertTrue(statisticsTitleLabel.adjustsFontSizeToFitWidth)
+        XCTAssertEqual(statisticsTitleLabel.minimumScaleFactor, 0.72, accuracy: 0.001)
+        XCTAssertEqual(statisticsButton.frame.height, 112, accuracy: 0.5)
+        XCTAssertEqual(statisticsCell.bounds.maxY - statisticsButton.frame.maxY, 24, accuracy: 0.5)
         let playedRowStack = try XCTUnwrap(playedTitleLabel.superview as? UIStackView)
         let accuracyRowStack = try XCTUnwrap(accuracyTitleLabel.superview as? UIStackView)
         let metricsStack = try XCTUnwrap(playedRowStack.superview as? UIStackView)
@@ -595,9 +702,12 @@ final class HomeScreenVisualStateTests: XCTestCase {
         XCTAssertTrue(theme.questions.isEmpty)
     }
 
-    private func makeCollectionView() -> UICollectionView {
+    private func makeCollectionView(width: CGFloat = 390) -> UICollectionView {
         let layout = UICollectionViewFlowLayout()
-        let collectionView = UICollectionView(frame: CGRect(x: 0, y: 0, width: 390, height: 700), collectionViewLayout: layout)
+        let collectionView = UICollectionView(
+            frame: CGRect(x: 0, y: 0, width: width, height: 700),
+            collectionViewLayout: layout
+        )
         collectionView.register(UICollectionViewCell.self, forCellWithReuseIdentifier: "themeCell")
         return collectionView
     }

@@ -256,6 +256,91 @@ final class CrossScreenVisualStateTests: XCTestCase {
         XCTAssertGreaterThanOrEqual(firstAnswerFrame.minY - questionFrame.maxY, 24)
     }
 
+    func testRadarThemeTitleCanShrinkToFitLegacySEWidth() throws {
+        UserDefaults.standard.set(AppDesignStyle.radar.rawValue, forKey: AppAppearanceStore.Keys.designStyle)
+        QuizFactory.shared.chosenTheme = makeQuestionTheme()
+        QuizFactory.shared.questionsCount = 1
+
+        let viewController = QuizQuestionViewController()
+        viewController.loadViewIfNeeded()
+        defer { viewController.presenter?.stopTimer() }
+        viewController.view.frame = CGRect(x: 0, y: 0, width: 320, height: 568)
+        viewController.loadQuestionToView(
+            QuizQuestionViewModel(
+                themeName: "История и культура",
+                questionText: "Короткий вопрос?",
+                questionNumberText: "Вопрос №1",
+                answers: [
+                    QuizAnswerOption(id: "theme-0", title: "A"),
+                    QuizAnswerOption(id: "theme-1", title: "B"),
+                    QuizAnswerOption(id: "theme-2", title: "C"),
+                    QuizAnswerOption(id: "theme-3", title: "D")
+                ]
+            )
+        )
+        viewController.view.layoutIfNeeded()
+
+        let themeLabel = try XCTUnwrap(
+            viewController.view.descendant(withAccessibilityIdentifier: "questionThemeLabel") as? UILabel
+        )
+        let unscaledWidth = (themeLabel.text! as NSString).size(withAttributes: [.font: themeLabel.font!]).width
+        let minimumFont = themeLabel.font.withSize(themeLabel.font.pointSize * themeLabel.minimumScaleFactor)
+        let minimumWidth = (themeLabel.text! as NSString).size(withAttributes: [.font: minimumFont]).width
+
+        XCTAssertEqual(themeLabel.numberOfLines, 1)
+        XCTAssertTrue(themeLabel.adjustsFontSizeToFitWidth)
+        XCTAssertEqual(themeLabel.minimumScaleFactor, 0.70, accuracy: 0.001)
+        XCTAssertGreaterThan(unscaledWidth, themeLabel.bounds.width)
+        XCTAssertLessThanOrEqual(minimumWidth, themeLabel.bounds.width + 0.5)
+    }
+
+    func testRadarLongQuestionShrinksWithoutTruncatingOnCompactPhone() throws {
+        UserDefaults.standard.set(AppDesignStyle.radar.rawValue, forKey: AppAppearanceStore.Keys.designStyle)
+        QuizFactory.shared.chosenTheme = makeQuestionTheme()
+        QuizFactory.shared.questionsCount = 1
+
+        let viewController = QuizQuestionViewController()
+        viewController.loadViewIfNeeded()
+        defer { viewController.presenter?.stopTimer() }
+        viewController.view.frame = CGRect(x: 0, y: 0, width: 375, height: 667)
+        let longQuestion = "Как называется технология, позволяющая увеличить производительность процессора за счет временного повышения тактовой частоты?"
+        viewController.loadQuestionToView(
+            QuizQuestionViewModel(
+                themeName: "История и культура",
+                questionText: longQuestion,
+                questionNumberText: "Вопрос №1",
+                answers: [
+                    QuizAnswerOption(id: "long-question-0", title: "Turbo Boost"),
+                    QuizAnswerOption(id: "long-question-1", title: "Hyper-Threading"),
+                    QuizAnswerOption(id: "long-question-2", title: "Secure Boot"),
+                    QuizAnswerOption(id: "long-question-3", title: "Ray Tracing")
+                ]
+            )
+        )
+        viewController.view.setNeedsLayout()
+        viewController.view.layoutIfNeeded()
+        viewController.view.layoutIfNeeded()
+
+        let questionLabel = try XCTUnwrap(
+            viewController.view.descendant(withAccessibilityIdentifier: "questionTextLabel") as? UILabel
+        )
+        let baseFont = currentAppearance().typography.font(size: 26, weight: .bold)
+        let requiredHeight = ceil(
+            (longQuestion as NSString).boundingRect(
+                with: CGSize(width: questionLabel.bounds.width, height: .greatestFiniteMagnitude),
+                options: [.usesLineFragmentOrigin, .usesFontLeading],
+                attributes: [.font: questionLabel.font!],
+                context: nil
+            ).height
+        )
+
+        XCTAssertEqual(questionLabel.text, longQuestion)
+        XCTAssertEqual(questionLabel.numberOfLines, 0)
+        XCTAssertLessThan(questionLabel.font.pointSize, baseFont.pointSize)
+        XCTAssertGreaterThanOrEqual(questionLabel.font.pointSize, baseFont.pointSize * 0.72 - 0.1)
+        XCTAssertLessThanOrEqual(requiredHeight, questionLabel.bounds.height + 0.5)
+    }
+
     func testQuestionScreenFadesHeaderAndActionButtonsWhenShowingResult() throws {
         QuizFactory.shared.chosenTheme = makeQuestionTheme()
         QuizFactory.shared.questionsCount = 1
@@ -349,7 +434,7 @@ final class CrossScreenVisualStateTests: XCTestCase {
         viewController.loadQuestionToView(
             QuizQuestionViewModel(
                 themeName: "Музыка",
-                questionText: String(repeating: "Это длинный текст вопроса, который должен переноситься на несколько строк. ", count: 3),
+                questionText: String(repeating: "Это экстремально длинный текст вопроса, который после минимального уменьшения шрифта должен оставаться доступным через прокрутку. ", count: 10),
                 questionNumberText: "Вопрос №2",
                 answers: [
                     QuizAnswerOption(id: "long-0", title: "Очень длинный вариант ответа A"),

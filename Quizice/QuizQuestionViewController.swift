@@ -61,6 +61,11 @@ final class QuizQuestionViewController: BaseQuizViewController, QuizQuestionView
         static let questionFontSize: CGFloat = 26
         static let answerButtonFontSize: CGFloat = 18
         static let actionButtonFontSize: CGFloat = 20
+        static let themeMinimumScaleFactor: CGFloat = 0.70
+        static let questionMinimumScaleFactor: CGFloat = 0.72
+        static let questionPreferredLineCount = 5
+        static let questionFontSearchIterations = 10
+        static let fontSizeComparisonTolerance: CGFloat = 0.1
         static let unlimitedNumberOfLines = 0
         static let answerButtonNumberOfLines = 0
     }
@@ -224,6 +229,11 @@ final class QuizQuestionViewController: BaseQuizViewController, QuizQuestionView
         hapticFeedback.prepare()
     }
 
+    override func viewDidLayoutSubviews() {
+        super.viewDidLayoutSubviews()
+        fitQuestionFont()
+    }
+
     // MARK: - Timer methods
 
     func updateProgress(_ progress: Float) {
@@ -263,6 +273,11 @@ final class QuizQuestionViewController: BaseQuizViewController, QuizQuestionView
         let typography = currentAppearance().typography
         themeNameLabel = makeLabel(font: typography.font(size: Typography.themeFontSize, weight: .semibold))
         themeNameLabel.accessibilityIdentifier = AccessibilityID.themeLabel
+        themeNameLabel.numberOfLines = 1
+        themeNameLabel.adjustsFontSizeToFitWidth = true
+        themeNameLabel.minimumScaleFactor = Typography.themeMinimumScaleFactor
+        themeNameLabel.allowsDefaultTighteningForTruncation = true
+        themeNameLabel.baselineAdjustment = .alignCenters
         
         questionNumberLabel = makeLabel(font: typography.font(size: Typography.questionNumberFontSize, weight: .medium))
         questionNumberLabel.accessibilityIdentifier = AccessibilityID.questionNumberLabel
@@ -286,6 +301,7 @@ final class QuizQuestionViewController: BaseQuizViewController, QuizQuestionView
         questionLabel = makeLabel(font: currentAppearance().typography.font(size: Typography.questionFontSize, weight: .bold))
         questionLabel.accessibilityIdentifier = AccessibilityID.questionTextLabel
         questionLabel.numberOfLines = Typography.unlimitedNumberOfLines
+        questionLabel.lineBreakMode = .byWordWrapping
     }
     
     private func configureTimerViews() {
@@ -562,6 +578,7 @@ final class QuizQuestionViewController: BaseQuizViewController, QuizQuestionView
         timerBar.progress = presenter?.currentProgress ?? .zero
         themeNameLabel.text = viewModel.themeName
         questionLabel.text = viewModel.questionText
+        fitQuestionFont()
         applyAnswers(viewModel.answers)
         if updatesQuestionNumber {
             questionNumberLabel.text = viewModel.questionNumberText
@@ -665,6 +682,7 @@ final class QuizQuestionViewController: BaseQuizViewController, QuizQuestionView
         themeNameLabel.text = themeName ?? L10n.Question.fallbackTheme
         questionNumberLabel.text = L10n.Question.unavailableNumber
         questionLabel.text = message
+        fitQuestionFont()
         currentAnswerOptions = []
         timerBar.progress = .zero
         let appearance = currentAppearance()
@@ -830,6 +848,7 @@ final class QuizQuestionViewController: BaseQuizViewController, QuizQuestionView
         questionCardView?.applySurfaceStyle(appearance.card)
         questionLabel?.textColor = appearance.surfaceTextColor
         questionLabel?.font = appearance.typography.font(size: Typography.questionFontSize, weight: .bold)
+        fitQuestionFont()
 
         timerContainerView?.backgroundColor = appearance.progressTrackColor
         timerContainerView?.layer.cornerRadius = min(appearance.card.cornerRadius, Appearance.timerContainerCornerRadius)
@@ -870,6 +889,56 @@ final class QuizQuestionViewController: BaseQuizViewController, QuizQuestionView
 
     private func quizThemeAccentColor(for appearance: AppAppearance) -> UIColor {
         QuizThemeAccentStyle.accentColor(themeID: presenter?.themeID, appearance: appearance)
+    }
+
+    private func fitQuestionFont() {
+        guard
+            let questionLabel,
+            let text = questionLabel.text,
+            !text.isEmpty,
+            questionLabel.bounds.width > .zero
+        else { return }
+
+        let baseFont = currentAppearance().typography.font(size: Typography.questionFontSize, weight: .bold)
+        let minimumFontSize = baseFont.pointSize * Typography.questionMinimumScaleFactor
+        let targetHeight = ceil(baseFont.lineHeight * CGFloat(Typography.questionPreferredLineCount))
+
+        func textHeight(fontSize: CGFloat) -> CGFloat {
+            ceil(
+                (text as NSString).boundingRect(
+                    with: CGSize(width: questionLabel.bounds.width, height: .greatestFiniteMagnitude),
+                    options: [.usesLineFragmentOrigin, .usesFontLeading],
+                    attributes: [.font: baseFont.withSize(fontSize)],
+                    context: nil
+                ).height
+            )
+        }
+
+        var lowerBound = minimumFontSize
+        var upperBound = baseFont.pointSize
+
+        if textHeight(fontSize: upperBound) <= targetHeight {
+            lowerBound = upperBound
+        } else if textHeight(fontSize: lowerBound) <= targetHeight {
+            for _ in 0..<Typography.questionFontSearchIterations {
+                let candidate = (lowerBound + upperBound) / 2
+                if textHeight(fontSize: candidate) <= targetHeight {
+                    lowerBound = candidate
+                } else {
+                    upperBound = candidate
+                }
+            }
+        }
+
+        let fittedFont = baseFont.withSize(lowerBound)
+        guard
+            questionLabel.font.fontName != fittedFont.fontName
+                || abs(questionLabel.font.pointSize - fittedFont.pointSize) > Typography.fontSizeComparisonTolerance
+        else { return }
+
+        questionLabel.font = fittedFont
+        questionLabel.invalidateIntrinsicContentSize()
+        questionCardView?.setNeedsLayout()
     }
     
     func showResults(_ result: QuizResultState) {
