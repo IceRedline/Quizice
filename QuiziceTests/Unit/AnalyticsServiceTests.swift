@@ -38,10 +38,17 @@ final class AnalyticsServiceTests: XCTestCase {
         XCTAssertEqual(selected.parameters["theme_source"] as? String, "ai")
         XCTAssertNil(selected.parameters["theme_id"])
 
-        let started = AnalyticsEvent.aiGenerationStarted(locale: "ru_RU", promptLength: 42)
+        let started = AnalyticsEvent.aiGenerationStarted(
+            locale: "ru_RU",
+            promptLength: 42,
+            questionCount: 10,
+            difficulty: .hard
+        )
         XCTAssertEqual(started.name, "ai_generation_started")
         XCTAssertEqual(started.parameters["locale"] as? String, "ru_RU")
         XCTAssertEqual(started.parameters["prompt_length"] as? Int, 42)
+        XCTAssertEqual(started.parameters["question_count"] as? Int, 10)
+        XCTAssertEqual(started.parameters["difficulty"] as? String, "hard")
         XCTAssertNil(started.parameters["prompt"])
         XCTAssertFalse(started.parameters.values.contains { ($0 as? String) == "private prompt" })
     }
@@ -73,8 +80,8 @@ final class AnalyticsServiceTests: XCTestCase {
             .quizCompleted(themeID: "music", correctAnswers: 4, totalQuestions: 5),
             .quizResultAction(themeID: "music", action: .replay),
             .statisticsViewed(attemptsCount: 1, totalQuestions: 5, accuracyPercent: 80),
-            .aiGenerationStarted(locale: "en", promptLength: 10),
-            .aiGenerationSucceeded(locale: "en", questionCount: 5, durationMilliseconds: 100),
+            .aiGenerationStarted(locale: "en", promptLength: 10, questionCount: 5, difficulty: .medium),
+            .aiGenerationSucceeded(locale: "en", questionCount: 5, difficulty: .medium, durationMilliseconds: 100),
             .aiGenerationFailed(locale: "en", errorCode: "network", durationMilliseconds: 100),
             .aiGenerationCancelled(locale: "en", durationMilliseconds: 100),
             .settingChanged(setting: "language", oldValue: "system", newValue: "en"),
