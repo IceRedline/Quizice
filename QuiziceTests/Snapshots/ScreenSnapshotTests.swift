@@ -150,6 +150,16 @@ final class ScreenSnapshotTests: XCTestCase {
         defaults.removePersistentDomain(forName: suiteName)
     }
 
+    func testRadarStatisticsLargeHistorySnapshot() {
+        SnapshotSupport.setUp(designStyle: .radar)
+
+        SnapshotSupport.assertScreen(
+            makeLargeHistoryStatisticsViewController(),
+            named: "radar-statistics-large-history-iphone-17-pro",
+            device: SnapshotSupport.iPhone17Pro
+        )
+    }
+
     func testDescriptionAdaptiveCanvasSnapshots() {
         assertAdaptiveSnapshots(makeViewController: makeDescriptionViewController, screenName: "description")
     }
@@ -283,6 +293,27 @@ final class ScreenSnapshotTests: XCTestCase {
         let store = StatisticsStore(userDefaults: defaults, key: "attempts")
         store.recordAttempt(correctAnswers: 4, totalQuestions: 5)
         store.recordAttempt(correctAnswers: 8, totalQuestions: 10)
+        let viewController = StatisticsViewController(statisticsStore: store)
+        viewController.loadViewIfNeeded()
+        viewController.viewWillAppear(false)
+        return viewController
+    }
+
+    private func makeLargeHistoryStatisticsViewController() -> StatisticsViewController {
+        let suiteName = "ScreenSnapshotTests.large-statistics.\(UUID().uuidString)"
+        defaultsSuiteNames.append(suiteName)
+        let defaults = UserDefaults(suiteName: suiteName)!
+        defaults.removePersistentDomain(forName: suiteName)
+        let store = StatisticsStore(userDefaults: defaults, key: "attempts")
+        for _ in 0..<10 {
+            store.recordAttempt(correctAnswers: 5, totalQuestions: 5)
+        }
+        for _ in 0..<24 {
+            store.recordAttempt(correctAnswers: 1, totalQuestions: 5)
+        }
+        for _ in 0..<19 {
+            store.recordAttempt(correctAnswers: 0, totalQuestions: 5)
+        }
         let viewController = StatisticsViewController(statisticsStore: store)
         viewController.loadViewIfNeeded()
         viewController.viewWillAppear(false)

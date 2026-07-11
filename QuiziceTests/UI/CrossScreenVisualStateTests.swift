@@ -1078,6 +1078,58 @@ final class CrossScreenVisualStateTests: XCTestCase {
         XCTAssertEqual(bestResultRow.accessibilityValue, "5/5")
     }
 
+    func testStatisticsCorrectAnswersValueStaysFullyVisibleForLargeHistory() throws {
+        UserDefaults.standard.set(AppDesignStyle.radar.rawValue, forKey: AppAppearanceStore.Keys.designStyle)
+        let harness = makeStatisticsHarness()
+        defer { harness.defaults.removePersistentDomain(forName: harness.suiteName) }
+
+        for _ in 0..<10 {
+            harness.store.recordAttempt(correctAnswers: 5, totalQuestions: 5)
+        }
+        for _ in 0..<24 {
+            harness.store.recordAttempt(correctAnswers: 1, totalQuestions: 5)
+        }
+        for _ in 0..<19 {
+            harness.store.recordAttempt(correctAnswers: 0, totalQuestions: 5)
+        }
+
+        for width in [CGFloat(402), CGFloat(320)] {
+            let viewController = StatisticsViewController(statisticsStore: harness.store)
+            viewController.loadViewIfNeeded()
+            viewController.view.frame = CGRect(x: 0, y: 0, width: width, height: 874)
+            viewController.viewWillAppear(false)
+            viewController.view.setNeedsLayout()
+            viewController.view.layoutIfNeeded()
+
+            let correctRow = try XCTUnwrap(
+                viewController.view.descendant(withAccessibilityIdentifier: "statisticsCorrectAnswers")
+            )
+            let correctValueLabel = try XCTUnwrap(
+                viewController.view.descendant(
+                    withAccessibilityIdentifier: "statisticsCorrectAnswersValueLabel"
+                ) as? UILabel
+            )
+            let titleLabel = try XCTUnwrap(
+                correctRow.subviews.compactMap { $0 as? UILabel }.first { $0 !== correctValueLabel }
+            )
+            let requiredValueWidth = ceil(
+                ("74/265" as NSString).size(withAttributes: [.font: correctValueLabel.font!]).width
+            )
+            let valueFrame = correctValueLabel.convert(correctValueLabel.bounds, to: correctRow)
+
+            XCTAssertEqual(correctValueLabel.text, "74/265")
+            XCTAssertEqual(correctRow.accessibilityValue, "74/265")
+            XCTAssertTrue(correctValueLabel.adjustsFontSizeToFitWidth)
+            XCTAssertEqual(correctValueLabel.minimumScaleFactor, 0.75, accuracy: 0.001)
+            XCTAssertGreaterThanOrEqual(correctValueLabel.bounds.width + 0.5, requiredValueWidth)
+            XCTAssertGreaterThan(
+                correctValueLabel.contentCompressionResistancePriority(for: .horizontal).rawValue,
+                titleLabel.contentCompressionResistancePriority(for: .horizontal).rawValue
+            )
+            XCTAssertTrue(correctRow.bounds.insetBy(dx: -0.5, dy: -0.5).contains(valueFrame))
+        }
+    }
+
     func testAllPolishedS03ScreensExposeCoreAnchorsAndControlSurfaces() throws {
         let descriptionViewController = QuizDescriptionViewController()
         descriptionViewController.loadViewIfNeeded()

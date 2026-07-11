@@ -351,13 +351,25 @@ final class StatisticsViewController: BaseQuizViewController {
         titleLabel.font = currentAppearance().typography.font(size: Typography.rowTitleFontSize, weight: .medium)
         titleLabel.adjustsFontForContentSizeCategory = true
         titleLabel.numberOfLines = Typography.unlimitedNumberOfLines
+        titleLabel.setContentHuggingPriority(.defaultLow, for: .horizontal)
+        titleLabel.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
         titleLabel.translatesAutoresizingMaskIntoConstraints = false
         rowTitleLabels.append(titleLabel)
 
         valueLabel.textColor = .white
         valueLabel.font = currentAppearance().typography.font(size: Typography.rowValueFontSize, weight: .bold)
         valueLabel.adjustsFontForContentSizeCategory = true
+        valueLabel.adjustsFontSizeToFitWidth = true
+        valueLabel.minimumScaleFactor = Typography.rowValueMinimumScaleFactor
+        valueLabel.allowsDefaultTighteningForTruncation = true
+        valueLabel.baselineAdjustment = .alignCenters
+        valueLabel.numberOfLines = 1
         valueLabel.textAlignment = .right
+        valueLabel.setContentHuggingPriority(.required, for: .horizontal)
+        valueLabel.setContentCompressionResistancePriority(
+            UILayoutPriority(rawValue: UILayoutPriority.defaultHigh.rawValue + 1),
+            for: .horizontal
+        )
         valueLabel.translatesAutoresizingMaskIntoConstraints = false
         valueLabel.accessibilityIdentifier = valueAccessibilityIdentifier
 
@@ -371,6 +383,7 @@ final class StatisticsViewController: BaseQuizViewController {
             titleLabel.trailingAnchor.constraint(lessThanOrEqualTo: valueLabel.leadingAnchor, constant: -Layout.rowTitleToValueSpacing),
 
             valueLabel.trailingAnchor.constraint(equalTo: containerView.trailingAnchor, constant: -Layout.rowHorizontalInset),
+            valueLabel.leadingAnchor.constraint(greaterThanOrEqualTo: containerView.leadingAnchor, constant: Layout.rowHorizontalInset),
             valueLabel.centerYAnchor.constraint(equalTo: containerView.centerYAnchor),
             valueLabel.widthAnchor.constraint(greaterThanOrEqualToConstant: Layout.rowValueMinimumWidth)
         ])
