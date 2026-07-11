@@ -48,6 +48,15 @@ The AI quiz generator calls the saved Yandex AI Studio agent only in Debug build
 
 1. In Agent Atelier, set the agent response format to JSON Schema using
    [`docs/yandex-ai-quiz-schema.json`](docs/yandex-ai-quiz-schema.json).
+   Use [`docs/yandex-ai-quiz-prompt.md`](docs/yandex-ai-quiz-prompt.md) as the
+   agent instruction prompt.
+   The agent input is a JSON string with `theme`, `locale`, `questionCount`, and
+   `difficulty`. Supported question counts are 5, 10, and 15. Difficulty values
+   are `easy` (common facts and direct wording), `medium` (moderate knowledge and
+   plausible distractors), and `hard` (specialized details without trick
+   questions). A successful response uses `status: "success"` and returns exactly
+   `questionCount` questions. A policy refusal uses `status: "refused"`, a safe
+   diagnostic `message`, empty theme fields, and an empty `questions` array.
 2. [Create an AI Studio API key](https://aistudio.yandex.ru/docs/ru/ai-studio/operations/get-api-key.html)
    and keep it outside the repository.
 3. In Xcode, open **Product → Scheme → Manage Schemes…**, duplicate `Quizice`

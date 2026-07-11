@@ -53,6 +53,7 @@ final class QuizDescriptionViewController: BaseQuizViewController, QuizDescripti
     }
     
     private enum Appearance {
+        static let disabledControlAlpha: CGFloat = 0.62
         static let cardBackgroundAlpha: CGFloat = 0.26
         static let cardCornerRadius: CGFloat = 30
         static let cardBorderWidth: CGFloat = 1
@@ -164,6 +165,7 @@ final class QuizDescriptionViewController: BaseQuizViewController, QuizDescripti
         numberOfQuestionsPickerView.delegate = self
         numberOfQuestionsPickerView.dataSource = self
         presenter?.viewDidLoad()
+        configureQuestionCountPickerState()
         installLocalizationObserver()
     }
 
@@ -229,6 +231,18 @@ final class QuizDescriptionViewController: BaseQuizViewController, QuizDescripti
         numberOfQuestionsPickerView.layer.borderWidth = Appearance.pickerBorderWidth
         numberOfQuestionsPickerView.layer.borderColor = UIColor.white.withAlphaComponent(Appearance.pickerBorderAlpha).cgColor
         numberOfQuestionsPickerView.translatesAutoresizingMaskIntoConstraints = false
+    }
+
+    private func configureQuestionCountPickerState() {
+        numberOfQuestionsPickerView.reloadAllComponents()
+        if let selectedRow = presenter?.selectedQuestionCountRow {
+            numberOfQuestionsPickerView.selectRow(selectedRow, inComponent: .zero, animated: false)
+        }
+
+        let isEnabled = presenter?.isQuestionCountSelectionEnabled ?? true
+        numberOfQuestionsPickerView.isUserInteractionEnabled = isEnabled
+        numberOfQuestionsPickerView.alpha = isEnabled ? 1 : Appearance.disabledControlAlpha
+        numberOfQuestionsPickerView.accessibilityHint = isEnabled ? nil : L10n.Description.aiQuestionCountFixed
     }
     
     private func configureButtons() {

@@ -120,7 +120,7 @@ final class QuizFlowCoordinatorAdditionalTests: XCTestCase {
         let generatedTheme = SnapshotSupport.makeTheme(
             id: "ai-generated",
             name: "Generated theme",
-            questions: (1...5).map { index in
+            questions: (1...10).map { index in
                 QuizQuestion(
                     question: "Question \(index)?",
                     answers: ["A", "B", "C", "D"],
@@ -133,7 +133,7 @@ final class QuizFlowCoordinatorAdditionalTests: XCTestCase {
         harness.coordinator.handleGeneratedAITheme(generatedTheme, dismissing: creationViewController)
 
         XCTAssertTrue(harness.session.chosenTheme?.quizTheme === generatedTheme)
-        XCTAssertEqual(harness.session.questionsCount, 5)
+        XCTAssertEqual(harness.session.questionsCount, 10)
         XCTAssertEqual(creationViewController.dismissAnimationFlags, [true])
         XCTAssertTrue(harness.navigationController.pushedControllers.isEmpty)
 
