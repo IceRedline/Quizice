@@ -14,6 +14,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     var modelContainer: ModelContainer?
     
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
+        AppMetricaAnalyticsTracker.shared.activate()
         modelContainer = makeModelContainer()
         if let modelContainer {
             QuizFactory.shared.setModelContext(modelContainer.mainContext)
@@ -30,6 +31,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
             return try ModelContainer(for: schema)
         } catch {
             AppLog.persistence.error("Persistent ModelContainer creation failed: \(error, privacy: .public)")
+            AppMetricaAnalyticsTracker.shared.reportOperationalError(error, context: .persistentStore)
         }
 
         do {
@@ -37,6 +39,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
             return try ModelContainer(for: schema, configurations: inMemoryConfiguration)
         } catch {
             AppLog.persistence.error("In-memory ModelContainer creation failed: \(error, privacy: .public)")
+            AppMetricaAnalyticsTracker.shared.reportOperationalError(error, context: .inMemoryStore)
             return nil
         }
     }
@@ -66,5 +69,5 @@ enum AppLog {
     static let content = Logger(subsystem: subsystem, category: "content")
     static let quiz = Logger(subsystem: subsystem, category: "quiz")
     static let audio = Logger(subsystem: subsystem, category: "audio")
+    static let analytics = Logger(subsystem: subsystem, category: "analytics")
 }
-

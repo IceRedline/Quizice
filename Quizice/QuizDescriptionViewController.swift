@@ -136,6 +136,7 @@ final class QuizDescriptionViewController: BaseQuizViewController, QuizDescripti
     private var startButton: UIButton!
     private var backButton: UIButton!
     weak var router: QuizRouting?
+    var analytics: AnalyticsTracking = AppMetricaAnalyticsTracker.shared
     
     var presenter: QuizDescriptionPresenterProtocol?
 
@@ -164,6 +165,11 @@ final class QuizDescriptionViewController: BaseQuizViewController, QuizDescripti
         numberOfQuestionsPickerView.dataSource = self
         presenter?.viewDidLoad()
         installLocalizationObserver()
+    }
+
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+        analytics.track(.screenView(screen: .quizDescription, themeID: presenter?.themeID))
     }
 
     func updateLabels(themeName: String, themeDescription: String) {
@@ -410,6 +416,12 @@ final class QuizDescriptionViewController: BaseQuizViewController, QuizDescripti
     
     @objc private func startButtonTapped() {
         presenter?.saveNumberOfQuestions(chosenRow: numberOfQuestionsPickerView.selectedRow(inComponent: .zero))
+        analytics.track(
+            .quizStarted(
+                themeID: presenter?.themeID,
+                questionCount: presenter?.selectedQuestionCount ?? 0
+            )
+        )
         fadeActionButtonsForQuestionTransition()
         router?.showQuestion()
     }
@@ -433,6 +445,7 @@ final class QuizDescriptionViewController: BaseQuizViewController, QuizDescripti
     }
     
     @objc private func backButtonTapped() {
+        analytics.track(.quizSetupCancelled(themeID: presenter?.themeID))
         router?.closeDescription()
     }
 

@@ -85,6 +85,7 @@ final class SwiftDataThemeStore {
             try context.save()
         } catch {
             AppLog.persistence.error("Failed to save themes: \(String(describing: error), privacy: .public)")
+            AppMetricaAnalyticsTracker.shared.reportOperationalError(error, context: .persistentStore)
         }
     }
 
@@ -98,6 +99,7 @@ final class SwiftDataThemeStore {
             AppLog.persistence.debug("SwiftData cleared")
         } catch {
             AppLog.persistence.error("Database clearing error: \(String(describing: error), privacy: .public)")
+            AppMetricaAnalyticsTracker.shared.reportOperationalError(error, context: .persistentStore)
         }
     }
 }
@@ -144,6 +146,10 @@ final class QuizFactory: ThemeRepository, QuizSessionManaging {
             let chosenTheme = loadedThemes.first(where: { $0.stableID == themeID })
         else {
             AppLog.content.error("Failed to resolve selected theme id: \(themeID, privacy: .public)")
+            AppMetricaAnalyticsTracker.shared.reportOperationalError(
+                AnalyticsOperationalIssue.themeResolution,
+                context: .themeResolution
+            )
             return false
         }
         self.chosenTheme = ThemeModel(quizTheme: chosenTheme)
@@ -157,6 +163,10 @@ final class QuizFactory: ThemeRepository, QuizSessionManaging {
             let chosenTheme = loadedThemes.first(where: { $0.theme == themeName || $0.stableID == themeName })
         else {
             AppLog.content.error("Failed to resolve selected theme: \(themeName, privacy: .public)")
+            AppMetricaAnalyticsTracker.shared.reportOperationalError(
+                AnalyticsOperationalIssue.themeResolution,
+                context: .themeResolution
+            )
             return false
         }
         self.chosenTheme = ThemeModel(quizTheme: chosenTheme)
@@ -183,6 +193,7 @@ final class QuizFactory: ThemeRepository, QuizSessionManaging {
             chosenTheme = nil
         } catch {
             AppLog.content.error("Localized data loading error: \(String(describing: error), privacy: .public)")
+            AppMetricaAnalyticsTracker.shared.reportOperationalError(error, context: .contentLoad)
         }
     }
     

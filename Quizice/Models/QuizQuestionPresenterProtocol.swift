@@ -25,6 +25,13 @@ protocol QuizQuestionPresenterProtocol {
     func checkAnswer(optionID: String)
     func updateQuizState(isCorrect: Bool)
     func resetGameProgress()
+    var analyticsProgress: AnalyticsQuizProgress { get }
+}
+
+extension QuizQuestionPresenterProtocol {
+    var analyticsProgress: AnalyticsQuizProgress {
+        AnalyticsQuizProgress(themeID: nil, answeredQuestions: 0, totalQuestions: 0, correctAnswers: 0)
+    }
 }
 
 extension QuizQuestionPresenterProtocol {
