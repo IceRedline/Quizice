@@ -158,7 +158,6 @@ enum L10n {
         enum Design {
             static var classic: String { L10n.localized("settings.design.classic", comment: "Classic design option title") }
             static var clean: String { L10n.localized("settings.design.clean", comment: "Clean design option title") }
-            static var pixel: String { L10n.localized("settings.design.pixel", comment: "Pixel design option title") }
             static var radar: String { L10n.localized("settings.design.radar", comment: "Radar design option title") }
         }
     }

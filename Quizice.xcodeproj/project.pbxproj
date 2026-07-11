@@ -51,7 +51,6 @@
 		99D100022E70000100D10001 /* AppAppearance.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99D100012E70000100D10001 /* AppAppearance.swift */; };
 		99D1000A2E70000100D10001 /* Inter.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 99D100062E70000100D10001 /* Inter.ttf */; };
 		99D1000B2E70000100D10001 /* JetBrainsMono.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 99D100072E70000100D10001 /* JetBrainsMono.ttf */; };
-		99D1000C2E70000100D10001 /* RubikPixels-Regular.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 99D100082E70000100D10001 /* RubikPixels-Regular.ttf */; };
 		99D1000D2E70000100D10001 /* Manrope.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 99D100092E70000100D10001 /* Manrope.ttf */; };
 		99E200012E90000100E20001 /* QuizAIThemeCreationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99E200022E90000100E20001 /* QuizAIThemeCreationView.swift */; };
 		99E200032E90000100E20001 /* AIQuizThemeService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99E200042E90000100E20001 /* AIQuizThemeService.swift */; };
@@ -142,7 +141,6 @@
 		99D100012E70000100D10001 /* AppAppearance.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppAppearance.swift; sourceTree = "<group>"; };
 		99D100062E70000100D10001 /* Inter.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = Inter.ttf; sourceTree = "<group>"; };
 		99D100072E70000100D10001 /* JetBrainsMono.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = JetBrainsMono.ttf; sourceTree = "<group>"; };
-		99D100082E70000100D10001 /* RubikPixels-Regular.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "RubikPixels-Regular.ttf"; sourceTree = "<group>"; };
 		99D100092E70000100D10001 /* Manrope.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = Manrope.ttf; sourceTree = "<group>"; };
 		99E200022E90000100E20001 /* QuizAIThemeCreationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuizAIThemeCreationView.swift; sourceTree = "<group>"; };
 		99E200042E90000100E20001 /* AIQuizThemeService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AIQuizThemeService.swift; sourceTree = "<group>"; };
@@ -299,7 +297,6 @@
 			children = (
 				99D100062E70000100D10001 /* Inter.ttf */,
 				99D100072E70000100D10001 /* JetBrainsMono.ttf */,
-				99D100082E70000100D10001 /* RubikPixels-Regular.ttf */,
 				99D100092E70000100D10001 /* Manrope.ttf */,
 			);
 			path = Fonts;
@@ -448,7 +445,6 @@
 				993C1C052D8F0A6000AD9BE4 /* data.json in Resources */,
 				99D1000A2E70000100D10001 /* Inter.ttf in Resources */,
 				99D1000B2E70000100D10001 /* JetBrainsMono.ttf in Resources */,
-				99D1000C2E70000100D10001 /* RubikPixels-Regular.ttf in Resources */,
 				99D1000D2E70000100D10001 /* Manrope.ttf in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

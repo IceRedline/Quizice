@@ -403,8 +403,6 @@ final class QuizDescriptionViewController: BaseQuizViewController, QuizDescripti
             return appearance.resolvedInterfaceStyle == .dark ? appearance.screenTextColor : UIColor.black
         case (.secondary, .clean):
             return QuizThemeAccentStyle.secondaryButtonTextColor(themeID: presenter?.themeID, appearance: appearance)
-        case (.primary, .pixel):
-            return UIColor.black
         default:
             return appearance.screenTextColor
         }
