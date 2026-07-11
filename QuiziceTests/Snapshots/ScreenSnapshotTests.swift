@@ -102,6 +102,26 @@ final class ScreenSnapshotTests: XCTestCase {
         )
     }
 
+    func testRadarJapanQuestionInitialModernPortraitSnapshot() {
+        SnapshotSupport.setUp(designStyle: .radar)
+
+        SnapshotSupport.assertScreen(
+            makeJapanQuestionViewController(),
+            named: "radar-japan-question-initial-iphone-17-pro",
+            device: SnapshotSupport.iPhone17Pro
+        )
+    }
+
+    func testRadarJapanQuestionInitialCompactPortraitSnapshot() {
+        SnapshotSupport.setUp(designStyle: .radar)
+
+        SnapshotSupport.assertScreen(
+            makeJapanQuestionViewController(),
+            named: "radar-japan-question-initial-iphone-se",
+            device: .iPhone8
+        )
+    }
+
     func testCleanLongAnswerCompactPortraitSnapshot() {
         SnapshotSupport.assertScreen(
             makeLongAnswerQuestionViewController(),
@@ -228,6 +248,19 @@ final class ScreenSnapshotTests: XCTestCase {
                 "«Бытие определяет сознание»",
                 "«Человек — это то, что должно быть преодолено»",
                 "«Жизнь — это страдание»"
+            ]
+        )
+    }
+
+    private func makeJapanQuestionViewController() -> QuizQuestionViewController {
+        makeQuestionViewController(
+            themeName: "История Японии",
+            questionText: "Какое событие положило конец периоду феодальной раздробленности и способствовало объединению Японии в конце XVI века?",
+            answerTitles: [
+                "Деятельность Оды Нобунаги, Тоётоми Хидэёси и Токугавы Иэясу",
+                "Приход к власти Токугавы Иэясу",
+                "Восстание крестьян",
+                "Битва при Сэкигахаре"
             ]
         )
     }
