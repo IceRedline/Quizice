@@ -624,7 +624,7 @@ private struct ThemeVisualDescriptor {
             return symbolImage?.withRenderingMode(.alwaysTemplate)
         case .radar:
             return UIImage(named: radarLogoName)
-        case .pixel, .classic:
+        case .classic:
             return UIImage(named: classicLogoName)
         }
     }

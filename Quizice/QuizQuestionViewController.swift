@@ -901,9 +901,6 @@ final class QuizQuestionViewController: BaseQuizViewController, QuizQuestionView
         if !isPrimary && appearance.designStyle == .clean {
             return QuizThemeAccentStyle.secondaryButtonTextColor(themeID: presenter?.themeID, appearance: appearance)
         }
-        if isPrimary && appearance.designStyle == .pixel {
-            return .black
-        }
         return appearance.screenTextColor
     }
 
