@@ -263,7 +263,7 @@ struct QuizAIThemeCreationView: View {
 
     private var submitButtonTextColor: UIColor {
         if canSubmit {
-            return appearance.designStyle == .pixel ? .black : appearance.screenTextColor
+            return appearance.screenTextColor
         }
         return appearance.disabledTextColor
     }

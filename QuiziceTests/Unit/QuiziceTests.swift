@@ -41,31 +41,14 @@ final class AppAppearanceStoreTests: XCTestCase {
         XCTAssertEqual(store.cleanColorSchemePreference, .system)
     }
 
-    func testPixelDesignIsNotSelectableAndFallsBackToClassicInStore() {
-        let harness = makeHarness()
-        harness.defaults.set(AppDesignStyle.pixel.rawValue, forKey: AppAppearanceStore.Keys.designStyle)
-        let store = AppAppearanceStore(userDefaults: harness.defaults, notificationCenter: harness.notificationCenter)
-
-        XCTAssertFalse(AppDesignStyle.pixel.isSelectable)
-        XCTAssertTrue(AppDesignStyle.clean.isSelectable)
-        XCTAssertTrue(AppDesignStyle.radar.isSelectable)
-        XCTAssertTrue(AppDesignStyle.classic.isSelectable)
-        XCTAssertEqual(store.designStyle, .classic)
-
-        store.designStyle = .pixel
-
-        XCTAssertEqual(store.designStyle, .classic)
-    }
-
     func testSettingsDesignOrderAndTitles() {
-        XCTAssertEqual(AppDesignStyle.settingsOrder, [.classic, .radar, .clean, .pixel])
+        XCTAssertEqual(AppDesignStyle.settingsOrder, [.classic, .radar, .clean])
         XCTAssertEqual(
             AppDesignStyle.settingsOrder.map(\.title),
             [
                 L10n.Settings.Design.classic,
                 L10n.Settings.Design.radar,
-                L10n.Settings.Design.clean,
-                L10n.Settings.Design.pixel
+                L10n.Settings.Design.clean
             ]
         )
     }
@@ -119,7 +102,6 @@ final class AppFontRegistrationTests: XCTestCase {
         let expectedFamilies = [
             AppFontFamily.inter.rawValue,
             AppFontFamily.jetBrainsMono.rawValue,
-            AppFontFamily.rubikPixels.rawValue,
             AppFontFamily.manrope.rawValue
         ]
 

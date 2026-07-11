@@ -4,11 +4,10 @@ import UIKit
 enum AppDesignStyle: String, CaseIterable, Identifiable {
     case clean
     case radar
-    case pixel
     case classic
 
     static let defaultStyle: AppDesignStyle = .classic
-    static let settingsOrder: [AppDesignStyle] = [.classic, .radar, .clean, .pixel]
+    static let settingsOrder: [AppDesignStyle] = [.classic, .radar, .clean]
 
     var id: String { rawValue }
 
@@ -18,15 +17,13 @@ enum AppDesignStyle: String, CaseIterable, Identifiable {
             return L10n.Settings.Design.clean
         case .radar:
             return L10n.Settings.Design.radar
-        case .pixel:
-            return L10n.Settings.Design.pixel
         case .classic:
             return L10n.Settings.Design.classic
         }
     }
 
     var isSelectable: Bool {
-        self != .pixel
+        true
     }
 }
 
@@ -138,14 +135,13 @@ final class AppAppearanceStore {
 enum AppFontFamily: String {
     case inter = "Inter"
     case jetBrainsMono = "JetBrains Mono"
-    case rubikPixels = "Rubik Pixels"
     case manrope = "Manrope"
 
     var fallbackWeight: UIFont.Weight {
         switch self {
         case .inter, .manrope:
             return .semibold
-        case .jetBrainsMono, .rubikPixels:
+        case .jetBrainsMono:
             return .medium
         }
     }
@@ -237,7 +233,7 @@ struct AppTypography {
     }
 
     private func fallbackFont(size: CGFloat, weight: UIFont.Weight) -> UIFont {
-        if fontFamily == .jetBrainsMono || fontFamily == .rubikPixels {
+        if fontFamily == .jetBrainsMono {
             return .monospacedSystemFont(ofSize: size, weight: weight)
         }
         return .systemFont(ofSize: size, weight: weight)
@@ -280,13 +276,6 @@ private enum AppThemeColor: String {
     case radarGreen = "themeRadarGreen"
     case radarDeepGreen = "themeRadarDeepGreen"
     case radarDanger = "themeRadarDanger"
-    case pixelBackground = "themePixelBackground"
-    case pixelSurface = "themePixelSurface"
-    case pixelRow = "themePixelRow"
-    case pixelYellow = "themePixelYellow"
-    case pixelPink = "themePixelPink"
-    case pixelCyan = "themePixelCyan"
-    case pixelCorrect = "themePixelCorrect"
 
     var uiColor: UIColor {
         UIColor(named: rawValue) ?? .systemPink
@@ -345,8 +334,6 @@ struct AppAppearance {
             )
         case .radar:
             self = AppAppearance.makeRadar(cleanColorSchemePreference: cleanColorSchemePreference)
-        case .pixel:
-            self = AppAppearance.makePixel(cleanColorSchemePreference: cleanColorSchemePreference)
         case .classic:
             self = AppAppearance.makeClassic(cleanColorSchemePreference: cleanColorSchemePreference)
         }
@@ -379,8 +366,6 @@ struct AppAppearance {
             return card.backgroundColor
         case .radar:
             return AppThemeColor.black.uiColor.withAlphaComponent(0.84)
-        case .pixel:
-            return baseColor.withAlphaComponent(0.92)
         case .classic:
             return baseColor.withAlphaComponent(0.20)
         }
@@ -392,8 +377,6 @@ struct AppAppearance {
             return baseColor.withAlphaComponent(0.75)
         case .radar:
             return accentColor.withAlphaComponent(0.80)
-        case .pixel:
-            return AppThemeColor.white.uiColor.withAlphaComponent(0.90)
         case .classic:
             return baseColor.withAlphaComponent(0.45)
         }
@@ -405,7 +388,7 @@ struct AppAppearance {
             return surfaceTextColor
         case .radar:
             return accentColor
-        case .pixel, .classic:
+        case .classic:
             return .white
         }
     }
@@ -542,69 +525,6 @@ struct AppAppearance {
             themeCardCornerRadius: 10,
             themeCardBorderWidth: 1,
             themeCardShadow: AppShadowStyle(color: green, opacity: 0.12, radius: 12, offset: .zero)
-        )
-    }
-
-    private static func makePixel(cleanColorSchemePreference: CleanColorSchemePreference) -> AppAppearance {
-        let yellow = AppThemeColor.pixelYellow.uiColor
-        let pink = AppThemeColor.pixelPink.uiColor
-        return AppAppearance(
-            designStyle: .pixel,
-            cleanColorSchemePreference: cleanColorSchemePreference,
-            resolvedInterfaceStyle: .dark,
-            typography: AppTypography(fontFamily: .rubikPixels),
-            backgroundColor: AppThemeColor.pixelBackground.uiColor,
-            backgroundImageName: nil,
-            overlayColor: .clear,
-            screenTextColor: yellow,
-            secondaryScreenTextColor: AppThemeColor.pixelCyan.uiColor,
-            surfaceTextColor: AppThemeColor.white.uiColor,
-            secondarySurfaceTextColor: AppThemeColor.white.uiColor.withAlphaComponent(0.76),
-            accentColor: yellow,
-            destructiveColor: pink,
-            answerDefaultColor: AppThemeColor.pixelSurface.uiColor,
-            correctAnswerColor: AppThemeColor.pixelCorrect.uiColor,
-            wrongAnswerColor: pink,
-            disabledTextColor: AppThemeColor.white.uiColor.withAlphaComponent(0.42),
-            progressTrackColor: AppThemeColor.white.uiColor.withAlphaComponent(0.20),
-            card: AppSurfaceStyle(
-                backgroundColor: AppThemeColor.pixelSurface.uiColor,
-                borderColor: yellow,
-                borderWidth: 3,
-                cornerRadius: 0,
-                shadow: .none
-            ),
-            row: AppSurfaceStyle(
-                backgroundColor: AppThemeColor.pixelRow.uiColor,
-                borderColor: AppThemeColor.pixelCyan.uiColor,
-                borderWidth: 3,
-                cornerRadius: 0,
-                shadow: .none
-            ),
-            primaryButton: AppSurfaceStyle(
-                backgroundColor: yellow,
-                borderColor: AppThemeColor.white.uiColor,
-                borderWidth: 3,
-                cornerRadius: 0,
-                shadow: .none
-            ),
-            secondaryButton: AppSurfaceStyle(
-                backgroundColor: AppThemeColor.pixelSurface.uiColor,
-                borderColor: AppThemeColor.pixelCyan.uiColor,
-                borderWidth: 3,
-                cornerRadius: 0,
-                shadow: .none
-            ),
-            iconButton: AppSurfaceStyle(
-                backgroundColor: AppThemeColor.pixelRow.uiColor,
-                borderColor: yellow,
-                borderWidth: 3,
-                cornerRadius: 0,
-                shadow: .none
-            ),
-            themeCardCornerRadius: 0,
-            themeCardBorderWidth: 3,
-            themeCardShadow: .none
         )
     }
 
