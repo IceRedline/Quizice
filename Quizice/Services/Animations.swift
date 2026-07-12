@@ -5,56 +5,32 @@
 //  Created by Артем Табенский on 14.12.2024.
 //
 
+import SwiftUI
 import UIKit
+
+private enum PressFeedbackTiming {
+    static let pressedDuration: TimeInterval = 0.12
+    static let releasedDuration: TimeInterval = 0.16
+    static let pressedScale: CGFloat = 0.97
+    static let reducedMotionPressedAlpha: CGFloat = 0.82
+}
 
 final class Animations {
     
     func animateDownSpring(_ viewToAnimate: UIView) {
-        UIView.animate(
-            withDuration: 0.2,
-            delay: 0,
-            usingSpringWithDamping: 0.5,
-            initialSpringVelocity: 0.2,
-            options: [.curveEaseIn, .allowUserInteraction],
-            animations: {
-            viewToAnimate.transform = CGAffineTransform(scaleX: 0.9, y: 0.9)
-        })
+        viewToAnimate.setPressFeedback(isPressed: true)
     }
     
     func animateUpSpring(_ viewToAnimate: UIView) {
-        UIView.animate(
-            withDuration: 0.15,
-            delay: 0,
-            usingSpringWithDamping: 0.2,
-            initialSpringVelocity: 10,
-            options: [.curveEaseIn, .allowUserInteraction],
-            animations: {
-            viewToAnimate.transform = CGAffineTransform(scaleX: 1, y: 1)
-        })
+        viewToAnimate.setPressFeedback(isPressed: false)
     }
     
     func animateDownFloat(_ viewToAnimate: UIView, duration: Double = 0.2) {
-        UIView.animate(
-            withDuration: duration,
-            delay: 0,
-            usingSpringWithDamping: 1,
-            initialSpringVelocity: 0.2,
-            options: [.curveEaseIn, .allowUserInteraction],
-            animations: {
-            viewToAnimate.transform = CGAffineTransform(scaleX: 0.9, y: 0.9)
-        })
+        viewToAnimate.setPressFeedback(isPressed: true)
     }
     
     func animateUpFloat(_ viewToAnimate: UIView, duration: Double = 0.15) {
-        UIView.animate(
-            withDuration: duration,
-            delay: 0,
-            usingSpringWithDamping: 1,
-            initialSpringVelocity: 1,
-            options: [.curveEaseIn, .allowUserInteraction],
-            animations: {
-            viewToAnimate.transform = CGAffineTransform(scaleX: 1, y: 1)
-        })
+        viewToAnimate.setPressFeedback(isPressed: false)
     }
     
     func animateDownRadius(_ viewToAnimate: UIView) {
@@ -91,6 +67,28 @@ final class Animations {
 }
 
 extension UIView {
+    func setPressFeedback(isPressed: Bool) {
+        let reduceMotion = UIAccessibility.isReduceMotionEnabled
+        let duration = isPressed ? PressFeedbackTiming.pressedDuration : PressFeedbackTiming.releasedDuration
+        let changes = {
+            self.transform = reduceMotion || !isPressed
+                ? .identity
+                : CGAffineTransform(
+                    scaleX: PressFeedbackTiming.pressedScale,
+                    y: PressFeedbackTiming.pressedScale
+                )
+            self.alpha = reduceMotion && isPressed
+                ? PressFeedbackTiming.reducedMotionPressedAlpha
+                : 1
+        }
+
+        UIView.animate(
+            withDuration: duration,
+            delay: 0,
+            options: [.curveEaseOut, .beginFromCurrentState, .allowUserInteraction],
+            animations: changes
+        )
+    }
     
     func fadeIn(duration: TimeInterval = 0.2, onCompletion: (() -> Void)? = nil) {
         self.alpha = 0
@@ -114,9 +112,53 @@ extension UIView {
     }
 }
 
+extension UIButton {
+    func installPressFeedback() {
+        addAction(
+            UIAction { [weak self] _ in
+                self?.setPressFeedback(isPressed: true)
+            },
+            for: .touchDown
+        )
+        addAction(
+            UIAction { [weak self] _ in
+                self?.setPressFeedback(isPressed: false)
+            },
+            for: [.touchUpInside, .touchUpOutside, .touchCancel, .touchDragExit]
+        )
+    }
+}
+
+struct QuizPressButtonStyle: ButtonStyle {
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .scaleEffect(reduceMotion || !configuration.isPressed ? 1 : PressFeedbackTiming.pressedScale)
+            .opacity(
+                reduceMotion && configuration.isPressed
+                    ? PressFeedbackTiming.reducedMotionPressedAlpha
+                    : 1
+            )
+            .animation(
+                .timingCurve(
+                    0.23,
+                    1,
+                    0.32,
+                    1,
+                    duration: configuration.isPressed
+                        ? PressFeedbackTiming.pressedDuration
+                        : PressFeedbackTiming.releasedDuration
+                ),
+                value: configuration.isPressed
+            )
+    }
+}
+
 enum QuizCardSlideTransition {
-    static let duration: TimeInterval = 0.34
-    static let options: UIView.AnimationOptions = [.curveEaseInOut]
+    static let presentationDuration: TimeInterval = 0.24
+    static let questionAdvanceDuration: TimeInterval = 0.18
+    static let options: UIView.AnimationOptions = [.curveEaseOut, .beginFromCurrentState]
 
     static func horizontalOffset(in containerView: UIView, horizontalInset: CGFloat) -> CGFloat {
         containerView.bounds.width + horizontalInset
@@ -142,7 +184,7 @@ final class QuizCardSlidePresentationAnimator: NSObject, UIViewControllerAnimate
     weak var sourceViewController: QuizCardSlideTransitionSource?
 
     func transitionDuration(using transitionContext: UIViewControllerContextTransitioning?) -> TimeInterval {
-        QuizCardSlideTransition.duration
+        QuizCardSlideTransition.presentationDuration
     }
 
     func animateTransition(using transitionContext: UIViewControllerContextTransitioning) {

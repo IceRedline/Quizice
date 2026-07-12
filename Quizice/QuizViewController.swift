@@ -19,6 +19,7 @@ final class QuizViewController: BaseQuizViewController, QuizViewControllerProtoc
         static let themesCollectionView = "homeThemesCollectionView"
         static let screenStackView = "homeScreenStackView"
         static let settingsButton = "homeSettingsButton"
+        static let settingsVisualSurface = "homeSettingsVisualSurface"
     }
 
     private enum Layout {
@@ -39,7 +40,8 @@ final class QuizViewController: BaseQuizViewController, QuizViewControllerProtoc
         static let motivationBlurPadding: CGFloat = 24
         static let settingsButtonTopInset: CGFloat = 8
         static let settingsButtonTrailingInset: CGFloat = 14
-        static let settingsButtonSize: CGFloat = 36
+        static let settingsButtonSize: CGFloat = 44
+        static let settingsButtonVisualSize: CGFloat = 36
         static let visibleCellRowSortingTolerance: CGFloat = 1
         static let scrollActivationTolerance: CGFloat = 1
 
@@ -100,12 +102,9 @@ final class QuizViewController: BaseQuizViewController, QuizViewControllerProtoc
     }
 
     private enum AnimationTiming {
-        static let motivationFadeInDuration: TimeInterval = 0.65
-        static let contentRevealDelay: TimeInterval = 0.45
-        static let controlsFadeInDelay: TimeInterval = 0.2
-        static let controlsFadeInDuration: TimeInterval = 0.45
-        static let cellFadeInDuration: TimeInterval = 0.55
-        static let cellFadeInStagger: TimeInterval = 0.08
+        static let revealDuration: TimeInterval = 0.22
+        static let cellFadeInStagger: TimeInterval = 0.04
+        static let initialVisibleAlpha: CGFloat = 0.92
     }
 
     private var motivationContainerView: UIView!
@@ -114,14 +113,17 @@ final class QuizViewController: BaseQuizViewController, QuizViewControllerProtoc
     private var headerStackView: UIStackView!
     private var screenStackView: UIStackView!
     private var settingsButton: UIButton!
+    private var settingsButtonVisualSurface: UIView!
 
     private var themesCollectionView: UICollectionView!
 
     private let themeRepository: ThemeRepository
     private let session: QuizSessionManaging
     private let statisticsStore: StatisticsStore
+    private let analytics: AnalyticsTracking
     private let themesCollectionService: ThemesCollectionService
     private let motivationPromptProvider: (String?) -> String
+    private let randomThemeIDProvider: ([QuizTheme]) -> String?
     private let animationsEngine = Animations()
     private let motivationBlurContext = CIContext(options: nil)
     private var soundPlayer: AVAudioPlayer!
@@ -135,14 +137,18 @@ final class QuizViewController: BaseQuizViewController, QuizViewControllerProtoc
 
     init(
         themeRepository: ThemeRepository = QuizFactory.shared,
-        session: QuizSessionManaging = QuizFactory.shared,
+        session: QuizSessionManaging = QuizSessionStore.shared,
         statisticsStore: StatisticsStore = StatisticsStore(),
-        motivationPromptProvider: @escaping (String?) -> String = QuizViewController.randomMotivationPrompt
+        analytics: AnalyticsTracking = AppMetricaAnalyticsTracker.shared,
+        motivationPromptProvider: @escaping (String?) -> String = QuizViewController.randomMotivationPrompt,
+        randomThemeIDProvider: @escaping ([QuizTheme]) -> String? = { $0.randomElement()?.stableID }
     ) {
         self.themeRepository = themeRepository
         self.session = session
         self.statisticsStore = statisticsStore
+        self.analytics = analytics
         self.motivationPromptProvider = motivationPromptProvider
+        self.randomThemeIDProvider = randomThemeIDProvider
         self.themesCollectionService = ThemesCollectionService(
             themeRepository: themeRepository,
             statisticsStore: statisticsStore
@@ -188,6 +194,9 @@ final class QuizViewController: BaseQuizViewController, QuizViewControllerProtoc
 
     override func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
+        if let settingsButtonVisualSurface {
+            settingsButton.sendSubviewToBack(settingsButtonVisualSurface)
+        }
         updateCollectionTopInset()
         updateCollectionScrollAvailability()
         if !session.startup1st {
@@ -197,12 +206,12 @@ final class QuizViewController: BaseQuizViewController, QuizViewControllerProtoc
 
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
-        refreshMotivationPrompt()
         themesCollectionView.reloadData()
     }
 
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
+        analytics.track(.screenView(screen: .home))
 
         if session.startup1st {
             animateViewsAndPlaySound()
@@ -273,6 +282,10 @@ final class QuizViewController: BaseQuizViewController, QuizViewControllerProtoc
 
     private func configureSettingsButton() {
         settingsButton = UIButton(type: .system)
+        settingsButtonVisualSurface = UIView()
+        settingsButtonVisualSurface.accessibilityIdentifier = AccessibilityID.settingsVisualSurface
+        settingsButtonVisualSurface.isUserInteractionEnabled = false
+        settingsButtonVisualSurface.translatesAutoresizingMaskIntoConstraints = false
         settingsButton.accessibilityIdentifier = AccessibilityID.settingsButton
         settingsButton.accessibilityLabel = L10n.Settings.title
         let settingsIcon = UIImage(
@@ -281,16 +294,16 @@ final class QuizViewController: BaseQuizViewController, QuizViewControllerProtoc
         )
         settingsButton.setImage(settingsIcon, for: .normal)
         settingsButton.tintColor = .white
-        settingsButton.backgroundColor = UIColor.white.withAlphaComponent(Appearance.settingsButtonBackgroundAlpha)
-        settingsButton.layer.cornerRadius = Layout.settingsButtonSize / 2
-        settingsButton.layer.borderWidth = 1
-        settingsButton.layer.borderColor = UIColor.white.withAlphaComponent(Appearance.settingsButtonBorderAlpha).cgColor
-        settingsButton.layer.shadowColor = UIColor.black.cgColor
-        settingsButton.layer.shadowOpacity = Appearance.settingsButtonShadowOpacity
-        settingsButton.layer.shadowRadius = Appearance.settingsButtonShadowRadius
-        settingsButton.layer.shadowOffset = Appearance.settingsButtonShadowOffset
+        settingsButton.insertSubview(settingsButtonVisualSurface, at: 0)
+        NSLayoutConstraint.activate([
+            settingsButtonVisualSurface.centerXAnchor.constraint(equalTo: settingsButton.centerXAnchor),
+            settingsButtonVisualSurface.centerYAnchor.constraint(equalTo: settingsButton.centerYAnchor),
+            settingsButtonVisualSurface.widthAnchor.constraint(equalToConstant: Layout.settingsButtonVisualSize),
+            settingsButtonVisualSurface.heightAnchor.constraint(equalToConstant: Layout.settingsButtonVisualSize)
+        ])
         settingsButton.translatesAutoresizingMaskIntoConstraints = false
         settingsButton.addTarget(self, action: #selector(settingsButtonTapped), for: .touchUpInside)
+        settingsButton.installPressFeedback()
     }
 
     private func configureHeaderStack() {
@@ -388,8 +401,15 @@ final class QuizViewController: BaseQuizViewController, QuizViewControllerProtoc
         headerStackView?.alignment = .leading
         invalidateMotivationBlurredText()
 
-        settingsButton?.applyActionAppearance(appearance.iconButton, appearance: appearance)
-        settingsButton?.layer.cornerRadius = Layout.settingsButtonSize / 2
+        settingsButton?.backgroundColor = .clear
+        settingsButton?.layer.borderWidth = 0
+        settingsButton?.layer.shadowOpacity = 0
+        settingsButton?.tintColor = appearance.screenTextColor
+        settingsButtonVisualSurface?.applySurfaceStyle(appearance.iconButton)
+        if appearance.designStyle == .classic || appearance.designStyle == .clean {
+            settingsButtonVisualSurface?.layer.cornerRadius = Layout.settingsButtonVisualSize / 2
+            settingsButtonVisualSurface?.layer.cornerCurve = .circular
+        }
         settingsButton?.tintColor = appearance.screenTextColor
 
         themesCollectionView?.backgroundColor = .clear
@@ -398,7 +418,7 @@ final class QuizViewController: BaseQuizViewController, QuizViewControllerProtoc
 
     private func configureInitialStartupVisibilityIfNeeded() {
         guard session.startup1st else { return }
-        startupAnimatedViews.forEach { $0.alpha = Appearance.hiddenAlpha }
+        startupAnimatedViews.forEach { $0.alpha = AnimationTiming.initialVisibleAlpha }
     }
 
     private func updateCollectionScrollAvailability() {
@@ -510,20 +530,22 @@ final class QuizViewController: BaseQuizViewController, QuizViewControllerProtoc
         let visibleCells = sortedVisibleThemeCells()
         prepareStartupAnimation(visibleCells: visibleCells)
         loadStartupSound()
+        soundPlayer?.play()
 
-        motivationLabel.fadeIn(duration: AnimationTiming.motivationFadeInDuration)
-
-        DispatchQueue.main.asyncAfter(deadline: .now() + AnimationTiming.contentRevealDelay) { [weak self] in
-            guard let self else { return }
-            self.soundPlayer?.play()
-            self.themesCollectionView.alpha = Appearance.visibleAlpha
-
-            DispatchQueue.main.asyncAfter(deadline: .now() + AnimationTiming.controlsFadeInDelay) { [weak self] in
-                guard let self else { return }
-                self.settingsButton.fadeIn(duration: AnimationTiming.controlsFadeInDuration)
-                self.animateThemeCells(visibleCells)
-            }
+        guard !UIAccessibility.isReduceMotionEnabled else {
+            startupAnimatedViews.forEach { $0.alpha = Appearance.visibleAlpha }
+            visibleCells.forEach { $0.alpha = Appearance.visibleAlpha }
+            return
         }
+
+        UIView.animate(
+            withDuration: AnimationTiming.revealDuration,
+            delay: 0,
+            options: [.curveEaseOut, .allowUserInteraction, .beginFromCurrentState]
+        ) {
+            self.startupAnimatedViews.forEach { $0.alpha = Appearance.visibleAlpha }
+        }
+        animateThemeCells(visibleCells)
     }
 
     private func sortedVisibleThemeCells() -> [UICollectionViewCell] {
@@ -537,13 +559,8 @@ final class QuizViewController: BaseQuizViewController, QuizViewControllerProtoc
     }
 
     private func prepareStartupAnimation(visibleCells: [UICollectionViewCell]) {
-        startupAnimatedViews.forEach { view in
-            view.alpha = Appearance.hiddenAlpha
-        }
-
         visibleCells.forEach { cell in
-            cell.alpha = Appearance.hiddenAlpha
-            cell.isUserInteractionEnabled = false
+            cell.alpha = AnimationTiming.initialVisibleAlpha
         }
     }
 
@@ -556,8 +573,12 @@ final class QuizViewController: BaseQuizViewController, QuizViewControllerProtoc
     private func animateThemeCells(_ visibleCells: [UICollectionViewCell]) {
         for (index, cell) in visibleCells.enumerated() {
             DispatchQueue.main.asyncAfter(deadline: .now() + Double(index) * AnimationTiming.cellFadeInStagger) {
-                cell.fadeIn(duration: AnimationTiming.cellFadeInDuration) {
-                    cell.isUserInteractionEnabled = true
+                UIView.animate(
+                    withDuration: AnimationTiming.revealDuration,
+                    delay: 0,
+                    options: [.curveEaseOut, .allowUserInteraction, .beginFromCurrentState]
+                ) {
+                    cell.alpha = Appearance.visibleAlpha
                 }
             }
         }
@@ -573,6 +594,7 @@ final class QuizViewController: BaseQuizViewController, QuizViewControllerProtoc
             updateThemeAvailabilityMessage()
             return
         }
+        analytics.track(.themeSelected(theme: session.chosenTheme?.analyticsTheme ?? .unknown, method: .manual))
         showDescriptionViewController()
     }
 
@@ -626,12 +648,14 @@ final class QuizViewController: BaseQuizViewController, QuizViewControllerProtoc
 
     private func startRandomTheme() {
         guard
-            let themeID = themeRepository.themes?.randomElement()?.stableID,
+            let themes = themeRepository.themes,
+            let themeID = randomThemeIDProvider(themes),
             session.loadTheme(themeID: themeID)
         else {
             updateThemeAvailabilityMessage()
             return
         }
+        analytics.track(.themeSelected(theme: session.chosenTheme?.analyticsTheme ?? .unknown, method: .random))
         showDescriptionViewController()
     }
 

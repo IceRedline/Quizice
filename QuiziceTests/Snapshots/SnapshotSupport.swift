@@ -7,6 +7,14 @@ import XCTest
 @MainActor
 enum SnapshotSupport {
     static let componentSize = CGSize(width: 390, height: 220)
+    static let iPhone17Pro = ViewImageConfig(
+        safeArea: UIEdgeInsets(top: 62, left: 0, bottom: 34, right: 0),
+        size: CGSize(width: 402, height: 874),
+        traits: ViewImageConfig.iPhone13Pro.traits
+    )
+    private static var snapshotRecordMode: SnapshotTestingConfiguration.Record? {
+        ProcessInfo.processInfo.environment["QUIZICE_RECORD_SNAPSHOTS"] == "1" ? .all : nil
+    }
 
     static func setUp(
         designStyle: AppDesignStyle = .clean,
@@ -30,15 +38,28 @@ enum SnapshotSupport {
     static func assertScreen(
         _ viewController: UIViewController,
         named name: String,
+        size: CGSize? = nil,
+        device: ViewImageConfig? = nil,
+        contentSizeCategory: UIContentSizeCategory? = nil,
         file: StaticString = #filePath,
         testName: String = #function,
         line: UInt = #line
     ) {
-        prepare(viewController)
+        precondition(size == nil || device == nil, "Pass either a canvas size or a device configuration, not both")
+        prepare(viewController, size: device?.size ?? size, contentSizeCategory: contentSizeCategory)
+        let snapshotting: Snapshotting<UIViewController, UIImage>
+        if let device {
+            snapshotting = .image(on: device)
+        } else if let size {
+            snapshotting = .image(size: size)
+        } else {
+            snapshotting = .image(on: .iPhoneX)
+        }
         assertSnapshot(
             of: viewController,
-            as: .image(on: .iPhoneX),
+            as: snapshotting,
             named: name,
+            record: snapshotRecordMode,
             file: file,
             testName: testName,
             line: line
@@ -64,6 +85,7 @@ enum SnapshotSupport {
             of: viewController,
             as: .image(size: size),
             named: name,
+            record: snapshotRecordMode,
             file: file,
             testName: testName,
             line: line
@@ -95,12 +117,20 @@ enum SnapshotSupport {
         item: Int,
         themes: [QuizTheme],
         designStyle: AppDesignStyle = .clean,
-        cleanColorScheme: CleanColorSchemePreference = .light
+        cleanColorScheme: CleanColorSchemePreference = .light,
+        collectionWidth: CGFloat = 390
     ) -> UICollectionViewCell {
         setUp(designStyle: designStyle, cleanColorScheme: cleanColorScheme)
         let repository = SnapshotThemeRepository(themes: themes)
-        let service = ThemesCollectionService(themeRepository: repository)
-        let collectionView = makeCollectionView()
+        let suiteName = "SnapshotSupport.collectionCell.\(UUID().uuidString)"
+        let defaults = UserDefaults(suiteName: suiteName)!
+        defaults.removePersistentDomain(forName: suiteName)
+        defer { defaults.removePersistentDomain(forName: suiteName) }
+        let service = ThemesCollectionService(
+            themeRepository: repository,
+            statisticsStore: StatisticsStore(userDefaults: defaults, key: "attempts")
+        )
+        let collectionView = makeCollectionView(width: collectionWidth)
         collectionView.dataSource = service
         collectionView.delegate = service
         collectionView.layoutIfNeeded()
@@ -121,6 +151,7 @@ enum SnapshotSupport {
         id: String,
         name: String,
         description: String = "Synthetic snapshot theme",
+        source: QuizThemeSource = .catalog,
         questions: [QuizQuestion] = [
             QuizQuestion(
                 question: "Question?",
@@ -129,10 +160,17 @@ enum SnapshotSupport {
             )
         ]
     ) -> QuizTheme {
-        QuizTheme(id: id, theme: name, themeDescription: description, questions: questions)
+        QuizTheme(id: id, theme: name, themeDescription: description, questions: questions, source: source)
     }
 
-    private static func prepare(_ viewController: UIViewController, size: CGSize? = nil) {
+    private static func prepare(
+        _ viewController: UIViewController,
+        size: CGSize? = nil,
+        contentSizeCategory: UIContentSizeCategory? = nil
+    ) {
+        if let contentSizeCategory {
+            viewController.traitOverrides.preferredContentSizeCategory = contentSizeCategory
+        }
         viewController.loadViewIfNeeded()
         if let size {
             viewController.view.frame = CGRect(origin: .zero, size: size)
@@ -141,10 +179,13 @@ enum SnapshotSupport {
         viewController.view.layoutIfNeeded()
     }
 
-    private static func makeCollectionView() -> UICollectionView {
+    private static func makeCollectionView(width: CGFloat) -> UICollectionView {
         let layout = UICollectionViewFlowLayout()
         layout.scrollDirection = .vertical
-        let collectionView = UICollectionView(frame: CGRect(x: 0, y: 0, width: 390, height: 844), collectionViewLayout: layout)
+        let collectionView = UICollectionView(
+            frame: CGRect(x: 0, y: 0, width: width, height: 844),
+            collectionViewLayout: layout
+        )
         collectionView.register(UICollectionViewCell.self, forCellWithReuseIdentifier: ThemesCollectionService.Content.themeCellReuseIdentifier)
         return collectionView
     }

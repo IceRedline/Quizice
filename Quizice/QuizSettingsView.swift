@@ -18,6 +18,7 @@ private enum Layout {
     static let rowAccessoryMinimumSpacing: CGFloat = 12
     static let rowIconSize: CGFloat = 36
     static let rowTextSpacing: CGFloat = 3
+    static let rowValueMinimumScaleFactor: CGFloat = 0.72
     static let iconChoicesSpacing: CGFloat = 10
     static let iconChoiceContentSpacing: CGFloat = 8
     static let iconChoiceImageSize: CGFloat = 48
@@ -58,23 +59,17 @@ struct QuizSettingsView: View {
 
         var title: String {
             switch self {
-            case .classic:
-                return L10n.Settings.Icon.classic
-            case .dark:
-                return L10n.Settings.Icon.dark
-            case .ice:
-                return L10n.Settings.Icon.ice
+            case .classic: return L10n.Settings.Icon.classic
+            case .dark: return L10n.Settings.Icon.dark
+            case .ice: return L10n.Settings.Icon.ice
             }
         }
 
         var systemImage: String {
             switch self {
-            case .classic:
-                return "sparkles"
-            case .dark:
-                return "moon.stars.fill"
-            case .ice:
-                return "snowflake"
+            case .classic: return "sparkles"
+            case .dark: return "moon.stars.fill"
+            case .ice: return "snowflake"
             }
         }
     }
@@ -86,34 +81,25 @@ struct QuizSettingsView: View {
 
         var id: String {
             switch self {
-            case let .restart(title):
-                return "restart-\(title)"
-            case .profile:
-                return "profile"
-            case .feedback:
-                return "feedback"
+            case let .restart(title): return "restart-\(title)"
+            case .profile: return "profile"
+            case .feedback: return "feedback"
             }
         }
 
         var title: String {
             switch self {
-            case .restart:
-                return L10n.Settings.restartRequiredTitle
-            case .profile:
-                return L10n.Settings.profile
-            case .feedback:
-                return L10n.Settings.feedback
+            case .restart: return L10n.Settings.restartRequiredTitle
+            case .profile: return L10n.Settings.profile
+            case .feedback: return L10n.Settings.feedback
             }
         }
 
         var message: String {
             switch self {
-            case let .restart(title):
-                return L10n.Settings.restartRequiredMessage(selection: title)
-            case .profile:
-                return L10n.Settings.profileUnavailableMessage
-            case .feedback:
-                return L10n.Settings.feedbackUnavailableMessage
+            case let .restart(title): return L10n.Settings.restartRequiredMessage(selection: title)
+            case .profile: return L10n.Settings.profileUnavailableMessage
+            case .feedback: return L10n.Settings.feedbackUnavailableMessage
             }
         }
     }
@@ -125,6 +111,12 @@ struct QuizSettingsView: View {
     @AppStorage(AppLocalizationStore.Keys.language) private var selectedLanguageID = AppLanguagePreference.system.rawValue
     @AppStorage("quizice.settings.icon") private var selectedIconID = AppIcon.classic.rawValue
     @State private var activeAlert: SettingsAlert?
+    @State private var didTrackScreen = false
+    private let analytics: AnalyticsTracking
+
+    init(analytics: AnalyticsTracking = AppMetricaAnalyticsTracker.shared) {
+        self.analytics = analytics
+    }
 
     private var selectedTheme: CleanColorSchemePreference {
         CleanColorSchemePreference(rawValue: selectedThemeID) ?? .system
@@ -174,6 +166,11 @@ struct QuizSettingsView: View {
                 message: Text(alert.message),
                 dismissButton: .default(Text(L10n.Settings.alertAction))
             )
+        }
+        .onAppear {
+            guard !didTrackScreen else { return }
+            didTrackScreen = true
+            analytics.track(.screenView(screen: .settings))
         }
     }
 
@@ -229,8 +226,9 @@ struct QuizSettingsView: View {
                         RoundedRectangle(cornerRadius: appearance.iconButton.cornerRadius, style: .continuous)
                             .stroke(Color(uiColor: appearance.iconButton.borderColor), lineWidth: appearance.iconButton.borderWidth)
                     )
+                    .frame(minWidth: 44, minHeight: 44)
             }
-            .buttonStyle(.plain)
+            .buttonStyle(QuizPressButtonStyle())
         }
             .padding(.bottom, Layout.titleBottomSpacing)
     }
@@ -242,6 +240,7 @@ struct QuizSettingsView: View {
                 title: L10n.Settings.profile,
                 subtitle: L10n.Settings.profileSubtitle
             ) {
+                analytics.track(.settingsAction(.profile))
                 activeAlert = .profile
             }
         }
@@ -252,8 +251,10 @@ struct QuizSettingsView: View {
             Menu {
                 ForEach(AppDesignStyle.settingsOrder) { designStyle in
                     Button(designStyle.title) {
+                        let oldValue = selectedDesignStyleID
                         selectedDesignStyleID = designStyle.rawValue
                         AppAppearanceStore.shared.notifyChange()
+                        trackSettingChange(setting: .design, oldValue: oldValue, newValue: designStyle.rawValue)
                     }
                     .disabled(!designStyle.isSelectable)
                 }
@@ -273,7 +274,9 @@ struct QuizSettingsView: View {
             Menu {
                 ForEach(AppLanguagePreference.allCases) { language in
                     Button(language.title) {
+                        let oldValue = selectedLanguageID
                         AppLocalizationStore.shared.languagePreference = language
+                        trackSettingChange(setting: .language, oldValue: oldValue, newValue: language.rawValue)
                     }
                 }
             } label: {
@@ -293,8 +296,10 @@ struct QuizSettingsView: View {
                 Menu {
                     ForEach(CleanColorSchemePreference.allCases) { theme in
                         Button(theme.title) {
+                            let oldValue = selectedThemeID
                             selectedThemeID = theme.rawValue
                             AppAppearanceStore.shared.notifyChange()
+                            trackSettingChange(setting: .theme, oldValue: oldValue, newValue: theme.rawValue)
                         }
                     }
                 } label: {
@@ -327,7 +332,9 @@ struct QuizSettingsView: View {
                             isSelected: selectedIcon == icon,
                             isEnabled: isEnabled
                         ) {
+                            let oldValue = selectedIconID
                             selectedIconID = icon.rawValue
+                            trackSettingChange(setting: .icon, oldValue: oldValue, newValue: icon.rawValue)
                             activeAlert = .restart(icon.title)
                         }
                     }
@@ -343,9 +350,15 @@ struct QuizSettingsView: View {
                 title: L10n.Settings.feedback,
                 subtitle: L10n.Settings.feedbackSubtitle
             ) {
+                analytics.track(.settingsAction(.feedback))
                 activeAlert = .feedback
             }
         }
+    }
+
+    private func trackSettingChange(setting: AnalyticsSetting, oldValue: String, newValue: String) {
+        guard oldValue != newValue else { return }
+        analytics.track(.settingChanged(setting: setting, oldValue: oldValue, newValue: newValue))
     }
 }
 
@@ -406,7 +419,7 @@ private struct SettingsActionRow: View {
             }
             .contentShape(Rectangle())
         }
-        .buttonStyle(.plain)
+        .buttonStyle(QuizPressButtonStyle())
     }
 }
 
@@ -429,13 +442,17 @@ private struct SettingsValueRow: View {
                 Text(value)
                     .font(appearance.typography.swiftUIFont(size: 15, weight: .semibold))
                     .foregroundStyle(Color(uiColor: appearance.surfaceTextColor))
+                    .multilineTextAlignment(.trailing)
                     .lineLimit(1)
-                    .minimumScaleFactor(0.82)
+                    .minimumScaleFactor(Layout.rowValueMinimumScaleFactor)
+                    .allowsTightening(true)
+                    .layoutPriority(1)
 
                 Image(systemName: "chevron.down")
                     .font(appearance.typography.swiftUIFont(size: 12, weight: .bold))
                     .foregroundStyle(Color(uiColor: appearance.secondarySurfaceTextColor))
             }
+            .layoutPriority(1)
         }
         .contentShape(Rectangle())
     }

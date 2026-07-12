@@ -78,6 +78,29 @@ final class StatisticsStoreTests: XCTestCase {
         XCTAssertNil(harness.defaults.data(forKey: harness.key))
     }
 
+    func testLegacyAttemptArrayMigratesToBoundedAggregate() throws {
+        let harness = makeHarness()
+        let legacyAttempts = [
+            StatisticsStore.Attempt(correctAnswers: 2, totalQuestions: 5),
+            StatisticsStore.Attempt(correctAnswers: 4, totalQuestions: 4)
+        ]
+        harness.defaults.set(try JSONEncoder().encode(legacyAttempts), forKey: harness.key)
+
+        XCTAssertEqual(
+            harness.store.loadSummary(),
+            StatisticsSummary(
+                playedQuizzes: 2,
+                correctAnswers: 6,
+                totalQuestions: 9,
+                bestCorrectAnswers: 4,
+                bestTotalQuestions: 4
+            )
+        )
+
+        let migratedData = try XCTUnwrap(harness.defaults.data(forKey: harness.key))
+        XCTAssertThrowsError(try JSONDecoder().decode([StatisticsStore.Attempt].self, from: migratedData))
+    }
+
     private func makeHarness(
         file: StaticString = #filePath,
         line: UInt = #line

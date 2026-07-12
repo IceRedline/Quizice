@@ -18,6 +18,32 @@ final class StatisticsStore {
         }
     }
 
+    private struct PersistedSummary: Codable {
+        let playedQuizzes: Int
+        let correctAnswers: Int
+        let totalQuestions: Int
+        let bestCorrectAnswers: Int
+        let bestTotalQuestions: Int
+
+        init(_ summary: StatisticsSummary) {
+            playedQuizzes = summary.playedQuizzes
+            correctAnswers = summary.correctAnswers
+            totalQuestions = summary.totalQuestions
+            bestCorrectAnswers = summary.bestCorrectAnswers
+            bestTotalQuestions = summary.bestTotalQuestions
+        }
+
+        var summary: StatisticsSummary {
+            StatisticsSummary(
+                playedQuizzes: max(playedQuizzes, 0),
+                correctAnswers: max(correctAnswers, 0),
+                totalQuestions: max(totalQuestions, 0),
+                bestCorrectAnswers: max(bestCorrectAnswers, 0),
+                bestTotalQuestions: max(bestTotalQuestions, 0)
+            )
+        }
+    }
+
     private let userDefaults: UserDefaults
     private let key: String
     private let decoder = JSONDecoder()
@@ -33,15 +59,35 @@ final class StatisticsStore {
             return
         }
 
-        var attempts = loadAttempts()
-        attempts.append(attempt)
-        save(attempts: attempts)
+        let current = loadSummary()
+        let candidateBest = Self.summary(from: [
+            Attempt(correctAnswers: current.bestCorrectAnswers, totalQuestions: current.bestTotalQuestions),
+            attempt
+        ])
+        let updated = StatisticsSummary(
+            playedQuizzes: current.playedQuizzes + 1,
+            correctAnswers: current.correctAnswers + attempt.correctAnswers,
+            totalQuestions: current.totalQuestions + attempt.totalQuestions,
+            bestCorrectAnswers: candidateBest.bestCorrectAnswers,
+            bestTotalQuestions: candidateBest.bestTotalQuestions
+        )
+        save(summary: updated)
     }
 
     func loadSummary() -> StatisticsSummary {
-        let attempts = loadAttempts()
-        guard attempts.isEmpty == false else { return .empty }
-        return Self.summary(from: attempts)
+        guard let data = userDefaults.data(forKey: key) else { return .empty }
+
+        if let persisted = try? decoder.decode(PersistedSummary.self, from: data) {
+            return persisted.summary
+        }
+        if let legacyAttempts = try? decoder.decode([Attempt].self, from: data) {
+            let summary = Self.summary(from: legacyAttempts)
+            save(summary: summary)
+            return summary
+        }
+
+        userDefaults.removeObject(forKey: key)
+        return .empty
     }
 
     static func summary(from attempts: [Attempt]) -> StatisticsSummary {
@@ -77,19 +123,8 @@ final class StatisticsStore {
         )
     }
 
-    private func loadAttempts() -> [Attempt] {
-        guard let data = userDefaults.data(forKey: key) else { return [] }
-
-        do {
-            return try decoder.decode([Attempt].self, from: data)
-        } catch {
-            userDefaults.removeObject(forKey: key)
-            return []
-        }
-    }
-
-    private func save(attempts: [Attempt]) {
-        guard let data = try? encoder.encode(attempts) else { return }
+    private func save(summary: StatisticsSummary) {
+        guard let data = try? encoder.encode(PersistedSummary(summary)) else { return }
         userDefaults.set(data, forKey: key)
     }
 

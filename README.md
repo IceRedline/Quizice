@@ -16,12 +16,47 @@ The quiz includes themes:
 
 > Swift, UIKit, MVP, SwiftData
 
+## Yandex AppMetrica
+
+The app uses AppMetrica 6.4.0 for product analytics, sessions, crashes, and
+sanitized operational errors. Advertising attribution, IDFA, location, user
+profiles, and automatic revenue tracking are disabled.
+
+1. Register the iOS app in AppMetrica and copy its API key from
+   **Settings → Main**.
+2. In Xcode, select the `Quizice` target and open **Build Settings**.
+3. Replace `YOUR_APPMETRICA_API_KEY` in the user-defined
+   `APPMETRICA_API_KEY` setting for both Debug and Release.
+
+The value is substituted into the `AppMetricaAPIKey` entry in `Info.plist`.
+An empty value or the placeholder leaves analytics disabled. XCTest and SwiftUI
+Previews also skip SDK activation.
+
+Events cover screen views, theme selection, quiz start/answers/timeouts/exit/
+completion, result actions, statistics, AI generation, and settings changes.
+Question text, answer text, AI prompts, localized error messages, and generated
+AI theme IDs are never sent.
+
+AppMetrica 6.4.0 provides its own Privacy Manifest. App Store Connect privacy
+answers should still declare the diagnostics and other analytics data collected
+by the SDK. Because `AppMetricaAdSupport` is not linked, the app does not use
+AppMetrica cross-app tracking and does not request ATT permission.
+
 ## Yandex AI Studio (Debug only)
 
 The AI quiz generator calls the saved Yandex AI Studio agent only in Debug builds.
 
 1. In Agent Atelier, set the agent response format to JSON Schema using
    [`docs/yandex-ai-quiz-schema.json`](docs/yandex-ai-quiz-schema.json).
+   Use [`docs/yandex-ai-quiz-prompt.md`](docs/yandex-ai-quiz-prompt.md) as the
+   agent instruction prompt.
+   The agent input is a JSON string with `theme`, `locale`, `questionCount`, and
+   `difficulty`. Supported question counts are 5, 10, and 15. Difficulty values
+   are `easy` (common facts and direct wording), `medium` (moderate knowledge and
+   plausible distractors), and `hard` (specialized details without trick
+   questions). A successful response uses `status: "success"` and returns exactly
+   `questionCount` questions. A policy refusal uses `status: "refused"`, a safe
+   diagnostic `message`, empty theme fields, and an empty `questions` array.
 2. [Create an AI Studio API key](https://aistudio.yandex.ru/docs/ru/ai-studio/operations/get-api-key.html)
    and keep it outside the repository.
 3. In Xcode, open **Product → Scheme → Manage Schemes…**, duplicate `Quizice`

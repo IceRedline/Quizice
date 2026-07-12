@@ -12,7 +12,6 @@ final class AppAppearanceTests: XCTestCase {
     func testAllDesignStylesResolveExpectedSurfaceFamilies() {
         let clean = SnapshotSupport.appearance(designStyle: .clean, cleanColorScheme: .light)
         let radar = SnapshotSupport.appearance(designStyle: .radar)
-        let pixel = SnapshotSupport.appearance(designStyle: .pixel)
         let classic = SnapshotSupport.appearance(designStyle: .classic)
 
         XCTAssertEqual(clean.designStyle, .clean)
@@ -24,10 +23,6 @@ final class AppAppearanceTests: XCTestCase {
         XCTAssertEqual(radar.resolvedInterfaceStyle, .dark)
         XCTAssertEqual(radar.row.cornerRadius, 8)
         XCTAssertEqual(radar.themeCardCornerRadius, 10)
-
-        XCTAssertEqual(pixel.designStyle, .pixel)
-        XCTAssertEqual(pixel.card.cornerRadius, 0)
-        XCTAssertEqual(pixel.themeCardBorderWidth, 3)
 
         XCTAssertEqual(classic.designStyle, .classic)
         XCTAssertEqual(classic.resolvedInterfaceStyle, .dark)
@@ -55,11 +50,14 @@ final class AppAppearanceTests: XCTestCase {
     func testThemeCardStylingDiffersByDesignStyle() {
         let baseColor = UIColor.systemBlue
         let clean = SnapshotSupport.appearance(designStyle: .clean)
+        let cleanDark = SnapshotSupport.appearance(designStyle: .clean, cleanColorScheme: .dark)
         let radar = SnapshotSupport.appearance(designStyle: .radar)
         let classic = SnapshotSupport.appearance(designStyle: .classic)
 
         XCTAssertTrue(clean.themeCardBackground(baseColor: baseColor).isEqual(clean.card.backgroundColor))
         XCTAssertTrue(clean.themeCardTextColor(baseColor: baseColor).isEqual(clean.surfaceTextColor))
+        XCTAssertEqual(clean.themeCardShadow.opacity, 0)
+        XCTAssertGreaterThan(cleanDark.themeCardShadow.opacity, 0)
         XCTAssertTrue(radar.themeCardTextColor(baseColor: baseColor).isEqual(radar.accentColor))
         XCTAssertFalse(classic.themeCardBackground(baseColor: baseColor).isEqual(baseColor))
     }
@@ -80,7 +78,7 @@ final class AppAppearanceTests: XCTestCase {
         XCTAssertTrue(button.titleColor(for: .disabled)?.isEqual(appearance.disabledTextColor) ?? false)
     }
 
-    func testStoreIgnoresRepeatedWritesAndRejectsPixelAsUserSelectableStyle() {
+    func testStoreIgnoresRepeatedWrites() {
         let suiteName = "AppAppearanceTests.\(UUID().uuidString)"
         let defaults = UserDefaults(suiteName: suiteName)!
         defaults.removePersistentDomain(forName: suiteName)
@@ -97,11 +95,9 @@ final class AppAppearanceTests: XCTestCase {
 
         store.designStyle = .clean
         store.designStyle = .clean
-        store.designStyle = .pixel
 
-        XCTAssertEqual(notificationCount, 2)
-        XCTAssertEqual(store.designStyle, .classic)
-        XCTAssertFalse(AppDesignStyle.pixel.isSelectable)
+        XCTAssertEqual(notificationCount, 1)
+        XCTAssertEqual(store.designStyle, .clean)
         notificationCenter.removeObserver(observer)
         defaults.removePersistentDomain(forName: suiteName)
     }

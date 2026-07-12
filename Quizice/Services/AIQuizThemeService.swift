@@ -1,13 +1,38 @@
 import Foundation
 
+enum AIQuizDifficulty: String, CaseIterable, Identifiable, Codable {
+    case easy
+    case medium
+    case hard
+
+    var id: String { rawValue }
+
+    var title: String {
+        switch self {
+        case .easy: return L10n.AITheme.Difficulty.easy
+        case .medium: return L10n.AITheme.Difficulty.medium
+        case .hard: return L10n.AITheme.Difficulty.hard
+        }
+    }
+}
+
+struct AIQuizGenerationConfiguration: Equatable {
+    static let supportedQuestionCounts = [5, 10, 15]
+
+    let theme: String
+    let questionCount: Int
+    let difficulty: AIQuizDifficulty
+    let locale: Locale
+}
+
 protocol AIQuizThemeServiceProtocol: AnyObject {
-    func generateQuizTheme(for prompt: String, locale: Locale) async throws -> QuizTheme
+    func generateQuizTheme(configuration: AIQuizGenerationConfiguration) async throws -> QuizTheme
 }
 
 enum YandexAIQuizContractViolation: Equatable {
     case emptyTheme
     case emptyThemeDescription
-    case invalidQuestionCount(actual: Int)
+    case invalidQuestionCount(expected: Int, actual: Int)
     case emptyQuestion(index: Int)
     case invalidAnswerCount(questionIndex: Int, actual: Int)
     case emptyAnswer(questionIndex: Int, answerIndex: Int)
@@ -24,10 +49,31 @@ enum YandexAIQuizThemeServiceError: Error, Equatable {
     case invalidHTTPResponse
     case httpStatus(Int)
     case generationStatus(String)
+    case refused
     case invalidResponseJSON
     case missingOutputText
     case invalidQuizJSON
     case invalidContract(YandexAIQuizContractViolation)
+}
+
+extension YandexAIQuizThemeServiceError {
+    var analyticsCode: String {
+        switch self {
+        case .unavailableInRelease: return "unavailable_in_release"
+        case .missingAPIKey: return "missing_api_key"
+        case .emptyPrompt: return "empty_prompt"
+        case .requestEncodingFailed: return "request_encoding_failed"
+        case .network: return "network"
+        case .invalidHTTPResponse: return "invalid_http_response"
+        case .httpStatus: return "http_status"
+        case .generationStatus: return "generation_status"
+        case .refused: return "refused"
+        case .invalidResponseJSON: return "invalid_response_json"
+        case .missingOutputText: return "missing_output_text"
+        case .invalidQuizJSON: return "invalid_quiz_json"
+        case .invalidContract: return "invalid_contract"
+        }
+    }
 }
 
 private extension YandexAIQuizContractViolation {
@@ -37,8 +83,8 @@ private extension YandexAIQuizContractViolation {
             return "empty_theme"
         case .emptyThemeDescription:
             return "empty_theme_description"
-        case let .invalidQuestionCount(actual):
-            return "invalid_question_count actual=\(actual)"
+        case let .invalidQuestionCount(expected, actual):
+            return "invalid_question_count expected=\(expected) actual=\(actual)"
         case let .emptyQuestion(index):
             return "empty_question index=\(index)"
         case let .invalidAnswerCount(questionIndex, actual):
@@ -72,6 +118,8 @@ private extension YandexAIQuizThemeServiceError {
             return "http_status status_code=\(statusCode)"
         case let .generationStatus(status):
             return "generation_status status=\(status)"
+        case .refused:
+            return "refused"
         case .invalidResponseJSON:
             return "invalid_response_json"
         case .missingOutputText:
@@ -103,6 +151,8 @@ extension YandexAIQuizThemeServiceError: LocalizedError {
             return "The AI service returned HTTP \(statusCode)."
         case let .generationStatus(status):
             return "The AI service did not complete generation (\(status))."
+        case .refused:
+            return "The AI service refused to generate a quiz for this topic."
         case .invalidResponseJSON:
             return "The AI service response could not be read."
         case .missingOutputText:
@@ -118,7 +168,7 @@ extension YandexAIQuizThemeServiceError: LocalizedError {
 final class YandexAIQuizThemeService: AIQuizThemeServiceProtocol {
     static let endpoint = URL(string: "https://ai.api.cloud.yandex.net/v1/responses")!
     static let projectID = "b1g37dgcjvpr020nel5a"
-    static let promptID = "fvtmcnp0js8f37p1m5om"
+    static let promptID = "fvto67v1ev0p2b7r4v5i"
 
     private static let supportedLanguageCodes: Set<String> = ["ru", "en", "es", "de", "it", "fr"]
 
@@ -126,15 +176,21 @@ final class YandexAIQuizThemeService: AIQuizThemeServiceProtocol {
     private let session: URLSession
     private let encoder: JSONEncoder
     private let decoder: JSONDecoder
+    private let idGenerator: () -> String
 
-    init(apiKey: String?, session: URLSession = .shared) {
+    init(
+        apiKey: String?,
+        session: URLSession = .shared,
+        idGenerator: @escaping () -> String = { UUID().uuidString }
+    ) {
         self.apiKey = apiKey
         self.session = session
+        self.idGenerator = idGenerator
         encoder = JSONEncoder()
         decoder = JSONDecoder()
     }
 
-    func generateQuizTheme(for prompt: String, locale: Locale) async throws -> QuizTheme {
+    func generateQuizTheme(configuration: AIQuizGenerationConfiguration) async throws -> QuizTheme {
 #if !DEBUG
         let error = YandexAIQuizThemeServiceError.unavailableInRelease
         AppLog.quiz.error("AI quiz generation failed: \(error.diagnosticDescription, privacy: .public)")
@@ -143,9 +199,14 @@ final class YandexAIQuizThemeService: AIQuizThemeServiceProtocol {
         do {
             try Task.checkCancellation()
 
-            let trimmedPrompt = prompt.trimmingCharacters(in: .whitespacesAndNewlines)
+            let trimmedPrompt = configuration.theme.trimmingCharacters(in: .whitespacesAndNewlines)
             guard !trimmedPrompt.isEmpty else {
                 throw YandexAIQuizThemeServiceError.emptyPrompt
+            }
+            guard AIQuizGenerationConfiguration.supportedQuestionCounts.contains(configuration.questionCount) else {
+                throw YandexAIQuizThemeServiceError.invalidContract(
+                    .invalidQuestionCount(expected: configuration.questionCount, actual: 0)
+                )
             }
 
             let trimmedAPIKey = apiKey?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
@@ -153,8 +214,14 @@ final class YandexAIQuizThemeService: AIQuizThemeServiceProtocol {
                 throw YandexAIQuizThemeServiceError.missingAPIKey
             }
 
-            let languageCode = Self.languageCode(for: locale)
-            let request = try makeRequest(prompt: trimmedPrompt, languageCode: languageCode, apiKey: trimmedAPIKey)
+            let languageCode = Self.languageCode(for: configuration.locale)
+            let request = try makeRequest(
+                prompt: trimmedPrompt,
+                questionCount: configuration.questionCount,
+                difficulty: configuration.difficulty,
+                languageCode: languageCode,
+                apiKey: trimmedAPIKey
+            )
 
             AppLog.quiz.info(
                 "AI quiz request prepared: locale=\(languageCode, privacy: .public) prompt_length=\(trimmedPrompt.count, privacy: .public) endpoint=\(Self.endpoint.absoluteString, privacy: .public)"
@@ -201,6 +268,10 @@ final class YandexAIQuizThemeService: AIQuizThemeServiceProtocol {
                 throw YandexAIQuizThemeServiceError.generationStatus(envelope.status)
             }
 
+            if envelope.output.flatMap(\.content).contains(where: { $0.type == "refusal" }) {
+                throw YandexAIQuizThemeServiceError.refused
+            }
+
             let outputText = envelope.output
                 .flatMap(\.content)
                 .filter { $0.type == "output_text" }
@@ -221,7 +292,11 @@ final class YandexAIQuizThemeService: AIQuizThemeServiceProtocol {
                 throw YandexAIQuizThemeServiceError.invalidQuizJSON
             }
 
-            let theme = try makeQuizTheme(from: payload)
+            guard payload.status == .success else {
+                throw YandexAIQuizThemeServiceError.refused
+            }
+
+            let theme = try makeQuizTheme(from: payload, expectedQuestionCount: configuration.questionCount)
             AppLog.quiz.info(
                 "AI quiz generation completed: locale=\(languageCode, privacy: .public) questions=\(theme.questions.count, privacy: .public)"
             )
@@ -269,12 +344,25 @@ final class YandexAIQuizThemeService: AIQuizThemeServiceProtocol {
         return path.isEmpty ? category : "\(category) coding_path=\(path)"
     }
 
-    private func makeRequest(prompt: String, languageCode: String, apiKey: String) throws -> URLRequest {
+    private func makeRequest(
+        prompt: String,
+        questionCount: Int,
+        difficulty: AIQuizDifficulty,
+        languageCode: String,
+        apiKey: String
+    ) throws -> URLRequest {
         let inputData: Data
         let requestData: Data
 
         do {
-            inputData = try encoder.encode(GenerationInput(theme: prompt, locale: languageCode))
+            inputData = try encoder.encode(
+                GenerationInput(
+                    theme: prompt,
+                    locale: languageCode,
+                    questionCount: questionCount,
+                    difficulty: difficulty
+                )
+            )
             guard let input = String(data: inputData, encoding: .utf8) else {
                 throw YandexAIQuizThemeServiceError.requestEncodingFailed
             }
@@ -301,7 +389,10 @@ final class YandexAIQuizThemeService: AIQuizThemeServiceProtocol {
         return request
     }
 
-    private func makeQuizTheme(from payload: GeneratedQuizPayload) throws -> QuizTheme {
+    private func makeQuizTheme(
+        from payload: GeneratedQuizPayload,
+        expectedQuestionCount: Int
+    ) throws -> QuizTheme {
         let themeName = payload.theme.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !themeName.isEmpty else {
             throw YandexAIQuizThemeServiceError.invalidContract(.emptyTheme)
@@ -312,9 +403,9 @@ final class YandexAIQuizThemeService: AIQuizThemeServiceProtocol {
             throw YandexAIQuizThemeServiceError.invalidContract(.emptyThemeDescription)
         }
 
-        guard payload.questions.count == 5 else {
+        guard payload.questions.count == expectedQuestionCount else {
             throw YandexAIQuizThemeServiceError.invalidContract(
-                .invalidQuestionCount(actual: payload.questions.count)
+                .invalidQuestionCount(expected: expectedQuestionCount, actual: payload.questions.count)
             )
         }
 
@@ -323,10 +414,11 @@ final class YandexAIQuizThemeService: AIQuizThemeServiceProtocol {
         }
 
         return QuizTheme(
-            id: "ai-\(UUID().uuidString)",
+            id: "ai-\(idGenerator())",
             theme: themeName,
             themeDescription: themeDescription,
-            questions: questions
+            questions: questions,
+            source: .ai
         )
     }
 
@@ -378,6 +470,8 @@ private extension YandexAIQuizThemeService {
     struct GenerationInput: Encodable {
         let theme: String
         let locale: String
+        let questionCount: Int
+        let difficulty: AIQuizDifficulty
     }
 
     struct ResponsesRequest: Encodable {
@@ -425,6 +519,13 @@ private extension YandexAIQuizThemeService {
     }
 
     struct GeneratedQuizPayload: Decodable {
+        enum Status: String, Decodable {
+            case success
+            case refused
+        }
+
+        let status: Status
+        let message: String
         let theme: String
         let themeDescription: String
         let questions: [GeneratedQuestionPayload]
@@ -439,19 +540,24 @@ private extension YandexAIQuizThemeService {
 }
 
 final class MockAIQuizThemeService: AIQuizThemeServiceProtocol {
-    private(set) var generatedPrompts: [String] = []
-    private(set) var generatedLocaleIdentifiers: [String] = []
+    private(set) var generatedConfigurations: [AIQuizGenerationConfiguration] = []
 
-    func generateQuizTheme(for prompt: String, locale: Locale) async throws -> QuizTheme {
-        let trimmedPrompt = prompt.trimmingCharacters(in: .whitespacesAndNewlines)
-        generatedPrompts.append(trimmedPrompt)
-        generatedLocaleIdentifiers.append(locale.identifier)
-        AppLog.quiz.debug("Generated mock AI quiz request for locale: \(locale.identifier, privacy: .public)")
+    func generateQuizTheme(configuration: AIQuizGenerationConfiguration) async throws -> QuizTheme {
+        let trimmedPrompt = configuration.theme.trimmingCharacters(in: .whitespacesAndNewlines)
+        let normalizedConfiguration = AIQuizGenerationConfiguration(
+            theme: trimmedPrompt,
+            questionCount: configuration.questionCount,
+            difficulty: configuration.difficulty,
+            locale: configuration.locale
+        )
+        generatedConfigurations.append(normalizedConfiguration)
+        AppLog.quiz.debug("Generated mock AI quiz request for locale: \(configuration.locale.identifier, privacy: .public)")
         return QuizTheme(
             id: trimmedPrompt.lowercased().replacingOccurrences(of: " ", with: "_"),
             theme: trimmedPrompt,
             themeDescription: "AI generated quiz placeholder",
-            questions: []
+            questions: [],
+            source: .ai
         )
     }
 }
