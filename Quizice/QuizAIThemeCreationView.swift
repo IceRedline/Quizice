@@ -81,6 +81,7 @@ struct QuizAIThemeCreationView: View {
         static let questionCountSelector = "aiThemeQuestionCountSelector"
         static let difficultySelector = "aiThemeDifficultySelector"
         static let submitButton = "aiThemeSubmitButton"
+        static let keyboardDoneButton = "aiThemeKeyboardDoneButton"
         static let progressStatus = "aiThemeProgressStatus"
     }
 
@@ -214,6 +215,16 @@ struct QuizAIThemeCreationView: View {
         .preferredColorScheme(appearance.swiftUIColorScheme)
         .tint(Color(uiColor: appearance.screenTextColor))
         .ignoresSafeArea(.container, edges: .top)
+        .toolbar {
+            ToolbarItemGroup(placement: .keyboard) {
+                Spacer()
+
+                Button(L10n.Settings.done) {
+                    isPromptFocused = false
+                }
+                .accessibilityIdentifier(AccessibilityID.keyboardDoneButton)
+            }
+        }
         .alert(item: $activeAlert, content: makeAlert)
         .onDisappear { cancelSubmission() }
         .onAppear {
