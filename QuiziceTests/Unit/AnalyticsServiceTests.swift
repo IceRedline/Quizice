@@ -12,14 +12,14 @@ final class AnalyticsServiceTests: XCTestCase {
     }
 
     func testEventNamesAndParametersUseStablePrivacySafeValues() {
-        let screen = AnalyticsEvent.screenView(screen: .quizQuestion, themeID: "music")
+        let screen = AnalyticsEvent.screenView(screen: .quizQuestion, theme: .catalog(id: "music"))
         XCTAssertEqual(screen.name, "screen_view")
         XCTAssertEqual(screen.parameters["screen"] as? String, "quiz_question")
         XCTAssertEqual(screen.parameters["theme_source"] as? String, "catalog")
         XCTAssertEqual(screen.parameters["theme_id"] as? String, "music")
 
         let answer = AnalyticsEvent.quizAnswered(
-            themeID: "music",
+            theme: .catalog(id: "music"),
             questionIndex: 2,
             totalQuestions: 5,
             outcome: .incorrect
@@ -29,12 +29,12 @@ final class AnalyticsServiceTests: XCTestCase {
         XCTAssertEqual(answer.parameters["total_questions"] as? Int, 5)
         XCTAssertEqual(answer.parameters["outcome"] as? String, "incorrect")
 
-        let completed = AnalyticsEvent.quizCompleted(themeID: "music", correctAnswers: 4, totalQuestions: 5)
+        let completed = AnalyticsEvent.quizCompleted(theme: .catalog(id: "music"), correctAnswers: 4, totalQuestions: 5)
         XCTAssertEqual(completed.parameters["score_percent"] as? Int, 80)
     }
 
     func testAIEventsNeverExposePromptOrGeneratedThemeIdentifier() {
-        let selected = AnalyticsEvent.themeSelected(themeID: "ai-private-generated-id", method: .ai)
+        let selected = AnalyticsEvent.themeSelected(theme: .ai, method: .ai)
         XCTAssertEqual(selected.parameters["theme_source"] as? String, "ai")
         XCTAssertNil(selected.parameters["theme_id"])
 
@@ -54,7 +54,7 @@ final class AnalyticsServiceTests: XCTestCase {
     }
 
     func testSettingsAndStatisticsParametersAreNormalized() {
-        let setting = AnalyticsEvent.settingChanged(setting: "language", oldValue: "system", newValue: "ru")
+        let setting = AnalyticsEvent.settingChanged(setting: .language, oldValue: "system", newValue: "ru")
         XCTAssertEqual(setting.name, "setting_changed")
         XCTAssertEqual(setting.parameters["setting"] as? String, "language")
         XCTAssertEqual(setting.parameters["old_value"] as? String, "system")
@@ -67,24 +67,24 @@ final class AnalyticsServiceTests: XCTestCase {
     }
 
     func testEventTaxonomyUsesTheDocumentedNames() {
-        let progress = AnalyticsQuizProgress(themeID: "music", answeredQuestions: 2, totalQuestions: 5, correctAnswers: 1)
+        let progress = AnalyticsQuizProgress(theme: .catalog(id: "music"), answeredQuestions: 2, totalQuestions: 5, correctAnswers: 1)
         let events: [AnalyticsEvent] = [
             .screenView(screen: .home),
-            .themeSelected(themeID: "music", method: .manual),
-            .quizSetupCancelled(themeID: "music"),
-            .quizStarted(themeID: "music", questionCount: 5),
-            .quizAnswered(themeID: "music", questionIndex: 1, totalQuestions: 5, outcome: .correct),
+            .themeSelected(theme: .catalog(id: "music"), method: .manual),
+            .quizSetupCancelled(theme: .catalog(id: "music")),
+            .quizStarted(theme: .catalog(id: "music"), questionCount: 5),
+            .quizAnswered(theme: .catalog(id: "music"), questionIndex: 1, totalQuestions: 5, outcome: .correct),
             .quizExitRequested(progress),
             .quizExitCancelled(progress),
             .quizAbandoned(progress),
-            .quizCompleted(themeID: "music", correctAnswers: 4, totalQuestions: 5),
-            .quizResultAction(themeID: "music", action: .replay),
+            .quizCompleted(theme: .catalog(id: "music"), correctAnswers: 4, totalQuestions: 5),
+            .quizResultAction(theme: .catalog(id: "music"), action: .replay),
             .statisticsViewed(attemptsCount: 1, totalQuestions: 5, accuracyPercent: 80),
             .aiGenerationStarted(locale: "en", promptLength: 10, questionCount: 5, difficulty: .medium),
             .aiGenerationSucceeded(locale: "en", questionCount: 5, difficulty: .medium, durationMilliseconds: 100),
             .aiGenerationFailed(locale: "en", errorCode: "network", durationMilliseconds: 100),
             .aiGenerationCancelled(locale: "en", durationMilliseconds: 100),
-            .settingChanged(setting: "language", oldValue: "system", newValue: "en"),
+            .settingChanged(setting: .language, oldValue: "system", newValue: "en"),
             .settingsAction(.feedback)
         ]
 
@@ -134,6 +134,7 @@ final class AnalyticsServiceTests: XCTestCase {
         let question = try XCTUnwrap(view.loadedQuestion)
         let correct = try XCTUnwrap(question.answers.first { $0.title == "A" })
         presenter.checkAnswer(optionID: correct.id)
+        presenter.timeExpired()
         presenter.checkQuestionNumberAndProceed()
         presenter.checkQuestionNumberAndProceed()
 

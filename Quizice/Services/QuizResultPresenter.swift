@@ -17,10 +17,13 @@ final class QuizResultPresenter: QuizResultPresenterProtocol {
     var themeID: String? {
         session.chosenTheme?.themeID
     }
+    var analyticsTheme: AnalyticsTheme {
+        session.chosenTheme?.analyticsTheme ?? .unknown
+    }
     
     init(
         result: QuizResultState = QuizResultState(correctAnswers: 0, totalQuestions: 0),
-        session: QuizSessionManaging = QuizFactory.shared
+        session: QuizSessionManaging = QuizSessionStore.shared
     ) {
         self.session = session
         self.correctAnswers = result.correctAnswers

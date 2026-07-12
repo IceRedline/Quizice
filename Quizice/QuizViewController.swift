@@ -123,6 +123,7 @@ final class QuizViewController: BaseQuizViewController, QuizViewControllerProtoc
     private let analytics: AnalyticsTracking
     private let themesCollectionService: ThemesCollectionService
     private let motivationPromptProvider: (String?) -> String
+    private let randomThemeIDProvider: ([QuizTheme]) -> String?
     private let animationsEngine = Animations()
     private let motivationBlurContext = CIContext(options: nil)
     private var soundPlayer: AVAudioPlayer!
@@ -136,16 +137,18 @@ final class QuizViewController: BaseQuizViewController, QuizViewControllerProtoc
 
     init(
         themeRepository: ThemeRepository = QuizFactory.shared,
-        session: QuizSessionManaging = QuizFactory.shared,
+        session: QuizSessionManaging = QuizSessionStore.shared,
         statisticsStore: StatisticsStore = StatisticsStore(),
         analytics: AnalyticsTracking = AppMetricaAnalyticsTracker.shared,
-        motivationPromptProvider: @escaping (String?) -> String = QuizViewController.randomMotivationPrompt
+        motivationPromptProvider: @escaping (String?) -> String = QuizViewController.randomMotivationPrompt,
+        randomThemeIDProvider: @escaping ([QuizTheme]) -> String? = { $0.randomElement()?.stableID }
     ) {
         self.themeRepository = themeRepository
         self.session = session
         self.statisticsStore = statisticsStore
         self.analytics = analytics
         self.motivationPromptProvider = motivationPromptProvider
+        self.randomThemeIDProvider = randomThemeIDProvider
         self.themesCollectionService = ThemesCollectionService(
             themeRepository: themeRepository,
             statisticsStore: statisticsStore
@@ -591,7 +594,7 @@ final class QuizViewController: BaseQuizViewController, QuizViewControllerProtoc
             updateThemeAvailabilityMessage()
             return
         }
-        analytics.track(.themeSelected(themeID: themeID, method: .manual))
+        analytics.track(.themeSelected(theme: session.chosenTheme?.analyticsTheme ?? .unknown, method: .manual))
         showDescriptionViewController()
     }
 
@@ -645,13 +648,14 @@ final class QuizViewController: BaseQuizViewController, QuizViewControllerProtoc
 
     private func startRandomTheme() {
         guard
-            let themeID = themeRepository.themes?.randomElement()?.stableID,
+            let themes = themeRepository.themes,
+            let themeID = randomThemeIDProvider(themes),
             session.loadTheme(themeID: themeID)
         else {
             updateThemeAvailabilityMessage()
             return
         }
-        analytics.track(.themeSelected(themeID: themeID, method: .random))
+        analytics.track(.themeSelected(theme: session.chosenTheme?.analyticsTheme ?? .unknown, method: .random))
         showDescriptionViewController()
     }
 

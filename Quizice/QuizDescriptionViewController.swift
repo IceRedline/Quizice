@@ -171,7 +171,7 @@ final class QuizDescriptionViewController: BaseQuizViewController, QuizDescripti
 
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
-        analytics.track(.screenView(screen: .quizDescription, themeID: presenter?.themeID))
+        analytics.track(.screenView(screen: .quizDescription, theme: presenter?.analyticsTheme ?? .unknown))
     }
 
     func updateLabels(themeName: String, themeDescription: String) {
@@ -432,7 +432,7 @@ final class QuizDescriptionViewController: BaseQuizViewController, QuizDescripti
         presenter?.saveNumberOfQuestions(chosenRow: numberOfQuestionsPickerView.selectedRow(inComponent: .zero))
         analytics.track(
             .quizStarted(
-                themeID: presenter?.themeID,
+                theme: presenter?.analyticsTheme ?? .unknown,
                 questionCount: presenter?.selectedQuestionCount ?? 0
             )
         )
@@ -459,7 +459,7 @@ final class QuizDescriptionViewController: BaseQuizViewController, QuizDescripti
     }
     
     @objc private func backButtonTapped() {
-        analytics.track(.quizSetupCancelled(themeID: presenter?.themeID))
+        analytics.track(.quizSetupCancelled(theme: presenter?.analyticsTheme ?? .unknown))
         router?.closeDescription()
     }
 

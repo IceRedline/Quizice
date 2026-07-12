@@ -24,6 +24,43 @@ protocol QuizSessionManaging: AnyObject {
     func loadTheme(themeID: String) -> Bool
 }
 
+final class QuizSessionStore: QuizSessionManaging {
+    static let shared = QuizSessionStore()
+
+    private let themes: () -> [QuizTheme]?
+
+    var chosenTheme: ThemeModel?
+    var questionsCount = 5
+    var startup1st = true
+
+    init(themes: @escaping () -> [QuizTheme]? = { QuizFactory.shared.themes }) {
+        self.themes = themes
+    }
+
+    @discardableResult
+    func loadTheme(themeID: String) -> Bool {
+        resolveTheme { $0.stableID == themeID }
+    }
+
+    @discardableResult
+    func loadTheme(themeName: String) -> Bool {
+        resolveTheme { $0.theme == themeName || $0.stableID == themeName }
+    }
+
+    private func resolveTheme(where predicate: (QuizTheme) -> Bool) -> Bool {
+        guard let theme = themes()?.first(where: predicate) else {
+            AppLog.content.error("Failed to resolve selected theme")
+            AppMetricaAnalyticsTracker.shared.reportOperationalError(
+                AnalyticsOperationalIssue.themeResolution,
+                context: .themeResolution
+            )
+            return false
+        }
+        chosenTheme = ThemeModel(quizTheme: theme)
+        return true
+    }
+}
+
 struct LocalizedThemeDataLoader {
     struct LoadedData {
         let languageCode: String
@@ -73,7 +110,13 @@ final class SwiftDataThemeStore {
 
     func fetchThemes() -> [QuizTheme] {
         let descriptor = FetchDescriptor<QuizTheme>(sortBy: [SortDescriptor(\.theme)])
-        return (try? context.fetch(descriptor)) ?? []
+        do {
+            return try context.fetch(descriptor)
+        } catch {
+            AppLog.persistence.error("Failed to fetch themes: \(String(describing: error), privacy: .public)")
+            AppMetricaAnalyticsTracker.shared.reportOperationalError(error, context: .persistentStore)
+            return []
+        }
     }
 
     func replaceThemes(with themes: [QuizTheme]) {
@@ -113,16 +156,23 @@ final class QuizFactory: ThemeRepository, QuizSessionManaging {
     
     static let shared = QuizFactory()
     
-    private var modelContainer: ModelContainer!
-    private var modelContext: ModelContext!
     private var localizationObserver: NSObjectProtocol?
     private var themeStore: SwiftDataThemeStore?
     private let themeDataLoader = LocalizedThemeDataLoader()
     
     var themes: [QuizTheme]?
-    var chosenTheme: ThemeModel?
-    var questionsCount: Int = 5
-    var startup1st: Bool = true
+    var chosenTheme: ThemeModel? {
+        get { QuizSessionStore.shared.chosenTheme }
+        set { QuizSessionStore.shared.chosenTheme = newValue }
+    }
+    var questionsCount: Int {
+        get { QuizSessionStore.shared.questionsCount }
+        set { QuizSessionStore.shared.questionsCount = newValue }
+    }
+    var startup1st: Bool {
+        get { QuizSessionStore.shared.startup1st }
+        set { QuizSessionStore.shared.startup1st = newValue }
+    }
     
     private init() {
         localizationObserver = NotificationCenter.default.addObserver(
@@ -135,42 +185,17 @@ final class QuizFactory: ThemeRepository, QuizSessionManaging {
     }
     
     func setModelContext(_ context: ModelContext) {
-        self.modelContext = context
         self.themeStore = SwiftDataThemeStore(context: context)
     }
     
     @discardableResult
     func loadTheme(themeID: String) -> Bool {
-        guard
-            let loadedThemes = themes,
-            let chosenTheme = loadedThemes.first(where: { $0.stableID == themeID })
-        else {
-            AppLog.content.error("Failed to resolve selected theme id: \(themeID, privacy: .public)")
-            AppMetricaAnalyticsTracker.shared.reportOperationalError(
-                AnalyticsOperationalIssue.themeResolution,
-                context: .themeResolution
-            )
-            return false
-        }
-        self.chosenTheme = ThemeModel(quizTheme: chosenTheme)
-        return true
+        QuizSessionStore.shared.loadTheme(themeID: themeID)
     }
     
     @discardableResult
     func loadTheme(themeName: String) -> Bool {
-        guard
-            let loadedThemes = themes,
-            let chosenTheme = loadedThemes.first(where: { $0.theme == themeName || $0.stableID == themeName })
-        else {
-            AppLog.content.error("Failed to resolve selected theme: \(themeName, privacy: .public)")
-            AppMetricaAnalyticsTracker.shared.reportOperationalError(
-                AnalyticsOperationalIssue.themeResolution,
-                context: .themeResolution
-            )
-            return false
-        }
-        self.chosenTheme = ThemeModel(quizTheme: chosenTheme)
-        return true
+        QuizSessionStore.shared.loadTheme(themeName: themeName)
     }
 
     func loadData(forceReload: Bool = false) {
@@ -211,7 +236,7 @@ final class QuizFactory: ThemeRepository, QuizSessionManaging {
     }
 
     private func reloadDataForLocalizationChange() {
-        guard modelContext != nil else { return }
+        guard themeStore != nil else { return }
         loadData(forceReload: true)
     }
 }

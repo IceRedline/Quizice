@@ -176,10 +176,16 @@ final class YandexAIQuizThemeService: AIQuizThemeServiceProtocol {
     private let session: URLSession
     private let encoder: JSONEncoder
     private let decoder: JSONDecoder
+    private let idGenerator: () -> String
 
-    init(apiKey: String?, session: URLSession = .shared) {
+    init(
+        apiKey: String?,
+        session: URLSession = .shared,
+        idGenerator: @escaping () -> String = { UUID().uuidString }
+    ) {
         self.apiKey = apiKey
         self.session = session
+        self.idGenerator = idGenerator
         encoder = JSONEncoder()
         decoder = JSONDecoder()
     }
@@ -408,10 +414,11 @@ final class YandexAIQuizThemeService: AIQuizThemeServiceProtocol {
         }
 
         return QuizTheme(
-            id: "ai-\(UUID().uuidString)",
+            id: "ai-\(idGenerator())",
             theme: themeName,
             themeDescription: themeDescription,
-            questions: questions
+            questions: questions,
+            source: .ai
         )
     }
 
@@ -549,7 +556,8 @@ final class MockAIQuizThemeService: AIQuizThemeServiceProtocol {
             id: trimmedPrompt.lowercased().replacingOccurrences(of: " ", with: "_"),
             theme: trimmedPrompt,
             themeDescription: "AI generated quiz placeholder",
-            questions: []
+            questions: [],
+            source: .ai
         )
     }
 }
