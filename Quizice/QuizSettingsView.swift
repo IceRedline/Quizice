@@ -110,6 +110,9 @@ struct QuizSettingsView: View {
     @AppStorage(AppAppearanceStore.Keys.backgroundStyle) private var selectedBackgroundStyleID = AppBackgroundStyle.defaultStyle.rawValue
     @AppStorage(AppLocalizationStore.Keys.language) private var selectedLanguageID = AppLanguagePreference.system.rawValue
     @AppStorage("quizice.settings.icon") private var selectedIconID = AppIcon.classic.rawValue
+#if DEBUG
+    @AppStorage(DebugBackendSettings.useLocalhostKey) private var usesLocalhostBackend = false
+#endif
     @State private var activeAlert: SettingsAlert?
     @State private var didTrackScreen = false
     private let analytics: AnalyticsTracking
@@ -197,6 +200,9 @@ struct QuizSettingsView: View {
             settingsTitle
             profileSection
             appearanceSection
+#if DEBUG
+            developerSection
+#endif
             supportSection
         }
         .padding(.horizontal, Layout.contentHorizontalInset)
@@ -356,6 +362,23 @@ struct QuizSettingsView: View {
             }
         }
     }
+
+#if DEBUG
+    private var developerSection: some View {
+        SettingsSection(title: L10n.Settings.developerSectionTitle) {
+            Toggle(isOn: $usesLocalhostBackend) {
+                SettingsRowHeader(
+                    systemImage: "server.rack",
+                    title: L10n.Settings.localhostBackend,
+                    subtitle: L10n.Settings.localhostBackendSubtitle
+                )
+            }
+            .onChange(of: usesLocalhostBackend) { _, _ in
+                activeAlert = .restart(L10n.Settings.localhostBackend)
+            }
+        }
+    }
+#endif
 
     private func trackSettingChange(setting: AnalyticsSetting, oldValue: String, newValue: String) {
         guard oldValue != newValue else { return }

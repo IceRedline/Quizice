@@ -243,6 +243,23 @@ final class HTTPAuthAPITests: XCTestCase {
     }
 }
 
+#if DEBUG
+final class BackendConfigurationTests: XCTestCase {
+    func testLocalhostOverrideWinsWhenEnabled() throws {
+        let suiteName = "BackendConfigurationTests.\(UUID().uuidString)"
+        let defaults = try XCTUnwrap(UserDefaults(suiteName: suiteName))
+        defer { defaults.removePersistentDomain(forName: suiteName) }
+        defaults.set(true, forKey: DebugBackendSettings.useLocalhostKey)
+
+        let configuration = try XCTUnwrap(
+            BackendConfiguration.load(bundle: .main, userDefaults: defaults)
+        )
+
+        XCTAssertEqual(configuration.baseURL, URL(string: "http://localhost:8000/api"))
+    }
+}
+#endif
+
 final class KeychainSessionStoreTests: XCTestCase {
     func testRoundTripAndClear() throws {
         let store = KeychainSessionStore(service: "QuiziceTests.Auth.\(UUID().uuidString)")

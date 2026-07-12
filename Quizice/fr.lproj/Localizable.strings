@@ -130,6 +130,9 @@
 "settings.theme.light" = "Clair";
 "settings.theme.system" = "Système";
 "settings.title" = "Réglages";
+"settings.section.developer" = "Développement";
+"settings.backend.localhost" = "Backend local";
+"settings.backend.localhost.subtitle" = "Simulateur : localhost:8000 · redémarrage requis";
 "statistics.accessibility_label" = "Écran des statistiques globales";
 "statistics.best_result" = "Meilleur résultat";
 "statistics.correct_answers" = "Bonnes réponses";

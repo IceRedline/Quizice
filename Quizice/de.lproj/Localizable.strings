@@ -130,6 +130,9 @@
 "settings.theme.light" = "Hell";
 "settings.theme.system" = "System";
 "settings.title" = "Einstellungen";
+"settings.section.developer" = "Entwicklung";
+"settings.backend.localhost" = "Lokales Backend";
+"settings.backend.localhost.subtitle" = "Simulator: localhost:8000 · Neustart erforderlich";
 "statistics.accessibility_label" = "Bildschirm für Gesamtstatistik";
 "statistics.best_result" = "Bestes Ergebnis";
 "statistics.correct_answers" = "Richtige Antworten";

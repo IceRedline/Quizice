@@ -82,7 +82,15 @@ struct BackendConfiguration: Equatable {
 
     let baseURL: URL
 
-    static func load(bundle: Bundle = .main) -> BackendConfiguration? {
+    static func load(
+        bundle: Bundle = .main,
+        userDefaults: UserDefaults = .standard
+    ) -> BackendConfiguration? {
+#if DEBUG
+        if userDefaults.bool(forKey: DebugBackendSettings.useLocalhostKey) {
+            return BackendConfiguration(baseURL: DebugBackendSettings.localhostBaseURL)
+        }
+#endif
         guard
             let rawValue = bundle.object(forInfoDictionaryKey: infoPlistKey) as? String
         else {
@@ -95,6 +103,13 @@ struct BackendConfiguration: Equatable {
         return BackendConfiguration(baseURL: url)
     }
 }
+
+#if DEBUG
+enum DebugBackendSettings {
+    static let useLocalhostKey = "quizice.debug.backend.use-localhost"
+    static let localhostBaseURL = URL(string: "http://localhost:8000/api")!
+}
+#endif
 
 final class HTTPAuthAPI: AuthAPI {
     // TODO(BACKEND_CONTRACT): replace provisional routes and DTOs when backend contract is finalized.
