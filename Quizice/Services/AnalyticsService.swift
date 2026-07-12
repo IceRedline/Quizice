@@ -34,35 +34,48 @@ enum AnalyticsResultAction: String {
     case themes
 }
 
+enum AnalyticsSetting: String {
+    case design
+    case language
+    case theme
+    case icon
+}
+
 enum AnalyticsSettingsAction: String {
     case profile
     case feedback
 }
 
+enum AnalyticsTheme: Equatable {
+    case catalog(id: String)
+    case ai
+    case unknown
+}
+
 struct AnalyticsQuizProgress: Equatable {
-    let themeID: String?
+    let theme: AnalyticsTheme
     let answeredQuestions: Int
     let totalQuestions: Int
     let correctAnswers: Int
 }
 
 enum AnalyticsEvent {
-    case screenView(screen: AnalyticsScreen, themeID: String? = nil)
-    case themeSelected(themeID: String?, method: AnalyticsSelectionMethod)
-    case quizSetupCancelled(themeID: String?)
-    case quizStarted(themeID: String?, questionCount: Int)
-    case quizAnswered(themeID: String?, questionIndex: Int, totalQuestions: Int, outcome: AnalyticsAnswerOutcome)
+    case screenView(screen: AnalyticsScreen, theme: AnalyticsTheme = .unknown)
+    case themeSelected(theme: AnalyticsTheme, method: AnalyticsSelectionMethod)
+    case quizSetupCancelled(theme: AnalyticsTheme)
+    case quizStarted(theme: AnalyticsTheme, questionCount: Int)
+    case quizAnswered(theme: AnalyticsTheme, questionIndex: Int, totalQuestions: Int, outcome: AnalyticsAnswerOutcome)
     case quizExitRequested(AnalyticsQuizProgress)
     case quizExitCancelled(AnalyticsQuizProgress)
     case quizAbandoned(AnalyticsQuizProgress)
-    case quizCompleted(themeID: String?, correctAnswers: Int, totalQuestions: Int)
-    case quizResultAction(themeID: String?, action: AnalyticsResultAction)
+    case quizCompleted(theme: AnalyticsTheme, correctAnswers: Int, totalQuestions: Int)
+    case quizResultAction(theme: AnalyticsTheme, action: AnalyticsResultAction)
     case statisticsViewed(attemptsCount: Int, totalQuestions: Int, accuracyPercent: Int)
     case aiGenerationStarted(locale: String, promptLength: Int, questionCount: Int, difficulty: AIQuizDifficulty)
     case aiGenerationSucceeded(locale: String, questionCount: Int, difficulty: AIQuizDifficulty, durationMilliseconds: Int)
     case aiGenerationFailed(locale: String, errorCode: String, durationMilliseconds: Int)
     case aiGenerationCancelled(locale: String, durationMilliseconds: Int)
-    case settingChanged(setting: String, oldValue: String, newValue: String)
+    case settingChanged(setting: AnalyticsSetting, oldValue: String, newValue: String)
     case settingsAction(AnalyticsSettingsAction)
 
     var name: String {
@@ -89,30 +102,30 @@ enum AnalyticsEvent {
 
     var parameters: [String: Any] {
         switch self {
-        case let .screenView(screen, themeID):
-            return ["screen": screen.rawValue].merging(themeParameters(themeID)) { current, _ in current }
-        case let .themeSelected(themeID, method):
-            return ["selection_method": method.rawValue].merging(themeParameters(themeID)) { current, _ in current }
-        case let .quizSetupCancelled(themeID):
-            return themeParameters(themeID)
-        case let .quizStarted(themeID, questionCount):
-            return ["question_count": questionCount].merging(themeParameters(themeID)) { current, _ in current }
-        case let .quizAnswered(themeID, questionIndex, totalQuestions, outcome):
+        case let .screenView(screen, theme):
+            return ["screen": screen.rawValue].merging(themeParameters(theme)) { current, _ in current }
+        case let .themeSelected(theme, method):
+            return ["selection_method": method.rawValue].merging(themeParameters(theme)) { current, _ in current }
+        case let .quizSetupCancelled(theme):
+            return themeParameters(theme)
+        case let .quizStarted(theme, questionCount):
+            return ["question_count": questionCount].merging(themeParameters(theme)) { current, _ in current }
+        case let .quizAnswered(theme, questionIndex, totalQuestions, outcome):
             return [
                 "question_index": questionIndex,
                 "total_questions": totalQuestions,
                 "outcome": outcome.rawValue
-            ].merging(themeParameters(themeID)) { current, _ in current }
+            ].merging(themeParameters(theme)) { current, _ in current }
         case let .quizExitRequested(progress), let .quizExitCancelled(progress), let .quizAbandoned(progress):
             return progressParameters(progress)
-        case let .quizCompleted(themeID, correctAnswers, totalQuestions):
+        case let .quizCompleted(theme, correctAnswers, totalQuestions):
             return [
                 "correct_answers": max(correctAnswers, 0),
                 "total_questions": max(totalQuestions, 0),
                 "score_percent": Self.percentage(correct: correctAnswers, total: totalQuestions)
-            ].merging(themeParameters(themeID)) { current, _ in current }
-        case let .quizResultAction(themeID, action):
-            return ["action": action.rawValue].merging(themeParameters(themeID)) { current, _ in current }
+            ].merging(themeParameters(theme)) { current, _ in current }
+        case let .quizResultAction(theme, action):
+            return ["action": action.rawValue].merging(themeParameters(theme)) { current, _ in current }
         case let .statisticsViewed(attemptsCount, totalQuestions, accuracyPercent):
             return [
                 "attempts_count": max(attemptsCount, 0),
@@ -142,7 +155,7 @@ enum AnalyticsEvent {
         case let .aiGenerationCancelled(locale, durationMilliseconds):
             return ["locale": locale, "duration_ms": max(durationMilliseconds, 0)]
         case let .settingChanged(setting, oldValue, newValue):
-            return ["setting": setting, "old_value": oldValue, "new_value": newValue]
+            return ["setting": setting.rawValue, "old_value": oldValue, "new_value": newValue]
         case let .settingsAction(action):
             return ["action": action.rawValue]
         }
@@ -153,17 +166,18 @@ enum AnalyticsEvent {
             "answered_questions": max(progress.answeredQuestions, 0),
             "total_questions": max(progress.totalQuestions, 0),
             "correct_answers": max(progress.correctAnswers, 0)
-        ].merging(themeParameters(progress.themeID)) { current, _ in current }
+        ].merging(themeParameters(progress.theme)) { current, _ in current }
     }
 
-    private func themeParameters(_ themeID: String?) -> [String: Any] {
-        guard let themeID, !themeID.isEmpty else {
+    private func themeParameters(_ theme: AnalyticsTheme) -> [String: Any] {
+        switch theme {
+        case let .catalog(id) where !id.isEmpty:
+            return ["theme_source": "catalog", "theme_id": id]
+        case .catalog, .unknown:
             return ["theme_source": "unknown"]
-        }
-        if themeID.hasPrefix("ai-") {
+        case .ai:
             return ["theme_source": "ai"]
         }
-        return ["theme_source": "catalog", "theme_id": themeID]
     }
 
     private static func percentage(correct: Int, total: Int) -> Int {

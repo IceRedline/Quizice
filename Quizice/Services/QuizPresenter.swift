@@ -12,7 +12,7 @@ final class QuizPresenter: QuizPresenterProtocol {
 
     weak var view: QuizViewControllerProtocol?
 
-    init(session: QuizSessionManaging = QuizFactory.shared) {
+    init(session: QuizSessionManaging = QuizSessionStore.shared) {
         self.session = session
     }
 

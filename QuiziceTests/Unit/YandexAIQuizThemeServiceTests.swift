@@ -65,6 +65,7 @@ final class YandexAIQuizThemeServiceTests: XCTestCase {
         ))
 
         XCTAssertTrue(theme.id.hasPrefix("ai-"))
+        XCTAssertEqual(theme.source, .ai)
         XCTAssertNotNil(UUID(uuidString: String(theme.id.dropFirst(3))))
         XCTAssertEqual(theme.theme, "Море")
         XCTAssertEqual(theme.themeDescription, "Описание морской викторины")

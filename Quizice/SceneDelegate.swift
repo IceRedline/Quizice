@@ -87,7 +87,7 @@ final class QuizFlowCoordinator: NSObject, QuizRouting, UIViewControllerTransiti
         window: UIWindow,
         navigationController: UINavigationController = UINavigationController(),
         themeRepository: ThemeRepository = QuizFactory.shared,
-        session: QuizSessionManaging = QuizFactory.shared,
+        session: QuizSessionManaging = QuizSessionStore.shared,
         aiQuizThemeService: AIQuizThemeServiceProtocol? = nil,
         analytics: AnalyticsTracking = AppMetricaAnalyticsTracker.shared
     ) {
@@ -150,17 +150,21 @@ final class QuizFlowCoordinator: NSObject, QuizRouting, UIViewControllerTransiti
     func showAIThemeCreation() {
         AppLog.quiz.debug("Opening AI quiz theme creation sheet")
         let viewControllerReference = WeakViewControllerReference()
-        let rootView = QuizAIThemeCreationView(service: aiQuizThemeService, analytics: analytics) { [weak self, viewControllerReference] theme in
-            guard let viewController = viewControllerReference.viewController else {
-                AppLog.quiz.error("AI quiz result could not be handled: creation sheet reference is missing")
-                self?.analytics.reportOperationalError(
-                    AnalyticsOperationalIssue.missingAIViewController,
-                    context: .aiResultHandling
-                )
-                return
+        let rootView = QuizAIThemeCreationView(
+            service: aiQuizThemeService,
+            analytics: analytics,
+            onGenerated: { [weak self, viewControllerReference] theme in
+                guard let viewController = viewControllerReference.viewController else {
+                    AppLog.quiz.error("AI quiz result could not be handled: creation sheet reference is missing")
+                    self?.analytics.reportOperationalError(
+                        AnalyticsOperationalIssue.missingAIViewController,
+                        context: .aiResultHandling
+                    )
+                    return
+                }
+                self?.handleGeneratedAITheme(theme, dismissing: viewController)
             }
-            self?.handleGeneratedAITheme(theme, dismissing: viewController)
-        }
+        )
         let viewController = UIHostingController(rootView: rootView)
         viewControllerReference.viewController = viewController
         viewController.modalPresentationStyle = .pageSheet
@@ -175,7 +179,7 @@ final class QuizFlowCoordinator: NSObject, QuizRouting, UIViewControllerTransiti
         AppLog.quiz.info("AI quiz result accepted: questions=\(theme.questions.count, privacy: .public)")
         session.chosenTheme = ThemeModel(quizTheme: theme)
         session.questionsCount = theme.questions.count
-        analytics.track(.themeSelected(themeID: theme.stableID, method: .ai))
+        analytics.track(.themeSelected(theme: .ai, method: .ai))
         viewController.dismiss(animated: true) { [weak self] in
             self?.showDescription()
         }

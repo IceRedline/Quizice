@@ -59,23 +59,17 @@ struct QuizSettingsView: View {
 
         var title: String {
             switch self {
-            case .classic:
-                return L10n.Settings.Icon.classic
-            case .dark:
-                return L10n.Settings.Icon.dark
-            case .ice:
-                return L10n.Settings.Icon.ice
+            case .classic: return L10n.Settings.Icon.classic
+            case .dark: return L10n.Settings.Icon.dark
+            case .ice: return L10n.Settings.Icon.ice
             }
         }
 
         var systemImage: String {
             switch self {
-            case .classic:
-                return "sparkles"
-            case .dark:
-                return "moon.stars.fill"
-            case .ice:
-                return "snowflake"
+            case .classic: return "sparkles"
+            case .dark: return "moon.stars.fill"
+            case .ice: return "snowflake"
             }
         }
     }
@@ -87,34 +81,25 @@ struct QuizSettingsView: View {
 
         var id: String {
             switch self {
-            case let .restart(title):
-                return "restart-\(title)"
-            case .profile:
-                return "profile"
-            case .feedback:
-                return "feedback"
+            case let .restart(title): return "restart-\(title)"
+            case .profile: return "profile"
+            case .feedback: return "feedback"
             }
         }
 
         var title: String {
             switch self {
-            case .restart:
-                return L10n.Settings.restartRequiredTitle
-            case .profile:
-                return L10n.Settings.profile
-            case .feedback:
-                return L10n.Settings.feedback
+            case .restart: return L10n.Settings.restartRequiredTitle
+            case .profile: return L10n.Settings.profile
+            case .feedback: return L10n.Settings.feedback
             }
         }
 
         var message: String {
             switch self {
-            case let .restart(title):
-                return L10n.Settings.restartRequiredMessage(selection: title)
-            case .profile:
-                return L10n.Settings.profileUnavailableMessage
-            case .feedback:
-                return L10n.Settings.feedbackUnavailableMessage
+            case let .restart(title): return L10n.Settings.restartRequiredMessage(selection: title)
+            case .profile: return L10n.Settings.profileUnavailableMessage
+            case .feedback: return L10n.Settings.feedbackUnavailableMessage
             }
         }
     }
@@ -269,7 +254,7 @@ struct QuizSettingsView: View {
                         let oldValue = selectedDesignStyleID
                         selectedDesignStyleID = designStyle.rawValue
                         AppAppearanceStore.shared.notifyChange()
-                        trackSettingChange(setting: "design", oldValue: oldValue, newValue: designStyle.rawValue)
+                        trackSettingChange(setting: .design, oldValue: oldValue, newValue: designStyle.rawValue)
                     }
                     .disabled(!designStyle.isSelectable)
                 }
@@ -291,7 +276,7 @@ struct QuizSettingsView: View {
                     Button(language.title) {
                         let oldValue = selectedLanguageID
                         AppLocalizationStore.shared.languagePreference = language
-                        trackSettingChange(setting: "language", oldValue: oldValue, newValue: language.rawValue)
+                        trackSettingChange(setting: .language, oldValue: oldValue, newValue: language.rawValue)
                     }
                 }
             } label: {
@@ -314,7 +299,7 @@ struct QuizSettingsView: View {
                             let oldValue = selectedThemeID
                             selectedThemeID = theme.rawValue
                             AppAppearanceStore.shared.notifyChange()
-                            trackSettingChange(setting: "theme", oldValue: oldValue, newValue: theme.rawValue)
+                            trackSettingChange(setting: .theme, oldValue: oldValue, newValue: theme.rawValue)
                         }
                     }
                 } label: {
@@ -349,7 +334,7 @@ struct QuizSettingsView: View {
                         ) {
                             let oldValue = selectedIconID
                             selectedIconID = icon.rawValue
-                            trackSettingChange(setting: "icon", oldValue: oldValue, newValue: icon.rawValue)
+                            trackSettingChange(setting: .icon, oldValue: oldValue, newValue: icon.rawValue)
                             activeAlert = .restart(icon.title)
                         }
                     }
@@ -371,7 +356,7 @@ struct QuizSettingsView: View {
         }
     }
 
-    private func trackSettingChange(setting: String, oldValue: String, newValue: String) {
+    private func trackSettingChange(setting: AnalyticsSetting, oldValue: String, newValue: String) {
         guard oldValue != newValue else { return }
         analytics.track(.settingChanged(setting: setting, oldValue: oldValue, newValue: newValue))
     }

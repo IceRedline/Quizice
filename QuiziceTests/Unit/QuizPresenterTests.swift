@@ -88,6 +88,7 @@ final class QuizPresenterTests: XCTestCase {
         session.chosenTheme = ThemeModel(quizTheme: SnapshotSupport.makeTheme(
             id: "ai-generated",
             name: "Generated",
+            source: .ai,
             questions: makeQuestions(count: 10)
         ))
         session.questionsCount = 10

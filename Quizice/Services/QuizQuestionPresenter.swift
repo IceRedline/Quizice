@@ -11,10 +11,12 @@ final class QuizQuestionPresenter: QuizQuestionPresenterProtocol {
     private let session: QuizSessionManaging
     private let statisticsStore: StatisticsStore
     private let analytics: AnalyticsTracking
+    private let timerClient: QuizTimerClient
+    private let randomizer: QuizQuestionRandomizer
     
     weak var view: QuizQuestionViewControllerProtocol?
     
-    private var timer: Timer?
+    private var timerCancellation: QuizTimerCancellation?
     private var remainingTime: TimeInterval = 20
     private let totalTime: TimeInterval = 20
     private let tickInterval: TimeInterval = 0.02
@@ -27,18 +29,26 @@ final class QuizQuestionPresenter: QuizQuestionPresenterProtocol {
     var currentProgress: Float = 0.2
     private var hasRecordedCompletedAttempt = false
     private var currentAnswerOptions: [QuizAnswerOption] = []
+    private var questionPhase: QuestionPhase = .unavailable
     var themeID: String? {
         session.chosenTheme?.themeID
     }
+    var analyticsTheme: AnalyticsTheme {
+        session.chosenTheme?.analyticsTheme ?? .unknown
+    }
     
     init(
-        session: QuizSessionManaging = QuizFactory.shared,
+        session: QuizSessionManaging = QuizSessionStore.shared,
         statisticsStore: StatisticsStore = StatisticsStore(),
-        analytics: AnalyticsTracking = AppMetricaAnalyticsTracker.shared
+        analytics: AnalyticsTracking = AppMetricaAnalyticsTracker.shared,
+        timerClient: QuizTimerClient = .live,
+        randomizer: QuizQuestionRandomizer = .live
     ) {
         self.session = session
         self.statisticsStore = statisticsStore
         self.analytics = analytics
+        self.timerClient = timerClient
+        self.randomizer = randomizer
     }
     
     func viewDidLoad() {
@@ -50,7 +60,7 @@ final class QuizQuestionPresenter: QuizQuestionPresenterProtocol {
     // MARK: - Timer methods
     
     func startTimer() {
-        guard hasActiveQuestion else {
+        guard hasActiveQuestion, questionPhase == .awaitingAnswer else {
             stopTimer()
             view?.updateProgress(0)
             return
@@ -64,17 +74,17 @@ final class QuizQuestionPresenter: QuizQuestionPresenterProtocol {
     }
 
     func pauseTimer() {
-        timer?.invalidate()
-        timer = nil
+        timerCancellation?.cancel()
+        timerCancellation = nil
     }
 
     func resumeTimer() {
-        guard timer == nil, hasActiveQuestion, remainingTime > 0 else { return }
+        guard timerCancellation == nil, hasActiveQuestion, questionPhase == .awaitingAnswer, remainingTime > 0 else { return }
         scheduleTimer()
     }
 
     private func scheduleTimer() {
-        timer = Timer.scheduledTimer(withTimeInterval: tickInterval, repeats: true) { [weak self] _ in
+        timerCancellation = timerClient.scheduleRepeating(tickInterval) { [weak self] in
             guard let self = self else { return }
             
             self.remainingTime -= self.tickInterval
@@ -89,14 +99,15 @@ final class QuizQuestionPresenter: QuizQuestionPresenterProtocol {
     }
     
     func timeExpired() {
+        guard beginAnswering() else { return }
         trackAnswer(outcome: .timeout)
         view?.showTimeExpired()
         updateQuizState(isCorrect: false)
     }
     
     func stopTimer() {
-        timer?.invalidate()
-        timer = nil
+        timerCancellation?.cancel()
+        timerCancellation = nil
     }
     
     // MARK: - Methods
@@ -124,12 +135,13 @@ final class QuizQuestionPresenter: QuizQuestionPresenterProtocol {
         let requestedCount = session.questionsCount > 0 ? session.questionsCount : usableQuestions.count
         let clampedCount = min(requestedCount, usableQuestions.count)
         questionsTotalCount = max(clampedCount, 1)
-        chosenThemeQuestionsArray = Array(usableQuestions.shuffled().prefix(questionsTotalCount ?? usableQuestions.count))
+        chosenThemeQuestionsArray = Array(randomizer.questions(usableQuestions).prefix(questionsTotalCount ?? usableQuestions.count))
         AppLog.quiz.debug("Loaded questions: \(self.chosenThemeQuestionsArray.count)")
     }
     
     func loadQuestion() {
         guard hasActiveQuestion else {
+            questionPhase = .unavailable
             currentQuestion = nil
             currentAnswerOptions = []
             stopTimer()
@@ -140,6 +152,7 @@ final class QuizQuestionPresenter: QuizQuestionPresenterProtocol {
         
         let question = chosenThemeQuestionsArray[currentQuestionIndex]
         currentQuestion = question
+        questionPhase = .awaitingAnswer
         
         let themeName = session.chosenTheme?.themeName ?? L10n.Question.fallbackTheme
         currentAnswerOptions = makeAnswerOptions(for: question)
@@ -155,7 +168,7 @@ final class QuizQuestionPresenter: QuizQuestionPresenterProtocol {
         )
     }
     
-    func updateQuizState(isCorrect: Bool) {
+    private func updateQuizState(isCorrect: Bool) {
         guard hasActiveQuestion else { return }
         
         if isCorrect {
@@ -179,7 +192,7 @@ final class QuizQuestionPresenter: QuizQuestionPresenterProtocol {
     }
     
     func checkAnswer(optionID: String) {
-        guard hasActiveQuestion else { return }
+        guard beginAnswering() else { return }
         
         let isCorrect = isCorrectAnswer(optionID: optionID)
         trackAnswer(outcome: isCorrect ? .correct : .incorrect)
@@ -189,13 +202,11 @@ final class QuizQuestionPresenter: QuizQuestionPresenterProtocol {
     
     func checkQuestionNumberAndProceed() {
         stopTimer()
-        
-        guard let questionsTotalCount, questionsTotalCount > 0 else {
-            loadQuestion()
-            return
-        }
+        guard questionPhase == .answered else { return }
+        guard let questionsTotalCount, questionsTotalCount > 0 else { return }
         
         if currentQuestionIndex >= questionsTotalCount {
+            questionPhase = .completed
             recordCompletedAttemptIfNeeded(totalQuestions: questionsTotalCount)
             view?.showResults(QuizResultState(correctAnswers: correctAnswers, totalQuestions: questionsTotalCount))
         } else {
@@ -214,6 +225,7 @@ final class QuizQuestionPresenter: QuizQuestionPresenterProtocol {
         correctAnswers = 0
         currentProgress = 0.2
         hasRecordedCompletedAttempt = false
+        questionPhase = .unavailable
     }
     
     private func recordCompletedAttemptIfNeeded(totalQuestions: Int) {
@@ -222,7 +234,7 @@ final class QuizQuestionPresenter: QuizQuestionPresenterProtocol {
         statisticsStore.recordAttempt(correctAnswers: correctAnswers, totalQuestions: totalQuestions)
         analytics.track(
             .quizCompleted(
-                themeID: themeID,
+                theme: analyticsTheme,
                 correctAnswers: correctAnswers,
                 totalQuestions: totalQuestions
             )
@@ -231,7 +243,7 @@ final class QuizQuestionPresenter: QuizQuestionPresenterProtocol {
 
     var analyticsProgress: AnalyticsQuizProgress {
         AnalyticsQuizProgress(
-            themeID: themeID,
+            theme: analyticsTheme,
             answeredQuestions: currentQuestionIndex,
             totalQuestions: questionsTotalCount ?? 0,
             correctAnswers: correctAnswers
@@ -242,12 +254,19 @@ final class QuizQuestionPresenter: QuizQuestionPresenterProtocol {
         guard let questionsTotalCount, questionsTotalCount > 0 else { return }
         analytics.track(
             .quizAnswered(
-                themeID: themeID,
+                theme: analyticsTheme,
                 questionIndex: currentQuestionIndex + 1,
                 totalQuestions: questionsTotalCount,
                 outcome: outcome
             )
         )
+    }
+
+    private func beginAnswering() -> Bool {
+        guard hasActiveQuestion, questionPhase == .awaitingAnswer else { return false }
+        questionPhase = .answered
+        stopTimer()
+        return true
     }
     
     private var hasActiveQuestion: Bool {
@@ -260,11 +279,11 @@ final class QuizQuestionPresenter: QuizQuestionPresenterProtocol {
     }
     
     private func makeAnswerOptions(for question: QuestionModel) -> [QuizAnswerOption] {
-        var selectedAnswers = Array(question.answers.shuffled().prefix(4))
+        var selectedAnswers = Array(randomizer.answers(question.answers).prefix(4))
         if !selectedAnswers.contains(question.correctAnswer), question.answers.contains(question.correctAnswer), !selectedAnswers.isEmpty {
             selectedAnswers.removeLast()
             selectedAnswers.append(question.correctAnswer)
-            selectedAnswers.shuffle()
+            selectedAnswers = randomizer.answers(selectedAnswers)
         }
         return selectedAnswers.enumerated().map { index, answer in
             QuizAnswerOption(id: "\(currentQuestionIndex)-\(index)-\(answer.hashValue)", title: answer)
@@ -277,4 +296,34 @@ final class QuizQuestionPresenter: QuizQuestionPresenterProtocol {
         let matches = currentAnswerOptions.filter { $0.title == correctAnswer }
         return matches.count == 1 ? matches[0].id : nil
     }
+}
+
+private enum QuestionPhase {
+    case unavailable
+    case awaitingAnswer
+    case answered
+    case completed
+}
+
+struct QuizTimerCancellation {
+    let cancel: () -> Void
+}
+
+struct QuizTimerClient {
+    var scheduleRepeating: (_ interval: TimeInterval, _ tick: @escaping () -> Void) -> QuizTimerCancellation
+
+    static let live = Self { interval, tick in
+        let timer = Timer.scheduledTimer(withTimeInterval: interval, repeats: true) { _ in tick() }
+        return QuizTimerCancellation { timer.invalidate() }
+    }
+}
+
+struct QuizQuestionRandomizer {
+    var questions: ([QuestionModel]) -> [QuestionModel]
+    var answers: ([String]) -> [String]
+
+    static let live = Self(
+        questions: { $0.shuffled() },
+        answers: { $0.shuffled() }
+    )
 }

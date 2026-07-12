@@ -18,6 +18,9 @@ final class QuizDescriptionPresenter: QuizDescriptionPresenterProtocol {
     var themeID: String? {
         session.chosenTheme?.themeID
     }
+    var analyticsTheme: AnalyticsTheme {
+        session.chosenTheme?.analyticsTheme ?? .unknown
+    }
     var selectedQuestionCount: Int { session.questionsCount }
     var selectedQuestionCountRow: Int? {
         numberOfQuestionsOptions.firstIndex(of: selectedQuestionCount)
@@ -26,7 +29,7 @@ final class QuizDescriptionPresenter: QuizDescriptionPresenterProtocol {
         !(session.chosenTheme?.isAIGenerated ?? false)
     }
     
-    init(session: QuizSessionManaging = QuizFactory.shared, content: QuizDescriptionContent? = nil) {
+    init(session: QuizSessionManaging = QuizSessionStore.shared, content: QuizDescriptionContent? = nil) {
         self.session = session
         if let content {
             self.themeName = content.themeName
