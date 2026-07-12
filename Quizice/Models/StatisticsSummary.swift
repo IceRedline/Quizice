@@ -7,7 +7,7 @@
 
 import Foundation
 
-struct StatisticsSummary: Equatable {
+struct StatisticsSummary: Codable, Equatable {
     let playedQuizzes: Int
     let correctAnswers: Int
     let totalQuestions: Int
