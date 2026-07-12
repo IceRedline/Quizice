@@ -5,6 +5,7 @@ struct QuizAIThemeCreationView: View {
         static let rootView = "aiThemeRootView"
         static let promptEditor = "aiThemePromptEditor"
         static let submitButton = "aiThemeSubmitButton"
+        static let keyboardDoneButton = "aiThemeKeyboardDoneButton"
     }
 
     private enum Layout {
@@ -35,6 +36,7 @@ struct QuizAIThemeCreationView: View {
     @State private var isSubmitting = false
     @State private var isShowingError = false
     @State private var submitTask: Task<Void, Never>?
+    @FocusState private var isPromptFocused: Bool
 
     private let service: AIQuizThemeServiceProtocol
     private let onGenerated: (QuizTheme) -> Void
@@ -107,6 +109,16 @@ struct QuizAIThemeCreationView: View {
         .tint(Color(uiColor: appearance.screenTextColor))
         .ignoresSafeArea(.container, edges: .top)
         .ignoresSafeArea(.keyboard, edges: .bottom)
+        .toolbar {
+            ToolbarItemGroup(placement: .keyboard) {
+                Spacer()
+
+                Button(L10n.Settings.done) {
+                    isPromptFocused = false
+                }
+                .accessibilityIdentifier(AccessibilityID.keyboardDoneButton)
+            }
+        }
         .alert(L10n.AITheme.errorTitle, isPresented: $isShowingError) {
             Button(L10n.Settings.alertAction, role: .cancel) {}
         } message: {
@@ -188,6 +200,7 @@ struct QuizAIThemeCreationView: View {
                     .font(appearance.typography.swiftUIFont(size: 17, weight: .regular))
                     .foregroundStyle(Color(uiColor: appearance.surfaceTextColor))
                     .scrollContentBackground(.hidden)
+                    .focused($isPromptFocused)
                     .padding(Layout.editorPadding)
                     .frame(height: Layout.editorMinHeight)
                     .background(
@@ -277,6 +290,7 @@ struct QuizAIThemeCreationView: View {
             return
         }
 
+        isPromptFocused = false
         isSubmitting = true
         isShowingError = false
         let locale = selectedLocale
