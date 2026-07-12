@@ -670,7 +670,8 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				APPMETRICA_API_KEY = YOUR_APPMETRICA_API_KEY;
-				BACKEND_BASE_URL = "https://api.quizice.app/api";
+				/* TODO(BACKEND_DEPLOYMENT): Replace with the temporary Yandex Cloud URL, then https://api.quizice.tabenskii.com/api. */
+				BACKEND_BASE_URL = "";
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
@@ -705,7 +706,8 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				APPMETRICA_API_KEY = "f86ee459-cc9e-4cbf-82cc-a3b614e80da7";
-				BACKEND_BASE_URL = "https://api.quizice.app/api";
+				/* TODO(BACKEND_DEPLOYMENT): Replace with the temporary Yandex Cloud URL, then https://api.quizice.tabenskii.com/api. */
+				BACKEND_BASE_URL = "";
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;

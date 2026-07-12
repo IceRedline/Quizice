@@ -182,6 +182,37 @@ final class StatisticsStoreTests: XCTestCase {
         XCTAssertEqual(harness.store.loadSummary().correctAnswers, 6)
     }
 
+    func testRejectedLegacySummaryIsTerminalAndDoesNotRemainPending() throws {
+        let harness = makeHarness()
+        let legacyJSON: [String: Int] = [
+            "playedQuizzes": 3,
+            "correctAnswers": 9,
+            "totalQuestions": 15,
+            "bestCorrectAnswers": 4,
+            "bestTotalQuestions": 5
+        ]
+        harness.defaults.set(
+            try JSONSerialization.data(withJSONObject: legacyJSON),
+            forKey: harness.key
+        )
+        _ = harness.store.loadSummary()
+        harness.store.activateAuthenticatedUser("user-1")
+        XCTAssertNotNil(harness.store.makeSyncRequest(for: "user-1").legacySummary)
+
+        harness.store.applySyncResponse(
+            StatisticsStore.SyncResponse(
+                summary: .empty,
+                acceptedAttemptIds: [],
+                legacySummaryAccepted: false
+            ),
+            for: "user-1"
+        )
+
+        XCTAssertNil(harness.store.makeSyncRequest(for: "user-1").legacySummary)
+        XCTAssertFalse(harness.store.hasPendingSync(for: "user-1"))
+        XCTAssertEqual(harness.store.loadSummary(), .empty)
+    }
+
     private func makeHarness(
         file: StaticString = #filePath,
         line: UInt = #line
