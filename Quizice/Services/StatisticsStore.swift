@@ -179,9 +179,10 @@ final class StatisticsStore {
         let acceptedIDs = Set(response.acceptedAttemptIds)
         state.baseline = response.summary
         state.pendingAttempts.removeAll { acceptedIDs.contains($0.id) }
-        if response.legacySummaryAccepted {
-            state.legacySummary = nil
-        }
+        // A successful response makes the legacy migration terminal. `false` means the
+        // server rejected it permanently (for example, another migration already won),
+        // so retaining it would create an endless retry loop.
+        state.legacySummary = nil
         save(state: state, for: userID)
     }
 
