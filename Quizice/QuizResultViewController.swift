@@ -96,7 +96,7 @@ final class QuizResultViewController: BaseQuizViewController, QuizResultViewCont
 
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
-        analytics.track(.screenView(screen: .quizResult, themeID: presenter?.themeID))
+        analytics.track(.screenView(screen: .quizResult, theme: presenter?.analyticsTheme ?? .unknown))
     }
 
     func configurePresenter(_ presenter: QuizResultPresenterProtocol) {
@@ -281,12 +281,12 @@ final class QuizResultViewController: BaseQuizViewController, QuizResultViewCont
     }
 
     @objc private func replayButtonTapped() {
-        analytics.track(.quizResultAction(themeID: presenter?.themeID, action: .replay))
+        analytics.track(.quizResultAction(theme: presenter?.analyticsTheme ?? .unknown, action: .replay))
         router?.replayQuiz()
     }
 
     @objc private func themesButtonTapped() {
-        analytics.track(.quizResultAction(themeID: presenter?.themeID, action: .themes))
+        analytics.track(.quizResultAction(theme: presenter?.analyticsTheme ?? .unknown, action: .themes))
         router?.returnToThemes()
     }
 
