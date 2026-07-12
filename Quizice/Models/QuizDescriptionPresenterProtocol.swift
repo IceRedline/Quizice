@@ -10,8 +10,12 @@ import Foundation
 protocol QuizDescriptionPresenterProtocol {
     var view: QuizDescriptionViewControllerProtocol? { get set }
     var themeID: String? { get }
+    var analyticsTheme: AnalyticsTheme { get }
     var themeName: String { get set }
     var themeDescription: String { get set }
+    var selectedQuestionCount: Int { get }
+    var selectedQuestionCountRow: Int? { get }
+    var isQuestionCountSelectionEnabled: Bool { get }
     
     func viewDidLoad()
     var numberOfQuestionsOptionCount: Int { get }
@@ -21,4 +25,8 @@ protocol QuizDescriptionPresenterProtocol {
 
 extension QuizDescriptionPresenterProtocol {
     var themeID: String? { nil }
+    var analyticsTheme: AnalyticsTheme { .unknown }
+    var selectedQuestionCount: Int { 0 }
+    var selectedQuestionCountRow: Int? { nil }
+    var isQuestionCountSelectionEnabled: Bool { true }
 }

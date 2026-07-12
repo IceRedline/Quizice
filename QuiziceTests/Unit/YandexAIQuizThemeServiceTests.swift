@@ -47,21 +47,25 @@ final class YandexAIQuizThemeServiceTests: XCTestCase {
             let inputString = try XCTUnwrap(body["input"] as? String)
             let inputData = try XCTUnwrap(inputString.data(using: .utf8))
             let input = try XCTUnwrap(
-                JSONSerialization.jsonObject(with: inputData) as? [String: String]
+                JSONSerialization.jsonObject(with: inputData) as? [String: Any]
             )
-            XCTAssertEqual(input["theme"], expectedTheme)
-            XCTAssertEqual(input["locale"], "ru")
+            XCTAssertEqual(input["theme"] as? String, expectedTheme)
+            XCTAssertEqual(input["locale"] as? String, "ru")
+            XCTAssertEqual(input["questionCount"] as? Int, 5)
+            XCTAssertEqual(input["difficulty"] as? String, "hard")
 
             return (Self.httpResponse(for: request), responseData)
         }
 
         let service = YandexAIQuizThemeService(apiKey: "  test-api-key\n", session: session)
-        let theme = try await service.generateQuizTheme(
-            for: "  \(expectedTheme)  ",
-            locale: Locale(identifier: "ru_RU")
-        )
+        let theme = try await service.generateQuizTheme(configuration: configuration(
+            theme: "  \(expectedTheme)  ",
+            locale: Locale(identifier: "ru_RU"),
+            difficulty: .hard
+        ))
 
         XCTAssertTrue(theme.id.hasPrefix("ai-"))
+        XCTAssertEqual(theme.source, .ai)
         XCTAssertNotNil(UUID(uuidString: String(theme.id.dropFirst(3))))
         XCTAssertEqual(theme.theme, "Море")
         XCTAssertEqual(theme.themeDescription, "Описание морской викторины")
@@ -78,13 +82,13 @@ final class YandexAIQuizThemeServiceTests: XCTestCase {
             let body = try XCTUnwrap(JSONSerialization.jsonObject(with: bodyData) as? [String: Any])
             let inputString = try XCTUnwrap(body["input"] as? String)
             let inputData = try XCTUnwrap(inputString.data(using: .utf8))
-            let input = try XCTUnwrap(JSONSerialization.jsonObject(with: inputData) as? [String: String])
-            XCTAssertEqual(input["locale"], "en")
+            let input = try XCTUnwrap(JSONSerialization.jsonObject(with: inputData) as? [String: Any])
+            XCTAssertEqual(input["locale"] as? String, "en")
             return (Self.httpResponse(for: request), responseData)
         }
 
         let service = makeService()
-        _ = try await service.generateQuizTheme(for: "Ocean", locale: Locale(identifier: "ja_JP"))
+        _ = try await service.generateQuizTheme(configuration: configuration(locale: Locale(identifier: "ja_JP")))
     }
 
     func testSupportedRegionalLocalesUseTheirTwoLetterLanguageCode() async throws {
@@ -96,15 +100,40 @@ final class YandexAIQuizThemeServiceTests: XCTestCase {
                 let body = try XCTUnwrap(JSONSerialization.jsonObject(with: bodyData) as? [String: Any])
                 let inputString = try XCTUnwrap(body["input"] as? String)
                 let inputData = try XCTUnwrap(inputString.data(using: .utf8))
-                let input = try XCTUnwrap(JSONSerialization.jsonObject(with: inputData) as? [String: String])
-                XCTAssertEqual(input["locale"], expectedLanguageCode)
+                let input = try XCTUnwrap(JSONSerialization.jsonObject(with: inputData) as? [String: Any])
+                XCTAssertEqual(input["locale"] as? String, expectedLanguageCode)
                 return (Self.httpResponse(for: request), responseData)
             }
 
             _ = try await makeService().generateQuizTheme(
-                for: "Ocean",
-                locale: Locale(identifier: localeIdentifier)
+                configuration: configuration(locale: Locale(identifier: localeIdentifier))
             )
+        }
+    }
+
+    func testAllSupportedCountsAndDifficultiesUseTheWireContract() async throws {
+        let cases: [(Int, AIQuizDifficulty)] = [(5, .easy), (10, .medium), (15, .hard)]
+
+        for (questionCount, difficulty) in cases {
+            let responseData = try makeCompletedResponse(
+                quiz: makeQuizPayload(questionCount: questionCount)
+            )
+            YandexAIURLProtocolStub.requestHandler = { request in
+                let bodyData = try Self.bodyData(for: request)
+                let body = try XCTUnwrap(JSONSerialization.jsonObject(with: bodyData) as? [String: Any])
+                let inputString = try XCTUnwrap(body["input"] as? String)
+                let inputData = try XCTUnwrap(inputString.data(using: .utf8))
+                let input = try XCTUnwrap(JSONSerialization.jsonObject(with: inputData) as? [String: Any])
+                XCTAssertEqual(input["questionCount"] as? Int, questionCount)
+                XCTAssertEqual(input["difficulty"] as? String, difficulty.rawValue)
+                return (Self.httpResponse(for: request), responseData)
+            }
+
+            let theme = try await makeService().generateQuizTheme(
+                configuration: configuration(questionCount: questionCount, difficulty: difficulty)
+            )
+
+            XCTAssertEqual(theme.questions.count, questionCount)
         }
     }
 
@@ -116,7 +145,7 @@ final class YandexAIQuizThemeServiceTests: XCTestCase {
 
         await assertServiceError(.missingAPIKey) {
             _ = try await YandexAIQuizThemeService(apiKey: " \n", session: self.session)
-                .generateQuizTheme(for: "Ocean", locale: Locale(identifier: "en"))
+                .generateQuizTheme(configuration: self.configuration())
         }
     }
 
@@ -128,7 +157,7 @@ final class YandexAIQuizThemeServiceTests: XCTestCase {
 
         await assertServiceError(.emptyPrompt) {
             _ = try await self.makeService()
-                .generateQuizTheme(for: " \n", locale: Locale(identifier: "en"))
+                .generateQuizTheme(configuration: self.configuration(theme: " \n"))
         }
     }
 
@@ -185,13 +214,45 @@ final class YandexAIQuizThemeServiceTests: XCTestCase {
         }
     }
 
-    func testMissingOutputTextIsRejected() async throws {
+    func testPlatformRefusalIsReportedWithoutExposingItsText() async throws {
         let responseData = try JSONSerialization.data(withJSONObject: [
             "status": "completed",
             "output": [[
                 "type": "message",
                 "content": [["type": "refusal", "text": "No"]]
             ]]
+        ])
+        YandexAIURLProtocolStub.requestHandler = { request in
+            (Self.httpResponse(for: request), responseData)
+        }
+
+        await assertServiceError(.refused) {
+            _ = try await self.generate()
+        }
+    }
+
+    func testStructuredRefusalIsReported() async throws {
+        let responseData = try makeCompletedResponse(quiz: [
+            "status": "refused",
+            "message": "Sensitive model detail",
+            "theme": "",
+            "themeDescription": "",
+            "questions": []
+        ])
+
+        YandexAIURLProtocolStub.requestHandler = { request in
+            (Self.httpResponse(for: request), responseData)
+        }
+
+        await assertServiceError(.refused) {
+            _ = try await self.generate()
+        }
+    }
+
+    func testMissingOutputTextIsRejected() async throws {
+        let responseData = try JSONSerialization.data(withJSONObject: [
+            "status": "completed",
+            "output": [["type": "message", "content": []]]
         ])
         YandexAIURLProtocolStub.requestHandler = { request in
             (Self.httpResponse(for: request), responseData)
@@ -251,9 +312,22 @@ final class YandexAIQuizThemeServiceTests: XCTestCase {
         quiz["questions"] = Array(makeQuestionPayloads().prefix(4))
 
         await assertContractError(
-            .invalidQuestionCount(actual: 4),
+            .invalidQuestionCount(expected: 5, actual: 4),
             responseData: try makeCompletedResponse(quiz: quiz)
         )
+    }
+
+    func testResponseMustContainTheRequestedQuestionCount() async throws {
+        let responseData = try makeCompletedResponse(quiz: makeQuizPayload(questionCount: 10))
+        YandexAIURLProtocolStub.requestHandler = { request in
+            (Self.httpResponse(for: request), responseData)
+        }
+
+        let theme = try await makeService().generateQuizTheme(
+            configuration: configuration(questionCount: 10, difficulty: .easy)
+        )
+
+        XCTAssertEqual(theme.questions.count, 10)
     }
 
     func testQuestionMustContainExactlyFourAnswers() async throws {
@@ -380,12 +454,39 @@ final class YandexAIQuizThemeServiceTests: XCTestCase {
         }
     }
 
+    func testUserFacingErrorsAreClassifiedWithoutServiceText() {
+        XCTAssertEqual(AIQuizGenerationAlert(error: YandexAIQuizThemeServiceError.refused).kind, .refusal)
+        XCTAssertEqual(
+            AIQuizGenerationAlert(error: YandexAIQuizThemeServiceError.network(.notConnectedToInternet)).kind,
+            .network
+        )
+        XCTAssertEqual(AIQuizGenerationAlert(error: YandexAIQuizThemeServiceError.httpStatus(429)).kind, .service)
+        XCTAssertEqual(AIQuizGenerationAlert(error: YandexAIQuizThemeServiceError.httpStatus(503)).kind, .service)
+        XCTAssertEqual(AIQuizGenerationAlert(error: YandexAIQuizThemeServiceError.invalidQuizJSON).kind, .invalidQuiz)
+        XCTAssertEqual(AIQuizGenerationAlert(error: YandexAIQuizThemeServiceError.missingAPIKey).kind, .unavailable)
+        XCTAssertFalse(AIQuizGenerationAlert(error: YandexAIQuizThemeServiceError.refused).message.contains("Yandex"))
+    }
+
     private func makeService(apiKey: String? = "test-api-key") -> YandexAIQuizThemeService {
         YandexAIQuizThemeService(apiKey: apiKey, session: session)
     }
 
     private func generate() async throws -> QuizTheme {
-        try await makeService().generateQuizTheme(for: "Ocean", locale: Locale(identifier: "en"))
+        try await makeService().generateQuizTheme(configuration: configuration())
+    }
+
+    private func configuration(
+        theme: String = "Ocean",
+        locale: Locale = Locale(identifier: "en"),
+        questionCount: Int = 5,
+        difficulty: AIQuizDifficulty = .medium
+    ) -> AIQuizGenerationConfiguration {
+        AIQuizGenerationConfiguration(
+            theme: theme,
+            questionCount: questionCount,
+            difficulty: difficulty,
+            locale: locale
+        )
     }
 
     private func assertServiceError(
@@ -445,15 +546,25 @@ final class YandexAIQuizThemeServiceTests: XCTestCase {
     }
 
     private func makeQuizPayload() -> [String: Any] {
+        makeQuizPayload(questionCount: 5)
+    }
+
+    private func makeQuizPayload(questionCount: Int) -> [String: Any] {
         [
+            "status": "success",
+            "message": "",
             "theme": "Море",
             "themeDescription": "Описание морской викторины",
-            "questions": makeQuestionPayloads()
+            "questions": makeQuestionPayloads(count: questionCount)
         ]
     }
 
     private func makeQuestionPayloads() -> [[String: Any]] {
-        (1...5).map { index in
+        makeQuestionPayloads(count: 5)
+    }
+
+    private func makeQuestionPayloads(count: Int) -> [[String: Any]] {
+        (1...count).map { index in
             [
                 "question": "Вопрос \(index)?",
                 "answers": ["Ответ \(index)A", "Ответ \(index)B", "Ответ \(index)C", "Ответ \(index)D"],

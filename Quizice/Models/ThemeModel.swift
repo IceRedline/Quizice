@@ -13,6 +13,14 @@ struct ThemeModel {
     var themeID: String {
         quizTheme.stableID
     }
+
+    var isAIGenerated: Bool {
+        quizTheme.source == .ai
+    }
+
+    var analyticsTheme: AnalyticsTheme {
+        isAIGenerated ? .ai : .catalog(id: themeID)
+    }
     
     var themeName: String {
         quizTheme.theme

@@ -15,7 +15,7 @@ final class ComponentSnapshotTests: XCTestCase {
     }
 
     func testPrimaryButtonsAcrossDesignStyles() {
-        for style in [AppDesignStyle.classic, .radar, .clean, .pixel] {
+        for style in AppDesignStyle.settingsOrder {
             let appearance = SnapshotSupport.appearance(designStyle: style)
             let button = SnapshotSupport.makeActionButton(
                 title: "Начать",
@@ -32,7 +32,7 @@ final class ComponentSnapshotTests: XCTestCase {
     }
 
     func testSecondaryButtonsAcrossDesignStyles() {
-        for style in [AppDesignStyle.classic, .radar, .clean, .pixel] {
+        for style in AppDesignStyle.settingsOrder {
             let appearance = SnapshotSupport.appearance(designStyle: style)
             let button = SnapshotSupport.makeActionButton(
                 title: "Назад",
