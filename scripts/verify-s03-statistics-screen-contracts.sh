@@ -136,7 +136,7 @@ require_fixed_string "$THEME_DELEGATE" 'func statisticsButtonTouchedUpInside(_ s
 require_fixed_string "$QUIZ_VIEW_CONTROLLER" 'func statisticsButtonTouchedUpInside(_ sender: UIButton)' 'Home view controller must implement the statistics callback'
 require_fixed_string "$QUIZ_VIEW_CONTROLLER" 'router?.showStatistics()' 'Home statistics callback must route statistics navigation through the coordinator'
 require_fixed_string "$SCENE_DELEGATE" 'func showStatistics()' 'Coordinator routing protocol must expose statistics navigation'
-require_fixed_string "$SCENE_DELEGATE" 'let viewController = StatisticsViewController()' 'Coordinator must instantiate the statistics screen'
+require_extended_regex "$SCENE_DELEGATE" 'let viewController = StatisticsViewController\(' 'Coordinator must instantiate the statistics screen'
 require_fixed_string "$SCENE_DELEGATE" 'viewController.router = self' 'Coordinator must inject routing into the statistics screen'
 require_fixed_string "$SCENE_DELEGATE" 'navigationController.pushViewController(viewController, animated: true)' 'Coordinator must push the statistics screen'
 

@@ -8,18 +8,35 @@
 import Foundation
 import SwiftData
 
+enum QuizThemeSource: String, Codable {
+    case catalog
+    case ai
+}
+
 @Model
 class QuizTheme {
     @Attribute(.unique) var id: String
     var theme: String
     var themeDescription: String
+    var sourceRawValue: String?
     @Relationship(deleteRule: .cascade) var questions: [QuizQuestion]
     
-    init(id: String, theme: String, themeDescription: String, questions: [QuizQuestion]) {
+    init(
+        id: String,
+        theme: String,
+        themeDescription: String,
+        questions: [QuizQuestion],
+        source: QuizThemeSource = .catalog
+    ) {
         self.id = id
         self.theme = theme
         self.themeDescription = themeDescription
+        self.sourceRawValue = source.rawValue
         self.questions = questions
+    }
+
+    var source: QuizThemeSource {
+        QuizThemeSource(rawValue: sourceRawValue ?? "") ?? .catalog
     }
 }
 

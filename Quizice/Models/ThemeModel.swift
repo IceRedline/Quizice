@@ -15,7 +15,11 @@ struct ThemeModel {
     }
 
     var isAIGenerated: Bool {
-        themeID.hasPrefix("ai-")
+        quizTheme.source == .ai
+    }
+
+    var analyticsTheme: AnalyticsTheme {
+        isAIGenerated ? .ai : .catalog(id: themeID)
     }
     
     var themeName: String {

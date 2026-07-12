@@ -81,7 +81,6 @@ final class QuizQuestionPresenterTests: XCTestCase {
 
         XCTAssertEqual(view.answerStateUpdates, [true])
         XCTAssertEqual(view.results, [
-            QuizResultState(correctAnswers: 1, totalQuestions: 1),
             QuizResultState(correctAnswers: 1, totalQuestions: 1)
         ])
         XCTAssertEqual(harness.store.loadSummary().playedQuizzes, 1)
@@ -144,28 +143,58 @@ final class QuizQuestionPresenterTests: XCTestCase {
             questions: [makeQuestion("Question?", correctAnswer: "A")]
         ))
         let view = QuestionPresenterViewSpy()
-        let presenter = QuizQuestionPresenter(session: session, statisticsStore: makeStatisticsHarness().store)
+        let clock = TestQuizTimerClient()
+        let presenter = QuizQuestionPresenter(
+            session: session,
+            statisticsStore: makeStatisticsHarness().store,
+            timerClient: clock.client
+        )
         presenter.view = view
         presenter.loadQuestions()
         presenter.loadQuestion()
 
         presenter.startTimer()
-        RunLoop.main.run(until: Date().addingTimeInterval(0.08))
+        clock.tick()
         let progressBeforePause = try XCTUnwrap(view.progressUpdates.last)
 
         presenter.pauseTimer()
         let pausedUpdateCount = view.progressUpdates.count
-        RunLoop.main.run(until: Date().addingTimeInterval(0.06))
+        clock.tick()
         XCTAssertEqual(view.progressUpdates.count, pausedUpdateCount)
 
         presenter.resumeTimer()
-        RunLoop.main.run(until: Date().addingTimeInterval(0.06))
+        clock.tick()
         presenter.stopTimer()
 
         XCTAssertGreaterThan(view.progressUpdates.count, pausedUpdateCount)
         let firstResumedProgress = view.progressUpdates[pausedUpdateCount]
         XCTAssertLessThan(firstResumedProgress, progressBeforePause)
         XCTAssertLessThan(firstResumedProgress, 1)
+    }
+
+    func testAnswerAndTimeoutRaceIsHandledExactlyOnce() throws {
+        let session = QuestionPresenterSession()
+        session.questionsCount = 1
+        session.chosenTheme = ThemeModel(quizTheme: SnapshotSupport.makeTheme(
+            id: "race",
+            name: "Race",
+            questions: [makeQuestion("Question?", correctAnswer: "A")]
+        ))
+        let view = QuestionPresenterViewSpy()
+        let presenter = QuizQuestionPresenter(session: session, statisticsStore: makeStatisticsHarness().store)
+        presenter.view = view
+        presenter.loadQuestions()
+        presenter.loadQuestion()
+        let option = try XCTUnwrap(view.loadedViewModels.first?.answers.first { $0.title == "A" })
+
+        presenter.checkAnswer(optionID: option.id)
+        presenter.timeExpired()
+        presenter.checkAnswer(optionID: option.id)
+        presenter.checkQuestionNumberAndProceed()
+
+        XCTAssertEqual(view.answerStateUpdates, [true])
+        XCTAssertEqual(view.timeExpiredCallCount, 0)
+        XCTAssertEqual(view.results, [QuizResultState(correctAnswers: 1, totalQuestions: 1)])
     }
 
     private func makeQuestion(_ text: String, correctAnswer: String) -> QuizQuestion {
@@ -178,6 +207,19 @@ final class QuizQuestionPresenterTests: XCTestCase {
         let defaults = UserDefaults(suiteName: suiteName)!
         defaults.removePersistentDomain(forName: suiteName)
         return (StatisticsStore(userDefaults: defaults, key: "attempts"), defaults)
+    }
+}
+
+private final class TestQuizTimerClient {
+    private var scheduledTick: (() -> Void)?
+
+    lazy var client = QuizTimerClient { [weak self] _, tick in
+        self?.scheduledTick = tick
+        return QuizTimerCancellation { [weak self] in self?.scheduledTick = nil }
+    }
+
+    func tick() {
+        scheduledTick?()
     }
 }
 

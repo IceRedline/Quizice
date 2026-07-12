@@ -245,7 +245,7 @@ final class QuizQuestionViewController: BaseQuizViewController, QuizQuestionView
 
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
-        analytics.track(.screenView(screen: .quizQuestion, themeID: presenter?.analyticsProgress.themeID))
+        analytics.track(.screenView(screen: .quizQuestion, theme: presenter?.analyticsProgress.theme ?? .unknown))
     }
 
     // MARK: - Timer methods
@@ -1179,7 +1179,7 @@ final class QuizQuestionViewController: BaseQuizViewController, QuizQuestionView
 
 private extension AnalyticsQuizProgress {
     static let empty = AnalyticsQuizProgress(
-        themeID: nil,
+        theme: .unknown,
         answeredQuestions: 0,
         totalQuestions: 0,
         correctAnswers: 0

@@ -151,6 +151,7 @@ enum SnapshotSupport {
         id: String,
         name: String,
         description: String = "Synthetic snapshot theme",
+        source: QuizThemeSource = .catalog,
         questions: [QuizQuestion] = [
             QuizQuestion(
                 question: "Question?",
@@ -159,7 +160,7 @@ enum SnapshotSupport {
             )
         ]
     ) -> QuizTheme {
-        QuizTheme(id: id, theme: name, themeDescription: description, questions: questions)
+        QuizTheme(id: id, theme: name, themeDescription: description, questions: questions, source: source)
     }
 
     private static func prepare(

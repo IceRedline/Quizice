@@ -146,15 +146,18 @@ struct QuizAIThemeCreationView: View {
 
     private let service: AIQuizThemeServiceProtocol
     private let analytics: AnalyticsTracking
+    private let now: () -> Date
     private let onGenerated: (QuizTheme) -> Void
 
     init(
         service: AIQuizThemeServiceProtocol = MockAIQuizThemeService(),
         analytics: AnalyticsTracking = AppMetricaAnalyticsTracker.shared,
+        now: @escaping () -> Date = Date.init,
         onGenerated: @escaping (QuizTheme) -> Void = { _ in }
     ) {
         self.service = service
         self.analytics = analytics
+        self.now = now
         self.onGenerated = onGenerated
     }
 
@@ -513,7 +516,7 @@ struct QuizAIThemeCreationView: View {
             difficulty: selectedDifficulty,
             locale: selectedLocale
         )
-        submissionStartedAt = Date()
+        submissionStartedAt = now()
         submissionLocaleIdentifier = configuration.locale.identifier
         analytics.track(
             .aiGenerationStarted(
@@ -623,7 +626,7 @@ struct QuizAIThemeCreationView: View {
 
     private func submissionDurationMilliseconds() -> Int {
         guard let submissionStartedAt else { return 0 }
-        return max(Int(Date().timeIntervalSince(submissionStartedAt) * 1_000), 0)
+        return max(Int(now().timeIntervalSince(submissionStartedAt) * 1_000), 0)
     }
 }
 
