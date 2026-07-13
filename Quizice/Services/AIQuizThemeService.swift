@@ -171,6 +171,10 @@ final class YandexAIQuizThemeService: AIQuizThemeServiceProtocol {
     static let promptID = "fvto67v1ev0p2b7r4v5i"
 
     private static let supportedLanguageCodes: Set<String> = ["ru", "en", "es", "de", "it", "fr"]
+    private static let contentFilterReason = "content_filter"
+    private static let plainTextRefusals: Set<String> = [
+        "Я не могу обсуждать эту тему. Давайте поговорим о чём-нибудь ещё."
+    ]
 
     private let apiKey: String?
     private let session: URLSession
@@ -264,6 +268,10 @@ final class YandexAIQuizThemeService: AIQuizThemeServiceProtocol {
             }
 
             AppLog.quiz.debug("AI quiz generation status received: \(envelope.status, privacy: .public)")
+            if envelope.status == "incomplete",
+               envelope.incompleteDetails?.reason == Self.contentFilterReason {
+                throw YandexAIQuizThemeServiceError.refused
+            }
             guard envelope.status == "completed" else {
                 throw YandexAIQuizThemeServiceError.generationStatus(envelope.status)
             }
@@ -280,6 +288,9 @@ final class YandexAIQuizThemeService: AIQuizThemeServiceProtocol {
                 .trimmingCharacters(in: .whitespacesAndNewlines)
             guard !outputText.isEmpty else {
                 throw YandexAIQuizThemeServiceError.missingOutputText
+            }
+            if Self.plainTextRefusals.contains(outputText) {
+                throw YandexAIQuizThemeServiceError.refused
             }
 
             let payload: GeneratedQuizPayload
@@ -485,6 +496,10 @@ private extension YandexAIQuizThemeService {
     }
 
     struct ResponsesEnvelope: Decodable {
+        struct IncompleteDetails: Decodable {
+            let reason: String
+        }
+
         struct Output: Decodable {
             let content: [Content]
 
@@ -504,16 +519,19 @@ private extension YandexAIQuizThemeService {
         }
 
         let status: String
+        let incompleteDetails: IncompleteDetails?
         let output: [Output]
 
-        enum CodingKeys: CodingKey {
+        enum CodingKeys: String, CodingKey {
             case status
+            case incompleteDetails = "incomplete_details"
             case output
         }
 
         init(from decoder: Decoder) throws {
             let container = try decoder.container(keyedBy: CodingKeys.self)
             status = try container.decode(String.self, forKey: .status)
+            incompleteDetails = try container.decodeIfPresent(IncompleteDetails.self, forKey: .incompleteDetails)
             output = try container.decodeIfPresent([Output].self, forKey: .output) ?? []
         }
     }
