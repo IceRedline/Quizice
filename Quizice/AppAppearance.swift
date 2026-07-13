@@ -407,6 +407,45 @@ struct AppAppearance {
         }
     }
 
+    var dialogSurface: AppSurfaceStyle {
+        switch designStyle {
+        case .clean:
+            return card
+        case .radar:
+            return AppSurfaceStyle(
+                backgroundColor: card.backgroundColor.withAlphaComponent(0.98),
+                borderColor: accentColor.withAlphaComponent(0.86),
+                borderWidth: card.borderWidth,
+                cornerRadius: card.cornerRadius,
+                shadow: AppShadowStyle(color: accentColor, opacity: 0.22, radius: 20, offset: .zero)
+            )
+        case .classic:
+            return AppSurfaceStyle(
+                backgroundColor: UIColor.black.withAlphaComponent(0.82),
+                borderColor: UIColor.white.withAlphaComponent(0.32),
+                borderWidth: card.borderWidth,
+                cornerRadius: card.cornerRadius,
+                shadow: AppShadowStyle(
+                    color: .black,
+                    opacity: 0.55,
+                    radius: 30,
+                    offset: CGSize(width: 0, height: 14)
+                )
+            )
+        }
+    }
+
+    var dialogScrimOpacity: Double {
+        switch designStyle {
+        case .clean:
+            return resolvedInterfaceStyle == .dark ? 0.62 : 0.38
+        case .radar:
+            return 0.64
+        case .classic:
+            return 0.50
+        }
+    }
+
     func applyBackground(
         to view: UIView,
         motionProfile: AppBackgroundMotionProfile = .standard

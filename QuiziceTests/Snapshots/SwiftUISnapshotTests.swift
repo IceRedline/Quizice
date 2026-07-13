@@ -106,6 +106,63 @@ final class SwiftUISnapshotTests: XCTestCase {
         )
     }
 
+    func testClassicAIThemeServiceAlertSnapshot() async {
+        SnapshotSupport.setUp(designStyle: .classic)
+        let presenter = QuizAlertPresenter()
+        let appearance = SnapshotSupport.appearance(designStyle: .classic)
+        let presenterViewController = presenter.makeAlertViewController(
+            Color.clear,
+            appearance: appearance
+        )
+        XCTAssertEqual(presenterViewController.modalPresentationStyle, .overFullScreen)
+        XCTAssertEqual(presenterViewController.modalTransitionStyle, .crossDissolve)
+        XCTAssertTrue(presenterViewController.isModalInPresentation)
+        XCTAssertEqual(presenterViewController.view.backgroundColor, .clear)
+        XCTAssertFalse(presenterViewController.view.isOpaque)
+        XCTAssertTrue(presenterViewController.view.accessibilityViewIsModal)
+
+        await assertAlertIsCenteredInFullWindow(appearance: appearance)
+
+        let viewController = makeAlertSnapshotViewController(
+            alert: AIQuizGenerationAlert(error: YandexAIQuizThemeServiceError.httpStatus(503)),
+            appearance: appearance
+        )
+
+        SnapshotSupport.assertScreen(
+            viewController,
+            named: "classic-ai-theme-service-alert-iphone-se",
+            device: .iPhone8
+        )
+    }
+
+    func testClassicAIThemeRefusalAlertSnapshot() {
+        SnapshotSupport.setUp(designStyle: .classic)
+        let viewController = makeAlertSnapshotViewController(
+            alert: AIQuizGenerationAlert(error: YandexAIQuizThemeServiceError.refused),
+            appearance: SnapshotSupport.appearance(designStyle: .classic)
+        )
+
+        SnapshotSupport.assertScreen(
+            viewController,
+            named: "classic-ai-theme-refusal-alert-iphone-se",
+            device: .iPhone8
+        )
+    }
+
+    func testRadarAIThemeRefusalAlertSnapshot() {
+        SnapshotSupport.setUp(designStyle: .radar)
+        let viewController = makeAlertSnapshotViewController(
+            alert: AIQuizGenerationAlert(error: YandexAIQuizThemeServiceError.refused),
+            appearance: SnapshotSupport.appearance(designStyle: .radar)
+        )
+
+        SnapshotSupport.assertScreen(
+            viewController,
+            named: "radar-ai-theme-refusal-alert-iphone-se",
+            device: .iPhone8
+        )
+    }
+
     private func makeHostingController<Content: View>(rootView: Content) -> UIHostingController<Content> {
         let viewController = UIHostingController(rootView: rootView)
         viewController.loadViewIfNeeded()
@@ -113,5 +170,132 @@ final class SwiftUISnapshotTests: XCTestCase {
             .appearance(compatibleWith: viewController.traitCollection)
             .resolvedInterfaceStyle
         return viewController
+    }
+
+    private func makeAlertSnapshotViewController(
+        alert: AIQuizGenerationAlert,
+        appearance: AppAppearance
+    ) -> UIViewController {
+        let dismissAction = QuizAlertAction(
+            title: alert.canRetry || alert.shouldFocusPromptOnDismiss
+                ? L10n.AITheme.editTheme
+                : L10n.Settings.alertAction,
+            emphasis: alert.canRetry ? .secondary : .primary,
+            accessibilityIdentifier: "snapshotDismissAction",
+            action: {}
+        )
+        let primaryAction = alert.canRetry
+            ? QuizAlertAction(
+                title: L10n.AITheme.retry,
+                emphasis: .primary,
+                accessibilityIdentifier: "snapshotRetryAction",
+                action: {}
+            )
+            : dismissAction
+        let secondaryAction = alert.canRetry ? dismissAction : nil
+        let rootView = ZStack {
+            Color(uiColor: appearance.backgroundColor)
+                .ignoresSafeArea()
+            QuizAlertOverlay(
+                title: alert.title,
+                message: alert.message,
+                systemImage: alert.kind.systemImage,
+                iconColor: alert.kind.iconColor(in: appearance),
+                primaryAction: primaryAction,
+                secondaryAction: secondaryAction,
+                onEscape: {}
+            )
+        }
+        .environment(\.appAppearance, appearance)
+        .preferredColorScheme(appearance.swiftUIColorScheme)
+
+        return makeHostingController(rootView: rootView)
+    }
+
+    private func assertAlertIsCenteredInFullWindow(appearance: AppAppearance) async {
+        let windowBounds = CGRect(x: 0, y: 0, width: 402, height: 874)
+        let previousKeyWindow = UIApplication.shared.connectedScenes
+            .compactMap { $0 as? UIWindowScene }
+            .flatMap(\.windows)
+            .first(where: \.isKeyWindow)
+        let window = UIWindow(frame: windowBounds)
+        let rootViewController = UIViewController()
+        window.rootViewController = rootViewController
+        window.makeKeyAndVisible()
+        rootViewController.view.frame = window.bounds
+
+        let offsetPresentingViewController = UIViewController()
+        rootViewController.addChild(offsetPresentingViewController)
+        offsetPresentingViewController.view.frame = CGRect(x: 0, y: 86, width: 402, height: 788)
+        rootViewController.view.addSubview(offsetPresentingViewController.view)
+        offsetPresentingViewController.didMove(toParent: rootViewController)
+
+        let presenter = QuizAlertPresenter()
+        presenter.presentingViewController = offsetPresentingViewController
+        defer {
+            presenter.dismiss()
+            offsetPresentingViewController.willMove(toParent: nil)
+            offsetPresentingViewController.view.removeFromSuperview()
+            offsetPresentingViewController.removeFromParent()
+            window.isHidden = true
+            window.rootViewController = nil
+            previousKeyWindow?.makeKey()
+        }
+
+        let frameExpectation = expectation(description: "Alert card geometry is reported")
+        var reportedCardFrame: CGRect?
+        var didFulfillFrameExpectation = false
+        let overlay = QuizAlertOverlay(
+            title: L10n.AITheme.Error.Service.title,
+            message: L10n.AITheme.Error.Service.message,
+            systemImage: "clock.fill",
+            iconColor: appearance.screenTextColor,
+            primaryAction: QuizAlertAction(
+                title: L10n.AITheme.retry,
+                emphasis: .primary,
+                accessibilityIdentifier: "centerTestPrimaryAction",
+                action: {}
+            ),
+            secondaryAction: QuizAlertAction(
+                title: L10n.AITheme.editTheme,
+                emphasis: .secondary,
+                accessibilityIdentifier: "centerTestSecondaryAction",
+                action: {}
+            ),
+            onEscape: {},
+            onCardFrameChange: { frame in
+                guard frame.width > 0, frame.height > 0 else { return }
+                reportedCardFrame = frame
+                if !didFulfillFrameExpectation {
+                    didFulfillFrameExpectation = true
+                    frameExpectation.fulfill()
+                }
+            }
+        )
+
+        XCTAssertEqual(
+            offsetPresentingViewController.view.convert(offsetPresentingViewController.view.bounds, to: window).minY,
+            86
+        )
+        XCTAssertTrue(presenter.present(overlay, appearance: appearance, reduceMotion: true))
+        await fulfillment(of: [frameExpectation], timeout: 2)
+        await Task.yield()
+
+        guard let alertViewController = presenter.alertViewController,
+              let reportedCardFrame
+        else {
+            XCTFail("Full-screen alert was not presented")
+            return
+        }
+
+        alertViewController.view.layoutIfNeeded()
+        let alertFrame = alertViewController.view.convert(alertViewController.view.bounds, to: window)
+        XCTAssertTrue(alertViewController.view.window === window)
+        XCTAssertEqual(alertFrame.minX, window.bounds.minX, accuracy: 0.5)
+        XCTAssertEqual(alertFrame.minY, window.bounds.minY, accuracy: 0.5)
+        XCTAssertEqual(alertFrame.width, window.bounds.width, accuracy: 0.5)
+        XCTAssertEqual(alertFrame.height, window.bounds.height, accuracy: 0.5)
+        XCTAssertEqual(reportedCardFrame.midX, window.bounds.midX, accuracy: 0.5)
+        XCTAssertEqual(reportedCardFrame.midY, window.bounds.midY, accuracy: 0.5)
     }
 }

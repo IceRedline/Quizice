@@ -493,16 +493,15 @@ final class QuizFlowCoordinatorAdditionalTests: XCTestCase {
             with: .failure(YandexAIQuizThemeServiceError.network(.timedOut))
         )
 
-        try await waitUntil { harness.viewController.presentedViewController is UIAlertController }
-        let alert = try XCTUnwrap(
-            harness.viewController.presentedViewController as? UIAlertController
-        )
+        try await waitUntil {
+            harness.viewController.presentedViewController?.modalPresentationStyle == .overFullScreen
+        }
+        let alert = try XCTUnwrap(harness.viewController.presentedViewController)
+        alert.view.layoutIfNeeded()
         XCTAssertEqual(controls.promptEditor.text, prompt)
         XCTAssertTrue(controls.submitButton.isEnabled)
-        XCTAssertEqual(
-            Set(alert.actions.compactMap(\.title)),
-            Set([L10n.AITheme.retry, L10n.AITheme.editTheme])
-        )
+        XCTAssertTrue(alert.isModalInPresentation)
+        XCTAssertTrue(alert.view.accessibilityViewIsModal)
         XCTAssertEqual(harness.router.showDescriptionCallCount, 0)
         XCTAssertNil(harness.session.chosenTheme)
     }
