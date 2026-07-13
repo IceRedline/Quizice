@@ -267,30 +267,29 @@ final class YandexAIQuizThemeService: AIQuizThemeServiceProtocol {
                 throw YandexAIQuizThemeServiceError.invalidResponseJSON
             }
 
-            AppLog.quiz.debug("AI quiz generation status received: \(envelope.status, privacy: .public)")
-            if envelope.status == "incomplete",
-               envelope.incompleteDetails?.reason == Self.contentFilterReason {
+            let incompleteReason = envelope.incompleteDetails?.reason
+            let incompleteReasonForLog = incompleteReason ?? "none"
+            AppLog.quiz.debug(
+                "AI quiz generation status received: status=\(envelope.status, privacy: .public) incomplete_reason=\(incompleteReasonForLog, privacy: .public)"
+            )
+
+            let outputContent = envelope.output.flatMap(\.content)
+            let outputText = outputContent
+                .filter { $0.type == "output_text" }
+                .compactMap(\.text)
+                .joined()
+                .trimmingCharacters(in: .whitespacesAndNewlines)
+
+            if Self.isContentFilterReason(incompleteReason)
+                || outputContent.contains(where: { $0.type == "refusal" })
+                || Self.plainTextRefusals.contains(outputText) {
                 throw YandexAIQuizThemeServiceError.refused
             }
             guard envelope.status == "completed" else {
                 throw YandexAIQuizThemeServiceError.generationStatus(envelope.status)
             }
-
-            if envelope.output.flatMap(\.content).contains(where: { $0.type == "refusal" }) {
-                throw YandexAIQuizThemeServiceError.refused
-            }
-
-            let outputText = envelope.output
-                .flatMap(\.content)
-                .filter { $0.type == "output_text" }
-                .compactMap(\.text)
-                .joined()
-                .trimmingCharacters(in: .whitespacesAndNewlines)
             guard !outputText.isEmpty else {
                 throw YandexAIQuizThemeServiceError.missingOutputText
-            }
-            if Self.plainTextRefusals.contains(outputText) {
-                throw YandexAIQuizThemeServiceError.refused
             }
 
             let payload: GeneratedQuizPayload
@@ -475,6 +474,12 @@ final class YandexAIQuizThemeService: AIQuizThemeServiceProtocol {
         }
         return languageCode
     }
+
+    private static func isContentFilterReason(_ reason: String?) -> Bool {
+        reason?
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+            .lowercased() == contentFilterReason
+    }
 }
 
 private extension YandexAIQuizThemeService {
@@ -497,7 +502,7 @@ private extension YandexAIQuizThemeService {
 
     struct ResponsesEnvelope: Decodable {
         struct IncompleteDetails: Decodable {
-            let reason: String
+            let reason: String?
         }
 
         struct Output: Decodable {

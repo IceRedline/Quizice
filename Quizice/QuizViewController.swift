@@ -31,6 +31,8 @@ final class QuizViewController: BaseQuizViewController, QuizViewControllerProtoc
         static let expandedCardSourceSnapshot = "homeExpandedThemeCardSourceSnapshot"
         static let expandedStatisticsCardSourceSnapshot = "homeExpandedStatisticsCardSourceSnapshot"
         static let expandedAIThemeCardSourceSnapshot = "homeExpandedAIThemeCardSourceSnapshot"
+        static let aiThemeAlertRetryButton = "aiThemeAlertRetryButton"
+        static let aiThemeAlertDismissButton = "aiThemeAlertDismissButton"
     }
 
     private enum Layout {
@@ -185,6 +187,8 @@ final class QuizViewController: BaseQuizViewController, QuizViewControllerProtoc
     private var expandedStatisticsSummary: StatisticsSummary?
     private var aiSubmissionTask: Task<Void, Never>?
     private var aiProgressTask: Task<Void, Never>?
+    private var aiAlertPresentationTask: Task<Void, Never>?
+    private let aiAlertPresenter = QuizAlertPresenter()
     private var feelingLuckyTask: Task<Void, Never>?
     private var feelingLuckyRequestID: UUID?
     private weak var quizTransitionSourceView: UIView?
@@ -260,6 +264,7 @@ final class QuizViewController: BaseQuizViewController, QuizViewControllerProtoc
     deinit {
         aiSubmissionTask?.cancel()
         aiProgressTask?.cancel()
+        aiAlertPresentationTask?.cancel()
         feelingLuckyTask?.cancel()
     }
 
@@ -1658,54 +1663,105 @@ final class QuizViewController: BaseQuizViewController, QuizViewControllerProtoc
     }
 
     private func presentAIThemeGenerationAlert(_ alert: AIQuizGenerationAlert) {
-        guard
-            homeAIThemeCardState.activeAlert == alert,
-            presentedViewController == nil
-        else { return }
+        guard homeAIThemeCardState.activeAlert == alert else { return }
 
-        let alertController = UIAlertController(
+        aiAlertPresentationTask?.cancel()
+        aiAlertPresentationTask = nil
+        if tryPresentAIThemeGenerationAlert(alert) { return }
+
+        aiAlertPresentationTask = Task { @MainActor [weak self] in
+            while !Task.isCancelled {
+                guard let self, self.homeAIThemeCardState.activeAlert == alert else { return }
+                do {
+                    try await Task.sleep(nanoseconds: 50_000_000)
+                } catch {
+                    return
+                }
+
+                if self.tryPresentAIThemeGenerationAlert(alert) {
+                    self.aiAlertPresentationTask = nil
+                    return
+                }
+            }
+        }
+    }
+
+    private func tryPresentAIThemeGenerationAlert(_ alert: AIQuizGenerationAlert) -> Bool {
+        aiAlertPresenter.presentingViewController = self
+        return aiAlertPresenter.present(
+            makeAIThemeGenerationAlertOverlay(alert),
+            appearance: currentAppearance(),
+            reduceMotion: cardReduceMotionProvider()
+        )
+    }
+
+    private func makeAIThemeGenerationAlertOverlay(_ alert: AIQuizGenerationAlert) -> QuizAlertOverlay {
+        let dismissAction = QuizAlertAction(
+            title: alert.canRetry || alert.shouldFocusPromptOnDismiss
+                ? L10n.AITheme.editTheme
+                : L10n.Settings.alertAction,
+            emphasis: alert.canRetry ? .secondary : .primary,
+            accessibilityIdentifier: AccessibilityID.aiThemeAlertDismissButton,
+            action: { [weak self] in self?.dismissAIThemeGenerationAlert(alert) }
+        )
+
+        let primaryAction: QuizAlertAction
+        let secondaryAction: QuizAlertAction?
+        if alert.canRetry {
+            primaryAction = QuizAlertAction(
+                title: L10n.AITheme.retry,
+                emphasis: .primary,
+                accessibilityIdentifier: AccessibilityID.aiThemeAlertRetryButton,
+                action: { [weak self] in self?.retryAIThemeGeneration(after: alert) }
+            )
+            secondaryAction = dismissAction
+        } else {
+            primaryAction = dismissAction
+            secondaryAction = nil
+        }
+
+        return QuizAlertOverlay(
             title: alert.title,
             message: alert.message,
-            preferredStyle: .alert
+            systemImage: alert.kind.systemImage,
+            iconColor: alert.kind.iconColor(in: currentAppearance()),
+            primaryAction: primaryAction,
+            secondaryAction: secondaryAction,
+            onEscape: dismissAction.action
         )
-        if alert.canRetry {
-            let retryAction = UIAlertAction(
-                title: L10n.AITheme.retry,
-                style: .default
-            ) { [weak self] _ in
-                guard let self else { return }
-                self.clearAIThemeGenerationAlert()
-                self.sendAIThemeCardAction(
-                    .submitRequested(
-                        requestID: self.aiRequestIDProvider(),
-                        locale: AppLocalizationStore.shared.resolvedLocale,
-                        now: self.aiNow()
-                    )
+    }
+
+    private func retryAIThemeGeneration(after alert: AIQuizGenerationAlert) {
+        guard homeAIThemeCardState.activeAlert == alert else { return }
+        dismissAIThemeAlertPresentation { [weak self] in
+            guard let self else { return }
+            self.clearAIThemeGenerationAlert()
+            self.sendAIThemeCardAction(
+                .submitRequested(
+                    requestID: self.aiRequestIDProvider(),
+                    locale: AppLocalizationStore.shared.resolvedLocale,
+                    now: self.aiNow()
                 )
-            }
-            alertController.addAction(retryAction)
-            alertController.preferredAction = retryAction
-            alertController.addAction(
-                UIAlertAction(title: L10n.AITheme.editTheme, style: .cancel) { [weak self] _ in
-                    self?.editAIThemeAfterAlert()
-                }
-            )
-        } else {
-            let actionTitle = alert.shouldFocusPromptOnDismiss
-                ? L10n.AITheme.editTheme
-                : L10n.Settings.alertAction
-            alertController.addAction(
-                UIAlertAction(title: actionTitle, style: .default) { [weak self] _ in
-                    guard let self else { return }
-                    if alert.shouldFocusPromptOnDismiss {
-                        self.editAIThemeAfterAlert()
-                    } else {
-                        self.clearAIThemeGenerationAlert()
-                    }
-                }
             )
         }
-        present(alertController, animated: true)
+    }
+
+    private func dismissAIThemeGenerationAlert(_ alert: AIQuizGenerationAlert) {
+        guard homeAIThemeCardState.activeAlert == alert else { return }
+        dismissAIThemeAlertPresentation { [weak self] in
+            guard let self else { return }
+            if alert.shouldFocusPromptOnDismiss {
+                self.editAIThemeAfterAlert()
+            } else {
+                self.clearAIThemeGenerationAlert()
+            }
+        }
+    }
+
+    private func dismissAIThemeAlertPresentation(completion: @escaping () -> Void) {
+        aiAlertPresentationTask?.cancel()
+        aiAlertPresentationTask = nil
+        aiAlertPresenter.dismiss(completion: completion)
     }
 
     private func clearAIThemeGenerationAlert() {
