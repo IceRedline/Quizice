@@ -45,6 +45,25 @@ final class AppAppearanceTests: XCTestCase {
         XCTAssertEqual(darkAppearance.resolvedInterfaceStyle, .unspecified)
         XCTAssertFalse(lightAppearance.backgroundColor.isEqual(darkAppearance.backgroundColor))
         XCTAssertFalse(lightAppearance.card.backgroundColor.isEqual(darkAppearance.card.backgroundColor))
+        XCTAssertTrue(lightAppearance.accentColor.isEqual(UIColor(named: "themeBlack")))
+        XCTAssertTrue(lightAppearance.accentForegroundColor.isEqual(UIColor(named: "themeWhite")))
+        XCTAssertTrue(darkAppearance.accentColor.isEqual(UIColor(named: "themeWhite")))
+        XCTAssertTrue(darkAppearance.accentForegroundColor.isEqual(UIColor(named: "themeBlack")))
+    }
+
+    func testCleanAccentUsesMonochromeContrastPair() {
+        let lightAppearance = SnapshotSupport.appearance(designStyle: .clean, cleanColorScheme: .light)
+        let darkAppearance = SnapshotSupport.appearance(designStyle: .clean, cleanColorScheme: .dark)
+
+        XCTAssertTrue(lightAppearance.accentColor.isEqual(UIColor(named: "themeBlack")))
+        XCTAssertTrue(lightAppearance.accentForegroundColor.isEqual(UIColor(named: "themeWhite")))
+        XCTAssertTrue(lightAppearance.primaryButton.backgroundColor.isEqual(lightAppearance.accentColor))
+        XCTAssertTrue(lightAppearance.primaryButton.borderColor.isEqual(lightAppearance.accentColor))
+
+        XCTAssertTrue(darkAppearance.accentColor.isEqual(UIColor(named: "themeWhite")))
+        XCTAssertTrue(darkAppearance.accentForegroundColor.isEqual(UIColor(named: "themeBlack")))
+        XCTAssertTrue(darkAppearance.primaryButton.backgroundColor.isEqual(darkAppearance.accentColor))
+        XCTAssertTrue(darkAppearance.primaryButton.borderColor.isEqual(darkAppearance.accentColor))
     }
 
     func testAIThemeKeyboardStyleFollowsDesignAppearance() {
@@ -64,6 +83,11 @@ final class AppAppearanceTests: XCTestCase {
             cleanColorSchemePreference: .light,
             traitCollection: lightTraits
         )
+        let cleanDark = AppAppearance(
+            designStyle: .clean,
+            cleanColorSchemePreference: .dark,
+            traitCollection: lightTraits
+        )
         let cleanSystem = AppAppearance(
             designStyle: .clean,
             cleanColorSchemePreference: .system,
@@ -73,15 +97,59 @@ final class AppAppearanceTests: XCTestCase {
         let classicKeyboard = AIThemeKeyboardStyle(appearance: classic)
         let radarKeyboard = AIThemeKeyboardStyle(appearance: radar)
         let cleanLightKeyboard = AIThemeKeyboardStyle(appearance: cleanLight)
+        let cleanDarkKeyboard = AIThemeKeyboardStyle(appearance: cleanDark)
         let cleanSystemKeyboard = AIThemeKeyboardStyle(appearance: cleanSystem)
 
         XCTAssertEqual(classicKeyboard.interfaceStyle, .dark)
         XCTAssertEqual(radarKeyboard.interfaceStyle, .dark)
         XCTAssertEqual(cleanLightKeyboard.interfaceStyle, .light)
+        XCTAssertEqual(cleanDarkKeyboard.interfaceStyle, .dark)
         XCTAssertEqual(cleanSystemKeyboard.interfaceStyle, .unspecified)
         XCTAssertTrue(radarKeyboard.doneButtonTintColor.isEqual(radar.accentColor))
         XCTAssertTrue(classicKeyboard.doneButtonTintColor.isEqual(UIColor.systemBlue))
-        XCTAssertTrue(cleanLightKeyboard.doneButtonTintColor.isEqual(UIColor.systemBlue))
+        XCTAssertTrue(cleanLightKeyboard.doneButtonTintColor.isEqual(cleanLight.accentColor))
+        XCTAssertTrue(cleanDarkKeyboard.doneButtonTintColor.isEqual(cleanDark.accentColor))
+        XCTAssertTrue(cleanSystemKeyboard.doneButtonTintColor.isEqual(cleanSystem.accentColor))
+    }
+
+    func testQuizThemeActionsStayMonochromeWithoutChangingCatalogIdentity() throws {
+        let appearance = SnapshotSupport.appearance(designStyle: .clean, cleanColorScheme: .light)
+        let darkAppearance = SnapshotSupport.appearance(designStyle: .clean, cleanColorScheme: .dark)
+        let musicTint = try XCTUnwrap(ThemeVisualCatalog.tintColorIfAvailable(for: "music"))
+
+        XCTAssertFalse(musicTint.isEqual(appearance.accentColor))
+        XCTAssertTrue(
+            QuizThemeAccentStyle.accentColor(themeID: "music", appearance: appearance)
+                .isEqual(appearance.accentColor)
+        )
+        XCTAssertTrue(
+            QuizThemeAccentStyle.primaryButtonTextColor(themeID: "music", appearance: appearance)
+                .isEqual(appearance.accentForegroundColor)
+        )
+        XCTAssertTrue(
+            QuizThemeAccentStyle.primaryButtonStyle(themeID: "music", appearance: appearance)
+                .backgroundColor.isEqual(appearance.accentColor)
+        )
+        XCTAssertTrue(
+            QuizThemeAccentStyle.secondaryButtonTextColor(themeID: "music", appearance: appearance)
+                .isEqual(appearance.accentColor)
+        )
+        XCTAssertTrue(
+            QuizThemeAccentStyle.accentColor(themeID: "custom-theme", appearance: appearance)
+                .isEqual(appearance.accentColor)
+        )
+        XCTAssertTrue(
+            QuizThemeAccentStyle.primaryButtonTextColor(themeID: "custom-theme", appearance: appearance)
+                .isEqual(appearance.accentForegroundColor)
+        )
+        XCTAssertTrue(
+            QuizThemeAccentStyle.accentColor(themeID: "custom-theme", appearance: darkAppearance)
+                .isEqual(darkAppearance.accentColor)
+        )
+        XCTAssertTrue(
+            QuizThemeAccentStyle.primaryButtonTextColor(themeID: "custom-theme", appearance: darkAppearance)
+                .isEqual(darkAppearance.accentForegroundColor)
+        )
     }
 
     func testThemeCardStylingDiffersByDesignStyle() {
@@ -105,13 +173,17 @@ final class AppAppearanceTests: XCTestCase {
         let button = UIButton(type: .system)
 
         view.applySurfaceStyle(appearance.card)
-        button.applyActionAppearance(appearance.primaryButton, appearance: appearance)
+        button.applyActionAppearance(
+            appearance.primaryButton,
+            appearance: appearance,
+            textColor: appearance.accentForegroundColor
+        )
 
         XCTAssertTrue(view.backgroundColor?.isEqual(appearance.card.backgroundColor) ?? false)
         XCTAssertEqual(view.layer.cornerRadius, appearance.card.cornerRadius)
         XCTAssertEqual(view.layer.borderWidth, appearance.card.borderWidth)
         XCTAssertTrue(button.backgroundColor?.isEqual(appearance.primaryButton.backgroundColor) ?? false)
-        XCTAssertTrue(button.titleColor(for: .normal)?.isEqual(appearance.screenTextColor) ?? false)
+        XCTAssertTrue(button.titleColor(for: .normal)?.isEqual(appearance.accentForegroundColor) ?? false)
         XCTAssertTrue(button.titleColor(for: .disabled)?.isEqual(appearance.disabledTextColor) ?? false)
     }
 

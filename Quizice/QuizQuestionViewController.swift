@@ -891,7 +891,10 @@ final class QuizQuestionViewController: BaseQuizViewController, QuizQuestionView
         nextButton?.applyActionAppearance(
             QuizThemeAccentStyle.primaryButtonStyle(themeID: presenter?.themeID, appearance: appearance),
             appearance: appearance,
-            textColor: actionTextColor(isPrimary: true, appearance: appearance)
+            textColor: QuizThemeAccentStyle.primaryButtonTextColor(
+                themeID: presenter?.themeID,
+                appearance: appearance
+            )
         )
         nextButton?.titleLabel?.font = appearance.typography.font(size: Typography.actionButtonFontSize, weight: .semibold)
         closeButton?.applyActionAppearance(
@@ -899,16 +902,6 @@ final class QuizQuestionViewController: BaseQuizViewController, QuizQuestionView
             appearance: appearance,
             textColor: appearance.screenTextColor
         )
-    }
-
-    private func actionTextColor(isPrimary: Bool, appearance: AppAppearance) -> UIColor {
-        if isPrimary && appearance.designStyle == .clean {
-            return appearance.resolvedInterfaceStyle == .dark ? appearance.screenTextColor : .black
-        }
-        if !isPrimary && appearance.designStyle == .clean {
-            return QuizThemeAccentStyle.secondaryButtonTextColor(themeID: presenter?.themeID, appearance: appearance)
-        }
-        return appearance.screenTextColor
     }
 
     private func quizThemeAccentColor(for appearance: AppAppearance) -> UIColor {
