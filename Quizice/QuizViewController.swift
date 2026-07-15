@@ -1,5 +1,4 @@
 import UIKit
-import AVKit
 import SwiftUI
 
 final class QuizViewController: BaseQuizViewController, QuizViewControllerProtocol, ThemeCollectionDelegate {
@@ -10,8 +9,6 @@ final class QuizViewController: BaseQuizViewController, QuizViewControllerProtoc
         static let showInterfaceIconName = "eye"
 #endif
         static let settingsIconName = "gear"
-        static let startupSoundName = "Quizice Enter"
-        static let startupSoundExtension = "m4a"
         static let themeCellReuseIdentifier = "themeCell"
     }
 
@@ -133,7 +130,6 @@ final class QuizViewController: BaseQuizViewController, QuizViewControllerProtoc
     private let randomThemeIDProvider: ([QuizTheme]) -> String?
     private let animationsEngine = Animations()
     private let motivationBlurContext = CIContext(options: nil)
-    private var soundPlayer: AVAudioPlayer!
     private var motivationBlurSnapshotSignature: String?
     weak var router: QuizRouting?
     var presenter: QuizPresenterProtocol?
@@ -217,7 +213,7 @@ final class QuizViewController: BaseQuizViewController, QuizViewControllerProtoc
         analytics.track(.screenView(screen: .home))
 
         if session.startup1st {
-            animateViewsAndPlaySound()
+            animateStartupViews()
             session.startup1st = false
         }
     }
@@ -538,11 +534,9 @@ final class QuizViewController: BaseQuizViewController, QuizViewControllerProtoc
         return UIImage(cgImage: cgImage, scale: sourceImage.scale, orientation: sourceImage.imageOrientation)
     }
 
-    private func animateViewsAndPlaySound() {
+    private func animateStartupViews() {
         let visibleCells = sortedVisibleThemeCells()
         prepareStartupAnimation(visibleCells: visibleCells)
-        loadStartupSound()
-        soundPlayer?.play()
 
         guard !UIAccessibility.isReduceMotionEnabled else {
             startupAnimatedViews.forEach { $0.alpha = Appearance.visibleAlpha }
@@ -573,12 +567,6 @@ final class QuizViewController: BaseQuizViewController, QuizViewControllerProtoc
     private func prepareStartupAnimation(visibleCells: [UICollectionViewCell]) {
         visibleCells.forEach { cell in
             cell.alpha = AnimationTiming.initialVisibleAlpha
-        }
-    }
-
-    private func loadStartupSound() {
-        if let startupSoundURL = Bundle.main.url(forResource: Content.startupSoundName, withExtension: Content.startupSoundExtension) {
-            soundPlayer = try? AVAudioPlayer(contentsOf: startupSoundURL)
         }
     }
 

@@ -15,6 +15,7 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
 
     var window: UIWindow?
     private var coordinator: QuizFlowCoordinator?
+    private let launchOverlayPresenter = LaunchOverlayPresenter()
 
     func scene(_ scene: UIScene, willConnectTo session: UISceneSession, options connectionOptions: UIScene.ConnectionOptions) {
         guard let windowScene = scene as? UIWindowScene else { return }
@@ -26,6 +27,7 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
             let coordinator = QuizFlowCoordinator(window: window)
             coordinator.start()
             self.coordinator = coordinator
+            launchOverlayPresenter.present(in: window)
         }
         window.makeKeyAndVisible()
         self.window = window
@@ -36,6 +38,7 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         // This occurs shortly after the scene enters the background, or when its session is discarded.
         // Release any resources associated with this scene that can be re-created the next time the scene connects.
         // The scene may re-connect later, as its session was not necessarily discarded (see `application:didDiscardSceneSessions` instead).
+        launchOverlayPresenter.dismiss(animated: false)
     }
 
     func sceneDidBecomeActive(_ scene: UIScene) {
@@ -57,6 +60,158 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         // Called as the scene transitions from the foreground to the background.
         // Use this method to save data, release shared resources, and store enough scene-specific state information
         // to restore the scene back to its current state.
+    }
+}
+
+struct FakeLaunchScreenView: View {
+    private enum Layout {
+        static let logoWidthRatio: CGFloat = 0.7
+        static let maximumLogoWidth: CGFloat = 360
+    }
+
+    private enum Motion {
+        static let revealDuration: TimeInterval = 0.35
+    }
+
+    let appearance: AppAppearance
+
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @State private var isRevealed = false
+
+    var body: some View {
+        GeometryReader { geometry in
+            ZStack {
+                Color(uiColor: UIColor(hex: 0x111620))
+
+                AppBackgroundView(appearance: appearance)
+                    .opacity(isRevealed ? 1 : 0)
+
+                Image("QII")
+                    .resizable()
+                    .scaledToFit()
+                    .frame(
+                        width: min(
+                            geometry.size.width * Layout.logoWidthRatio,
+                            Layout.maximumLogoWidth
+                        )
+                    )
+            }
+            .frame(width: geometry.size.width, height: geometry.size.height)
+        }
+        .ignoresSafeArea()
+        .accessibilityHidden(true)
+        .onAppear(perform: reveal)
+    }
+
+    private func reveal() {
+        guard !reduceMotion, UIView.areAnimationsEnabled else {
+            isRevealed = true
+            return
+        }
+
+        withAnimation(.easeOut(duration: Motion.revealDuration)) {
+            isRevealed = true
+        }
+    }
+}
+
+@MainActor
+final class LaunchOverlayPresenter {
+    private enum Timing {
+        static let minimumVisibleDuration: TimeInterval = 1.15
+        static let dismissalDuration: TimeInterval = 0.32
+        static let reducedMotionDismissalDuration: TimeInterval = 0.18
+    }
+
+    static let accessibilityIdentifier = "fakeLaunchScreen"
+
+    private var overlayWindow: UIWindow?
+    private var dismissalTask: Task<Void, Never>?
+    private weak var coveredAccessibilityView: UIView?
+    private var coveredViewWasAccessibilityHidden = false
+
+    deinit {
+        dismissalTask?.cancel()
+    }
+
+    func present(in window: UIWindow, autoDismissAfter delay: TimeInterval = Timing.minimumVisibleDuration) {
+        guard
+            overlayWindow == nil,
+            let windowScene = window.windowScene,
+            let coveredView = window.rootViewController?.view
+        else { return }
+
+        let appearance = AppAppearance(
+            designStyle: .classic,
+            cleanColorSchemePreference: .dark,
+            backgroundStyle: .slate5x5,
+            traitCollection: window.traitCollection
+        )
+        let hostingController = UIHostingController(
+            rootView: FakeLaunchScreenView(appearance: appearance)
+        )
+        let overlayView = hostingController.view!
+        overlayView.accessibilityIdentifier = Self.accessibilityIdentifier
+        overlayView.accessibilityElementsHidden = true
+        overlayView.backgroundColor = UIColor(hex: 0x111620)
+
+        let overlayWindow = UIWindow(windowScene: windowScene)
+        overlayWindow.accessibilityIdentifier = Self.accessibilityIdentifier
+        overlayWindow.accessibilityViewIsModal = true
+        overlayWindow.backgroundColor = UIColor(hex: 0x111620)
+        overlayWindow.windowLevel = UIWindow.Level(rawValue: window.windowLevel.rawValue + 1)
+        overlayWindow.rootViewController = hostingController
+
+        coveredAccessibilityView = coveredView
+        coveredViewWasAccessibilityHidden = coveredView.accessibilityElementsHidden
+        coveredView.accessibilityElementsHidden = true
+        self.overlayWindow = overlayWindow
+        overlayWindow.isHidden = false
+
+        dismissalTask = Task { @MainActor [self] in
+            let nanoseconds = UInt64(max(0, delay) * 1_000_000_000)
+            do {
+                try await Task.sleep(nanoseconds: nanoseconds)
+            } catch {
+                return
+            }
+            dismiss()
+        }
+    }
+
+    func dismiss(animated: Bool = true) {
+        dismissalTask?.cancel()
+        dismissalTask = nil
+
+        guard let overlayWindow else { return }
+
+        guard animated, UIView.areAnimationsEnabled else {
+            finishDismissal()
+            return
+        }
+
+        let duration = UIAccessibility.isReduceMotionEnabled
+            ? Timing.reducedMotionDismissalDuration
+            : Timing.dismissalDuration
+        UIView.animate(
+            withDuration: duration,
+            delay: 0,
+            options: [.curveEaseOut, .allowUserInteraction, .beginFromCurrentState]
+        ) {
+            overlayWindow.alpha = 0
+        } completion: { [self] _ in
+            finishDismissal()
+        }
+    }
+
+    private func finishDismissal() {
+        overlayWindow?.isHidden = true
+        overlayWindow?.rootViewController = nil
+        overlayWindow = nil
+
+        coveredAccessibilityView?.accessibilityElementsHidden = coveredViewWasAccessibilityHidden
+        coveredAccessibilityView = nil
+        UIAccessibility.post(notification: .screenChanged, argument: nil)
     }
 }
 
@@ -150,6 +305,9 @@ final class QuizFlowCoordinator: NSObject, QuizRouting, UIViewControllerTransiti
     func showAIThemeCreation() {
         AppLog.quiz.debug("Opening AI quiz theme creation sheet")
         let viewControllerReference = WeakViewControllerReference()
+        let appearance = AppAppearanceStore.shared.appearance(
+            compatibleWith: presentedViewController.traitCollection
+        )
         let rootView = QuizAIThemeCreationView(
             service: aiQuizThemeService,
             analytics: analytics,
@@ -166,6 +324,9 @@ final class QuizFlowCoordinator: NSObject, QuizRouting, UIViewControllerTransiti
             }
         )
         let viewController = UIHostingController(rootView: rootView)
+        viewController.overrideUserInterfaceStyle = AIThemeKeyboardStyle(
+            appearance: appearance
+        ).interfaceStyle
         viewControllerReference.viewController = viewController
         viewController.modalPresentationStyle = .pageSheet
         if let sheetPresentationController = viewController.sheetPresentationController {
