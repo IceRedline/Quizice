@@ -27,6 +27,7 @@ enum L10n {
     }
 
     enum Home {
+        static var backgroundStyleSwitcher: String { L10n.localized("home.background_style.switcher", comment: "Experimental home background style switcher label") }
         static var chooseTheme: String { L10n.localized("home.choose_theme", comment: "Home screen theme selection title") }
         static var createWithAI: String { L10n.localized("home.create_with_ai", comment: "Create quiz theme with AI button title") }
         static var createWithAIAccessibilityHint: String { L10n.localized("home.create_with_ai.accessibility_hint", comment: "Create quiz theme with AI accessibility hint") }
@@ -41,6 +42,13 @@ enum L10n {
         static var statisticsPlayedShort: String { L10n.localized("home.statistics.played_short", comment: "Home statistics card played quizzes metric title") }
         static var themesCollectionAccessibilityLabel: String { L10n.localized("home.themes_collection.accessibility_label", comment: "Home themes collection accessibility label") }
         static var unavailableThemes: String { L10n.localized("home.unavailable_themes", comment: "Home screen empty themes title") }
+
+        enum BackgroundStyle {
+            static var original: String { L10n.localized("home.background_style.original", comment: "Original mesh gradient background option") }
+            static var grid4x4: String { L10n.localized("home.background_style.grid_4x4", comment: "4 by 4 mesh gradient background option") }
+            static var grid5x5: String { L10n.localized("home.background_style.grid_5x5", comment: "5 by 5 mesh gradient background option") }
+        }
+
         static var motivationPrompts: [String] {
             [
                 L10n.localized("home.motivation_prompt.1", comment: "Home screen random motivation prompt"),

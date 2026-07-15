@@ -6,7 +6,6 @@ import SwiftUI
 
 final class QuizQuestionViewController: BaseQuizViewController, QuizQuestionViewControllerProtocol, QuizCardSlideTransitionSource, QuizCardSlideTransitionDestination {
     private enum Content {
-        static let backgroundImageName = "backgroundImage"
         static let correctSoundName = "Quizice Correct"
         static let incorrectSoundName = "Quizice Incorrect"
         static let soundExtension = "m4a"
@@ -216,7 +215,7 @@ final class QuizQuestionViewController: BaseQuizViewController, QuizQuestionView
     
     override func loadView() {
         let rootView = UIView()
-        rootView.backgroundColor = UIColor(patternImage: UIImage(named: Content.backgroundImageName) ?? UIImage())
+        rootView.backgroundColor = .systemBackground
         rootView.accessibilityIdentifier = AccessibilityID.rootView
         view = rootView
         configureProgrammaticSubviews(in: rootView)

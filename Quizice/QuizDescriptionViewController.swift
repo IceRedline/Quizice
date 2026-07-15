@@ -4,10 +4,6 @@ import SwiftUI
 #endif
 
 final class QuizDescriptionViewController: BaseQuizViewController, QuizDescriptionViewControllerProtocol, QuizCardSlideTransitionSource {
-    private enum Content {
-        static let backgroundImageName = "backgroundImage"
-    }
-    
     private enum AccessibilityID {
         static let rootView = "descriptionRootView"
         static let contentCardView = "descriptionContentCardView"
@@ -151,7 +147,7 @@ final class QuizDescriptionViewController: BaseQuizViewController, QuizDescripti
     
     override func loadView() {
         let rootView = UIView()
-        rootView.backgroundColor = UIColor(patternImage: UIImage(named: Content.backgroundImageName) ?? UIImage())
+        rootView.backgroundColor = .systemBackground
         rootView.accessibilityIdentifier = AccessibilityID.rootView
         view = rootView
         configureProgrammaticSubviews(in: rootView)

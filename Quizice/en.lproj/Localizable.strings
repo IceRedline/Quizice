@@ -4,6 +4,10 @@
 "common.no" = "No";
 "common.start" = "Start";
 "common.yes" = "Yes";
+"home.background_style.switcher" = "Background style";
+"home.background_style.original" = "Original";
+"home.background_style.grid_4x4" = "4×4 Mesh";
+"home.background_style.grid_5x5" = "5×5 Mesh";
 "description.default_theme_description" = "Theme description unavailable";
 "description.default_theme_name" = "No theme";
 "description.question_count" = "Number of questions";

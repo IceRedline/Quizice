@@ -10,12 +10,13 @@ final class QuiziceTests: XCTestCase {
 }
 
 final class AppAppearanceStoreTests: XCTestCase {
-    func testDefaultsUseClassicDesignAndSystemCleanMode() {
+    func testDefaultsUseClassicDesignSystemCleanModeAndAnimatedBackground() {
         let harness = makeHarness()
         let store = AppAppearanceStore(userDefaults: harness.defaults, notificationCenter: harness.notificationCenter)
 
         XCTAssertEqual(store.designStyle, .classic)
         XCTAssertEqual(store.cleanColorSchemePreference, .system)
+        XCTAssertEqual(store.backgroundStyle, .slate5x5)
     }
 
     func testPersistsDesignAndCleanMode() {
@@ -24,21 +25,25 @@ final class AppAppearanceStoreTests: XCTestCase {
 
         store.designStyle = .radar
         store.cleanColorSchemePreference = .dark
+        store.backgroundStyle = .slate4x4
 
         let reloadedStore = AppAppearanceStore(userDefaults: harness.defaults, notificationCenter: harness.notificationCenter)
         XCTAssertEqual(reloadedStore.designStyle, .radar)
         XCTAssertEqual(reloadedStore.cleanColorSchemePreference, .dark)
+        XCTAssertEqual(reloadedStore.backgroundStyle, .slate4x4)
     }
 
     func testFallsBackFromInvalidStoredValues() {
         let harness = makeHarness()
         harness.defaults.set("invalid-design", forKey: AppAppearanceStore.Keys.designStyle)
         harness.defaults.set("invalid-theme", forKey: AppAppearanceStore.Keys.cleanColorScheme)
+        harness.defaults.set("invalid-background", forKey: AppAppearanceStore.Keys.backgroundStyle)
 
         let store = AppAppearanceStore(userDefaults: harness.defaults, notificationCenter: harness.notificationCenter)
 
         XCTAssertEqual(store.designStyle, .classic)
         XCTAssertEqual(store.cleanColorSchemePreference, .system)
+        XCTAssertEqual(store.backgroundStyle, .slate5x5)
     }
 
     func testSettingsDesignOrderAndTitles() {

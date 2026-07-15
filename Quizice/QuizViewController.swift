@@ -4,7 +4,11 @@ import SwiftUI
 
 final class QuizViewController: BaseQuizViewController, QuizViewControllerProtocol, ThemeCollectionDelegate {
     private enum Content {
-        static let backgroundImageName = "backgroundImage"
+#if DEBUG
+        static let backgroundStyleIconName = "circle.grid.3x3.fill"
+        static let hideInterfaceIconName = "eye.slash"
+        static let showInterfaceIconName = "eye"
+#endif
         static let settingsIconName = "gear"
         static let startupSoundName = "Quizice Enter"
         static let startupSoundExtension = "m4a"
@@ -114,6 +118,9 @@ final class QuizViewController: BaseQuizViewController, QuizViewControllerProtoc
     private var screenStackView: UIStackView!
     private var settingsButton: UIButton!
     private var settingsButtonVisualSurface: UIView!
+#if DEBUG
+    private var isDebugInterfaceHidden = false
+#endif
 
     private var themesCollectionView: UICollectionView!
 
@@ -163,11 +170,7 @@ final class QuizViewController: BaseQuizViewController, QuizViewControllerProtoc
 
     override func loadView() {
         let rootView = UIView()
-        if let backgroundImage = UIImage(named: Content.backgroundImageName) {
-            rootView.backgroundColor = UIColor(patternImage: backgroundImage)
-        } else {
-            rootView.backgroundColor = .systemBackground
-        }
+        rootView.backgroundColor = .systemBackground
         rootView.accessibilityIdentifier = AccessibilityID.rootView
         view = rootView
         configureProgrammaticSubviews(in: rootView)
@@ -303,6 +306,10 @@ final class QuizViewController: BaseQuizViewController, QuizViewControllerProtoc
         ])
         settingsButton.translatesAutoresizingMaskIntoConstraints = false
         settingsButton.addTarget(self, action: #selector(settingsButtonTapped), for: .touchUpInside)
+#if DEBUG
+        settingsButton.showsMenuAsPrimaryAction = false
+        settingsButton.changesSelectionAsPrimaryAction = false
+#endif
         settingsButton.installPressFeedback()
     }
 
@@ -399,6 +406,7 @@ final class QuizViewController: BaseQuizViewController, QuizViewControllerProtoc
         motivationLabel?.font = appearance.typography.font(size: Typography.motivationFontSize, weight: .bold)
         motivationLabel?.textAlignment = .left
         headerStackView?.alignment = .leading
+        headerStackView?.directionalLayoutMargins = Layout.headerMargins
         invalidateMotivationBlurredText()
 
         settingsButton?.backgroundColor = .clear
@@ -411,6 +419,10 @@ final class QuizViewController: BaseQuizViewController, QuizViewControllerProtoc
             settingsButtonVisualSurface?.layer.cornerCurve = .circular
         }
         settingsButton?.tintColor = appearance.screenTextColor
+
+#if DEBUG
+        updateSettingsDebugMenu(appearance: appearance)
+#endif
 
         themesCollectionView?.backgroundColor = .clear
         themesCollectionView?.reloadData()
@@ -663,13 +675,74 @@ final class QuizViewController: BaseQuizViewController, QuizViewControllerProtoc
         router?.showAIThemeCreation()
     }
 
+#if DEBUG
+    private func updateSettingsDebugMenu(appearance: AppAppearance) {
+        guard let settingsButton else { return }
+
+        let interfaceAction = UIAction(
+            title: isDebugInterfaceHidden ? "Show UI" : "Hide UI",
+            image: UIImage(
+                systemName: isDebugInterfaceHidden
+                    ? Content.showInterfaceIconName
+                    : Content.hideInterfaceIconName
+            )
+        ) { [weak self] _ in
+            self?.toggleDebugInterfaceVisibility()
+        }
+
+        var menuElements: [UIMenuElement] = [interfaceAction]
+        if appearance.designStyle == .classic {
+            let backgroundMenu = UIMenu(
+                title: L10n.Home.backgroundStyleSwitcher,
+                image: UIImage(systemName: Content.backgroundStyleIconName),
+                options: .displayInline,
+                children: AppBackgroundStyle.allCases.map { [weak self] style in
+                    UIAction(
+                        title: style.title,
+                        image: UIImage(systemName: style.systemImageName),
+                        state: style == appearance.backgroundStyle ? .on : .off
+                    ) { _ in
+                        self?.selectBackgroundStyle(style)
+                    }
+                }
+            )
+            menuElements.append(backgroundMenu)
+        }
+
+        settingsButton.menu = UIMenu(children: menuElements)
+    }
+
+    func selectBackgroundStyle(_ style: AppBackgroundStyle) {
+        let store = AppAppearanceStore.shared
+        guard store.backgroundStyle != style else { return }
+
+        let feedback = UISelectionFeedbackGenerator()
+        feedback.prepare()
+        store.backgroundStyle = style
+        feedback.selectionChanged()
+    }
+#endif
+
     @objc private func settingsButtonTapped() {
         router?.showSettings()
     }
 
+#if DEBUG
+    func toggleDebugInterfaceVisibility() {
+        isDebugInterfaceHidden.toggle()
+
+        headerStackView.isHidden = isDebugInterfaceHidden
+        screenStackView.isHidden = isDebugInterfaceHidden
+        updateSettingsDebugMenu(appearance: currentAppearance())
+    }
+#endif
+
     override func applyLocalizedStrings() {
         guard isViewLoaded else { return }
         refreshMotivationPrompt()
+#if DEBUG
+        updateSettingsDebugMenu(appearance: currentAppearance())
+#endif
         settingsButton.accessibilityLabel = L10n.Settings.title
         themesCollectionView.accessibilityLabel = L10n.Home.themesCollectionAccessibilityLabel
         updateThemeAvailabilityMessage()
