@@ -20,7 +20,8 @@ final class ComponentSnapshotTests: XCTestCase {
             let button = SnapshotSupport.makeActionButton(
                 title: "Начать",
                 style: appearance.primaryButton,
-                appearance: appearance
+                appearance: appearance,
+                textColor: appearance.accentForegroundColor
             )
 
             SnapshotSupport.assertComponent(
@@ -54,7 +55,8 @@ final class ComponentSnapshotTests: XCTestCase {
             let button = SnapshotSupport.makeActionButton(
                 title: "Продолжить",
                 style: appearance.primaryButton,
-                appearance: appearance
+                appearance: appearance,
+                textColor: appearance.accentForegroundColor
             )
 
             SnapshotSupport.assertComponent(

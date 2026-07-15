@@ -316,7 +316,6 @@ private enum AppThemeColor: String {
     case cleanRowDark = "themeCleanRowDark"
     case cleanSecondaryLight = "themeCleanSecondaryLight"
     case cleanSecondaryDark = "themeCleanSecondaryDark"
-    case cleanAccent = "themeCleanAccent"
     case cleanDanger = "themeCleanDanger"
     case cleanCorrect = "themeCleanCorrect"
     case cleanAnswerDark = "themeCleanAnswerDark"
@@ -344,6 +343,7 @@ struct AppAppearance {
     let surfaceTextColor: UIColor
     let secondarySurfaceTextColor: UIColor
     let accentColor: UIColor
+    let accentForegroundColor: UIColor
     let destructiveColor: UIColor
     let answerDefaultColor: UIColor
     let correctAnswerColor: UIColor
@@ -467,7 +467,8 @@ struct AppAppearance {
         let screenText = isDark ? AppThemeColor.white.uiColor : AppThemeColor.cleanScreenText.uiColor
         let cardBackground = isDark ? AppThemeColor.cleanCardDark.uiColor : AppThemeColor.white.uiColor
         let surfaceText = isDark ? AppThemeColor.white.uiColor : AppThemeColor.cleanSurfaceText.uiColor
-        let accent = AppThemeColor.cleanAccent.uiColor
+        let accent = isDark ? AppThemeColor.white.uiColor : AppThemeColor.black.uiColor
+        let accentForeground = isDark ? AppThemeColor.black.uiColor : AppThemeColor.white.uiColor
         let subtleBorder = isDark ? AppThemeColor.white.uiColor.withAlphaComponent(0.10) : AppThemeColor.black.uiColor.withAlphaComponent(0.04)
         return AppAppearance(
             designStyle: .clean,
@@ -481,6 +482,7 @@ struct AppAppearance {
             surfaceTextColor: surfaceText,
             secondarySurfaceTextColor: surfaceText.withAlphaComponent(0.58),
             accentColor: accent,
+            accentForegroundColor: accentForeground,
             destructiveColor: AppThemeColor.cleanDanger.uiColor,
             answerDefaultColor: isDark ? AppThemeColor.cleanAnswerDark.uiColor : AppThemeColor.white.uiColor,
             correctAnswerColor: AppThemeColor.cleanCorrect.uiColor,
@@ -548,6 +550,7 @@ struct AppAppearance {
             surfaceTextColor: green,
             secondarySurfaceTextColor: green.withAlphaComponent(0.62),
             accentColor: green,
+            accentForegroundColor: green,
             destructiveColor: AppThemeColor.radarDanger.uiColor,
             answerDefaultColor: deepGreen,
             correctAnswerColor: green,
@@ -611,6 +614,7 @@ struct AppAppearance {
             surfaceTextColor: AppThemeColor.white.uiColor,
             secondarySurfaceTextColor: AppThemeColor.white.uiColor.withAlphaComponent(0.90),
             accentColor: .defaultButton,
+            accentForegroundColor: AppThemeColor.white.uiColor,
             destructiveColor: .wrongAnswerButton,
             answerDefaultColor: .defaultButton,
             correctAnswerColor: .correctAnswerButton,
@@ -670,6 +674,7 @@ struct AppAppearance {
         surfaceTextColor: UIColor,
         secondarySurfaceTextColor: UIColor,
         accentColor: UIColor,
+        accentForegroundColor: UIColor,
         destructiveColor: UIColor,
         answerDefaultColor: UIColor,
         correctAnswerColor: UIColor,
@@ -696,6 +701,7 @@ struct AppAppearance {
         self.surfaceTextColor = surfaceTextColor
         self.secondarySurfaceTextColor = secondarySurfaceTextColor
         self.accentColor = accentColor
+        self.accentForegroundColor = accentForegroundColor
         self.destructiveColor = destructiveColor
         self.answerDefaultColor = answerDefaultColor
         self.correctAnswerColor = correctAnswerColor
@@ -965,11 +971,8 @@ extension UIButton {
 }
 
 enum QuizThemeAccentStyle {
-    static func accentColor(themeID: String?, appearance: AppAppearance) -> UIColor {
-        guard appearance.designStyle == .clean, let themeID else {
-            return appearance.accentColor
-        }
-        return ThemeVisualCatalog.tintColorIfAvailable(for: themeID) ?? appearance.accentColor
+    static func accentColor(themeID _: String?, appearance: AppAppearance) -> UIColor {
+        appearance.accentColor
     }
 
     static func primaryButtonStyle(themeID: String?, appearance: AppAppearance) -> AppSurfaceStyle {
@@ -982,6 +985,11 @@ enum QuizThemeAccentStyle {
             cornerRadius: appearance.primaryButton.cornerRadius,
             shadow: appearance.primaryButton.shadow
         )
+    }
+
+    static func primaryButtonTextColor(themeID _: String?, appearance: AppAppearance) -> UIColor {
+        guard appearance.designStyle == .clean else { return appearance.screenTextColor }
+        return appearance.accentForegroundColor
     }
 
     static func secondaryButtonStyle(themeID: String?, appearance: AppAppearance) -> AppSurfaceStyle {

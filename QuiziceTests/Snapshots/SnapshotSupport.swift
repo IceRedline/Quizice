@@ -105,9 +105,14 @@ enum SnapshotSupport {
         )
     }
 
-    static func makeActionButton(title: String, style: AppSurfaceStyle, appearance: AppAppearance) -> UIButton {
+    static func makeActionButton(
+        title: String,
+        style: AppSurfaceStyle,
+        appearance: AppAppearance,
+        textColor: UIColor? = nil
+    ) -> UIButton {
         let button = UIButton(type: .system)
-        button.applyActionAppearance(style, appearance: appearance)
+        button.applyActionAppearance(style, appearance: appearance, textColor: textColor)
         button.setTitle(title, for: .normal)
         button.titleLabel?.font = appearance.typography.button()
         button.heightAnchor.constraint(equalToConstant: 52).isActive = true

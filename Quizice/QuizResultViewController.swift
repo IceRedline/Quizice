@@ -258,7 +258,10 @@ final class QuizResultViewController: BaseQuizViewController, QuizResultViewCont
         replayButton?.applyActionAppearance(
             QuizThemeAccentStyle.primaryButtonStyle(themeID: presenter?.themeID, appearance: appearance),
             appearance: appearance,
-            textColor: actionTextColor(appearance: appearance)
+            textColor: QuizThemeAccentStyle.primaryButtonTextColor(
+                themeID: presenter?.themeID,
+                appearance: appearance
+            )
         )
         replayButton?.titleLabel?.font = appearance.typography.font(size: Typography.buttonFontSize, weight: .semibold)
         themesButton?.applyActionAppearance(
@@ -267,13 +270,6 @@ final class QuizResultViewController: BaseQuizViewController, QuizResultViewCont
             textColor: QuizThemeAccentStyle.secondaryButtonTextColor(themeID: presenter?.themeID, appearance: appearance)
         )
         themesButton?.titleLabel?.font = appearance.typography.font(size: Typography.buttonFontSize, weight: .semibold)
-    }
-
-    private func actionTextColor(appearance: AppAppearance) -> UIColor {
-        if appearance.designStyle == .clean {
-            return appearance.resolvedInterfaceStyle == .dark ? appearance.screenTextColor : .black
-        }
-        return appearance.screenTextColor
     }
 
     @objc private func replayButtonTapped() {

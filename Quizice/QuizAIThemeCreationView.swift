@@ -6,9 +6,12 @@ struct AIThemeKeyboardStyle {
 
     init(appearance: AppAppearance) {
         interfaceStyle = appearance.resolvedInterfaceStyle
-        doneButtonTintColor = appearance.designStyle == .radar
-            ? appearance.accentColor
-            : .systemBlue
+        switch appearance.designStyle {
+        case .clean, .radar:
+            doneButtonTintColor = appearance.accentColor
+        case .classic:
+            doneButtonTintColor = .systemBlue
+        }
     }
 }
 
@@ -406,7 +409,9 @@ struct QuizAIThemeCreationView: View {
         Button(action: action) {
             Text(title)
                 .font(appearance.typography.swiftUIFont(size: 15, weight: .semibold))
-                .foregroundStyle(Color(uiColor: isSelected ? submitButtonTextColor : appearance.surfaceTextColor))
+                .foregroundStyle(
+                    Color(uiColor: isSelected ? appearance.accentForegroundColor : appearance.surfaceTextColor)
+                )
                 .lineLimit(1)
                 .minimumScaleFactor(0.72)
                 .frame(maxWidth: .infinity, minHeight: Layout.selectorHeight)
@@ -491,7 +496,7 @@ struct QuizAIThemeCreationView: View {
     }
 
     private var submitButtonTextColor: UIColor {
-        canSubmit || isSubmitting ? appearance.screenTextColor : appearance.disabledTextColor
+        canSubmit || isSubmitting ? appearance.accentForegroundColor : appearance.disabledTextColor
     }
 
     private func traitUserInterfaceStyle(for selectedTheme: CleanColorSchemePreference) -> UIUserInterfaceStyle {

@@ -403,7 +403,10 @@ final class QuizDescriptionViewController: BaseQuizViewController, QuizDescripti
         startButton?.applyActionAppearance(
             QuizThemeAccentStyle.primaryButtonStyle(themeID: presenter?.themeID, appearance: appearance),
             appearance: appearance,
-            textColor: actionTextColor(for: .primary, appearance: appearance)
+            textColor: QuizThemeAccentStyle.primaryButtonTextColor(
+                themeID: presenter?.themeID,
+                appearance: appearance
+            )
         )
         startButton?.titleLabel?.font = appearance.typography.font(size: Typography.buttonFontSize, weight: .semibold)
         backButton?.applyActionAppearance(
@@ -413,17 +416,6 @@ final class QuizDescriptionViewController: BaseQuizViewController, QuizDescripti
         )
     }
 
-    private func actionTextColor(for style: ActionButtonStyle, appearance: AppAppearance) -> UIColor {
-        switch (style, appearance.designStyle) {
-        case (.primary, .clean):
-            return appearance.resolvedInterfaceStyle == .dark ? appearance.screenTextColor : UIColor.black
-        case (.secondary, .clean):
-            return QuizThemeAccentStyle.secondaryButtonTextColor(themeID: presenter?.themeID, appearance: appearance)
-        default:
-            return appearance.screenTextColor
-        }
-    }
-    
     @objc private func startButtonTapped() {
         presenter?.saveNumberOfQuestions(chosenRow: numberOfQuestionsPickerView.selectedRow(inComponent: .zero))
         analytics.track(
