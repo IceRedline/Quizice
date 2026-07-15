@@ -1,5 +1,17 @@
 import SwiftUI
 
+struct AIThemeKeyboardStyle {
+    let interfaceStyle: UIUserInterfaceStyle
+    let doneButtonTintColor: UIColor
+
+    init(appearance: AppAppearance) {
+        interfaceStyle = appearance.resolvedInterfaceStyle
+        doneButtonTintColor = appearance.designStyle == .radar
+            ? appearance.accentColor
+            : .systemBlue
+    }
+}
+
 struct AIQuizGenerationAlert: Identifiable, Equatable {
     enum Kind: String {
         case refusal
@@ -191,6 +203,10 @@ struct QuizAIThemeCreationView: View {
         prompt.trimmingCharacters(in: .whitespacesAndNewlines)
     }
 
+    private var keyboardStyle: AIThemeKeyboardStyle {
+        AIThemeKeyboardStyle(appearance: appearance)
+    }
+
     private var selectedLocale: Locale {
         AppLocalizationStore.shared.resolvedLocale
     }
@@ -227,6 +243,7 @@ struct QuizAIThemeCreationView: View {
                 Button(L10n.Settings.done) {
                     isPromptFocused = false
                 }
+                .tint(Color(uiColor: keyboardStyle.doneButtonTintColor))
                 .accessibilityIdentifier(AccessibilityID.keyboardDoneButton)
             }
         }

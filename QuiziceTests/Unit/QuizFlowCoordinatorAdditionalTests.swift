@@ -28,6 +28,79 @@ final class QuizFlowCoordinatorAdditionalTests: XCTestCase {
         XCTAssertTrue(navigationController.isNavigationBarHidden)
     }
 
+    func testLaunchOverlayPresenterInstallsAndRemovesFakeLaunchAboveRoot() throws {
+        let windowScene = try XCTUnwrap(
+            UIApplication.shared.connectedScenes.compactMap { $0 as? UIWindowScene }.first
+        )
+        let window = UIWindow(windowScene: windowScene)
+        let rootViewController = UINavigationController(rootViewController: UIViewController())
+        window.rootViewController = rootViewController
+        let presenter = LaunchOverlayPresenter()
+        defer {
+            presenter.dismiss(animated: false)
+            window.isHidden = true
+            window.rootViewController = nil
+        }
+
+        presenter.present(in: window, autoDismissAfter: 60)
+
+        let overlayWindow = try XCTUnwrap(
+            windowScene.windows.first {
+                $0.accessibilityIdentifier == LaunchOverlayPresenter.accessibilityIdentifier
+            }
+        )
+        XCTAssertFalse(overlayWindow.isKeyWindow)
+        XCTAssertEqual(overlayWindow.windowLevel.rawValue, window.windowLevel.rawValue + 1)
+        XCTAssertNotNil(overlayWindow.rootViewController as? UIHostingController<FakeLaunchScreenView>)
+        XCTAssertTrue(rootViewController.view.accessibilityElementsHidden)
+        XCTAssertEqual(rootViewController.children.count, 1)
+
+        presenter.dismiss(animated: false)
+
+        XCTAssertTrue(overlayWindow.isHidden)
+        XCTAssertNil(overlayWindow.rootViewController)
+        XCTAssertFalse(rootViewController.view.accessibilityElementsHidden)
+        XCTAssertEqual(rootViewController.children.count, 1)
+    }
+
+    func testLaunchStoryboardMatchesFakeLaunchBaseGeometryAndColor() throws {
+        let viewController = try XCTUnwrap(
+            UIStoryboard(name: "LaunchScreen", bundle: nil).instantiateInitialViewController()
+        )
+        let logoImageView = try XCTUnwrap(
+            viewController.view.subviews.compactMap { $0 as? UIImageView }.first
+        )
+        let backgroundColor = try XCTUnwrap(viewController.view.backgroundColor)
+        var red: CGFloat = 0
+        var green: CGFloat = 0
+        var blue: CGFloat = 0
+        var alpha: CGFloat = 0
+
+        XCTAssertTrue(backgroundColor.getRed(&red, green: &green, blue: &blue, alpha: &alpha))
+        XCTAssertEqual(red, 17.0 / 255.0, accuracy: 0.000_001)
+        XCTAssertEqual(green, 22.0 / 255.0, accuracy: 0.000_001)
+        XCTAssertEqual(blue, 32.0 / 255.0, accuracy: 0.000_001)
+        XCTAssertEqual(alpha, 1, accuracy: 0.000_001)
+
+        let pixelTolerance = 1 / UIScreen.main.scale
+        for size in [
+            CGSize(width: 320, height: 568),
+            CGSize(width: 393, height: 852),
+            CGSize(width: 600, height: 1_000)
+        ] {
+            viewController.view.frame = CGRect(origin: .zero, size: size)
+            viewController.view.setNeedsLayout()
+            viewController.view.layoutIfNeeded()
+
+            XCTAssertEqual(logoImageView.frame.midX, size.width / 2, accuracy: 0.01)
+            XCTAssertEqual(logoImageView.frame.midY, size.height / 2, accuracy: 0.01)
+            let expectedWidth = min(size.width * 0.7, 360)
+            let expectedHeight = expectedWidth * 399 / 742
+            XCTAssertEqual(logoImageView.frame.width, expectedWidth, accuracy: pixelTolerance)
+            XCTAssertEqual(logoImageView.frame.height, expectedHeight, accuracy: pixelTolerance)
+        }
+    }
+
     func testDescriptionAndStatisticsRoutesPushExpectedControllers() {
         let harness = makeHarness()
         harness.coordinator.start()
@@ -112,6 +185,12 @@ final class QuizFlowCoordinatorAdditionalTests: XCTestCase {
         XCTAssertEqual(harness.navigationController.presentedControllers.count, 4)
         XCTAssertEqual(harness.navigationController.presentedControllers.last?.modalPresentationStyle, .pageSheet)
         XCTAssertEqual(harness.navigationController.presentedAnimationFlags.last, true)
+        XCTAssertEqual(
+            harness.navigationController.presentedControllers.last?.overrideUserInterfaceStyle,
+            AppAppearanceStore.shared.appearance(
+                compatibleWith: harness.navigationController.traitCollection
+            ).resolvedInterfaceStyle
+        )
     }
 
     func testGeneratedAIThemeUpdatesSessionAndShowsDescriptionAfterSheetDismissal() {

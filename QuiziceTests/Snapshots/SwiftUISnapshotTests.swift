@@ -33,6 +33,21 @@ final class SwiftUISnapshotTests: XCTestCase {
         )
     }
 
+    func testFakeLaunchScreenSnapshot() {
+        SnapshotSupport.setUp(designStyle: .classic)
+        let viewController = makeHostingController(
+            rootView: FakeLaunchScreenView(
+                appearance: SnapshotSupport.appearance(designStyle: .classic)
+            )
+        )
+
+        SnapshotSupport.assertScreen(
+            viewController,
+            named: "fake-launch-screen",
+            device: SnapshotSupport.iPhone17Pro
+        )
+    }
+
     func testAIThemeCreationViewSnapshot() {
         let viewController = makeHostingController(
             rootView: QuizAIThemeCreationView(service: MockAIQuizThemeService())

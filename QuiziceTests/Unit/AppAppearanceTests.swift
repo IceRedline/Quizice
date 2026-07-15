@@ -47,6 +47,43 @@ final class AppAppearanceTests: XCTestCase {
         XCTAssertFalse(lightAppearance.card.backgroundColor.isEqual(darkAppearance.card.backgroundColor))
     }
 
+    func testAIThemeKeyboardStyleFollowsDesignAppearance() {
+        let lightTraits = UITraitCollection(userInterfaceStyle: .light)
+        let classic = AppAppearance(
+            designStyle: .classic,
+            cleanColorSchemePreference: .light,
+            traitCollection: lightTraits
+        )
+        let radar = AppAppearance(
+            designStyle: .radar,
+            cleanColorSchemePreference: .light,
+            traitCollection: lightTraits
+        )
+        let cleanLight = AppAppearance(
+            designStyle: .clean,
+            cleanColorSchemePreference: .light,
+            traitCollection: lightTraits
+        )
+        let cleanSystem = AppAppearance(
+            designStyle: .clean,
+            cleanColorSchemePreference: .system,
+            traitCollection: lightTraits
+        )
+
+        let classicKeyboard = AIThemeKeyboardStyle(appearance: classic)
+        let radarKeyboard = AIThemeKeyboardStyle(appearance: radar)
+        let cleanLightKeyboard = AIThemeKeyboardStyle(appearance: cleanLight)
+        let cleanSystemKeyboard = AIThemeKeyboardStyle(appearance: cleanSystem)
+
+        XCTAssertEqual(classicKeyboard.interfaceStyle, .dark)
+        XCTAssertEqual(radarKeyboard.interfaceStyle, .dark)
+        XCTAssertEqual(cleanLightKeyboard.interfaceStyle, .light)
+        XCTAssertEqual(cleanSystemKeyboard.interfaceStyle, .unspecified)
+        XCTAssertTrue(radarKeyboard.doneButtonTintColor.isEqual(radar.accentColor))
+        XCTAssertTrue(classicKeyboard.doneButtonTintColor.isEqual(UIColor.systemBlue))
+        XCTAssertTrue(cleanLightKeyboard.doneButtonTintColor.isEqual(UIColor.systemBlue))
+    }
+
     func testThemeCardStylingDiffersByDesignStyle() {
         let baseColor = UIColor.systemBlue
         let clean = SnapshotSupport.appearance(designStyle: .clean)
