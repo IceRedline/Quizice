@@ -63,7 +63,31 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
     }
 }
 
+enum FakeLaunchCompletionStyle: Equatable {
+    case revealHome
+    case crossfade
+}
+
+struct FakeLaunchMotion {
+    static let standard = FakeLaunchMotion(
+        logoZoomScale: 42,
+        logoZoomDuration: 0.82
+    )
+
+    let logoZoomScale: CGFloat
+    let logoZoomDuration: TimeInterval
+
+    var logoZoomAnimation: Animation {
+        .timingCurve(0.77, 0, 0.175, 1, duration: logoZoomDuration)
+    }
+}
+
 struct FakeLaunchScreenView: View {
+    private enum Phase {
+        case holding
+        case zooming
+    }
+
     private enum Layout {
         static let logoWidthRatio: CGFloat = 0.7
         static let maximumLogoWidth: CGFloat = 360
@@ -74,9 +98,26 @@ struct FakeLaunchScreenView: View {
     }
 
     let appearance: AppAppearance
+    private let holdDuration: TimeInterval
+    private let motion: FakeLaunchMotion
+    private let onFinished: (FakeLaunchCompletionStyle) -> Void
 
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var isRevealed = false
+    @State private var phase = Phase.holding
+    @State private var didFinish = false
+
+    init(
+        appearance: AppAppearance,
+        holdDuration: TimeInterval = 1.15,
+        motion: FakeLaunchMotion = .standard,
+        onFinished: @escaping (FakeLaunchCompletionStyle) -> Void = { _ in }
+    ) {
+        self.appearance = appearance
+        self.holdDuration = holdDuration
+        self.motion = motion
+        self.onFinished = onFinished
+    }
 
     var body: some View {
         GeometryReader { geometry in
@@ -88,6 +129,7 @@ struct FakeLaunchScreenView: View {
 
                 Image("QII")
                     .resizable()
+                    .interpolation(.high)
                     .scaledToFit()
                     .frame(
                         width: min(
@@ -95,12 +137,17 @@ struct FakeLaunchScreenView: View {
                             Layout.maximumLogoWidth
                         )
                     )
+                    .scaleEffect(phase == .zooming && !reduceMotion ? motion.logoZoomScale : 1)
             }
             .frame(width: geometry.size.width, height: geometry.size.height)
+            .clipped()
         }
         .ignoresSafeArea()
         .accessibilityHidden(true)
         .onAppear(perform: reveal)
+        .task {
+            await runSequence()
+        }
     }
 
     private func reveal() {
@@ -113,28 +160,60 @@ struct FakeLaunchScreenView: View {
             isRevealed = true
         }
     }
+
+    @MainActor
+    private func runSequence() async {
+        let nanoseconds = UInt64(max(0, holdDuration) * 1_000_000_000)
+        do {
+            try await Task.sleep(nanoseconds: nanoseconds)
+        } catch {
+            return
+        }
+
+        guard !Task.isCancelled else { return }
+        guard !reduceMotion, UIView.areAnimationsEnabled else {
+            finish(with: .crossfade)
+            return
+        }
+
+        withAnimation(
+            motion.logoZoomAnimation,
+            completionCriteria: .logicallyComplete
+        ) {
+            phase = .zooming
+        } completion: {
+            finish(with: .revealHome)
+        }
+    }
+
+    private func finish(with style: FakeLaunchCompletionStyle) {
+        guard !didFinish else { return }
+        didFinish = true
+        onFinished(style)
+    }
 }
 
 @MainActor
 final class LaunchOverlayPresenter {
     private enum Timing {
-        static let minimumVisibleDuration: TimeInterval = 1.15
-        static let dismissalDuration: TimeInterval = 0.32
-        static let reducedMotionDismissalDuration: TimeInterval = 0.18
+        static let holdDuration: TimeInterval = 1.15
+        static let homeRevealDuration: TimeInterval = 0.24
+        static let reducedMotionRevealDuration: TimeInterval = 0.18
     }
 
     static let accessibilityIdentifier = "fakeLaunchScreen"
 
     private var overlayWindow: UIWindow?
-    private var dismissalTask: Task<Void, Never>?
+    private var activePresentationID: UUID?
+    private var activeDismissalID: UUID?
     private weak var coveredAccessibilityView: UIView?
     private var coveredViewWasAccessibilityHidden = false
 
-    deinit {
-        dismissalTask?.cancel()
-    }
-
-    func present(in window: UIWindow, autoDismissAfter delay: TimeInterval = Timing.minimumVisibleDuration) {
+    func present(
+        in window: UIWindow,
+        holdDuration: TimeInterval = Timing.holdDuration,
+        motion: FakeLaunchMotion = .standard
+    ) {
         guard
             overlayWindow == nil,
             let windowScene = window.windowScene,
@@ -147,8 +226,16 @@ final class LaunchOverlayPresenter {
             backgroundStyle: .slate5x5,
             traitCollection: window.traitCollection
         )
+        let presentationID = UUID()
         let hostingController = UIHostingController(
-            rootView: FakeLaunchScreenView(appearance: appearance)
+            rootView: FakeLaunchScreenView(
+                appearance: appearance,
+                holdDuration: holdDuration,
+                motion: motion,
+                onFinished: { [weak self] style in
+                    self?.completePresentation(presentationID, with: style)
+                }
+            )
         )
         let overlayView = hostingController.view!
         overlayView.accessibilityIdentifier = Self.accessibilityIdentifier
@@ -165,46 +252,70 @@ final class LaunchOverlayPresenter {
         coveredAccessibilityView = coveredView
         coveredViewWasAccessibilityHidden = coveredView.accessibilityElementsHidden
         coveredView.accessibilityElementsHidden = true
+        activePresentationID = presentationID
         self.overlayWindow = overlayWindow
         overlayWindow.isHidden = false
-
-        dismissalTask = Task { @MainActor [self] in
-            let nanoseconds = UInt64(max(0, delay) * 1_000_000_000)
-            do {
-                try await Task.sleep(nanoseconds: nanoseconds)
-            } catch {
-                return
-            }
-            dismiss()
-        }
     }
 
     func dismiss(animated: Bool = true) {
-        dismissalTask?.cancel()
-        dismissalTask = nil
+        let duration = UIAccessibility.isReduceMotionEnabled
+            ? Timing.reducedMotionRevealDuration
+            : Timing.homeRevealDuration
+        dismiss(animated: animated, duration: duration)
+    }
+
+    private func dismiss(animated: Bool, duration: TimeInterval) {
+        activePresentationID = nil
 
         guard let overlayWindow else { return }
 
         guard animated, UIView.areAnimationsEnabled else {
-            finishDismissal()
+            activeDismissalID = nil
+            overlayWindow.layer.removeAllAnimations()
+            finishDismissal(expectedWindow: overlayWindow)
             return
         }
 
-        let duration = UIAccessibility.isReduceMotionEnabled
-            ? Timing.reducedMotionDismissalDuration
-            : Timing.dismissalDuration
+        let dismissalID = UUID()
+        activeDismissalID = dismissalID
         UIView.animate(
             withDuration: duration,
             delay: 0,
             options: [.curveEaseOut, .allowUserInteraction, .beginFromCurrentState]
         ) {
             overlayWindow.alpha = 0
-        } completion: { [self] _ in
-            finishDismissal()
+        } completion: { [weak self, weak overlayWindow] _ in
+            guard
+                let self,
+                let overlayWindow,
+                activeDismissalID == dismissalID
+            else { return }
+            finishDismissal(expectedWindow: overlayWindow)
         }
     }
 
-    private func finishDismissal() {
+    private func completePresentation(
+        _ presentationID: UUID,
+        with style: FakeLaunchCompletionStyle
+    ) {
+        guard activePresentationID == presentationID else { return }
+
+        switch style {
+        case .revealHome:
+            dismiss(animated: true, duration: Timing.homeRevealDuration)
+        case .crossfade:
+            dismiss(animated: true, duration: Timing.reducedMotionRevealDuration)
+        }
+    }
+
+    private func finishDismissal(expectedWindow: UIWindow? = nil) {
+        if let expectedWindow, overlayWindow !== expectedWindow {
+            return
+        }
+
+        overlayWindow?.layer.removeAllAnimations()
+        activePresentationID = nil
+        activeDismissalID = nil
         overlayWindow?.isHidden = true
         overlayWindow?.rootViewController = nil
         overlayWindow = nil
