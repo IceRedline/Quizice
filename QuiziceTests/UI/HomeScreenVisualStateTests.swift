@@ -13,11 +13,16 @@ final class HomeScreenVisualStateTests: XCTestCase {
         // Pin the clean color scheme so shadow/surface assertions are deterministic
         // regardless of the host simulator's system light/dark appearance.
         UserDefaults.standard.set(CleanColorSchemePreference.light.rawValue, forKey: AppAppearanceStore.Keys.cleanColorScheme)
+        UserDefaults.standard.set(AppDesignStyle.classic.rawValue, forKey: AppAppearanceStore.Keys.designStyle)
+        UserDefaults.standard.set(AppBackgroundStyle.defaultStyle.rawValue, forKey: AppAppearanceStore.Keys.backgroundStyle)
     }
 
     override func tearDown() {
         testWindows = []
         resetQuizFactory()
+        UserDefaults.standard.removeObject(forKey: AppAppearanceStore.Keys.designStyle)
+        UserDefaults.standard.removeObject(forKey: AppAppearanceStore.Keys.cleanColorScheme)
+        UserDefaults.standard.removeObject(forKey: AppAppearanceStore.Keys.backgroundStyle)
         UserDefaults.standard.removeObject(forKey: AppLocalizationStore.Keys.language)
         super.tearDown()
     }
@@ -32,6 +37,8 @@ final class HomeScreenVisualStateTests: XCTestCase {
         XCTAssertNotNil(viewController.view.descendant(withAccessibilityIdentifier: "homeMotivationLabel"))
         XCTAssertNotNil(viewController.view.descendant(withAccessibilityIdentifier: "homeThemesCollectionView"))
         XCTAssertNotNil(viewController.view.descendant(withAccessibilityIdentifier: "homeSettingsButton"))
+        XCTAssertNil(viewController.view.descendant(withAccessibilityIdentifier: "homeBackgroundStyleButton"))
+        XCTAssertNil(viewController.view.descendant(withAccessibilityIdentifier: "homeDebugInterfaceButton"))
     }
 
     func testHomeHeaderUsesSingleLeadingMotivationPrompt() throws {
@@ -221,10 +228,103 @@ final class HomeScreenVisualStateTests: XCTestCase {
         let settingsButton = try XCTUnwrap(viewController.view.descendant(withAccessibilityIdentifier: "homeSettingsButton") as? UIButton)
 
         XCTAssertNotNil(settingsButton.image(for: .normal))
+#if DEBUG
+        XCTAssertFalse(settingsButton.showsMenuAsPrimaryAction)
+        XCTAssertNotNil(settingsButton.menu)
+#endif
 
         settingsButton.sendActions(for: .touchUpInside)
 
         XCTAssertEqual(router.showSettingsCallCount, 1)
+    }
+
+    func testHomeSettingsDebugMenuContainsBackgroundPresets() throws {
+        QuizFactory.shared.themes = [makeTheme(name: "Музыка")]
+
+        let viewController = makeHomeViewController(in: CGRect(x: 0, y: 0, width: 390, height: 844))
+        let settingsButton = try XCTUnwrap(
+            viewController.view.descendant(withAccessibilityIdentifier: "homeSettingsButton") as? UIButton
+        )
+
+#if DEBUG
+        let menu = try XCTUnwrap(settingsButton.menu)
+        let interfaceAction = try XCTUnwrap(menu.children.first as? UIAction)
+        let backgroundMenu = try XCTUnwrap(menu.children.last as? UIMenu)
+        let backgroundActions = backgroundMenu.children.compactMap { $0 as? UIAction }
+
+        XCTAssertEqual(interfaceAction.title, "Hide UI")
+        XCTAssertEqual(backgroundMenu.title, L10n.Home.backgroundStyleSwitcher)
+        XCTAssertEqual(backgroundActions.count, AppBackgroundStyle.allCases.count)
+        XCTAssertEqual(backgroundActions.map(\.title), AppBackgroundStyle.allCases.map(\.title))
+        XCTAssertEqual(AppAppearanceStore.shared.backgroundStyle, .slate5x5)
+        XCTAssertEqual(backgroundActions.filter { $0.state == .on }.map(\.title), [AppBackgroundStyle.slate5x5.title])
+        XCTAssertNotNil(viewController.view.descendant(withAccessibilityIdentifier: "appBackgroundView"))
+
+        XCTAssertNotNil(backgroundActions.first { $0.title == AppBackgroundStyle.slate4x4.title })
+        viewController.selectBackgroundStyle(.slate4x4)
+
+        XCTAssertEqual(AppAppearanceStore.shared.backgroundStyle, .slate4x4)
+        let updatedBackgroundMenu = try XCTUnwrap(settingsButton.menu?.children.last as? UIMenu)
+        let updatedBackgroundActions = updatedBackgroundMenu.children.compactMap { $0 as? UIAction }
+        XCTAssertEqual(
+            updatedBackgroundActions.filter { $0.state == .on }.map(\.title),
+            [AppBackgroundStyle.slate4x4.title]
+        )
+#else
+        XCTAssertNil(settingsButton.menu)
+#endif
+    }
+
+    func testHomeSettingsDebugMenuHidesAndRestoresInterface() throws {
+#if DEBUG
+        QuizFactory.shared.themes = [makeTheme(name: "Музыка")]
+
+        let viewController = makeHomeViewController(in: CGRect(x: 0, y: 0, width: 390, height: 844))
+        let router = HomeRouterSpy()
+        viewController.router = router
+        let settingsButton = try XCTUnwrap(
+            viewController.view.descendant(withAccessibilityIdentifier: "homeSettingsButton") as? UIButton
+        )
+        let headerStackView = try XCTUnwrap(
+            viewController.view.descendant(withAccessibilityIdentifier: "homeHeaderStackView")
+        )
+        let screenStackView = try XCTUnwrap(
+            viewController.view.descendant(withAccessibilityIdentifier: "homeScreenStackView")
+        )
+        XCTAssertNotNil(settingsButton.menu?.children.first as? UIAction)
+
+        viewController.toggleDebugInterfaceVisibility()
+
+        XCTAssertTrue(headerStackView.isHidden)
+        XCTAssertTrue(screenStackView.isHidden)
+        XCTAssertFalse(settingsButton.isHidden)
+        XCTAssertTrue(settingsButton.isEnabled)
+        settingsButton.sendActions(for: .touchUpInside)
+        XCTAssertEqual(router.showSettingsCallCount, 1)
+
+        let showAction = try XCTUnwrap(settingsButton.menu?.children.first as? UIAction)
+        XCTAssertEqual(showAction.title, "Show UI")
+        viewController.toggleDebugInterfaceVisibility()
+
+        XCTAssertFalse(headerStackView.isHidden)
+        XCTAssertFalse(screenStackView.isHidden)
+#endif
+    }
+
+    func testHomeHasNoSeparateDebugButtonsOrInactiveBackgroundMenu() throws {
+        useDesignStyle(.clean)
+        QuizFactory.shared.themes = [makeTheme(name: "Музыка")]
+
+        let viewController = makeHomeViewController(in: CGRect(x: 0, y: 0, width: 390, height: 844))
+
+        XCTAssertNil(viewController.view.descendant(withAccessibilityIdentifier: "homeBackgroundStyleButton"))
+        XCTAssertNil(viewController.view.descendant(withAccessibilityIdentifier: "homeDebugInterfaceButton"))
+#if DEBUG
+        let settingsButton = try XCTUnwrap(
+            viewController.view.descendant(withAccessibilityIdentifier: "homeSettingsButton") as? UIButton
+        )
+        XCTAssertTrue(settingsButton.menu?.children.compactMap { $0 as? UIMenu }.isEmpty == true)
+#endif
     }
 
     func testRadarSettingsSurfaceStaysBehindGearArtwork() throws {
@@ -776,6 +876,7 @@ final class HomeScreenVisualStateTests: XCTestCase {
         QuizFactory.shared.startup1st = false
         UserDefaults.standard.removeObject(forKey: AppAppearanceStore.Keys.designStyle)
         UserDefaults.standard.removeObject(forKey: AppAppearanceStore.Keys.cleanColorScheme)
+        UserDefaults.standard.removeObject(forKey: AppAppearanceStore.Keys.backgroundStyle)
     }
 
     private func assertColor(_ actual: UIColor?, equals expected: UIColor, file: StaticString = #filePath, line: UInt = #line) {

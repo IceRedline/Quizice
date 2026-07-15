@@ -5,7 +5,6 @@ import SwiftUI
 
 final class StatisticsViewController: BaseQuizViewController {
     private enum Content {
-        static let backgroundImageName = "backgroundImage"
         static let percentageSuffix = "%"
     }
     
@@ -126,7 +125,7 @@ final class StatisticsViewController: BaseQuizViewController {
 
     override func loadView() {
         let rootView = UIView()
-        rootView.backgroundColor = UIColor(patternImage: UIImage(named: Content.backgroundImageName) ?? UIImage())
+        rootView.backgroundColor = .systemBackground
         rootView.accessibilityIdentifier = AccessibilityID.rootView
         rootView.accessibilityLabel = L10n.Statistics.accessibilityLabel
         view = rootView

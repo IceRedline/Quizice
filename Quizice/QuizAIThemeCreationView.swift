@@ -106,7 +106,6 @@ struct QuizAIThemeCreationView: View {
     }
 
     private enum Appearance {
-        static let backgroundOverlayOpacity: CGFloat = 0.42
         static let disabledOpacity: CGFloat = 0.52
         static let unselectedOptionOpacity: CGFloat = 0.78
     }
@@ -132,6 +131,7 @@ struct QuizAIThemeCreationView: View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @AppStorage(AppAppearanceStore.Keys.cleanColorScheme) private var selectedThemeID = CleanColorSchemePreference.system.rawValue
     @AppStorage(AppAppearanceStore.Keys.designStyle) private var selectedDesignStyleID = AppDesignStyle.defaultStyle.rawValue
+    @AppStorage(AppAppearanceStore.Keys.backgroundStyle) private var selectedBackgroundStyleID = AppBackgroundStyle.defaultStyle.rawValue
     @State private var prompt = ""
     @State private var selectedQuestionCount = AIQuizGenerationConfiguration.supportedQuestionCounts[0]
     @State private var selectedDifficulty = AIQuizDifficulty.medium
@@ -173,11 +173,16 @@ struct QuizAIThemeCreationView: View {
         return style
     }
 
+    private var selectedBackgroundStyle: AppBackgroundStyle {
+        AppBackgroundStyle(rawValue: selectedBackgroundStyleID) ?? .defaultStyle
+    }
+
     private var appearance: AppAppearance {
         let traitCollection = UITraitCollection(userInterfaceStyle: traitUserInterfaceStyle(for: selectedTheme))
         return AppAppearance(
             designStyle: selectedDesignStyle,
             cleanColorSchemePreference: selectedTheme,
+            backgroundStyle: selectedBackgroundStyle,
             traitCollection: traitCollection
         )
     }
@@ -198,7 +203,6 @@ struct QuizAIThemeCreationView: View {
         GeometryReader { geometry in
             ZStack(alignment: .top) {
                 aiThemeBackground
-                    .accessibilityIdentifier(AccessibilityID.rootView)
 
                 ScrollView {
                     content
@@ -210,6 +214,7 @@ struct QuizAIThemeCreationView: View {
                 .scrollDismissesKeyboard(.interactively)
             }
             .frame(width: geometry.size.width, height: geometry.size.height, alignment: .top)
+            .accessibilityIdentifier(AccessibilityID.rootView)
         }
         .environment(\.appAppearance, appearance)
         .preferredColorScheme(appearance.swiftUIColorScheme)
@@ -236,15 +241,8 @@ struct QuizAIThemeCreationView: View {
 
     @ViewBuilder
     private var aiThemeBackground: some View {
-        if let imageName = appearance.backgroundImageName {
-            Image(imageName)
-                .resizable()
-                .scaledToFill()
-                .ignoresSafeArea()
-
-            Color(uiColor: appearance.overlayColor)
-                .opacity(Appearance.backgroundOverlayOpacity)
-                .ignoresSafeArea()
+        if appearance.designStyle == .classic {
+            AppBackgroundView(appearance: appearance)
         } else {
             Color(uiColor: appearance.backgroundColor)
                 .ignoresSafeArea()

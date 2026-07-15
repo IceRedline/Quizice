@@ -4,6 +4,10 @@
 "common.no" = "Нет";
 "common.start" = "Начать";
 "common.yes" = "Да";
+"home.background_style.switcher" = "Вариант фона";
+"home.background_style.original" = "Оригинальный";
+"home.background_style.grid_4x4" = "Сетка 4×4";
+"home.background_style.grid_5x5" = "Сетка 5×5";
 "description.default_theme_description" = "Описание темы недоступно";
 "description.default_theme_name" = "Без темы";
 "description.question_count" = "Количество вопросов";

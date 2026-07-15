@@ -4,6 +4,10 @@
 "common.no" = "No";
 "common.start" = "Empezar";
 "common.yes" = "Sí";
+"home.background_style.switcher" = "Estilo de fondo";
+"home.background_style.original" = "Original";
+"home.background_style.grid_4x4" = "Malla 4×4";
+"home.background_style.grid_5x5" = "Malla 5×5";
 "description.default_theme_description" = "Descripción del tema no disponible";
 "description.default_theme_name" = "Sin tema";
 "description.question_count" = "Número de preguntas";

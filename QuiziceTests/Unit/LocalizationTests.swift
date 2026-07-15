@@ -50,6 +50,10 @@ final class LocalizationTests: XCTestCase {
         let root = localizedDataRoot()
         let languages = ["ru", "en", "es", "de", "it", "fr"]
         let requiredKeys = [
+            "home.background_style.switcher",
+            "home.background_style.original",
+            "home.background_style.grid_4x4",
+            "home.background_style.grid_5x5",
             "question.exit_alert.title",
             "question.exit_alert.message",
             "question.time_remaining",

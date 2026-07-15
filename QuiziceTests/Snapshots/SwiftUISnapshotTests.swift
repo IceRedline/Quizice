@@ -68,9 +68,9 @@ final class SwiftUISnapshotTests: XCTestCase {
     private func makeHostingController<Content: View>(rootView: Content) -> UIHostingController<Content> {
         let viewController = UIHostingController(rootView: rootView)
         viewController.loadViewIfNeeded()
-        AppAppearanceStore.shared
+        viewController.view.overrideUserInterfaceStyle = AppAppearanceStore.shared
             .appearance(compatibleWith: viewController.traitCollection)
-            .applyBackground(to: viewController.view)
+            .resolvedInterfaceStyle
         return viewController
     }
 }

@@ -26,7 +26,7 @@ final class AppAppearanceTests: XCTestCase {
 
         XCTAssertEqual(classic.designStyle, .classic)
         XCTAssertEqual(classic.resolvedInterfaceStyle, .dark)
-        XCTAssertEqual(classic.backgroundImageName, "backgroundImage")
+        XCTAssertEqual(classic.backgroundStyle, .slate5x5)
     }
 
     func testCleanSystemModeResolvesFromTraitCollection() {
@@ -76,6 +76,46 @@ final class AppAppearanceTests: XCTestCase {
         XCTAssertTrue(button.backgroundColor?.isEqual(appearance.primaryButton.backgroundColor) ?? false)
         XCTAssertTrue(button.titleColor(for: .normal)?.isEqual(appearance.screenTextColor) ?? false)
         XCTAssertTrue(button.titleColor(for: .disabled)?.isEqual(appearance.disabledTextColor) ?? false)
+    }
+
+    func testApplyingBackgroundInstallsAndReusesMeshHost() throws {
+        let view = UIView()
+        let original = AppAppearance(
+            designStyle: .classic,
+            cleanColorSchemePreference: .dark,
+            backgroundStyle: .legacySlate,
+            traitCollection: .init(userInterfaceStyle: .dark)
+        )
+        let denserMesh = AppAppearance(
+            designStyle: .classic,
+            cleanColorSchemePreference: .dark,
+            backgroundStyle: .slate4x4,
+            traitCollection: .init(userInterfaceStyle: .dark)
+        )
+
+        original.applyBackground(to: view)
+        let installedBackground = try XCTUnwrap(
+            view.subviews.first(where: { $0.accessibilityIdentifier == "appBackgroundView" })
+        )
+
+        denserMesh.applyBackground(to: view)
+
+        XCTAssertTrue(installedBackground === view.subviews.first)
+        XCTAssertEqual(view.subviews.filter { $0.accessibilityIdentifier == "appBackgroundView" }.count, 1)
+    }
+
+    func testBackgroundStylePersistsAndFlowsIntoAppearance() {
+        let suiteName = "AppAppearanceTests.\(UUID().uuidString)"
+        let defaults = UserDefaults(suiteName: suiteName)!
+        defaults.removePersistentDomain(forName: suiteName)
+        let store = AppAppearanceStore(userDefaults: defaults, notificationCenter: NotificationCenter())
+
+        store.backgroundStyle = .slate5x5
+        let appearance = store.appearance(compatibleWith: .init(userInterfaceStyle: .dark))
+
+        XCTAssertEqual(store.backgroundStyle, .slate5x5)
+        XCTAssertEqual(appearance.backgroundStyle, .slate5x5)
+        defaults.removePersistentDomain(forName: suiteName)
     }
 
     func testStoreIgnoresRepeatedWrites() {

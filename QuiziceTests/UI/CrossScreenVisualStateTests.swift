@@ -11,6 +11,7 @@ final class CrossScreenVisualStateTests: XCTestCase {
         // Pin the clean color scheme so shadow/surface assertions are deterministic
         // regardless of the host simulator's system light/dark appearance.
         UserDefaults.standard.set(CleanColorSchemePreference.light.rawValue, forKey: AppAppearanceStore.Keys.cleanColorScheme)
+        UserDefaults.standard.set(AppBackgroundStyle.defaultStyle.rawValue, forKey: AppAppearanceStore.Keys.backgroundStyle)
         UIView.setAnimationsEnabled(false)
     }
 
@@ -1332,6 +1333,7 @@ final class CrossScreenVisualStateTests: XCTestCase {
         QuizFactory.shared.questionsCount = 0
         UserDefaults.standard.removeObject(forKey: AppAppearanceStore.Keys.designStyle)
         UserDefaults.standard.removeObject(forKey: AppAppearanceStore.Keys.cleanColorScheme)
+        UserDefaults.standard.removeObject(forKey: AppAppearanceStore.Keys.backgroundStyle)
     }
 
     private func currentAppearance() -> AppAppearance {
