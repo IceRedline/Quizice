@@ -42,7 +42,7 @@ final class QuizFlowCoordinatorAdditionalTests: XCTestCase {
             window.rootViewController = nil
         }
 
-        presenter.present(in: window, autoDismissAfter: 60)
+        presenter.present(in: window, holdDuration: 60)
 
         let overlayWindow = try XCTUnwrap(
             windowScene.windows.first {
@@ -61,6 +61,120 @@ final class QuizFlowCoordinatorAdditionalTests: XCTestCase {
         XCTAssertNil(overlayWindow.rootViewController)
         XCTAssertFalse(rootViewController.view.accessibilityElementsHidden)
         XCTAssertEqual(rootViewController.children.count, 1)
+    }
+
+    func testLaunchOverlayPresenterAutomaticallyRevealsHomeAndRestoresAccessibility() async throws {
+        let windowScene = try XCTUnwrap(
+            UIApplication.shared.connectedScenes.compactMap { $0 as? UIWindowScene }.first
+        )
+        let window = UIWindow(windowScene: windowScene)
+        let rootViewController = UIViewController()
+        window.rootViewController = rootViewController
+        window.isHidden = false
+        let presenter = LaunchOverlayPresenter()
+        defer {
+            presenter.dismiss(animated: false)
+            window.isHidden = true
+            window.rootViewController = nil
+        }
+
+        presenter.present(
+            in: window,
+            holdDuration: 0,
+            motion: FakeLaunchMotion(logoZoomScale: 42, logoZoomDuration: 0.05)
+        )
+
+        let overlayWindow = try XCTUnwrap(
+            windowScene.windows.first {
+                $0.accessibilityIdentifier == LaunchOverlayPresenter.accessibilityIdentifier
+            }
+        )
+        let dismissalExpectation = XCTNSPredicateExpectation(
+            predicate: NSPredicate { _, _ in
+                overlayWindow.isHidden && overlayWindow.rootViewController == nil
+            },
+            object: nil
+        )
+
+        await fulfillment(of: [dismissalExpectation], timeout: 2)
+
+        XCTAssertFalse(rootViewController.view.accessibilityElementsHidden)
+    }
+
+    func testFakeLaunchUsesCrossfadeCompletionWhenAnimationsAreDisabled() async throws {
+        let windowScene = try XCTUnwrap(
+            UIApplication.shared.connectedScenes.compactMap { $0 as? UIWindowScene }.first
+        )
+        let window = UIWindow(windowScene: windowScene)
+        let completionExpectation = expectation(description: "Fake launch completes without zoom")
+        var completionStyle: FakeLaunchCompletionStyle?
+        let animationsWereEnabled = UIView.areAnimationsEnabled
+        UIView.setAnimationsEnabled(false)
+        let appearance = AppAppearance(
+            designStyle: .classic,
+            cleanColorSchemePreference: .dark,
+            backgroundStyle: .slate5x5,
+            traitCollection: window.traitCollection
+        )
+        let rootView = FakeLaunchScreenView(
+            appearance: appearance,
+            holdDuration: 0,
+            motion: FakeLaunchMotion(logoZoomScale: 42, logoZoomDuration: 0.01)
+        ) { style in
+            completionStyle = style
+            completionExpectation.fulfill()
+        }
+        let viewController = UIHostingController(rootView: rootView)
+        window.rootViewController = viewController
+        window.isHidden = false
+        defer {
+            UIView.setAnimationsEnabled(animationsWereEnabled)
+            window.isHidden = true
+            window.rootViewController = nil
+        }
+
+        await fulfillment(of: [completionExpectation], timeout: 1)
+
+        XCTAssertEqual(completionStyle, .crossfade)
+    }
+
+    func testStaleLaunchFadeDoesNotRemoveAReplacementOverlay() async throws {
+        let windowScene = try XCTUnwrap(
+            UIApplication.shared.connectedScenes.compactMap { $0 as? UIWindowScene }.first
+        )
+        let window = UIWindow(windowScene: windowScene)
+        let rootViewController = UIViewController()
+        window.rootViewController = rootViewController
+        let presenter = LaunchOverlayPresenter()
+        defer {
+            presenter.dismiss(animated: false)
+            window.isHidden = true
+            window.rootViewController = nil
+        }
+
+        presenter.present(in: window, holdDuration: 60)
+        let firstOverlay = try XCTUnwrap(
+            windowScene.windows.first {
+                $0.accessibilityIdentifier == LaunchOverlayPresenter.accessibilityIdentifier
+            }
+        )
+
+        presenter.dismiss()
+        presenter.dismiss(animated: false)
+        presenter.present(in: window, holdDuration: 60)
+
+        let replacementOverlay = try XCTUnwrap(
+            windowScene.windows.first {
+                $0 !== firstOverlay
+                    && $0.accessibilityIdentifier == LaunchOverlayPresenter.accessibilityIdentifier
+                    && !$0.isHidden
+            }
+        )
+        try await Task.sleep(nanoseconds: 300_000_000)
+
+        XCTAssertFalse(replacementOverlay.isHidden)
+        XCTAssertNotNil(replacementOverlay.rootViewController)
+        XCTAssertTrue(rootViewController.view.accessibilityElementsHidden)
     }
 
     func testLaunchStoryboardMatchesFakeLaunchBaseGeometryAndColor() throws {

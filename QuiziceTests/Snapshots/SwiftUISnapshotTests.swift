@@ -37,7 +37,8 @@ final class SwiftUISnapshotTests: XCTestCase {
         SnapshotSupport.setUp(designStyle: .classic)
         let viewController = makeHostingController(
             rootView: FakeLaunchScreenView(
-                appearance: SnapshotSupport.appearance(designStyle: .classic)
+                appearance: SnapshotSupport.appearance(designStyle: .classic),
+                holdDuration: 60
             )
         )
 
