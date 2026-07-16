@@ -213,6 +213,69 @@ final class AppAppearanceTests: XCTestCase {
         XCTAssertEqual(view.subviews.filter { $0.accessibilityIdentifier == "appBackgroundView" }.count, 1)
     }
 
+    func testEdgeAwareMeshMovesVisibleBoundariesWithoutChangingStandardMotion() {
+        let basePoints = (0..<5).flatMap { row in
+            (0..<5).map { column in
+                SIMD2<Float>(Float(column) / 4, Float(row) / 4)
+            }
+        }
+        let sampleDate = Date(timeIntervalSinceReferenceDate: 1)
+        let standardPoints = AppMeshGradientMotion.animatedPoints(
+            at: sampleDate,
+            width: 5,
+            height: 5,
+            basePoints: basePoints,
+            cycleDuration: 4,
+            horizontalAmplitude: 0.050,
+            verticalAmplitude: 0.035,
+            edgeAmplitude: 0.070,
+            profile: .standard
+        )
+        let edgeAwarePoints = AppMeshGradientMotion.animatedPoints(
+            at: sampleDate,
+            width: 5,
+            height: 5,
+            basePoints: basePoints,
+            cycleDuration: 4,
+            horizontalAmplitude: 0.050,
+            verticalAmplitude: 0.035,
+            edgeAmplitude: 0.070,
+            profile: .edgeAware
+        )
+        let repeatedPoints = AppMeshGradientMotion.animatedPoints(
+            at: Date(timeIntervalSinceReferenceDate: 5),
+            width: 5,
+            height: 5,
+            basePoints: basePoints,
+            cycleDuration: 4,
+            horizontalAmplitude: 0.050,
+            verticalAmplitude: 0.035,
+            edgeAmplitude: 0.070,
+            profile: .edgeAware
+        )
+
+        XCTAssertEqual(standardPoints[1], basePoints[1])
+        XCTAssertEqual(standardPoints[10], basePoints[10])
+        XCTAssertNotEqual(edgeAwarePoints[1], basePoints[1])
+        XCTAssertNotEqual(edgeAwarePoints[10], basePoints[10])
+        XCTAssertEqual(edgeAwarePoints[6], standardPoints[6])
+        for cornerIndex in [0, 4, 20, 24] {
+            XCTAssertEqual(edgeAwarePoints[cornerIndex], basePoints[cornerIndex])
+        }
+        for pointIndex in edgeAwarePoints.indices {
+            XCTAssertEqual(
+                edgeAwarePoints[pointIndex].x,
+                repeatedPoints[pointIndex].x,
+                accuracy: 0.000_001
+            )
+            XCTAssertEqual(
+                edgeAwarePoints[pointIndex].y,
+                repeatedPoints[pointIndex].y,
+                accuracy: 0.000_001
+            )
+        }
+    }
+
     func testBackgroundStylePersistsAndFlowsIntoAppearance() {
         let suiteName = "AppAppearanceTests.\(UUID().uuidString)"
         let defaults = UserDefaults(suiteName: suiteName)!

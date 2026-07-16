@@ -407,13 +407,23 @@ struct AppAppearance {
         }
     }
 
-    func applyBackground(to view: UIView) {
+    func applyBackground(
+        to view: UIView,
+        motionProfile: AppBackgroundMotionProfile = .standard
+    ) {
         view.backgroundColor = backgroundColor
         if let backgroundView = view.subviews.first(where: { $0 is AppBackgroundHostingView }) as? AppBackgroundHostingView {
-            backgroundView.update(appearance: self, animated: true)
+            backgroundView.update(
+                appearance: self,
+                motionProfile: motionProfile,
+                animated: true
+            )
             view.sendSubviewToBack(backgroundView)
         } else {
-            let backgroundView = AppBackgroundHostingView(appearance: self)
+            let backgroundView = AppBackgroundHostingView(
+                appearance: self,
+                motionProfile: motionProfile
+            )
             view.insertSubview(backgroundView, at: 0)
             NSLayoutConstraint.activate([
                 backgroundView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
@@ -792,15 +802,32 @@ private extension AppBackgroundStyle {
     }
 }
 
+enum AppBackgroundMotionProfile: Equatable {
+    case standard
+    case edgeAware
+}
+
 struct AppBackgroundView: View {
     let appearance: AppAppearance
+    let motionProfile: AppBackgroundMotionProfile
+
+    init(
+        appearance: AppAppearance,
+        motionProfile: AppBackgroundMotionProfile = .standard
+    ) {
+        self.appearance = appearance
+        self.motionProfile = motionProfile
+    }
 
     var body: some View {
         Group {
             if appearance.designStyle == .classic {
                 let preset = appearance.backgroundStyle.meshPreset
                 if appearance.backgroundStyle == .slate5x5 {
-                    AnimatedSlateMeshGradient(preset: preset)
+                    AnimatedSlateMeshGradient(
+                        preset: preset,
+                        motionProfile: motionProfile
+                    )
                 } else {
                     MeshGradient(
                         width: preset.width,
@@ -820,15 +847,70 @@ struct AppBackgroundView: View {
     }
 }
 
+enum AppMeshGradientMotion {
+    static func animatedPoints(
+        at date: Date,
+        width: Int,
+        height: Int,
+        basePoints: [SIMD2<Float>],
+        cycleDuration: TimeInterval,
+        horizontalAmplitude: Float,
+        verticalAmplitude: Float,
+        edgeAmplitude: Float,
+        profile: AppBackgroundMotionProfile
+    ) -> [SIMD2<Float>] {
+        guard width == 5, height == 5, basePoints.count == 25 else {
+            return basePoints
+        }
+
+        let progress = date.timeIntervalSinceReferenceDate
+            .truncatingRemainder(dividingBy: cycleDuration) / cycleDuration
+        let phase = Float(progress * 2 * Double.pi)
+        let interiorPointCount = (width - 2) * (height - 2)
+        let phaseStep = 2 * Float.pi / Float(interiorPointCount)
+        var points = basePoints
+        var interiorIndex = 0
+
+        for row in 1..<(height - 1) {
+            for column in 1..<(width - 1) {
+                let pointIndex = row * width + column
+                let localPhase = phase + Float(interiorIndex) * phaseStep
+                points[pointIndex].x += horizontalAmplitude * sin(localPhase)
+                points[pointIndex].y += verticalAmplitude * cos(localPhase)
+                interiorIndex += 1
+            }
+        }
+
+        guard profile == .edgeAware else { return points }
+
+        let edgePhaseStep = Float.pi / 3
+        for column in 1..<(width - 1) {
+            let localPhase = phase + Float(column - 1) * edgePhaseStep
+            points[column].x += edgeAmplitude * sin(localPhase)
+            points[(height - 1) * width + column].x += edgeAmplitude * sin(localPhase + .pi)
+        }
+
+        for row in 1..<(height - 1) {
+            let localPhase = phase + Float(row - 1) * edgePhaseStep + Float.pi / 2
+            points[row * width].y += edgeAmplitude * sin(localPhase)
+            points[row * width + width - 1].y += edgeAmplitude * sin(localPhase + .pi)
+        }
+
+        return points
+    }
+}
+
 private struct AnimatedSlateMeshGradient: View {
     private enum Motion {
         static let cycleDuration: TimeInterval = 4
         static let minimumFrameInterval: TimeInterval = 1.0 / 30.0
         static let horizontalAmplitude: Float = 0.050
         static let verticalAmplitude: Float = 0.035
+        static let edgeAmplitude: Float = 0.070
     }
 
     let preset: AppMeshGradientPreset
+    let motionProfile: AppBackgroundMotionProfile
 
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
@@ -855,29 +937,17 @@ private struct AnimatedSlateMeshGradient: View {
     }
 
     private func animatedPoints(at date: Date) -> [SIMD2<Float>] {
-        guard preset.width == 5, preset.height == 5, preset.points.count == 25 else {
-            return preset.points
-        }
-
-        let progress = date.timeIntervalSinceReferenceDate
-            .truncatingRemainder(dividingBy: Motion.cycleDuration) / Motion.cycleDuration
-        let phase = Float(progress * 2 * Double.pi)
-        let interiorPointCount = (preset.width - 2) * (preset.height - 2)
-        let phaseStep = 2 * Float.pi / Float(interiorPointCount)
-        var points = preset.points
-        var interiorIndex = 0
-
-        for row in 1..<(preset.height - 1) {
-            for column in 1..<(preset.width - 1) {
-                let pointIndex = row * preset.width + column
-                let localPhase = phase + Float(interiorIndex) * phaseStep
-                points[pointIndex].x += Motion.horizontalAmplitude * sin(localPhase)
-                points[pointIndex].y += Motion.verticalAmplitude * cos(localPhase)
-                interiorIndex += 1
-            }
-        }
-
-        return points
+        AppMeshGradientMotion.animatedPoints(
+            at: date,
+            width: preset.width,
+            height: preset.height,
+            basePoints: preset.points,
+            cycleDuration: Motion.cycleDuration,
+            horizontalAmplitude: Motion.horizontalAmplitude,
+            verticalAmplitude: Motion.verticalAmplitude,
+            edgeAmplitude: Motion.edgeAmplitude,
+            profile: motionProfile
+        )
     }
 }
 
@@ -889,9 +959,17 @@ private final class AppBackgroundHostingView: UIView {
     private let hostingController: UIHostingController<AppBackgroundView>
     private var appearance: AppAppearance
 
-    init(appearance: AppAppearance) {
+    init(
+        appearance: AppAppearance,
+        motionProfile: AppBackgroundMotionProfile
+    ) {
         self.appearance = appearance
-        self.hostingController = UIHostingController(rootView: AppBackgroundView(appearance: appearance))
+        self.hostingController = UIHostingController(
+            rootView: AppBackgroundView(
+                appearance: appearance,
+                motionProfile: motionProfile
+            )
+        )
         super.init(frame: .zero)
 
         accessibilityIdentifier = "appBackgroundView"
@@ -917,7 +995,11 @@ private final class AppBackgroundHostingView: UIView {
         return nil
     }
 
-    func update(appearance: AppAppearance, animated: Bool) {
+    func update(
+        appearance: AppAppearance,
+        motionProfile: AppBackgroundMotionProfile,
+        animated: Bool
+    ) {
         let shouldCrossfade = animated
             && self.appearance.designStyle == .classic
             && appearance.designStyle == .classic
@@ -927,7 +1009,10 @@ private final class AppBackgroundHostingView: UIView {
 
         self.appearance = appearance
         let updates = { [hostingController] in
-            hostingController.rootView = AppBackgroundView(appearance: appearance)
+            hostingController.rootView = AppBackgroundView(
+                appearance: appearance,
+                motionProfile: motionProfile
+            )
         }
 
         if shouldCrossfade {
