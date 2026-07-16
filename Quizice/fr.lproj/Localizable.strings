@@ -56,6 +56,9 @@
 "home.statistics.played_short" = "Joués";
 "home.themes_collection.accessibility_label" = "Thèmes du quiz";
 "home.unavailable_themes" = "Les thèmes ne sont pas encore disponibles";
+"theme.card.close_accessibility_label" = "Fermer la carte du thème";
+"theme.card.show_description_accessibility_label" = "Afficher la description du thème";
+"theme.card.show_front_accessibility_label" = "Revenir au recto de la carte";
 "home.welcome" = "Bienvenue dans";
 "home.motivation_prompt.1" = "Choisis un thème\net on commence";
 "home.motivation_prompt.2" = "Voyons ce dont\ntu te souviens";
@@ -136,5 +139,5 @@
 "statistics.subtitle.empty" = "Commencez par votre premier quiz — les statistiques apparaîtront automatiquement";
 "statistics.subtitle.with_stats" = "Votre progression dans les quiz terminés";
 "statistics.title" = "Statistiques";
-"theme.card.accessibility_hint" = "Lance un quiz sur ce thème";
+"theme.card.accessibility_hint" = "Ouvre la carte de ce thème";
 "theme.card.accessibility_label_format" = "%@, thème du quiz";

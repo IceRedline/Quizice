@@ -488,6 +488,10 @@ protocol QuizRouting: AnyObject {
     func returnToThemes()
 }
 
+protocol QuizHomeReturnHandling: AnyObject {
+    func quizFlowWillReturnToThemes()
+}
+
 final class QuizFlowCoordinator: NSObject, QuizRouting, UIViewControllerTransitioningDelegate {
     private let window: UIWindow
     private let navigationController: UINavigationController
@@ -635,6 +639,8 @@ final class QuizFlowCoordinator: NSObject, QuizRouting, UIViewControllerTransiti
 
     func returnToThemes() {
         navigationController.popToRootViewController(animated: false)
+        (navigationController.viewControllers.first as? QuizHomeReturnHandling)?
+            .quizFlowWillReturnToThemes()
         navigationController.dismiss(animated: true)
     }
 

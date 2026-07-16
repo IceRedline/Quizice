@@ -194,6 +194,10 @@ enum SnapshotSupport {
             collectionViewLayout: layout
         )
         collectionView.register(UICollectionViewCell.self, forCellWithReuseIdentifier: ThemesCollectionService.Content.themeCellReuseIdentifier)
+        collectionView.register(
+            ThemeCardCollectionViewCell.self,
+            forCellWithReuseIdentifier: ThemeCardCollectionViewCell.reuseIdentifier
+        )
         return collectionView
     }
 }

@@ -56,6 +56,9 @@
 "home.statistics.played_short" = "Пройдено";
 "home.themes_collection.accessibility_label" = "Темы викторины";
 "home.unavailable_themes" = "Темы пока недоступны";
+"theme.card.close_accessibility_label" = "Закрыть карточку темы";
+"theme.card.show_description_accessibility_label" = "Показать описание темы";
+"theme.card.show_front_accessibility_label" = "Вернуться к лицевой стороне карточки";
 "home.welcome" = "Добро пожаловать в";
 "home.motivation_prompt.1" = "Выбери тему\nи начнем";
 "home.motivation_prompt.2" = "Проверим,\nчто ты помнишь";
@@ -136,5 +139,5 @@
 "statistics.subtitle.empty" = "Начните с первой викторины — статистика появится автоматически";
 "statistics.subtitle.with_stats" = "Ваш прогресс по завершённым викторинам";
 "statistics.title" = "Статистика";
-"theme.card.accessibility_hint" = "Запускает квиз по этой теме";
+"theme.card.accessibility_hint" = "Открывает карточку этой темы";
 "theme.card.accessibility_label_format" = "%@, тема викторины";
