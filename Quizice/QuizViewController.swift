@@ -157,13 +157,17 @@ final class QuizViewController: BaseQuizViewController, QuizViewControllerProtoc
     private var expandedCardBackdropView: UIView?
     private var expandedCardBlurView: UIVisualEffectView?
     private var expandedCardSnapshotView: UIView?
+    private var expandedCardSourceContentView: UIView?
+    private var expandedCardSourceContentGeometry: HomeThemeCardContentGeometry?
     private var expandedCardTransitionView: ThemeCardExpansionTransitionView?
+    private var expandedCardInteractionButton: ThemeCardTransitionInteractionButton?
     private var expandedCardAnimator: UIViewPropertyAnimator?
     private var expandedTheme: QuizTheme?
     private weak var quizTransitionSourceView: UIView?
     private var isQuizLaunchPending = false
     private var closeAfterFlipToFront = false
     private var expandedCardNeedsRefresh = false
+    private var expandedCardScreenViewTracked = false
     weak var router: QuizRouting?
     var presenter: QuizPresenterProtocol?
 
@@ -791,6 +795,14 @@ final class QuizViewController: BaseQuizViewController, QuizViewControllerProtoc
         case .collapse:
             collapseExpandedThemeCard()
 
+        case let .reverseExpansion(shouldPresent):
+            if !shouldPresent {
+                analytics.track(
+                    .quizSetupCancelled(theme: session.chosenTheme?.analyticsTheme ?? .unknown)
+                )
+            }
+            reverseExpandedCardTransition()
+
         case let .launch(themeID, questionCount):
             launchQuiz(themeID: themeID, questionCount: questionCount)
         }
@@ -806,6 +818,7 @@ final class QuizViewController: BaseQuizViewController, QuizViewControllerProtoc
     private func expandThemeCard(theme: QuizTheme, from sourceView: UIView) {
         guard expandedThemeCardView == nil, expandedCardBackdropView == nil else { return }
 
+        expandedCardScreenViewTracked = false
         view.layoutIfNeeded()
         let sourceFrame = sourceView.convert(sourceView.bounds, to: view)
         let targetFrame = expandedThemeCardFrame()
@@ -817,7 +830,11 @@ final class QuizViewController: BaseQuizViewController, QuizViewControllerProtoc
         snapshotView.layer.cornerCurve = sourceView.layer.cornerCurve
         snapshotView.layer.masksToBounds = true
         snapshotView.layer.zPosition = Appearance.expandedCardLayerZPosition + 1
-        snapshotView.accessibilityIdentifier = AccessibilityID.expandedCardSourceSnapshot
+        snapshotView.accessibilityIdentifier = "homeExpandedThemeCardReducedMotionSourceSnapshot"
+
+        let sourceContent = makeThemeCardSourceContent(from: sourceView)
+        let sourceContentView = sourceContent.view
+        sourceContentView.accessibilityIdentifier = AccessibilityID.expandedCardSourceSnapshot
 
         expandedTheme = theme
         themesCollectionService.presentedThemeID = theme.stableID
@@ -849,23 +866,35 @@ final class QuizViewController: BaseQuizViewController, QuizViewControllerProtoc
         if reduceMotion {
             cardView.alpha = 0
             view.addSubview(cardView)
+            view.addSubview(snapshotView)
+            installExpandedCardInteractionButton(tracking: [cardView, snapshotView])
         } else {
             cardView.setTransitionShadowHidden(true)
+            cardView.setTransitionSurfaceHidden(true)
             let transitionView = makeExpandedCardTransitionView(
                 frame: sourceFrame,
                 targetFrame: targetFrame,
                 theme: theme,
                 appearance: appearance,
-                initialCornerRadius: sourceView.layer.cornerRadius
+                initialCornerRadius: sourceView.layer.cornerRadius,
+                initialVisualState: HomeThemeCardTransitionVisualState(progress: 0),
+                initialShadow: appearance.themeCardShadow
             )
             transitionView.layer.zPosition = Appearance.expandedCardLayerZPosition
             view.addSubview(transitionView)
-            transitionView.install(cardView: cardView)
+            transitionView.install(
+                cardView: cardView,
+                sourceContentView: sourceContentView,
+                sourceContentGeometry: sourceContent.geometry,
+                visualState: HomeThemeCardTransitionVisualState(progress: 0)
+            )
             expandedCardTransitionView = transitionView
+            installExpandedCardInteractionButton(tracking: [transitionView])
         }
 
-        view.addSubview(snapshotView)
         expandedCardSnapshotView = snapshotView
+        expandedCardSourceContentView = sourceContentView
+        expandedCardSourceContentGeometry = sourceContent.geometry
 
         if reduceMotion, expandedCardBlurView == nil {
             backdropView.alpha = 0
@@ -898,36 +927,19 @@ final class QuizViewController: BaseQuizViewController, QuizViewControllerProtoc
             } else {
                 self.expandedCardTransitionView?.move(
                     to: targetFrame,
-                    cornerRadius: appearance.themeCardCornerRadius
+                    cornerRadius: appearance.themeCardCornerRadius,
+                    visualState: HomeThemeCardTransitionVisualState(progress: 1),
+                    shadow: appearance.card.shadow
                 )
-                self.expandedCardTransitionView?.setChromeAlpha(0)
-                snapshotView?.alpha = 0
             }
         }
         animator.addCompletion { [weak self, weak animator] position in
-            guard let self, let animator, self.expandedCardAnimator === animator else { return }
-            self.expandedCardAnimator = nil
-            guard position == .end, self.homeCardState.phase == .expanding else { return }
-
-            self.completeExpandedCardTransition(targetFrame: targetFrame)
-            self.expandedCardSnapshotView?.alpha = 0
-            self.expandedCardSnapshotView?.isHidden = true
-            _ = HomeThemeCardReducer.reduce(
-                state: &self.homeCardState,
-                action: .expansionCompleted
-            )
-            if self.expandedCardNeedsRefresh {
-                self.refreshExpandedThemeCardAppearance()
-            }
-            self.analytics.track(
-                .screenView(
-                    screen: .quizDescription,
-                    theme: self.session.chosenTheme?.analyticsTheme ?? .unknown
-                )
-            )
-            UIAccessibility.post(
-                notification: .screenChanged,
-                argument: self.expandedThemeCardView?.frontFocusView
+            guard let self, let animator else { return }
+            self.completeExpandedCardAnimation(
+                animator: animator,
+                position: position,
+                expandedPosition: .end,
+                targetFrame: targetFrame
             )
         }
 
@@ -996,32 +1008,60 @@ final class QuizViewController: BaseQuizViewController, QuizViewControllerProtoc
         )
 
         let reduceMotion = cardReduceMotionProvider()
-        let sourceFrame = homeCardState.themeID.flatMap { sourceButtonFrame(themeID: $0) }
+        let currentSourceButton = homeCardState.themeID.flatMap { sourceButton(themeID: $0) }
+        let sourceFrame = currentSourceButton.map { $0.convert($0.bounds, to: view) }
         let targetFrame = cardView.convert(cardView.bounds, to: view)
+        let appearance = currentAppearance()
         let snapshotView = expandedCardSnapshotView
-        snapshotView?.isHidden = false
-        snapshotView?.alpha = 0
-        snapshotView?.layer.zPosition = Appearance.expandedCardLayerZPosition + 1
-        if let sourceFrame {
-            snapshotView?.center = CGPoint(x: sourceFrame.midX, y: sourceFrame.midY)
+
+        if let currentSourceButton {
+            let refreshedSourceContent = makeThemeCardSourceContent(from: currentSourceButton)
+            refreshedSourceContent.view.accessibilityIdentifier = AccessibilityID.expandedCardSourceSnapshot
+            expandedCardSourceContentView?.removeFromSuperview()
+            expandedCardSourceContentView = refreshedSourceContent.view
+            expandedCardSourceContentGeometry = refreshedSourceContent.geometry
         }
+
+        let sourceContentView = expandedCardSourceContentView
+        let sourceContentGeometry = expandedCardSourceContentGeometry
 
         if reduceMotion {
             cardView.alpha = 1
+            snapshotView?.isHidden = false
+            snapshotView?.alpha = 0
+            snapshotView?.layer.zPosition = Appearance.expandedCardLayerZPosition + 1
+            if let snapshotView, let sourceFrame {
+                snapshotView.frame = sourceFrame
+                view.addSubview(snapshotView)
+            }
+            installExpandedCardInteractionButton(
+                tracking: [cardView] + [snapshotView].compactMap { $0 }
+            )
         } else {
+            sourceContentView?.isHidden = false
             cardView.setTransitionShadowHidden(true)
+            cardView.setTransitionSurfaceHidden(true)
             let transitionView = makeExpandedCardTransitionView(
                 frame: targetFrame,
                 targetFrame: targetFrame,
                 theme: expandedTheme,
-                appearance: currentAppearance(),
-                initialCornerRadius: currentAppearance().themeCardCornerRadius
+                appearance: appearance,
+                initialCornerRadius: appearance.themeCardCornerRadius,
+                initialVisualState: HomeThemeCardTransitionVisualState(progress: 1),
+                initialShadow: appearance.card.shadow
             )
             transitionView.layer.zPosition = Appearance.expandedCardLayerZPosition
-            transitionView.setChromeAlpha(0)
             view.addSubview(transitionView)
-            transitionView.install(cardView: cardView)
+            if let sourceContentView, let sourceContentGeometry {
+                transitionView.install(
+                    cardView: cardView,
+                    sourceContentView: sourceContentView,
+                    sourceContentGeometry: sourceContentGeometry,
+                    visualState: HomeThemeCardTransitionVisualState(progress: 1)
+                )
+            }
             expandedCardTransitionView = transitionView
+            installExpandedCardInteractionButton(tracking: [transitionView])
         }
 
         let animator: UIViewPropertyAnimator
@@ -1050,30 +1090,113 @@ final class QuizViewController: BaseQuizViewController, QuizViewControllerProtoc
             } else if let sourceFrame {
                 self.expandedCardTransitionView?.move(
                     to: sourceFrame,
-                    cornerRadius: self.currentAppearance().themeCardCornerRadius
+                    cornerRadius: appearance.themeCardCornerRadius,
+                    visualState: HomeThemeCardTransitionVisualState(progress: 0),
+                    shadow: appearance.themeCardShadow
                 )
-                self.expandedCardTransitionView?.setChromeAlpha(1)
-                snapshotView?.alpha = 1
             } else {
                 self.expandedCardTransitionView?.alpha = 0
             }
         }
-        animator.addCompletion { [weak self, weak animator] _ in
-            guard let self, let animator, self.expandedCardAnimator === animator else { return }
-            self.expandedCardAnimator = nil
-            let themeID = self.homeCardState.themeID
-            self.themesCollectionService.presentedThemeID = nil
-            self.themesCollectionView.layoutIfNeeded()
-            self.removeExpandedThemeCardViews()
-            _ = HomeThemeCardReducer.reduce(
-                state: &self.homeCardState,
-                action: .collapseCompleted
+        animator.addCompletion { [weak self, weak animator] position in
+            guard let self, let animator else { return }
+            self.completeExpandedCardAnimation(
+                animator: animator,
+                position: position,
+                expandedPosition: .start,
+                targetFrame: targetFrame
             )
-            self.restoreGridAfterExpandedCard(themeID: themeID)
         }
 
         expandedCardAnimator = animator
         animator.startAnimation()
+    }
+
+    private func reverseExpandedCardTransition() {
+        guard
+            let animator = expandedCardAnimator,
+            animator.state == .active
+        else { return }
+
+        animator.isReversed.toggle()
+    }
+
+    private func installExpandedCardInteractionButton(tracking views: [UIView]) {
+        expandedCardInteractionButton?.removeFromSuperview()
+
+        let button = ThemeCardTransitionInteractionButton(frame: .zero)
+        button.frame = view.bounds
+        button.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+        button.backgroundColor = .clear
+        button.accessibilityIdentifier = "homeExpandedThemeCardTransitionSurfaceButton"
+        button.isAccessibilityElement = false
+        button.trackedViews = views
+        button.onTap = { [weak self] in
+            self?.sendHomeCardAction(.closeRequested)
+        }
+        button.layer.zPosition = Appearance.expandedCardLayerZPosition + 2
+        view.addSubview(button)
+        expandedCardInteractionButton = button
+    }
+
+    private func completeExpandedCardAnimation(
+        animator: UIViewPropertyAnimator,
+        position: UIViewAnimatingPosition,
+        expandedPosition: UIViewAnimatingPosition,
+        targetFrame: CGRect
+    ) {
+        guard expandedCardAnimator === animator else { return }
+
+        let gridPosition: UIViewAnimatingPosition = expandedPosition == .end ? .start : .end
+        if position == expandedPosition, homeCardState.phase == .expanding {
+            expandedCardAnimator = nil
+            completeExpandedCardPresentation(targetFrame: targetFrame)
+        } else if position == gridPosition, homeCardState.phase == .collapsing {
+            expandedCardAnimator = nil
+            completeExpandedCardCollapse()
+        }
+    }
+
+    private func completeExpandedCardPresentation(targetFrame: CGRect) {
+        completeExpandedCardTransition(targetFrame: targetFrame)
+        expandedCardInteractionButton?.removeFromSuperview()
+        expandedCardInteractionButton = nil
+        expandedCardSnapshotView?.alpha = 0
+        expandedCardSnapshotView?.isHidden = true
+        expandedCardSourceContentView?.alpha = 0
+        expandedCardSourceContentView?.isHidden = true
+        _ = HomeThemeCardReducer.reduce(
+            state: &homeCardState,
+            action: .expansionCompleted
+        )
+        if expandedCardNeedsRefresh {
+            refreshExpandedThemeCardAppearance()
+        }
+        if !expandedCardScreenViewTracked {
+            expandedCardScreenViewTracked = true
+            analytics.track(
+                .screenView(
+                    screen: .quizDescription,
+                    theme: session.chosenTheme?.analyticsTheme ?? .unknown
+                )
+            )
+        }
+        UIAccessibility.post(
+            notification: .screenChanged,
+            argument: expandedThemeCardView?.frontFocusView
+        )
+    }
+
+    private func completeExpandedCardCollapse() {
+        let themeID = homeCardState.themeID
+        themesCollectionService.presentedThemeID = nil
+        themesCollectionView.layoutIfNeeded()
+        removeExpandedThemeCardViews()
+        _ = HomeThemeCardReducer.reduce(
+            state: &homeCardState,
+            action: .collapseCompleted
+        )
+        restoreGridAfterExpandedCard(themeID: themeID)
     }
 
     private func makeExpandedCardTransitionView(
@@ -1081,7 +1204,9 @@ final class QuizViewController: BaseQuizViewController, QuizViewControllerProtoc
         targetFrame: CGRect,
         theme: QuizTheme?,
         appearance: AppAppearance,
-        initialCornerRadius: CGFloat
+        initialCornerRadius: CGFloat,
+        initialVisualState: HomeThemeCardTransitionVisualState,
+        initialShadow: AppShadowStyle
     ) -> ThemeCardExpansionTransitionView {
         let themeID = theme?.stableID ?? homeCardState.themeID ?? ""
         let tintColor = ThemeVisualCatalog.tintColor(for: themeID)
@@ -1092,7 +1217,8 @@ final class QuizViewController: BaseQuizViewController, QuizViewControllerProtoc
             borderColor: appearance.themeCardBorder(baseColor: tintColor),
             borderWidth: appearance.themeCardBorderWidth,
             cornerRadius: initialCornerRadius,
-            shadow: appearance.card.shadow
+            visualState: initialVisualState,
+            shadow: initialShadow
         )
         transitionView.accessibilityIdentifier = AccessibilityID.expandedCardTransition
         return transitionView
@@ -1107,14 +1233,17 @@ final class QuizViewController: BaseQuizViewController, QuizViewControllerProtoc
             return
         }
 
-        cardView.removeFromSuperview()
-        cardView.frame = targetFrame
-        cardView.alpha = 1
-        cardView.layer.zPosition = Appearance.expandedCardLayerZPosition
-        cardView.setTransitionShadowHidden(false)
-        view.addSubview(cardView)
-        expandedCardTransitionView?.removeFromSuperview()
-        expandedCardTransitionView = nil
+        UIView.performWithoutAnimation {
+            cardView.removeFromSuperview()
+            cardView.frame = targetFrame
+            cardView.alpha = 1
+            cardView.layer.zPosition = Appearance.expandedCardLayerZPosition
+            cardView.setTransitionSurfaceHidden(false)
+            cardView.setTransitionShadowHidden(false)
+            view.addSubview(cardView)
+            expandedCardTransitionView?.removeFromSuperview()
+            expandedCardTransitionView = nil
+        }
     }
 
     private func launchQuiz(themeID: String, questionCount: Int) {
@@ -1195,6 +1324,52 @@ final class QuizViewController: BaseQuizViewController, QuizViewControllerProtoc
         return fallbackView
     }
 
+    private func makeThemeCardSourceContent(
+        from sourceView: UIView
+    ) -> (view: UIView, geometry: HomeThemeCardContentGeometry) {
+        var ancestor: UIView? = sourceView
+        while let currentView = ancestor {
+            if let cell = currentView as? ThemeCardCollectionViewCell {
+                return cell.makeTransitionContent()
+            }
+            ancestor = currentView.superview
+        }
+
+        let containerView = UIView(frame: sourceView.bounds)
+        containerView.backgroundColor = .clear
+        containerView.isUserInteractionEnabled = false
+        containerView.accessibilityElementsHidden = true
+        var imageCenter = CGPoint(x: sourceView.bounds.midX, y: sourceView.bounds.midY)
+        var titleCenter = imageCenter
+
+        sourceView.subviews.forEach { contentView in
+            guard
+                let identifier = contentView.accessibilityIdentifier,
+                identifier.hasPrefix(ThemesCollectionService.Content.themeImageAccessibilityIDPrefix) ||
+                    identifier.hasPrefix(ThemesCollectionService.Content.themeTitleAccessibilityIDPrefix),
+                let snapshotView = contentView.snapshotView(afterScreenUpdates: false)
+            else { return }
+
+            let contentFrame = contentView.convert(contentView.bounds, to: sourceView)
+            snapshotView.frame = contentFrame
+            containerView.addSubview(snapshotView)
+
+            if identifier.hasPrefix(ThemesCollectionService.Content.themeImageAccessibilityIDPrefix) {
+                imageCenter = CGPoint(x: contentFrame.midX, y: contentFrame.midY)
+            } else {
+                titleCenter = CGPoint(x: contentFrame.midX, y: contentFrame.midY)
+            }
+        }
+        return (
+            view: containerView,
+            geometry: HomeThemeCardContentGeometry(
+                containerSize: sourceView.bounds.size,
+                imageCenter: imageCenter,
+                titleCenter: titleCenter
+            )
+        )
+    }
+
     private func sourceButton(themeID: String) -> UIButton? {
         themesCollectionView.visibleCells
             .compactMap { $0 as? ThemeCardCollectionViewCell }
@@ -1269,16 +1444,22 @@ final class QuizViewController: BaseQuizViewController, QuizViewControllerProtoc
     private func removeExpandedThemeCardViews() {
         expandedThemeCardView?.removeFromSuperview()
         expandedCardSnapshotView?.removeFromSuperview()
+        expandedCardSourceContentView?.removeFromSuperview()
         expandedCardTransitionView?.removeFromSuperview()
+        expandedCardInteractionButton?.removeFromSuperview()
         expandedCardBackdropView?.removeFromSuperview()
         expandedThemeCardView = nil
         expandedCardSnapshotView = nil
+        expandedCardSourceContentView = nil
+        expandedCardSourceContentGeometry = nil
         expandedCardTransitionView = nil
+        expandedCardInteractionButton = nil
         expandedCardBackdropView = nil
         expandedCardBlurView = nil
         expandedTheme = nil
         closeAfterFlipToFront = false
         expandedCardNeedsRefresh = false
+        expandedCardScreenViewTracked = false
     }
 
     private func restoreGridAfterExpandedCard(themeID: String?) {
@@ -1376,10 +1557,56 @@ final class QuizViewController: BaseQuizViewController, QuizViewControllerProtoc
     }
 }
 
+private final class ThemeCardTransitionInteractionButton: UIButton {
+    var trackedViews: [UIView] = [] {
+        didSet {
+            initialTrackedFrames = trackedViews.map { $0.layer.frame }
+        }
+    }
+    var onTap: (() -> Void)?
+    private var initialTrackedFrames: [CGRect] = []
+
+    override init(frame: CGRect) {
+        super.init(frame: frame)
+        addTarget(self, action: #selector(tapped), for: .touchUpInside)
+    }
+
+    @available(*, unavailable)
+    required init?(coder: NSCoder) {
+        nil
+    }
+
+    override func point(inside point: CGPoint, with event: UIEvent?) -> Bool {
+        guard super.point(inside: point, with: event), superview != nil else { return false }
+
+        return trackedViews.enumerated().contains { index, trackedView in
+            guard let trackedSuperview = trackedView.superview else { return false }
+            let candidateFrames: [CGRect]
+            if let presentationFrame = trackedView.layer.presentation()?.frame {
+                candidateFrames = [presentationFrame]
+            } else {
+                candidateFrames = [trackedView.layer.frame] +
+                    (initialTrackedFrames.indices.contains(index) ? [initialTrackedFrames[index]] : [])
+            }
+            return candidateFrames.contains { candidateFrame in
+                convert(candidateFrame, from: trackedSuperview).contains(point)
+            }
+        }
+    }
+
+    @objc private func tapped() {
+        onTap?()
+    }
+}
+
 private final class ThemeCardExpansionTransitionView: UIView {
     private let clippingView = UIView()
-    private let chromeView = UIView()
-    private weak var cardView: UIView?
+    private let baseSurfaceView = UIView()
+    private let expandedSurfaceView = UIView()
+    private weak var cardView: ExpandedThemeCardView?
+    private weak var sourceContentView: UIView?
+    private var sourceContentSize = CGSize.zero
+    private var sourceContentGeometry: HomeThemeCardContentGeometry?
     private let targetFrameInRoot: CGRect
 
     init(
@@ -1389,6 +1616,7 @@ private final class ThemeCardExpansionTransitionView: UIView {
         borderColor: UIColor,
         borderWidth: CGFloat,
         cornerRadius: CGFloat,
+        visualState: HomeThemeCardTransitionVisualState,
         shadow: AppShadowStyle
     ) {
         self.targetFrameInRoot = targetFrameInRoot
@@ -1406,18 +1634,28 @@ private final class ThemeCardExpansionTransitionView: UIView {
         clippingView.layer.cornerRadius = cornerRadius
         clippingView.layer.cornerCurve = .continuous
         clippingView.layer.masksToBounds = true
+        clippingView.layer.borderColor = borderColor.cgColor
+        clippingView.layer.borderWidth = borderWidth
         addSubview(clippingView)
 
-        chromeView.frame = clippingView.bounds
-        chromeView.backgroundColor = surfaceColor
-        chromeView.layer.borderColor = borderColor.cgColor
-        chromeView.layer.borderWidth = borderWidth
-        chromeView.layer.cornerRadius = cornerRadius
-        chromeView.layer.cornerCurve = .continuous
-        chromeView.accessibilityIdentifier = "homeExpandedThemeCardTransitionChrome"
-        chromeView.isAccessibilityElement = false
-        chromeView.isUserInteractionEnabled = false
-        clippingView.addSubview(chromeView)
+        baseSurfaceView.frame = clippingView.bounds
+        baseSurfaceView.backgroundColor = surfaceColor
+        baseSurfaceView.layer.cornerRadius = cornerRadius
+        baseSurfaceView.layer.cornerCurve = .continuous
+        baseSurfaceView.accessibilityIdentifier = "homeExpandedThemeCardTransitionChrome"
+        baseSurfaceView.isAccessibilityElement = false
+        baseSurfaceView.isUserInteractionEnabled = false
+        clippingView.addSubview(baseSurfaceView)
+
+        expandedSurfaceView.frame = clippingView.bounds
+        expandedSurfaceView.backgroundColor = surfaceColor
+        expandedSurfaceView.layer.cornerRadius = cornerRadius
+        expandedSurfaceView.layer.cornerCurve = .continuous
+        expandedSurfaceView.alpha = visualState.expandedSurfaceLayerAlpha
+        expandedSurfaceView.accessibilityIdentifier = "homeExpandedThemeCardTransitionIntensity"
+        expandedSurfaceView.isAccessibilityElement = false
+        expandedSurfaceView.isUserInteractionEnabled = false
+        clippingView.addSubview(expandedSurfaceView)
 
         updateShadowPath(cornerRadius: cornerRadius)
     }
@@ -1427,33 +1665,65 @@ private final class ThemeCardExpansionTransitionView: UIView {
         nil
     }
 
-    func install(cardView: UIView) {
+    func install(
+        cardView: ExpandedThemeCardView,
+        sourceContentView: UIView,
+        sourceContentGeometry: HomeThemeCardContentGeometry,
+        visualState: HomeThemeCardTransitionVisualState
+    ) {
         self.cardView = cardView
+        self.sourceContentView = sourceContentView
+        self.sourceContentGeometry = sourceContentGeometry
+        sourceContentSize = sourceContentView.bounds.size
         cardView.removeFromSuperview()
-        cardView.layer.zPosition = 0
+        sourceContentView.removeFromSuperview()
+        cardView.layer.zPosition = 2
+        sourceContentView.layer.zPosition = 3
         clippingView.addSubview(cardView)
-        updateCardFrame(containerFrame: frame)
+        clippingView.addSubview(sourceContentView)
+        updateContentFrames(containerFrame: frame)
+        apply(visualState: visualState)
     }
 
-    func move(to containerFrame: CGRect, cornerRadius: CGFloat) {
+    func move(
+        to containerFrame: CGRect,
+        cornerRadius: CGFloat,
+        visualState: HomeThemeCardTransitionVisualState,
+        shadow: AppShadowStyle
+    ) {
         frame = containerFrame
         clippingView.frame = bounds
         clippingView.layer.cornerRadius = cornerRadius
-        chromeView.frame = clippingView.bounds
-        chromeView.layer.cornerRadius = cornerRadius
-        updateCardFrame(containerFrame: containerFrame)
+        baseSurfaceView.frame = clippingView.bounds
+        baseSurfaceView.layer.cornerRadius = cornerRadius
+        expandedSurfaceView.frame = clippingView.bounds
+        expandedSurfaceView.layer.cornerRadius = cornerRadius
+        updateContentFrames(containerFrame: containerFrame)
+        apply(visualState: visualState)
+        applyShadow(shadow)
         updateShadowPath(cornerRadius: cornerRadius)
     }
 
-    func setChromeAlpha(_ alpha: CGFloat) {
-        chromeView.alpha = alpha
+    private func apply(visualState: HomeThemeCardTransitionVisualState) {
+        sourceContentView?.alpha = visualState.sourceContentAlpha
+        cardView?.alpha = visualState.expandedContentAlpha
+        if let sourceContentGeometry {
+            cardView?.setTransitionContentProgress(
+                visualState.progress,
+                sourceGeometry: sourceContentGeometry
+            )
+        }
+        expandedSurfaceView.alpha = visualState.expandedSurfaceLayerAlpha
     }
 
-    private func updateCardFrame(containerFrame: CGRect) {
-        cardView?.frame = HomeThemeCardTransitionGeometry(
+    private func updateContentFrames(containerFrame: CGRect) {
+        let geometry = HomeThemeCardTransitionGeometry(
             containerFrame: containerFrame,
             targetFrame: targetFrameInRoot
-        ).cardFrameInContainer
+        )
+        cardView?.frame = geometry.cardFrameInContainer
+        sourceContentView?.bounds = CGRect(origin: .zero, size: sourceContentSize)
+        sourceContentView?.center = CGPoint(x: bounds.midX, y: bounds.midY)
     }
 
     private func updateShadowPath(cornerRadius: CGFloat) {
@@ -1462,6 +1732,7 @@ private final class ThemeCardExpansionTransitionView: UIView {
             cornerRadius: cornerRadius
         ).cgPath
     }
+
 }
 
 private final class HomeThemesCollectionView: UICollectionView {

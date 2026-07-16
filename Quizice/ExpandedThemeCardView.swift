@@ -1,16 +1,19 @@
 import UIKit
 
-final class ExpandedThemeCardView: UIView {
+final class ExpandedThemeCardView: UIView, UIGestureRecognizerDelegate {
     private enum AccessibilityID {
         static let root = "expandedThemeCardView"
         static let frontPlane = "expandedThemeCardFrontPlane"
         static let backPlane = "expandedThemeCardBackPlane"
+        static let rotatingCarrier = "expandedThemeCardRotatingCarrier"
         static let flipInteractionOverlay = "expandedThemeCardFlipInteractionOverlay"
         static let front = "expandedThemeCardFrontView"
+        static let frontSurfaceButton = "expandedThemeCardFrontSurfaceButton"
         static let frontImage = "expandedThemeCardFrontImageView"
         static let closeButton = "expandedThemeCardCloseButton"
         static let infoButton = "expandedThemeCardInfoButton"
         static let back = "expandedThemeCardBackView"
+        static let backSurfaceButton = "expandedThemeCardBackSurfaceButton"
         static let themeNameLabel = "descriptionThemeNameLabel"
         static let descriptionLabel = "descriptionTextLabel"
         static let questionCountLabel = "descriptionPickerCaptionLabel"
@@ -51,7 +54,7 @@ final class ExpandedThemeCardView: UIView {
     }
 
     private enum Animation {
-        static let flipDuration: TimeInterval = 0.5
+        static let flipDuration: TimeInterval = 0.28
         static let reducedMotionDuration: TimeInterval = 0.18
         static let perspectiveDistance: CGFloat = 760
     }
@@ -74,6 +77,7 @@ final class ExpandedThemeCardView: UIView {
     private(set) var face: HomeThemeCardFace = .front
 
     private let perspectiveStageView = UIView()
+    private let rotatingCardView = UIView()
     private let frontPlaneView = UIView()
     private let backPlaneView = UIView()
     private let frontSurfaceView = UIView()
@@ -88,6 +92,7 @@ final class ExpandedThemeCardView: UIView {
     private let closeButton = UIButton(type: .system)
     private let infoButton = UIButton(type: .system)
 
+    private let backSurfaceButton = UIButton(type: .custom)
     private let backButton = UIButton(type: .system)
     private let backTitleLabel = UILabel()
     private let descriptionScrollView = UIScrollView()
@@ -99,6 +104,10 @@ final class ExpandedThemeCardView: UIView {
     private let unavailableLabel = UILabel()
     private let startButton = UIButton(type: .system)
     private let backControlsStack = UIStackView()
+    private lazy var backTapGestureRecognizer = UITapGestureRecognizer(
+        target: self,
+        action: #selector(backTapped)
+    )
 
     private var availableQuestionCounts: Set<Int> = []
     private var activeFaceAnimator: UIViewPropertyAnimator?
@@ -110,6 +119,10 @@ final class ExpandedThemeCardView: UIView {
     private var frontImageSizeConstraint: NSLayoutConstraint!
     private var configuredShadowStyle = AppShadowStyle.none
     private var isTransitionShadowHidden = false
+    private var configuredSurfaceColor = UIColor.clear
+    private var configuredBorderColor = UIColor.clear
+    private var configuredBorderWidth: CGFloat = 0
+    private var isTransitionSurfaceHidden = false
 
     override init(frame: CGRect) {
         super.init(frame: frame)
@@ -129,8 +142,7 @@ final class ExpandedThemeCardView: UIView {
             roundedRect: bounds,
             cornerRadius: cardCornerRadius
         ).cgPath
-        frontPlaneView.layer.shadowPath = shadowPath
-        backPlaneView.layer.shadowPath = shadowPath
+        rotatingCardView.layer.shadowPath = shadowPath
     }
 
     func configure(
@@ -215,8 +227,38 @@ final class ExpandedThemeCardView: UIView {
     func setTransitionShadowHidden(_ isHidden: Bool) {
         isTransitionShadowHidden = isHidden
         let shadow = isHidden ? AppShadowStyle.none : configuredShadowStyle
-        frontPlaneView.applyShadow(shadow)
-        backPlaneView.applyShadow(shadow)
+        rotatingCardView.applyShadow(shadow)
+    }
+
+    func setTransitionSurfaceHidden(_ isHidden: Bool) {
+        isTransitionSurfaceHidden = isHidden
+        applyConfiguredSurfaceAppearance()
+    }
+
+    func setTransitionContentProgress(
+        _ progress: CGFloat,
+        sourceGeometry: HomeThemeCardContentGeometry
+    ) {
+        layoutIfNeeded()
+        let visualState = HomeThemeCardTransitionVisualState(progress: progress)
+        let remainingTranslation = 1 - visualState.progress
+        let imageTranslation = sourceGeometry.imageTranslation(
+            toAlignDestinationCenter: frontImageView.center,
+            in: bounds.size
+        )
+        let titleTranslation = sourceGeometry.titleTranslation(
+            toAlignDestinationCenter: frontTitleLabel.center,
+            in: bounds.size
+        )
+
+        frontImageView.transform = CGAffineTransform(
+            translationX: imageTranslation.x * remainingTranslation,
+            y: imageTranslation.y * remainingTranslation
+        )
+        frontTitleLabel.transform = CGAffineTransform(
+            translationX: titleTranslation.x * remainingTranslation,
+            y: titleTranslation.y * remainingTranslation
+        )
     }
 
     override func accessibilityPerformEscape() -> Bool {
@@ -245,6 +287,12 @@ final class ExpandedThemeCardView: UIView {
         perspectiveStageView.clipsToBounds = false
         addSubview(perspectiveStageView)
 
+        rotatingCardView.accessibilityIdentifier = AccessibilityID.rotatingCarrier
+        rotatingCardView.translatesAutoresizingMaskIntoConstraints = false
+        rotatingCardView.backgroundColor = .clear
+        rotatingCardView.layer.masksToBounds = false
+        perspectiveStageView.addSubview(rotatingCardView)
+
         let planes = [
             (frontPlaneView, frontSurfaceView, frontFaceView, AccessibilityID.frontPlane),
             (backPlaneView, backSurfaceView, backFaceView, AccessibilityID.backPlane)
@@ -255,7 +303,7 @@ final class ExpandedThemeCardView: UIView {
             planeView.translatesAutoresizingMaskIntoConstraints = false
             planeView.backgroundColor = .clear
             planeView.layer.isDoubleSided = false
-            perspectiveStageView.addSubview(planeView)
+            rotatingCardView.addSubview(planeView)
 
             surfaceView.translatesAutoresizingMaskIntoConstraints = false
             surfaceView.layer.masksToBounds = true
@@ -264,10 +312,10 @@ final class ExpandedThemeCardView: UIView {
             faceView.translatesAutoresizingMaskIntoConstraints = false
             surfaceView.addSubview(faceView)
             NSLayoutConstraint.activate([
-                planeView.leadingAnchor.constraint(equalTo: perspectiveStageView.leadingAnchor),
-                planeView.trailingAnchor.constraint(equalTo: perspectiveStageView.trailingAnchor),
-                planeView.topAnchor.constraint(equalTo: perspectiveStageView.topAnchor),
-                planeView.bottomAnchor.constraint(equalTo: perspectiveStageView.bottomAnchor),
+                planeView.leadingAnchor.constraint(equalTo: rotatingCardView.leadingAnchor),
+                planeView.trailingAnchor.constraint(equalTo: rotatingCardView.trailingAnchor),
+                planeView.topAnchor.constraint(equalTo: rotatingCardView.topAnchor),
+                planeView.bottomAnchor.constraint(equalTo: rotatingCardView.bottomAnchor),
 
                 surfaceView.leadingAnchor.constraint(equalTo: planeView.leadingAnchor),
                 surfaceView.trailingAnchor.constraint(equalTo: planeView.trailingAnchor),
@@ -293,6 +341,11 @@ final class ExpandedThemeCardView: UIView {
             perspectiveStageView.topAnchor.constraint(equalTo: topAnchor),
             perspectiveStageView.bottomAnchor.constraint(equalTo: bottomAnchor),
 
+            rotatingCardView.leadingAnchor.constraint(equalTo: perspectiveStageView.leadingAnchor),
+            rotatingCardView.trailingAnchor.constraint(equalTo: perspectiveStageView.trailingAnchor),
+            rotatingCardView.topAnchor.constraint(equalTo: perspectiveStageView.topAnchor),
+            rotatingCardView.bottomAnchor.constraint(equalTo: perspectiveStageView.bottomAnchor),
+
             flipInteractionButton.leadingAnchor.constraint(equalTo: leadingAnchor),
             flipInteractionButton.trailingAnchor.constraint(equalTo: trailingAnchor),
             flipInteractionButton.topAnchor.constraint(equalTo: topAnchor),
@@ -306,6 +359,7 @@ final class ExpandedThemeCardView: UIView {
     private func configureFrontFace() {
         frontFaceView.accessibilityIdentifier = AccessibilityID.front
 
+        frontSurfaceButton.accessibilityIdentifier = AccessibilityID.frontSurfaceButton
         frontSurfaceButton.isAccessibilityElement = false
         frontSurfaceButton.translatesAutoresizingMaskIntoConstraints = false
 
@@ -408,6 +462,15 @@ final class ExpandedThemeCardView: UIView {
     private func configureBackFace() {
         backFaceView.accessibilityIdentifier = AccessibilityID.back
 
+        backSurfaceButton.accessibilityIdentifier = AccessibilityID.backSurfaceButton
+        backSurfaceButton.isAccessibilityElement = false
+        backSurfaceButton.translatesAutoresizingMaskIntoConstraints = false
+
+        backTapGestureRecognizer.cancelsTouchesInView = false
+        backTapGestureRecognizer.delegate = self
+        backTapGestureRecognizer.require(toFail: descriptionScrollView.panGestureRecognizer)
+        backFaceView.addGestureRecognizer(backTapGestureRecognizer)
+
         configureIconButton(
             backButton,
             systemImageName: "chevron.left",
@@ -466,6 +529,7 @@ final class ExpandedThemeCardView: UIView {
             startButton
         ].forEach(backControlsStack.addArrangedSubview)
 
+        backFaceView.addSubview(backSurfaceButton)
         backFaceView.addSubview(backButton)
         backFaceView.addSubview(backTitleLabel)
         backFaceView.addSubview(descriptionScrollView)
@@ -473,6 +537,11 @@ final class ExpandedThemeCardView: UIView {
         descriptionScrollView.addSubview(backDescriptionLabel)
 
         NSLayoutConstraint.activate([
+            backSurfaceButton.leadingAnchor.constraint(equalTo: backFaceView.leadingAnchor),
+            backSurfaceButton.trailingAnchor.constraint(equalTo: backFaceView.trailingAnchor),
+            backSurfaceButton.topAnchor.constraint(equalTo: backFaceView.topAnchor),
+            backSurfaceButton.bottomAnchor.constraint(equalTo: backFaceView.bottomAnchor),
+
             backButton.topAnchor.constraint(
                 equalTo: backFaceView.topAnchor,
                 constant: Layout.controlInset
@@ -574,7 +643,8 @@ final class ExpandedThemeCardView: UIView {
     }
 
     private func configureActions() {
-        frontSurfaceButton.addTarget(self, action: #selector(flipTapped), for: .touchUpInside)
+        frontSurfaceButton.addTarget(self, action: #selector(closeTapped), for: .touchUpInside)
+        backSurfaceButton.addTarget(self, action: #selector(backTapped), for: .touchUpInside)
         infoButton.addTarget(self, action: #selector(flipTapped), for: .touchUpInside)
         flipInteractionButton.addTarget(self, action: #selector(flipTapped), for: .touchUpInside)
         closeButton.addTarget(self, action: #selector(closeTapped), for: .touchUpInside)
@@ -618,20 +688,13 @@ final class ExpandedThemeCardView: UIView {
         overrideUserInterfaceStyle = appearance.resolvedInterfaceStyle
         cardCornerRadius = appearance.themeCardCornerRadius
 
-        let surfaceColor = appearance.themeCardBackground(baseColor: themeTintColor)
-        [frontSurfaceView, backSurfaceView].forEach { surfaceView in
-            surfaceView.backgroundColor = surfaceColor
-            surfaceView.layer.cornerRadius = cardCornerRadius
-            surfaceView.layer.cornerCurve = .continuous
-            surfaceView.layer.borderWidth = appearance.themeCardBorderWidth
-            surfaceView.layer.borderColor = borderColor.cgColor
-        }
-        frontFaceView.backgroundColor = surfaceColor
-        backFaceView.backgroundColor = surfaceColor
+        configuredSurfaceColor = appearance.themeCardBackground(baseColor: themeTintColor)
+        configuredBorderColor = borderColor
+        configuredBorderWidth = appearance.themeCardBorderWidth
+        applyConfiguredSurfaceAppearance()
         configuredShadowStyle = appearance.card.shadow
         let shadow = isTransitionShadowHidden ? AppShadowStyle.none : configuredShadowStyle
-        frontPlaneView.applyShadow(shadow)
-        backPlaneView.applyShadow(shadow)
+        rotatingCardView.applyShadow(shadow)
 
         frontTitleLabel.font = appearance.typography.font(
             size: Typography.frontTitleSize,
@@ -718,6 +781,22 @@ final class ExpandedThemeCardView: UIView {
             ],
             for: .disabled
         )
+    }
+
+    private func applyConfiguredSurfaceAppearance() {
+        let surfaceColor = isTransitionSurfaceHidden ? UIColor.clear : configuredSurfaceColor
+        let borderColor = isTransitionSurfaceHidden ? UIColor.clear : configuredBorderColor
+        let borderWidth = isTransitionSurfaceHidden ? CGFloat.zero : configuredBorderWidth
+
+        [frontSurfaceView, backSurfaceView].forEach { surfaceView in
+            surfaceView.backgroundColor = surfaceColor
+            surfaceView.layer.cornerRadius = cardCornerRadius
+            surfaceView.layer.cornerCurve = .continuous
+            surfaceView.layer.borderWidth = borderWidth
+            surfaceView.layer.borderColor = borderColor.cgColor
+        }
+        frontFaceView.backgroundColor = surfaceColor
+        backFaceView.backgroundColor = surfaceColor
     }
 
     private func configureQuestionCounts(selectedQuestionCount: Int?) {
@@ -825,13 +904,18 @@ final class ExpandedThemeCardView: UIView {
         completion: ((HomeThemeCardFace) -> Void)?
     ) {
         let startFace = face
-        frontFaceView.isHidden = false
-        backFaceView.isHidden = false
         flipInteractionButton.isHidden = false
-        applyVisualEndpoint(startFace, reduceMotion: reduceMotion)
+        prepareFaceAnimation(
+            from: startFace,
+            to: targetFace,
+            reduceMotion: reduceMotion
+        )
 
         let animator = UIViewPropertyAnimator(duration: duration, curve: curve) {
-            self.applyVisualEndpoint(targetFace, reduceMotion: reduceMotion)
+            self.applyFaceAnimationEndpoint(
+                targetFace,
+                reduceMotion: reduceMotion
+            )
         }
         activeFaceAnimator = animator
         faceAnimationStart = startFace
@@ -890,9 +974,12 @@ final class ExpandedThemeCardView: UIView {
 
     private func normalizeFaces(showing face: HomeThemeCardFace) {
         let frontIsVisible = face == .front
+        CATransaction.begin()
+        CATransaction.setDisableActions(true)
         layer.transform = CATransform3DIdentity
         flipInteractionButton.isHidden = true
         perspectiveStageView.layer.sublayerTransform = CATransform3DIdentity
+        rotatingCardView.layer.transform = CATransform3DIdentity
         frontPlaneView.isHidden = !frontIsVisible
         frontPlaneView.alpha = 1
         frontPlaneView.layer.transform = CATransform3DIdentity
@@ -905,30 +992,50 @@ final class ExpandedThemeCardView: UIView {
         backFaceView.isHidden = frontIsVisible
         backFaceView.alpha = 1
         backFaceView.layer.transform = CATransform3DIdentity
+        CATransaction.commit()
         updateAccessibilityVisibility(for: face)
     }
 
-    private func applyVisualEndpoint(
-        _ face: HomeThemeCardFace,
+    private func prepareFaceAnimation(
+        from startFace: HomeThemeCardFace,
+        to targetFace: HomeThemeCardFace,
         reduceMotion: Bool
     ) {
         layer.transform = CATransform3DIdentity
+        rotatingCardView.layer.transform = CATransform3DIdentity
         frontPlaneView.isHidden = false
         backPlaneView.isHidden = false
+        frontFaceView.isHidden = false
+        backFaceView.isHidden = false
         if reduceMotion {
             perspectiveStageView.layer.sublayerTransform = CATransform3DIdentity
             frontPlaneView.layer.transform = CATransform3DIdentity
             backPlaneView.layer.transform = CATransform3DIdentity
-            frontPlaneView.alpha = face == .front ? 1 : 0
-            backPlaneView.alpha = face == .back ? 1 : 0
+            frontPlaneView.alpha = startFace == .front ? 1 : 0
+            backPlaneView.alpha = startFace == .back ? 1 : 0
         } else {
             var perspective = CATransform3DIdentity
             perspective.m34 = -1 / Animation.perspectiveDistance
             perspectiveStageView.layer.sublayerTransform = perspective
             frontPlaneView.alpha = 1
             backPlaneView.alpha = 1
-            frontPlaneView.layer.transform = rotationY(face == .front ? 0 : .pi)
-            backPlaneView.layer.transform = rotationY(face == .front ? -.pi : 0)
+            frontPlaneView.layer.transform = rotationY(startFace == .front ? 0 : .pi)
+            backPlaneView.layer.transform = rotationY(startFace == .back ? 0 : .pi)
+        }
+
+        assert(startFace != targetFace)
+    }
+
+    private func applyFaceAnimationEndpoint(
+        _ targetFace: HomeThemeCardFace,
+        reduceMotion: Bool
+    ) {
+        if reduceMotion {
+            rotatingCardView.layer.transform = CATransform3DIdentity
+            frontPlaneView.alpha = targetFace == .front ? 1 : 0
+            backPlaneView.alpha = targetFace == .back ? 1 : 0
+        } else {
+            rotatingCardView.layer.transform = rotationY(.pi)
         }
     }
 
@@ -942,6 +1049,36 @@ final class ExpandedThemeCardView: UIView {
 
     private func rotationY(_ angle: CGFloat) -> CATransform3D {
         CATransform3DMakeRotation(angle, 0, 1, 0)
+    }
+
+    func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldReceive touch: UITouch) -> Bool {
+        guard gestureRecognizer === backTapGestureRecognizer else { return true }
+        guard
+            !descriptionScrollView.isTracking,
+            !descriptionScrollView.isDragging,
+            !descriptionScrollView.isDecelerating
+        else { return false }
+
+        var touchedView = touch.view
+        while let currentView = touchedView, currentView !== backFaceView {
+            if currentView is UIControl {
+                return false
+            }
+            touchedView = currentView.superview
+        }
+        return true
+    }
+
+    func gestureRecognizer(
+        _ gestureRecognizer: UIGestureRecognizer,
+        shouldRecognizeSimultaneouslyWith otherGestureRecognizer: UIGestureRecognizer
+    ) -> Bool {
+        let includesBackTap = gestureRecognizer === backTapGestureRecognizer ||
+            otherGestureRecognizer === backTapGestureRecognizer
+        guard includesBackTap else { return false }
+
+        return gestureRecognizer !== descriptionScrollView.panGestureRecognizer &&
+            otherGestureRecognizer !== descriptionScrollView.panGestureRecognizer
     }
 
     @objc private func closeTapped() {
