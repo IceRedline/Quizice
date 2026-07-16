@@ -56,6 +56,9 @@
 "home.statistics.played_short" = "Played";
 "home.themes_collection.accessibility_label" = "Quiz themes";
 "home.unavailable_themes" = "Themes are not available yet";
+"theme.card.close_accessibility_label" = "Close theme card";
+"theme.card.show_description_accessibility_label" = "Show theme description";
+"theme.card.show_front_accessibility_label" = "Return to theme card front";
 "home.welcome" = "Welcome to";
 "home.motivation_prompt.1" = "Pick a topic\nand start";
 "home.motivation_prompt.2" = "See what\nyou remember";
@@ -136,5 +139,5 @@
 "statistics.subtitle.empty" = "Start with your first quiz — statistics will appear automatically";
 "statistics.subtitle.with_stats" = "Your progress across completed quizzes";
 "statistics.title" = "Statistics";
-"theme.card.accessibility_hint" = "Starts a quiz on this theme";
+"theme.card.accessibility_hint" = "Opens this topic card";
 "theme.card.accessibility_label_format" = "%@, quiz theme";

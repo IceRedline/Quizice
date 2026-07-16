@@ -239,6 +239,9 @@ enum L10n {
 
     enum ThemeCard {
         static var accessibilityHint: String { L10n.localized("theme.card.accessibility_hint", comment: "Theme card accessibility hint") }
+        static var closeAccessibilityLabel: String { L10n.localized("theme.card.close_accessibility_label", comment: "Expanded theme card close button accessibility label") }
+        static var showDescriptionAccessibilityLabel: String { L10n.localized("theme.card.show_description_accessibility_label", comment: "Expanded theme card show-description accessibility label") }
+        static var showFrontAccessibilityLabel: String { L10n.localized("theme.card.show_front_accessibility_label", comment: "Expanded theme card return-to-front accessibility label") }
 
         static func accessibilityLabel(themeName: String) -> String {
             L10n.formatted("theme.card.accessibility_label_format", comment: "Theme card accessibility label format", themeName)

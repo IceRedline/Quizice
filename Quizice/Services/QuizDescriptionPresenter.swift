@@ -8,7 +8,6 @@
 import Foundation
 
 final class QuizDescriptionPresenter: QuizDescriptionPresenterProtocol {
-    private let supportedNumberOfQuestionsOptions: [Int] = [5, 10, 15]
     private let session: QuizSessionManaging
 
     weak var view: QuizDescriptionViewControllerProtocol?
@@ -63,17 +62,9 @@ final class QuizDescriptionPresenter: QuizDescriptionPresenterProtocol {
 
     private var numberOfQuestionsOptions: [Int] {
         guard let chosenTheme = session.chosenTheme else {
-            return supportedNumberOfQuestionsOptions
+            return QuizQuestionCountPolicy.supportedCounts
         }
 
-        let usableQuestionCount = chosenTheme.questionsAndAnswers.filter(Self.isUsableQuestion).count
-        return supportedNumberOfQuestionsOptions.filter { $0 <= usableQuestionCount }
-    }
-
-    private static func isUsableQuestion(_ question: QuestionModel) -> Bool {
-        !question.questionText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty &&
-        question.answers.count >= 4 &&
-        !question.correctAnswer.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty &&
-        question.answers.filter { $0 == question.correctAnswer }.count == 1
+        return QuizQuestionCountPolicy.availableCounts(for: chosenTheme.questionsAndAnswers)
     }
 }

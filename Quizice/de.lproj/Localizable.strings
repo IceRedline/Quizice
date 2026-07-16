@@ -56,6 +56,9 @@
 "home.statistics.played_short" = "Gespielt";
 "home.themes_collection.accessibility_label" = "Quizthemen";
 "home.unavailable_themes" = "Noch keine Themen verfügbar";
+"theme.card.close_accessibility_label" = "Themenkarte schließen";
+"theme.card.show_description_accessibility_label" = "Themenbeschreibung anzeigen";
+"theme.card.show_front_accessibility_label" = "Zur Vorderseite der Themenkarte zurückkehren";
 "home.welcome" = "Willkommen bei";
 "home.motivation_prompt.1" = "Wähle ein Thema\nund leg los";
 "home.motivation_prompt.2" = "Mal sehen,\nwas du noch weißt";
@@ -136,5 +139,5 @@
 "statistics.subtitle.empty" = "Starte mit deinem ersten Quiz — die Statistik erscheint automatisch";
 "statistics.subtitle.with_stats" = "Dein Fortschritt in abgeschlossenen Quizzen";
 "statistics.title" = "Statistik";
-"theme.card.accessibility_hint" = "Startet ein Quiz zu diesem Thema";
+"theme.card.accessibility_hint" = "Öffnet die Karte zu diesem Thema";
 "theme.card.accessibility_label_format" = "%@, Quizthema";

@@ -7,6 +7,11 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		A10000012F60000100A10001 /* ThemeCardCollectionViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000022F60000100A10001 /* ThemeCardCollectionViewCell.swift */; };
+		A10000032F60000100A10001 /* ExpandedThemeCardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000042F60000100A10001 /* ExpandedThemeCardView.swift */; };
+		A10000052F60000100A10001 /* HomeThemeCardFeature.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000062F60000100A10001 /* HomeThemeCardFeature.swift */; };
+		A10000072F60000100A10001 /* QuizQuestionCountPolicy.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000082F60000100A10001 /* QuizQuestionCountPolicy.swift */; };
+		A10000092F60000100A10001 /* HomeThemeCardFeatureTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100000A2F60000100A10001 /* HomeThemeCardFeatureTests.swift */; };
 		2BAB27033002BE0300D7E4FD /* AppMetricaCore in Frameworks */ = {isa = PBXBuildFile; productRef = 2BAB27023002BE0300D7E4FD /* AppMetricaCore */; };
 		2BAB27053002BE0300D7E4FD /* AppMetricaCrashes in Frameworks */ = {isa = PBXBuildFile; productRef = 2BAB27043002BE0300D7E4FD /* AppMetricaCrashes */; };
 		993C1BCB2D8D5EC200AD9BE4 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 993C1BC12D8D5EC200AD9BE4 /* AppDelegate.swift */; };
@@ -89,6 +94,11 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		A10000022F60000100A10001 /* ThemeCardCollectionViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ThemeCardCollectionViewCell.swift; sourceTree = "<group>"; };
+		A10000042F60000100A10001 /* ExpandedThemeCardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExpandedThemeCardView.swift; sourceTree = "<group>"; };
+		A10000062F60000100A10001 /* HomeThemeCardFeature.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeThemeCardFeature.swift; sourceTree = "<group>"; };
+		A10000082F60000100A10001 /* QuizQuestionCountPolicy.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuizQuestionCountPolicy.swift; sourceTree = "<group>"; };
+		A100000A2F60000100A10001 /* HomeThemeCardFeatureTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeThemeCardFeatureTests.swift; sourceTree = "<group>"; };
 		993C1BA92D8D5E8900AD9BE4 /* Quizice.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Quizice.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		993C1BC12D8D5EC200AD9BE4 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		993C1BC22D8D5EC200AD9BE4 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
@@ -221,6 +231,8 @@
 				993C1BDE2D8D601E00AD9BE4 /* Models */,
 				993C1BE32D8D606400AD9BE4 /* Services */,
 				99D100012E70000100D10001 /* AppAppearance.swift */,
+				A10000022F60000100A10001 /* ThemeCardCollectionViewCell.swift */,
+				A10000042F60000100A10001 /* ExpandedThemeCardView.swift */,
 				993C1BD62D8D600E00AD9BE4 /* QuizViewController.swift */,
 				993C1BDF2D8D600E00AD9BE4 /* QuizSettingsView.swift */,
 				99E200022E90000100E20001 /* QuizAIThemeCreationView.swift */,
@@ -265,6 +277,8 @@
 				993C1BE12D8D606100AD9BE4 /* Animations.swift */,
 				9945AF2D2DA4F27D00B15A77 /* ThemesCollectionService.swift */,
 				9945AF312DA50F6A00B15A77 /* ThemeCollectionDelegate.swift */,
+				A10000062F60000100A10001 /* HomeThemeCardFeature.swift */,
+				A10000082F60000100A10001 /* QuizQuestionCountPolicy.swift */,
 				993C1BD32D8D600E00AD9BE4 /* QuizFactory.swift */,
 				99E200042E90000100E20001 /* AIQuizThemeService.swift */,
 				9945AF9F2DA5C2CC00B15A77 /* QuizPresenter.swift */,
@@ -328,6 +342,7 @@
 				99B400132E20000100B40001 /* StatisticsStoreTests.swift */,
 				99B400152E20000100B40001 /* QuizQuestionPresenterFailureStateTests.swift */,
 				99C0FFF42E50000100C0DE01 /* LocalizationTests.swift */,
+				A100000A2F60000100A10001 /* HomeThemeCardFeatureTests.swift */,
 				99A1AA022F10000100A1AA01 /* YandexAIQuizThemeServiceTests.swift */,
 			);
 			path = Unit;
@@ -481,6 +496,10 @@
 			buildActionMask = 2147483647;
 			files = (
 				99E300012F20000100E30001 /* AnalyticsService.swift in Sources */,
+				A10000012F60000100A10001 /* ThemeCardCollectionViewCell.swift in Sources */,
+				A10000032F60000100A10001 /* ExpandedThemeCardView.swift in Sources */,
+				A10000052F60000100A10001 /* HomeThemeCardFeature.swift in Sources */,
+				A10000072F60000100A10001 /* QuizQuestionCountPolicy.swift in Sources */,
 				99FCF02D2D96A544006341F4 /* QuizDescriptionPresenterProtocol.swift in Sources */,
 				99FCF02B2D96A522006341F4 /* QuizDescriptionPresenter.swift in Sources */,
 				9945AFA42DA5C34200B15A77 /* QuizViewControllerProtocol.swift in Sources */,
@@ -524,6 +543,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				99E300032F20000100E30001 /* AnalyticsServiceTests.swift in Sources */,
+				A10000092F60000100A10001 /* HomeThemeCardFeatureTests.swift in Sources */,
 				99B400022E20000100B40001 /* QuiziceTests.swift in Sources */,
 				99F000032EA0000100F00001 /* AppAppearanceTests.swift in Sources */,
 				99F000052EA0000100F00001 /* QuizPresenterTests.swift in Sources */,

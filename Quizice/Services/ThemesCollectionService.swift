@@ -51,13 +51,6 @@ final class ThemesCollectionService: NSObject, UICollectionViewDelegate, UIColle
         static let statisticsContentSpacing: CGFloat = 12
         static let statisticsMetricsSpacing: CGFloat = 8
         static let statisticsMetricSpacing: CGFloat = 6
-        static let themeImageTopInset: CGFloat = 14
-        static let themeImageHorizontalInset: CGFloat = 4
-        static let themeImageToTitleSpacing: CGFloat = 0
-        static let themeTitleHorizontalInset: CGFloat = 8
-        static let themeTitleBottomInset: CGFloat = 6
-        static let themeTitleHeight: CGFloat = 56
-        static let cleanThemeSymbolScale: CGFloat = 0.70
         static let cellShadowOffset = CGSize(width: 0, height: 12)
         static let cellShadowRadius: CGFloat = 22
     }
@@ -89,16 +82,22 @@ final class ThemesCollectionService: NSObject, UICollectionViewDelegate, UIColle
         static let statisticsMetricTitleFontSize: CGFloat = 14
         static let luckyFontSize: CGFloat = 19
         static let betaBadgeFontSize: CGFloat = 12
-        static let themeTitleFontSize: CGFloat = 18
-        static let themeTitleMinimumScaleFactor: CGFloat = 0.72
         static let statisticsTitleMinimumScaleFactor: CGFloat = 0.72
     }
 
     weak var delegate: ThemeCollectionDelegate?
 
+    var presentedThemeID: String? {
+        didSet {
+            guard oldValue != presentedThemeID else { return }
+            reconfigureThemeCells(withIDs: [oldValue, presentedThemeID].compactMap { $0 })
+        }
+    }
+
     private let themeRepository: ThemeRepository
     private let statisticsStore: StatisticsStore
     private let appearanceStore = AppAppearanceStore.shared
+    private weak var observedCollectionView: UICollectionView?
 
     private var themeCount: Int { themeRepository.themes?.count ?? 0 }
 
@@ -117,8 +116,32 @@ final class ThemesCollectionService: NSObject, UICollectionViewDelegate, UIColle
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int { themeCount + 3 }
 
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
-        let cell = collectionView.dequeueReusableCell(withReuseIdentifier: Content.themeCellReuseIdentifier, for: indexPath)
+        observedCollectionView = collectionView
         let appearance = appearanceStore.appearance(compatibleWith: collectionView.traitCollection)
+
+        if let theme = themeRepository.themes?[safe: indexPath.item] {
+            guard let cell = collectionView.dequeueReusableCell(
+                withReuseIdentifier: ThemeCardCollectionViewCell.reuseIdentifier,
+                for: indexPath
+            ) as? ThemeCardCollectionViewCell else {
+                preconditionFailure("Expected ThemeCardCollectionViewCell for catalog theme")
+            }
+            cell.configure(
+                theme: theme,
+                appearance: appearance,
+                isSourceHidden: theme.stableID == presentedThemeID
+            )
+            cell.actionButton.removeTarget(self, action: nil, for: .allEvents)
+            cell.actionButton.addTarget(self, action: #selector(buttonTouchedDown(_:)), for: .touchDown)
+            cell.actionButton.addTarget(self, action: #selector(buttonTouchedUpInside(_:)), for: .touchUpInside)
+            cell.actionButton.addTarget(self, action: #selector(buttonTouchedUpOutside(_:)), for: .touchUpOutside)
+            return cell
+        }
+
+        let cell = collectionView.dequeueReusableCell(
+            withReuseIdentifier: Content.themeCellReuseIdentifier,
+            for: indexPath
+        )
         prepare(cell, appearance: appearance)
 
         if indexPath.item == statisticsIndex {
@@ -136,10 +159,6 @@ final class ThemesCollectionService: NSObject, UICollectionViewDelegate, UIColle
             return cell
         }
 
-        guard let theme = themeRepository.themes?[safe: indexPath.item] else {
-            return cell
-        }
-        configureThemeCard(in: cell, theme: theme, appearance: appearance)
         return cell
     }
 
@@ -177,66 +196,6 @@ final class ThemesCollectionService: NSObject, UICollectionViewDelegate, UIColle
         cell.backgroundColor = .clear
         cell.layer.masksToBounds = false
         cell.applyShadow(appearance.themeCardShadow)
-    }
-
-    private func configureThemeCard(in cell: UICollectionViewCell, theme: QuizTheme, appearance: AppAppearance) {
-        let button = UIButton(type: .custom)
-        let themeID = theme.stableID
-        let themeName = theme.theme
-        let themeTintColor = themeTintColor(for: themeID)
-        let themeBorderColor = appearance.themeCardBorder(baseColor: themeTintColor)
-
-        button.addTarget(self, action: #selector(buttonTouchedDown(_:)), for: .touchDown)
-        button.addTarget(self, action: #selector(buttonTouchedUpInside(_:)), for: .touchUpInside)
-        button.addTarget(self, action: #selector(buttonTouchedUpOutside(_:)), for: .touchUpOutside)
-        button.accessibilityIdentifier = themeID
-        button.accessibilityLabel = L10n.ThemeCard.accessibilityLabel(themeName: themeName)
-        button.accessibilityHint = L10n.ThemeCard.accessibilityHint
-        button.backgroundColor = appearance.themeCardBackground(baseColor: themeTintColor)
-        button.layer.cornerRadius = appearance.themeCardCornerRadius
-        button.layer.borderWidth = appearance.themeCardBorderWidth
-        button.layer.borderColor = themeBorderColor.cgColor
-        button.clipsToBounds = true
-        button.translatesAutoresizingMaskIntoConstraints = false
-
-        let imageView = UIImageView(image: themeLogoImage(for: themeID, appearance: appearance))
-        imageView.accessibilityIdentifier = themeImageAccessibilityIdentifier(themeID: themeID)
-        imageView.contentMode = .scaleAspectFit
-        imageView.tintColor = themeBorderColor
-        imageView.transform = themeLogoTransform(for: appearance)
-        imageView.isUserInteractionEnabled = false
-        imageView.translatesAutoresizingMaskIntoConstraints = false
-
-        let titleLabel = MultilineFittingLabel(
-            baseFont: appearance.typography.font(size: Appearance.themeTitleFontSize, weight: .semibold),
-            minimumScaleFactor: Appearance.themeTitleMinimumScaleFactor
-        )
-        titleLabel.accessibilityIdentifier = themeTitleAccessibilityIdentifier(themeID: themeID)
-        titleLabel.text = themeName
-        titleLabel.textColor = appearance.themeCardTextColor(baseColor: themeTintColor)
-        titleLabel.adjustsFontForContentSizeCategory = true
-        titleLabel.textAlignment = .center
-        titleLabel.numberOfLines = 2
-        titleLabel.lineBreakMode = .byWordWrapping
-        titleLabel.allowsDefaultTighteningForTruncation = true
-        titleLabel.isUserInteractionEnabled = false
-        titleLabel.translatesAutoresizingMaskIntoConstraints = false
-
-        pin(button, to: cell.contentView)
-        button.addSubview(imageView)
-        button.addSubview(titleLabel)
-
-        NSLayoutConstraint.activate([
-            imageView.topAnchor.constraint(equalTo: button.topAnchor, constant: Layout.themeImageTopInset),
-            imageView.leadingAnchor.constraint(equalTo: button.leadingAnchor, constant: Layout.themeImageHorizontalInset),
-            imageView.trailingAnchor.constraint(equalTo: button.trailingAnchor, constant: -Layout.themeImageHorizontalInset),
-
-            titleLabel.topAnchor.constraint(equalTo: imageView.bottomAnchor, constant: Layout.themeImageToTitleSpacing),
-            titleLabel.leadingAnchor.constraint(equalTo: button.leadingAnchor, constant: Layout.themeTitleHorizontalInset),
-            titleLabel.trailingAnchor.constraint(equalTo: button.trailingAnchor, constant: -Layout.themeTitleHorizontalInset),
-            titleLabel.bottomAnchor.constraint(equalTo: button.bottomAnchor, constant: -Layout.themeTitleBottomInset),
-            titleLabel.heightAnchor.constraint(equalToConstant: Layout.themeTitleHeight)
-        ])
     }
 
     private func configureFeelingLuckyCard(in cell: UICollectionViewCell, appearance: AppAppearance) {
@@ -556,28 +515,24 @@ final class ThemesCollectionService: NSObject, UICollectionViewDelegate, UIColle
         ])
     }
 
-    private func themeImageAccessibilityIdentifier(themeID: String) -> String {
-        "\(Content.themeImageAccessibilityIDPrefix)-\(themeID)"
-    }
+    private func reconfigureThemeCells(withIDs themeIDs: [String]) {
+        guard
+            let collectionView = observedCollectionView,
+            let themes = themeRepository.themes,
+            !themeIDs.isEmpty
+        else {
+            return
+        }
 
-    private func themeTitleAccessibilityIdentifier(themeID: String) -> String {
-        "\(Content.themeTitleAccessibilityIDPrefix)-\(themeID)"
-    }
+        let identifiers = Set(themeIDs)
+        let indexPaths = themes.enumerated().compactMap { index, theme in
+            identifiers.contains(theme.stableID) ? IndexPath(item: index, section: 0) : nil
+        }
+        guard !indexPaths.isEmpty else { return }
 
-    private func themeLogoImage(for themeID: String, appearance: AppAppearance) -> UIImage? {
-        ThemeVisualCatalog.logoImage(for: themeID, designStyle: appearance.designStyle)
-    }
-
-    private func themeLogoTransform(for appearance: AppAppearance) -> CGAffineTransform {
-        guard appearance.designStyle == .clean else { return .identity }
-        return CGAffineTransform(
-            scaleX: Layout.cleanThemeSymbolScale,
-            y: Layout.cleanThemeSymbolScale
-        )
-    }
-
-    private func themeTintColor(for themeID: String) -> UIColor {
-        ThemeVisualCatalog.tintColor(for: themeID)
+        UIView.performWithoutAnimation {
+            collectionView.reconfigureItems(at: indexPaths)
+        }
     }
 
     @objc func buttonTouchedDown(_ sender: UIButton) {
@@ -679,77 +634,6 @@ enum ThemeVisualCatalog {
 private extension Array {
     subscript(safe index: Index) -> Element? {
         indices.contains(index) ? self[index] : nil
-    }
-}
-
-private final class MultilineFittingLabel: UILabel {
-    private enum Fitting {
-        static let iterations = 10
-        static let tolerance: CGFloat = 0.1
-    }
-
-    private let baseFont: UIFont
-    private let fittingMinimumScaleFactor: CGFloat
-
-    init(baseFont: UIFont, minimumScaleFactor: CGFloat) {
-        self.baseFont = baseFont
-        self.fittingMinimumScaleFactor = minimumScaleFactor
-        super.init(frame: .zero)
-        font = baseFont
-    }
-
-    @available(*, unavailable)
-    required init?(coder: NSCoder) {
-        nil
-    }
-
-    override func layoutSubviews() {
-        super.layoutSubviews()
-        fitFontToBounds()
-    }
-
-    private func fitFontToBounds() {
-        guard let text, !text.isEmpty, bounds.width > 0, bounds.height > 0 else { return }
-
-        let minimumPointSize = baseFont.pointSize * fittingMinimumScaleFactor
-        guard !textFits(text, font: baseFont) else {
-            applyFontIfNeeded(baseFont)
-            return
-        }
-
-        var lowerBound = minimumPointSize
-        var upperBound = baseFont.pointSize
-        for _ in 0..<Fitting.iterations {
-            let candidatePointSize = (lowerBound + upperBound) / 2
-            let candidateFont = baseFont.withSize(candidatePointSize)
-            if textFits(text, font: candidateFont) {
-                lowerBound = candidatePointSize
-            } else {
-                upperBound = candidatePointSize
-            }
-        }
-
-        applyFontIfNeeded(baseFont.withSize(lowerBound))
-    }
-
-    private func textFits(_ text: String, font: UIFont) -> Bool {
-        let maximumLineHeight = numberOfLines > 0
-            ? font.lineHeight * CGFloat(numberOfLines)
-            : bounds.height
-        let maximumHeight = min(bounds.height, maximumLineHeight)
-        let requiredBounds = (text as NSString).boundingRect(
-            with: CGSize(width: bounds.width, height: .greatestFiniteMagnitude),
-            options: [.usesLineFragmentOrigin, .usesFontLeading],
-            attributes: [.font: font],
-            context: nil
-        )
-        return ceil(requiredBounds.height) <= ceil(maximumHeight) + Fitting.tolerance
-    }
-
-    private func applyFontIfNeeded(_ fittedFont: UIFont) {
-        guard abs(font.pointSize - fittedFont.pointSize) > Fitting.tolerance else { return }
-        font = fittedFont
-        invalidateIntrinsicContentSize()
     }
 }
 

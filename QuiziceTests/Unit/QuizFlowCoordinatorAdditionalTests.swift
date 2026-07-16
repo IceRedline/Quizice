@@ -284,6 +284,61 @@ final class QuizFlowCoordinatorAdditionalTests: XCTestCase {
         XCTAssertEqual(harness.navigationController.dismissAnimationFlags, [true])
     }
 
+    func testImmediateQuestionReturnExplicitlyRestoresLuckyHomeInteraction() throws {
+        let question = QuizQuestion(
+            question: "Question?",
+            answers: ["A", "B", "C", "D"],
+            correctAnswer: "A"
+        )
+        let theme = SnapshotSupport.makeTheme(
+            id: "music",
+            name: "Music",
+            questions: Array(repeating: question, count: 5)
+        )
+        let window = UIWindow(frame: CGRect(x: 0, y: 0, width: 390, height: 844))
+        let navigationController = RoutingNavigationControllerSpy()
+        let repository = RoutingThemeRepository(themes: [theme])
+        let session = RoutingSession()
+        session.themes = [theme]
+        let coordinator = QuizFlowCoordinator(
+            window: window,
+            navigationController: navigationController,
+            themeRepository: repository,
+            session: session,
+            aiQuizThemeService: MockAIQuizThemeService()
+        )
+        coordinator.start()
+        navigationController.topViewControllerOverride = navigationController
+
+        let home = try XCTUnwrap(navigationController.viewControllers.first as? QuizViewController)
+        home.loadViewIfNeeded()
+        home.view.frame = window.bounds
+        home.view.layoutIfNeeded()
+        let collectionView = try XCTUnwrap(
+            descendant(in: home.view, accessibilityIdentifier: "homeThemesCollectionView") as? UICollectionView
+        )
+        let luckyButton = try XCTUnwrap(
+            descendant(in: home.view, accessibilityIdentifier: "homeFeelingLuckyButton") as? UIButton
+        )
+
+        luckyButton.sendActions(for: .touchUpInside)
+        XCTAssertEqual(navigationController.presentedControllers.count, 1)
+
+        luckyButton.isHidden = true
+        coordinator.returnToThemes()
+
+        XCTAssertTrue(collectionView.isUserInteractionEnabled)
+        XCTAssertFalse(luckyButton.isHidden)
+
+        let themeButton = try XCTUnwrap(
+            descendant(in: home.view, accessibilityIdentifier: "music") as? UIButton
+        )
+        themeButton.sendActions(for: .touchUpInside)
+        XCTAssertNotNil(
+            descendant(in: home.view, accessibilityIdentifier: "homeExpandedThemeCard")
+        )
+    }
+
     func testReplayPreservesSelectionAndPresentsFreshQuestionController() throws {
         let harness = makeHarness()
         harness.coordinator.start()
@@ -397,6 +452,21 @@ final class QuizFlowCoordinatorAdditionalTests: XCTestCase {
             aiQuizThemeService: MockAIQuizThemeService()
         )
         return (coordinator, navigationController, session)
+    }
+
+    private func descendant(in rootView: UIView, accessibilityIdentifier: String) -> UIView? {
+        if rootView.accessibilityIdentifier == accessibilityIdentifier {
+            return rootView
+        }
+        for subview in rootView.subviews {
+            if let match = descendant(
+                in: subview,
+                accessibilityIdentifier: accessibilityIdentifier
+            ) {
+                return match
+            }
+        }
+        return nil
     }
 
     private func makeLaunchAppearance(
