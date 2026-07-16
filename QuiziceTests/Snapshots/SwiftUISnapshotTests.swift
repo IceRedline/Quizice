@@ -49,6 +49,63 @@ final class SwiftUISnapshotTests: XCTestCase {
         )
     }
 
+    func testRadarFakeLaunchScreenSnapshot() {
+        SnapshotSupport.setUp(designStyle: .radar, cleanColorScheme: .dark)
+        let viewController = makeHostingController(
+            rootView: FakeLaunchScreenView(
+                appearance: SnapshotSupport.appearance(
+                    designStyle: .radar,
+                    cleanColorScheme: .dark
+                ),
+                holdDuration: 60
+            )
+        )
+
+        SnapshotSupport.assertScreen(
+            viewController,
+            named: "radar-fake-launch-screen",
+            device: SnapshotSupport.iPhone17Pro
+        )
+    }
+
+    func testCleanLightFakeLaunchScreenSnapshot() {
+        SnapshotSupport.setUp(designStyle: .clean, cleanColorScheme: .light)
+        let viewController = makeHostingController(
+            rootView: FakeLaunchScreenView(
+                appearance: SnapshotSupport.appearance(
+                    designStyle: .clean,
+                    cleanColorScheme: .light
+                ),
+                holdDuration: 60
+            )
+        )
+
+        SnapshotSupport.assertScreen(
+            viewController,
+            named: "clean-light-fake-launch-screen",
+            device: SnapshotSupport.iPhone17Pro
+        )
+    }
+
+    func testCleanDarkFakeLaunchScreenSnapshot() {
+        SnapshotSupport.setUp(designStyle: .clean, cleanColorScheme: .dark)
+        let viewController = makeHostingController(
+            rootView: FakeLaunchScreenView(
+                appearance: SnapshotSupport.appearance(
+                    designStyle: .clean,
+                    cleanColorScheme: .dark
+                ),
+                holdDuration: 60
+            )
+        )
+
+        SnapshotSupport.assertScreen(
+            viewController,
+            named: "clean-dark-fake-launch-screen",
+            device: SnapshotSupport.iPhone17Pro
+        )
+    }
+
     func testAIThemeCreationViewSnapshot() {
         let viewController = makeHostingController(
             rootView: QuizAIThemeCreationView(service: MockAIQuizThemeService())
