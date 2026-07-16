@@ -16,18 +16,87 @@ struct HomeThemeCardTransitionGeometry: Equatable {
     let targetFrame: CGRect
 
     var cardFrameInContainer: CGRect {
-        CGRect(
-            x: targetFrame.minX - containerFrame.minX,
-            y: targetFrame.minY - containerFrame.minY,
-            width: targetFrame.width,
-            height: targetFrame.height
-        )
+        centeredFrame(size: targetFrame.size)
     }
 
     var cardFrameInRoot: CGRect {
         cardFrameInContainer.offsetBy(
             dx: containerFrame.minX,
             dy: containerFrame.minY
+        )
+    }
+
+    func centeredFrame(size: CGSize) -> CGRect {
+        CGRect(
+            x: (containerFrame.width - size.width) / 2,
+            y: (containerFrame.height - size.height) / 2,
+            width: size.width,
+            height: size.height
+        )
+    }
+}
+
+struct HomeThemeCardTransitionVisualState: Equatable {
+    let progress: CGFloat
+
+    init(progress: CGFloat) {
+        self.progress = min(max(progress, 0), 1)
+    }
+
+    var sourceContentAlpha: CGFloat { 1 - progress }
+    var expandedContentAlpha: CGFloat { progress }
+    var expandedSurfaceLayerAlpha: CGFloat { progress }
+
+    func compositedSurfaceAlpha(baseAlpha: CGFloat) -> CGFloat {
+        let clampedBaseAlpha = min(max(baseAlpha, 0), 1)
+        let overlayAlpha = clampedBaseAlpha * expandedSurfaceLayerAlpha
+        return 1 - (1 - clampedBaseAlpha) * (1 - overlayAlpha)
+    }
+}
+
+struct HomeThemeCardContentGeometry: Equatable {
+    let containerSize: CGSize
+    let imageCenter: CGPoint
+    let titleCenter: CGPoint
+
+    func imageTranslation(
+        toAlignDestinationCenter destinationCenter: CGPoint,
+        in destinationContainerSize: CGSize
+    ) -> CGPoint {
+        translation(
+            sourceCenter: imageCenter,
+            destinationCenter: destinationCenter,
+            destinationContainerSize: destinationContainerSize
+        )
+    }
+
+    func titleTranslation(
+        toAlignDestinationCenter destinationCenter: CGPoint,
+        in destinationContainerSize: CGSize
+    ) -> CGPoint {
+        translation(
+            sourceCenter: titleCenter,
+            destinationCenter: destinationCenter,
+            destinationContainerSize: destinationContainerSize
+        )
+    }
+
+    private func translation(
+        sourceCenter: CGPoint,
+        destinationCenter: CGPoint,
+        destinationContainerSize: CGSize
+    ) -> CGPoint {
+        let sourceOffset = CGPoint(
+            x: sourceCenter.x - containerSize.width / 2,
+            y: sourceCenter.y - containerSize.height / 2
+        )
+        let destinationOffset = CGPoint(
+            x: destinationCenter.x - destinationContainerSize.width / 2,
+            y: destinationCenter.y - destinationContainerSize.height / 2
+        )
+        return CGPoint(
+            x: sourceOffset.x - destinationOffset.x,
+            y: sourceOffset.y - destinationOffset.y
         )
     }
 }
@@ -75,6 +144,7 @@ enum HomeThemeCardEffect: Equatable {
     case expand(themeID: String)
     case flip(HomeThemeCardFace)
     case collapse(themeID: String)
+    case reverseExpansion(shouldPresent: Bool)
     case launch(themeID: String, questionCount: Int)
 }
 
@@ -142,14 +212,22 @@ enum HomeThemeCardReducer {
             return nil
 
         case .closeRequested:
-            guard
-                state.phase == .expandedFront || state.phase == .expandedBack,
-                let themeID = state.themeID
-            else {
+            guard let themeID = state.themeID else {
                 return nil
             }
-            state.phase = .collapsing
-            return .collapse(themeID: themeID)
+            switch state.phase {
+            case .expanding:
+                state.phase = .collapsing
+                return .reverseExpansion(shouldPresent: false)
+            case .expandedFront, .expandedBack:
+                state.phase = .collapsing
+                return .collapse(themeID: themeID)
+            case .collapsing:
+                state.phase = .expanding
+                return .reverseExpansion(shouldPresent: true)
+            case .grid, .flippingToBack, .flippingToFront, .launching:
+                return nil
+            }
 
         case .collapseCompleted:
             guard state.phase == .collapsing else { return nil }

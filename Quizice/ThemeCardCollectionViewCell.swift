@@ -35,6 +35,15 @@ final class ThemeCardCollectionViewCell: UICollectionViewCell {
         nil
     }
 
+    override func layoutSubviews() {
+        super.layoutSubviews()
+
+        layer.shadowPath = UIBezierPath(
+            roundedRect: bounds,
+            cornerRadius: actionButton.layer.cornerRadius
+        ).cgPath
+    }
+
     override func prepareForReuse() {
         super.prepareForReuse()
 
@@ -105,6 +114,51 @@ final class ThemeCardCollectionViewCell: UICollectionViewCell {
         themeTitleLabel.accessibilityIdentifier = "\(ThemesCollectionService.Content.themeTitleAccessibilityIDPrefix)-\(themeID)"
 
         setSourceHidden(isSourceHidden)
+    }
+
+    func makeTransitionContent() -> (view: UIView, geometry: HomeThemeCardContentGeometry) {
+        layoutIfNeeded()
+        actionButton.layoutIfNeeded()
+
+        let containerView = UIView(frame: actionButton.bounds)
+        containerView.backgroundColor = .clear
+        containerView.isAccessibilityElement = false
+        containerView.accessibilityElementsHidden = true
+        containerView.isUserInteractionEnabled = false
+
+        let imageView = UIImageView(image: themeImageView.image)
+        imageView.bounds = themeImageView.bounds
+        imageView.center = themeImageView.center
+        imageView.transform = themeImageView.transform
+        imageView.alpha = themeImageView.alpha
+        imageView.contentMode = themeImageView.contentMode
+        imageView.tintColor = themeImageView.tintColor
+        imageView.clipsToBounds = themeImageView.clipsToBounds
+
+        let titleLabel = UILabel()
+        titleLabel.bounds = themeTitleLabel.bounds
+        titleLabel.center = themeTitleLabel.center
+        titleLabel.transform = themeTitleLabel.transform
+        titleLabel.alpha = themeTitleLabel.alpha
+        titleLabel.text = themeTitleLabel.text
+        titleLabel.attributedText = themeTitleLabel.attributedText
+        titleLabel.font = themeTitleLabel.font
+        titleLabel.textColor = themeTitleLabel.textColor
+        titleLabel.textAlignment = themeTitleLabel.textAlignment
+        titleLabel.numberOfLines = themeTitleLabel.numberOfLines
+        titleLabel.lineBreakMode = themeTitleLabel.lineBreakMode
+        titleLabel.allowsDefaultTighteningForTruncation = themeTitleLabel.allowsDefaultTighteningForTruncation
+
+        containerView.addSubview(imageView)
+        containerView.addSubview(titleLabel)
+        return (
+            view: containerView,
+            geometry: HomeThemeCardContentGeometry(
+                containerSize: actionButton.bounds.size,
+                imageCenter: themeImageView.center,
+                titleCenter: themeTitleLabel.center
+            )
+        )
     }
 
     private func configureViewHierarchy() {
