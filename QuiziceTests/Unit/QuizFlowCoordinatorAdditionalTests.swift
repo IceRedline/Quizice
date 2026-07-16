@@ -36,13 +36,14 @@ final class QuizFlowCoordinatorAdditionalTests: XCTestCase {
         let rootViewController = UINavigationController(rootViewController: UIViewController())
         window.rootViewController = rootViewController
         let presenter = LaunchOverlayPresenter()
+        let appearance = makeLaunchAppearance(designStyle: .radar)
         defer {
             presenter.dismiss(animated: false)
             window.isHidden = true
             window.rootViewController = nil
         }
 
-        presenter.present(in: window, holdDuration: 60)
+        presenter.present(in: window, appearance: appearance, holdDuration: 60)
 
         let overlayWindow = try XCTUnwrap(
             windowScene.windows.first {
@@ -51,7 +52,12 @@ final class QuizFlowCoordinatorAdditionalTests: XCTestCase {
         )
         XCTAssertFalse(overlayWindow.isKeyWindow)
         XCTAssertEqual(overlayWindow.windowLevel.rawValue, window.windowLevel.rawValue + 1)
-        XCTAssertNotNil(overlayWindow.rootViewController as? UIHostingController<FakeLaunchScreenView>)
+        let hostingController = try XCTUnwrap(
+            overlayWindow.rootViewController as? UIHostingController<FakeLaunchScreenView>
+        )
+        XCTAssertEqual(hostingController.rootView.appearance.designStyle, .radar)
+        assertColor(overlayWindow.backgroundColor, equals: .black)
+        assertColor(hostingController.view.backgroundColor, equals: .black)
         XCTAssertTrue(rootViewController.view.accessibilityElementsHidden)
         XCTAssertEqual(rootViewController.children.count, 1)
 
@@ -72,6 +78,7 @@ final class QuizFlowCoordinatorAdditionalTests: XCTestCase {
         window.rootViewController = rootViewController
         window.isHidden = false
         let presenter = LaunchOverlayPresenter()
+        let appearance = makeLaunchAppearance(designStyle: .radar)
         defer {
             presenter.dismiss(animated: false)
             window.isHidden = true
@@ -80,6 +87,7 @@ final class QuizFlowCoordinatorAdditionalTests: XCTestCase {
 
         presenter.present(
             in: window,
+            appearance: appearance,
             holdDuration: 0,
             motion: FakeLaunchMotion(logoZoomScale: 42, logoZoomDuration: 0.05)
         )
@@ -110,12 +118,7 @@ final class QuizFlowCoordinatorAdditionalTests: XCTestCase {
         var completionStyle: FakeLaunchCompletionStyle?
         let animationsWereEnabled = UIView.areAnimationsEnabled
         UIView.setAnimationsEnabled(false)
-        let appearance = AppAppearance(
-            designStyle: .classic,
-            cleanColorSchemePreference: .dark,
-            backgroundStyle: .slate5x5,
-            traitCollection: window.traitCollection
-        )
+        let appearance = makeLaunchAppearance(designStyle: .classic)
         let rootView = FakeLaunchScreenView(
             appearance: appearance,
             holdDuration: 0,
@@ -146,13 +149,14 @@ final class QuizFlowCoordinatorAdditionalTests: XCTestCase {
         let rootViewController = UIViewController()
         window.rootViewController = rootViewController
         let presenter = LaunchOverlayPresenter()
+        let appearance = makeLaunchAppearance(designStyle: .classic)
         defer {
             presenter.dismiss(animated: false)
             window.isHidden = true
             window.rootViewController = nil
         }
 
-        presenter.present(in: window, holdDuration: 60)
+        presenter.present(in: window, appearance: appearance, holdDuration: 60)
         let firstOverlay = try XCTUnwrap(
             windowScene.windows.first {
                 $0.accessibilityIdentifier == LaunchOverlayPresenter.accessibilityIdentifier
@@ -161,7 +165,7 @@ final class QuizFlowCoordinatorAdditionalTests: XCTestCase {
 
         presenter.dismiss()
         presenter.dismiss(animated: false)
-        presenter.present(in: window, holdDuration: 60)
+        presenter.present(in: window, appearance: appearance, holdDuration: 60)
 
         let replacementOverlay = try XCTUnwrap(
             windowScene.windows.first {
@@ -175,6 +179,45 @@ final class QuizFlowCoordinatorAdditionalTests: XCTestCase {
         XCTAssertFalse(replacementOverlay.isHidden)
         XCTAssertNotNil(replacementOverlay.rootViewController)
         XCTAssertTrue(rootViewController.view.accessibilityElementsHidden)
+    }
+
+    func testFakeLaunchVisualStyleMatchesSelectedDesignAndColorScheme() throws {
+        let classicAppearance = makeLaunchAppearance(designStyle: .classic)
+        let classicStyle = FakeLaunchVisualStyle(appearance: classicAppearance)
+        XCTAssertEqual(classicStyle.markStyle, .classicImage)
+        XCTAssertTrue(classicStyle.revealsAppBackground)
+        XCTAssertNil(classicStyle.foregroundColor)
+        assertColor(classicStyle.backgroundColor, equals: UIColor(hex: 0x111620))
+
+        let radarAppearance = makeLaunchAppearance(designStyle: .radar)
+        let radarStyle = FakeLaunchVisualStyle(appearance: radarAppearance)
+        XCTAssertEqual(radarStyle.markStyle, .radarText)
+        XCTAssertFalse(radarStyle.revealsAppBackground)
+        assertColor(radarStyle.backgroundColor, equals: .black)
+        assertColor(
+            try XCTUnwrap(radarStyle.foregroundColor),
+            equals: radarAppearance.accentColor
+        )
+
+        let cleanLightAppearance = makeLaunchAppearance(
+            designStyle: .clean,
+            cleanColorSchemePreference: .light
+        )
+        let cleanLightStyle = FakeLaunchVisualStyle(appearance: cleanLightAppearance)
+        XCTAssertEqual(cleanLightStyle.markStyle, .cleanText)
+        XCTAssertFalse(cleanLightStyle.revealsAppBackground)
+        assertColor(cleanLightStyle.backgroundColor, equals: .white)
+        assertColor(try XCTUnwrap(cleanLightStyle.foregroundColor), equals: .black)
+
+        let cleanDarkAppearance = makeLaunchAppearance(
+            designStyle: .clean,
+            cleanColorSchemePreference: .dark
+        )
+        let cleanDarkStyle = FakeLaunchVisualStyle(appearance: cleanDarkAppearance)
+        XCTAssertEqual(cleanDarkStyle.markStyle, .cleanText)
+        XCTAssertFalse(cleanDarkStyle.revealsAppBackground)
+        assertColor(cleanDarkStyle.backgroundColor, equals: .black)
+        assertColor(try XCTUnwrap(cleanDarkStyle.foregroundColor), equals: .white)
     }
 
     func testLaunchStoryboardMatchesFakeLaunchBaseGeometryAndColor() throws {
@@ -354,6 +397,66 @@ final class QuizFlowCoordinatorAdditionalTests: XCTestCase {
             aiQuizThemeService: MockAIQuizThemeService()
         )
         return (coordinator, navigationController, session)
+    }
+
+    private func makeLaunchAppearance(
+        designStyle: AppDesignStyle,
+        cleanColorSchemePreference: CleanColorSchemePreference = .dark
+    ) -> AppAppearance {
+        AppAppearance(
+            designStyle: designStyle,
+            cleanColorSchemePreference: cleanColorSchemePreference,
+            backgroundStyle: .slate5x5,
+            traitCollection: UITraitCollection(
+                userInterfaceStyle: cleanColorSchemePreference == .light ? .light : .dark
+            )
+        )
+    }
+
+    private func assertColor(
+        _ actual: UIColor?,
+        equals expected: UIColor,
+        accuracy: CGFloat = 0.000_001,
+        file: StaticString = #filePath,
+        line: UInt = #line
+    ) {
+        guard let actual else {
+            XCTFail("Expected a color", file: file, line: line)
+            return
+        }
+
+        var actualRed: CGFloat = 0
+        var actualGreen: CGFloat = 0
+        var actualBlue: CGFloat = 0
+        var actualAlpha: CGFloat = 0
+        var expectedRed: CGFloat = 0
+        var expectedGreen: CGFloat = 0
+        var expectedBlue: CGFloat = 0
+        var expectedAlpha: CGFloat = 0
+        XCTAssertTrue(
+            actual.getRed(
+                &actualRed,
+                green: &actualGreen,
+                blue: &actualBlue,
+                alpha: &actualAlpha
+            ),
+            file: file,
+            line: line
+        )
+        XCTAssertTrue(
+            expected.getRed(
+                &expectedRed,
+                green: &expectedGreen,
+                blue: &expectedBlue,
+                alpha: &expectedAlpha
+            ),
+            file: file,
+            line: line
+        )
+        XCTAssertEqual(actualRed, expectedRed, accuracy: accuracy, file: file, line: line)
+        XCTAssertEqual(actualGreen, expectedGreen, accuracy: accuracy, file: file, line: line)
+        XCTAssertEqual(actualBlue, expectedBlue, accuracy: accuracy, file: file, line: line)
+        XCTAssertEqual(actualAlpha, expectedAlpha, accuracy: accuracy, file: file, line: line)
     }
 }
 
