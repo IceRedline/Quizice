@@ -383,7 +383,7 @@ final class QuizDescriptionViewController: BaseQuizViewController, QuizDescripti
     override func applyAppearance() {
         guard isViewLoaded else { return }
         let appearance = currentAppearance()
-        appearance.applyBackground(to: view)
+        appearance.applyBackground(to: view, motionProfile: .edgeAware)
         overrideUserInterfaceStyle = appearance.resolvedInterfaceStyle
 
         contentCardView?.applySurfaceStyle(appearance.card)

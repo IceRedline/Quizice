@@ -182,7 +182,10 @@ struct QuizSettingsView: View {
     @ViewBuilder
     private var settingsBackground: some View {
         if appearance.designStyle == .classic {
-            AppBackgroundView(appearance: appearance)
+            AppBackgroundView(
+                appearance: appearance,
+                motionProfile: .edgeAware
+            )
         } else {
             Color(uiColor: appearance.backgroundColor)
                 .ignoresSafeArea()
