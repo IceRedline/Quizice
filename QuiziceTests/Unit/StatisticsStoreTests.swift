@@ -101,6 +101,118 @@ final class StatisticsStoreTests: XCTestCase {
         XCTAssertThrowsError(try JSONDecoder().decode([StatisticsStore.Attempt].self, from: migratedData))
     }
 
+    func testPreviousAggregateMigratesIntoIdempotentLegacySyncPayload() throws {
+        let harness = makeHarness()
+        let legacyJSON: [String: Int] = [
+            "playedQuizzes": 3,
+            "correctAnswers": 9,
+            "totalQuestions": 15,
+            "bestCorrectAnswers": 4,
+            "bestTotalQuestions": 5
+        ]
+        harness.defaults.set(
+            try JSONSerialization.data(withJSONObject: legacyJSON),
+            forKey: harness.key
+        )
+
+        XCTAssertEqual(harness.store.loadSummary().playedQuizzes, 3)
+        harness.store.activateAuthenticatedUser("user-1")
+        let request = harness.store.makeSyncRequest(for: "user-1")
+        let reloaded = StatisticsStore(userDefaults: harness.defaults, key: harness.key)
+
+        XCTAssertEqual(request.legacySummary?.correctAnswers, 9)
+        XCTAssertEqual(reloaded.makeSyncRequest(for: "user-1").migrationId, request.migrationId)
+    }
+
+    func testPendingAttemptKeepsStableIdentityAcrossStoreReload() {
+        let harness = makeHarness()
+        harness.store.recordAttempt(correctAnswers: 3, totalQuestions: 5)
+        harness.store.activateAuthenticatedUser("user-1")
+
+        let firstRequest = harness.store.makeSyncRequest(for: "user-1")
+        let reloadedStore = StatisticsStore(userDefaults: harness.defaults, key: harness.key)
+        let secondRequest = reloadedStore.makeSyncRequest(for: "user-1")
+
+        XCTAssertEqual(firstRequest, secondRequest)
+        XCTAssertEqual(firstRequest.attempts.count, 1)
+    }
+
+    func testGuestAttemptsMoveOnlyToSelectedAuthenticatedUser() {
+        let harness = makeHarness()
+        harness.store.recordAttempt(correctAnswers: 4, totalQuestions: 5)
+
+        harness.store.activateAuthenticatedUser("user-a")
+        XCTAssertEqual(harness.store.loadSummary().correctAnswers, 4)
+
+        harness.store.activateGuest()
+        XCTAssertEqual(harness.store.loadSummary(), .empty)
+        harness.store.recordAttempt(correctAnswers: 1, totalQuestions: 5)
+        harness.store.activateAuthenticatedUser("user-b")
+        XCTAssertEqual(harness.store.loadSummary().correctAnswers, 1)
+
+        harness.store.activateAuthenticatedUser("user-a")
+        XCTAssertEqual(harness.store.loadSummary().correctAnswers, 4)
+    }
+
+    func testApplyingSyncResponseKeepsOnlyUnacknowledgedAttemptsPending() {
+        let harness = makeHarness()
+        harness.store.recordAttempt(correctAnswers: 4, totalQuestions: 5)
+        harness.store.recordAttempt(correctAnswers: 2, totalQuestions: 5)
+        harness.store.activateAuthenticatedUser("user-1")
+        let request = harness.store.makeSyncRequest(for: "user-1")
+
+        harness.store.applySyncResponse(
+            StatisticsStore.SyncResponse(
+                summary: StatisticsSummary(
+                    playedQuizzes: 1,
+                    correctAnswers: 4,
+                    totalQuestions: 5,
+                    bestCorrectAnswers: 4,
+                    bestTotalQuestions: 5
+                ),
+                acceptedAttemptIds: [request.attempts[0].id],
+                legacySummaryAccepted: true
+            ),
+            for: "user-1"
+        )
+
+        let remaining = harness.store.makeSyncRequest(for: "user-1")
+        XCTAssertEqual(remaining.attempts.map(\.id), [request.attempts[1].id])
+        XCTAssertEqual(harness.store.loadSummary().playedQuizzes, 2)
+        XCTAssertEqual(harness.store.loadSummary().correctAnswers, 6)
+    }
+
+    func testRejectedLegacySummaryIsTerminalAndDoesNotRemainPending() throws {
+        let harness = makeHarness()
+        let legacyJSON: [String: Int] = [
+            "playedQuizzes": 3,
+            "correctAnswers": 9,
+            "totalQuestions": 15,
+            "bestCorrectAnswers": 4,
+            "bestTotalQuestions": 5
+        ]
+        harness.defaults.set(
+            try JSONSerialization.data(withJSONObject: legacyJSON),
+            forKey: harness.key
+        )
+        _ = harness.store.loadSummary()
+        harness.store.activateAuthenticatedUser("user-1")
+        XCTAssertNotNil(harness.store.makeSyncRequest(for: "user-1").legacySummary)
+
+        harness.store.applySyncResponse(
+            StatisticsStore.SyncResponse(
+                summary: .empty,
+                acceptedAttemptIds: [],
+                legacySummaryAccepted: false
+            ),
+            for: "user-1"
+        )
+
+        XCTAssertNil(harness.store.makeSyncRequest(for: "user-1").legacySummary)
+        XCTAssertFalse(harness.store.hasPendingSync(for: "user-1"))
+        XCTAssertEqual(harness.store.loadSummary(), .empty)
+    }
+
     private func makeHarness(
         file: StaticString = #filePath,
         line: UInt = #line

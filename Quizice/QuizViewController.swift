@@ -3103,7 +3103,17 @@ final class QuizViewController: BaseQuizViewController, QuizViewControllerProtoc
             self?.toggleDebugInterfaceVisibility()
         }
 
-        var menuElements: [UIMenuElement] = [interfaceAction]
+        let usesLocalhostBackend = UserDefaults.standard.bool(forKey: DebugBackendSettings.useLocalhostKey)
+        let localhostAction = UIAction(
+            title: L10n.Settings.localhostBackend,
+            subtitle: L10n.Settings.localhostBackendSubtitle,
+            image: UIImage(systemName: "server.rack"),
+            state: usesLocalhostBackend ? .on : .off
+        ) { [weak self] _ in
+            self?.toggleDebugLocalhostBackend()
+        }
+
+        var menuElements: [UIMenuElement] = [interfaceAction, localhostAction]
         if appearance.designStyle == .classic {
             let backgroundMenu = UIMenu(
                 title: L10n.Home.backgroundStyleSwitcher,
@@ -3133,6 +3143,28 @@ final class QuizViewController: BaseQuizViewController, QuizViewControllerProtoc
         feedback.prepare()
         store.backgroundStyle = style
         feedback.selectionChanged()
+    }
+
+    func toggleDebugLocalhostBackend() {
+        let defaults = UserDefaults.standard
+        let usesLocalhostBackend = !defaults.bool(forKey: DebugBackendSettings.useLocalhostKey)
+        defaults.set(usesLocalhostBackend, forKey: DebugBackendSettings.useLocalhostKey)
+
+        let feedback = UISelectionFeedbackGenerator()
+        feedback.prepare()
+        feedback.selectionChanged()
+        updateSettingsDebugMenu(appearance: currentAppearance())
+
+        DispatchQueue.main.async { [weak self] in
+            guard let self, self.presentedViewController == nil else { return }
+            let alert = UIAlertController(
+                title: L10n.Settings.restartRequiredTitle,
+                message: L10n.Settings.restartRequiredMessage(selection: L10n.Settings.localhostBackend),
+                preferredStyle: .alert
+            )
+            alert.addAction(UIAlertAction(title: L10n.Settings.alertAction, style: .default))
+            self.present(alert, animated: true)
+        }
     }
 #endif
 

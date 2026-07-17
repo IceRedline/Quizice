@@ -16,12 +16,15 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
     var window: UIWindow?
     private var coordinator: QuizFlowCoordinator?
     private let launchOverlayPresenter = LaunchOverlayPresenter()
+    private var authenticationService: GameCenterAuthenticationService?
 
     func scene(_ scene: UIScene, willConnectTo session: UISceneSession, options connectionOptions: UIScene.ConnectionOptions) {
         guard let windowScene = scene as? UIWindowScene else { return }
 
         let window = UIWindow(windowScene: windowScene)
-        if ProcessInfo.processInfo.environment["QUIZICE_XCTEST_SMOKE_HOST"] == "1" || NSClassFromString("XCTestCase") != nil {
+        let isRunningTests = ProcessInfo.processInfo.environment["QUIZICE_XCTEST_SMOKE_HOST"] == "1"
+            || NSClassFromString("XCTestCase") != nil
+        if isRunningTests {
             window.rootViewController = UIViewController()
         } else {
             let coordinator = QuizFlowCoordinator(window: window)
@@ -34,6 +37,14 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         }
         window.makeKeyAndVisible()
         self.window = window
+
+        if isRunningTests == false, let coordinator {
+            let authenticationService = GameCenterAuthenticationService.live()
+            self.authenticationService = authenticationService
+            authenticationService.start { [weak coordinator] viewController in
+                coordinator?.presentSystemViewController(viewController)
+            }
+        }
     }
 
     func sceneDidDisconnect(_ scene: UIScene) {
@@ -45,8 +56,7 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
     }
 
     func sceneDidBecomeActive(_ scene: UIScene) {
-        // Called when the scene has moved from an inactive state to an active state.
-        // Use this method to restart any tasks that were paused (or not yet started) when the scene becomes active.
+        authenticationService?.retrySynchronization()
     }
 
     func sceneWillResignActive(_ scene: UIScene) {
@@ -572,6 +582,11 @@ final class QuizFlowCoordinator: NSObject, QuizRouting, UIViewControllerTransiti
             sheetPresentationController.detents = [.large()]
             sheetPresentationController.prefersGrabberVisible = true
         }
+        presentedViewController.present(viewController, animated: true)
+    }
+
+    func presentSystemViewController(_ viewController: UIViewController) {
+        guard presentedViewController !== viewController else { return }
         presentedViewController.present(viewController, animated: true)
     }
 

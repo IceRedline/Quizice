@@ -70,4 +70,5 @@ enum AppLog {
     static let quiz = Logger(subsystem: subsystem, category: "quiz")
     static let audio = Logger(subsystem: subsystem, category: "audio")
     static let analytics = Logger(subsystem: subsystem, category: "analytics")
+    static let auth = Logger(subsystem: subsystem, category: "auth")
 }
