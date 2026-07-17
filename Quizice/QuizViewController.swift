@@ -2375,9 +2375,10 @@ final class QuizViewController: BaseQuizViewController, QuizViewControllerProtoc
             analytics.track(.screenView(screen: .aiThemeCreation, theme: .ai))
         }
         if presentedCard == .ai {
-            DispatchQueue.main.async { [weak self] in
-                self?.focusAIThemePrompt(accessibilityNotification: .screenChanged)
-            }
+            UIAccessibility.post(
+                notification: .screenChanged,
+                argument: expandedAIThemeCardView?.frontFocusView
+            )
         } else {
             UIAccessibility.post(
                 notification: .screenChanged,
