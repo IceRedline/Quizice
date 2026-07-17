@@ -9,9 +9,7 @@
 "home.background_style.grid_4x4" = "Griglia 4×4";
 "home.background_style.grid_5x5" = "Griglia 5×5";
 "description.default_theme_description" = "Descrizione del tema non disponibile";
-"description.default_theme_name" = "Nessun tema";
 "description.question_count" = "Numero di domande";
-"description.ai_question_count_fixed" = "Il numero è stato impostato durante la creazione del quiz e non può essere modificato";
 "ai_theme.difficulty" = "Difficoltà";
 "ai_theme.difficulty.easy" = "Facile";
 "ai_theme.difficulty.medium" = "Media";
@@ -133,10 +131,9 @@
 "settings.section.developer" = "Sviluppo";
 "settings.backend.localhost" = "Backend locale";
 "settings.backend.localhost.subtitle" = "Simulatore: localhost:8000 · riavvio richiesto";
-"statistics.accessibility_label" = "Schermata delle statistiche generali";
+"statistics.accessibility_label" = "Statistiche generali";
 "statistics.best_result" = "Miglior risultato";
 "statistics.correct_answers" = "Risposte corrette";
-"statistics.empty_state.accessibility_label" = "Non ci sono ancora quiz completati. Completa il primo quiz per vedere le statistiche generali.";
 "statistics.empty_state.text" = "Completa il primo quiz per vedere le statistiche generali. Qui appariranno quiz giocati, precisione e miglior risultato.";
 "statistics.percentage" = "Percentuale corretta";
 "statistics.played_quizzes" = "Quiz giocati";

@@ -281,27 +281,19 @@ final class HomeAnalyticsTrackingSpy: AnalyticsTracking {
 final class HomeRouterSpy: QuizRouting {
     var onShowQuestion: (() -> Void)?
 
-    private(set) var showDescriptionCallCount = 0
     private(set) var showQuestionCallCount = 0
     private(set) var showResultCallCount = 0
-    private(set) var showStatisticsCallCount = 0
     private(set) var showSettingsCallCount = 0
-    private(set) var closeDescriptionCallCount = 0
-    private(set) var closeStatisticsCallCount = 0
     private(set) var closeQuestionCallCount = 0
     private(set) var replayQuizCallCount = 0
     private(set) var returnToThemesCallCount = 0
 
-    func showDescription() { showDescriptionCallCount += 1 }
     func showQuestion() {
         onShowQuestion?()
         showQuestionCallCount += 1
     }
     func showResult(_ result: QuizResultState) { showResultCallCount += 1 }
-    func showStatistics() { showStatisticsCallCount += 1 }
     func showSettings() { showSettingsCallCount += 1 }
-    func closeDescription() { closeDescriptionCallCount += 1 }
-    func closeStatistics() { closeStatisticsCallCount += 1 }
     func closeQuestion() { closeQuestionCallCount += 1 }
     func replayQuiz() { replayQuizCallCount += 1 }
     func returnToThemes() { returnToThemesCallCount += 1 }

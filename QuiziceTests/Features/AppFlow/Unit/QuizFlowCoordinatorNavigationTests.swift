@@ -5,21 +5,7 @@ import XCTest
 
 @MainActor
 final class QuizFlowCoordinatorNavigationTests: QuizFlowCoordinatorTestCase {
-    func testDescriptionAndStatisticsRoutesPushExpectedControllers() {
-        let harness = makeHarness()
-        harness.coordinator.start()
-
-        harness.coordinator.showDescription()
-        harness.coordinator.showStatistics()
-
-        XCTAssertTrue(harness.navigationController.viewControllers[1] is QuizDescriptionViewController)
-        XCTAssertTrue(harness.navigationController.viewControllers[2] is StatisticsViewController)
-
-        harness.coordinator.closeStatistics()
-        XCTAssertEqual(harness.navigationController.popCallCount, 1)
-    }
-
-    func testCloseQuestionReturnsToHomeInsteadOfDescription() {
+    func testCloseQuestionReturnsToHome() {
         let harness = makeHarness()
         harness.coordinator.start()
 

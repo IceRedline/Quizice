@@ -23,7 +23,7 @@ Privacy rules:
 | `quiz_abandoned` | Question screen | progress counters, theme context |
 | `quiz_completed` | `QuizQuestionPresenter` | score counters, `score_percent`, theme context |
 | `quiz_result_action` | Result screen | `action`, theme context |
-| `statistics_viewed` | Statistics screen or expanded inline card | aggregate counters only |
+| `statistics_viewed` | Expanded inline Home statistics card | aggregate counters only |
 | `ai_generation_started` | AI generation feature | locale, prompt length, count, difficulty |
 | `ai_generation_succeeded` | AI generation feature | locale, count, difficulty, duration |
 | `ai_generation_failed` | AI generation feature | locale, normalized error code, duration |
@@ -33,4 +33,8 @@ Privacy rules:
 
 Answer and completion events are idempotent: a question can emit at most one `quiz_answered`, and an attempt can emit at most one `quiz_completed`.
 
-`theme_card_flipped` is emitted only after the requested face becomes visible. `visible_face` describes the resulting face, not the animation direction. The first completed flip to `back` exposes the quiz description surface; expanding the inline statistics card exposes the statistics surface. Card animation progress itself is not tracked.
+`theme_card_flipped` is emitted only after the requested face becomes visible. `visible_face` describes the resulting face, not the animation direction. The first completed flip to `back` exposes the inline quiz-description surface; expanding the inline statistics card exposes the statistics surface. Neither surface is a standalone navigation destination. Card animation progress itself is not tracked.
+
+On successful AI generation, event order is `ai_generation_succeeded`,
+`theme_selected` with `theme_source=ai`, then `quiz_started`; the app routes
+directly to Quiz Play. Do not emit an intermediate Description `screen_view`.

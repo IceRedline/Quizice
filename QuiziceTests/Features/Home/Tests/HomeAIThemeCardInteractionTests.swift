@@ -60,8 +60,6 @@ final class HomeAIThemeCardInteractionTests: HomeScreenVisualStateTestCase {
                 withAccessibilityIdentifier: "homeExpandedAIThemeCardTransition"
             )
         )
-        XCTAssertEqual(router.showDescriptionCallCount, 0)
-        XCTAssertEqual(router.showStatisticsCallCount, 0)
 
         let backdropDismissButton = try XCTUnwrap(
             viewController.view.descendant(
@@ -93,8 +91,6 @@ final class HomeAIThemeCardInteractionTests: HomeScreenVisualStateTestCase {
         XCTAssertEqual(collectionView.isScrollEnabled, initialScrollEnabled)
         XCTAssertEqual(collectionView.contentOffset.x, initialContentOffset.x, accuracy: 0.001)
         XCTAssertEqual(collectionView.contentOffset.y, initialContentOffset.y, accuracy: 0.001)
-        XCTAssertEqual(router.showDescriptionCallCount, 0)
-        XCTAssertEqual(router.showStatisticsCallCount, 0)
     }
 
     func testAIThemeCardRequiresTrimmedPromptBeforeFlipAndHasNoParallax() throws {

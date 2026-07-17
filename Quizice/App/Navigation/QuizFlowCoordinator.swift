@@ -2,14 +2,8 @@ import SwiftUI
 import UIKit
 
 protocol HomeRouting: AnyObject {
-    func showDescription()
     func showQuestion()
     func showSettings()
-}
-
-protocol QuizDescriptionRouting: AnyObject {
-    func showQuestion()
-    func closeDescription()
 }
 
 protocol QuizPlayRouting: AnyObject {
@@ -22,19 +16,11 @@ protocol QuizResultRouting: AnyObject {
     func returnToThemes()
 }
 
-protocol StatisticsRouting: AnyObject {
-    func closeStatistics()
-}
-
 protocol QuizRouting:
     HomeRouting,
-    QuizDescriptionRouting,
     QuizPlayRouting,
-    QuizResultRouting,
-    StatisticsRouting
-{
-    func showStatistics()
-}
+    QuizResultRouting
+{}
 
 protocol QuizHomeReturnHandling: AnyObject {
     func quizFlowWillReturnToThemes()
@@ -74,19 +60,9 @@ final class QuizFlowCoordinator: NSObject, QuizRouting, UIViewControllerTransiti
             analytics: analytics
         )
         viewController.router = self
-        viewController.configurePresenter(QuizPresenter(session: session))
         navigationController.setNavigationBarHidden(true, animated: false)
         navigationController.setViewControllers([viewController], animated: false)
         window.rootViewController = navigationController
-    }
-
-    func showDescription() {
-        let viewController = QuizDescriptionViewController()
-        viewController.analytics = analytics
-        viewController.router = self
-        let content = QuizPresenter(session: session).descriptionContent()
-        viewController.configurePresenter(QuizDescriptionPresenter(session: session, content: content))
-        navigationController.pushViewController(viewController, animated: true)
     }
 
     func showQuestion() {
@@ -108,12 +84,6 @@ final class QuizFlowCoordinator: NSObject, QuizRouting, UIViewControllerTransiti
         presentWithCardSlide(viewController, from: presentedViewController)
     }
 
-    func showStatistics() {
-        let viewController = StatisticsViewController(analytics: analytics)
-        viewController.router = self
-        navigationController.pushViewController(viewController, animated: true)
-    }
-
     func showSettings() {
         let viewController = UIHostingController(rootView: QuizSettingsView(analytics: analytics))
         viewController.modalPresentationStyle = .pageSheet
@@ -127,14 +97,6 @@ final class QuizFlowCoordinator: NSObject, QuizRouting, UIViewControllerTransiti
     func presentSystemViewController(_ viewController: UIViewController) {
         guard presentedViewController !== viewController else { return }
         presentedViewController.present(viewController, animated: true)
-    }
-
-    func closeDescription() {
-        navigationController.popViewController(animated: true)
-    }
-
-    func closeStatistics() {
-        navigationController.popViewController(animated: true)
     }
 
     func closeQuestion() {

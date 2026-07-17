@@ -37,11 +37,16 @@ These are the parts where UIKit exposes the behavior most directly and where the
 
 Migrate in this order, measuring each step:
 
-1. Result and Statistics content: mostly declarative, low gesture risk.
-2. Quiz Description content: static hierarchy with simple actions.
-3. Expanded card inner content, hosted inside the existing UIKit transition carrier.
+1. Result content: mostly declarative, low gesture risk.
+2. Inline statistics rows and expanded theme-description content, hosted inside the existing UIKit transition carriers.
+3. Other expanded-card inner content after the shared carrier boundary is stable.
 4. Settings: already implemented in SwiftUI; keep it as the reference integration.
 5. Home only as a separate prototype after the state store and effect boundaries are stable.
+
+There are no standalone Description or Statistics screens left to migrate. A
+leaf migration must preserve Home's inline expansion/collapse ownership, and AI
+success must continue to route directly to Quiz Play without introducing an
+intermediate setup screen.
 
 The Quiz Question screen is a possible later candidate, but only after typography fitting, answer feedback timing, and accessibility contracts are preserved behind framework-independent collaborators.
 
@@ -59,6 +64,6 @@ A SwiftUI replacement should ship only when it satisfies all of these gates:
 
 ## Prototype plan for Home
 
-If a full SwiftUI Home is still desired, build it as a time-boxed prototype rather than replacing production code immediately. Feed it the same `HomeFeatureStore`, repository interfaces, and coordinator routes. Compare it with the UIKit implementation using the same fixtures and scenarios: normal expansion, AI prompt/keyboard, Reduce Motion, rapid reversal, restoration, and low-memory behavior.
+If a full SwiftUI Home is still desired, build it as a time-boxed prototype rather than replacing production code immediately. Feed it the same `HomeFeatureStore`, repository interfaces, and coordinator routes. Compare it with the UIKit implementation using the same fixtures and scenarios: normal setup expansion, inline statistics, direct AI-to-question handoff, AI prompt/keyboard, Reduce Motion, rapid reversal, restoration, and low-memory behavior.
 
 Adopt it only if the prototype passes behavioral parity and performance gates. Otherwise, retain the hybrid approach: UIKit owns spatial interaction and SwiftUI owns declarative card content.

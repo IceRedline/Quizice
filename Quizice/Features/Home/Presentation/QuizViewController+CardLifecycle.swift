@@ -38,7 +38,7 @@ extension QuizViewController {
                 self.expandedCardScreenViewTracked = true
                 self.analytics.track(
                     .screenView(
-                        screen: .quizDescription,
+                        screen: .themeCardDescription,
                         theme: self.session.chosenTheme?.analyticsTheme ?? .unknown
                     )
                 )

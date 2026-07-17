@@ -152,18 +152,6 @@ final class QuizResultPresenterBoundaryTests: XCTestCase {
     }
 }
 
-final class QuizDescriptionPresenterTests: XCTestCase {
-    func testOutOfBoundsQuestionCountSelectionDoesNotMutateSession() {
-        let session = PresenterTestSession()
-        session.questionsCount = 10
-        let presenter = QuizDescriptionPresenter(session: session)
-
-        presenter.saveNumberOfQuestions(chosenRow: 99)
-
-        XCTAssertEqual(session.questionsCount, 10)
-    }
-}
-
 @MainActor
 final class QuizFlowCoordinatorTests: XCTestCase {
     func testReturnToThemesDismissesFlowAndKeepsExistingWindowRootController() {
