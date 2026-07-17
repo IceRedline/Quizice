@@ -163,6 +163,44 @@ final class SwiftUISnapshotTests: XCTestCase {
         )
     }
 
+    func testCleanQuestionExitAlertSnapshot() {
+        let appearance = SnapshotSupport.appearance(designStyle: .clean)
+        let viewController = makeQuestionExitAlertSnapshotViewController(appearance: appearance)
+
+        SnapshotSupport.assertScreen(
+            viewController,
+            named: "clean-question-exit-alert-iphone-se",
+            device: .iPhone8
+        )
+    }
+
+    func testClassicQuestionExitAlertSnapshot() {
+        SnapshotSupport.setUp(designStyle: .classic)
+        let appearance = SnapshotSupport.appearance(designStyle: .classic)
+        let viewController = makeQuestionExitAlertSnapshotViewController(appearance: appearance)
+
+        SnapshotSupport.assertScreen(
+            viewController,
+            named: "classic-question-exit-alert-iphone-se",
+            device: .iPhone8
+        )
+    }
+
+    func testRadarQuestionExitAlertSnapshot() {
+        SnapshotSupport.setUp(designStyle: .radar, cleanColorScheme: .dark)
+        let appearance = SnapshotSupport.appearance(
+            designStyle: .radar,
+            cleanColorScheme: .dark
+        )
+        let viewController = makeQuestionExitAlertSnapshotViewController(appearance: appearance)
+
+        SnapshotSupport.assertScreen(
+            viewController,
+            named: "radar-question-exit-alert-iphone-se",
+            device: .iPhone8
+        )
+    }
+
     func testAlertPresenterIgnoresReentrantDismissal() throws {
         let appearance = SnapshotSupport.appearance(designStyle: .clean)
         var pendingDismissal: (() -> Void)?
@@ -238,10 +276,8 @@ final class SwiftUISnapshotTests: XCTestCase {
             )
             : dismissAction
         let secondaryAction = alert.canRetry ? dismissAction : nil
-        let rootView = ZStack {
-            Color(uiColor: appearance.backgroundColor)
-                .ignoresSafeArea()
-            QuizAlertOverlay(
+        return makeAlertSnapshotViewController(
+            overlay: QuizAlertOverlay(
                 title: alert.title,
                 message: alert.message,
                 systemImage: alert.kind.systemImage,
@@ -249,7 +285,29 @@ final class SwiftUISnapshotTests: XCTestCase {
                 primaryAction: primaryAction,
                 secondaryAction: secondaryAction,
                 onEscape: {}
-            )
+            ),
+            appearance: appearance
+        )
+    }
+
+    private func makeQuestionExitAlertSnapshotViewController(
+        appearance: AppAppearance
+    ) -> UIViewController {
+        let questionViewController = QuizQuestionViewController()
+        return makeAlertSnapshotViewController(
+            overlay: questionViewController.makeExitConfirmationAlertOverlay(),
+            appearance: appearance
+        )
+    }
+
+    private func makeAlertSnapshotViewController(
+        overlay: QuizAlertOverlay,
+        appearance: AppAppearance
+    ) -> UIViewController {
+        let rootView = ZStack {
+            Color(uiColor: appearance.backgroundColor)
+                .ignoresSafeArea()
+            overlay
         }
         .environment(\.appAppearance, appearance)
         .preferredColorScheme(appearance.swiftUIColorScheme)
