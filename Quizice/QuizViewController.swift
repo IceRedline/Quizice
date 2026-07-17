@@ -1678,6 +1678,10 @@ final class QuizViewController: BaseQuizViewController, QuizViewControllerProtoc
                     return
                 }
 
+                guard
+                    !Task.isCancelled,
+                    self.homeAIThemeCardState.activeAlert == alert
+                else { return }
                 if self.tryPresentAIThemeGenerationAlert(alert) {
                     self.aiAlertPresentationTask = nil
                     return
@@ -1697,7 +1701,7 @@ final class QuizViewController: BaseQuizViewController, QuizViewControllerProtoc
 
     private func makeAIThemeGenerationAlertOverlay(_ alert: AIQuizGenerationAlert) -> QuizAlertOverlay {
         let dismissAction = QuizAlertAction(
-            title: alert.canRetry || alert.shouldFocusPromptOnDismiss
+            title: alert.offersEditAction
                 ? L10n.AITheme.editTheme
                 : L10n.Settings.alertAction,
             emphasis: alert.canRetry ? .secondary : .primary,
@@ -1734,7 +1738,10 @@ final class QuizViewController: BaseQuizViewController, QuizViewControllerProtoc
     private func retryAIThemeGeneration(after alert: AIQuizGenerationAlert) {
         guard homeAIThemeCardState.activeAlert == alert else { return }
         dismissAIThemeAlertPresentation { [weak self] in
-            guard let self else { return }
+            guard
+                let self,
+                self.homeAIThemeCardState.activeAlert == alert
+            else { return }
             self.clearAIThemeGenerationAlert()
             self.sendAIThemeCardAction(
                 .submitRequested(
@@ -1749,8 +1756,11 @@ final class QuizViewController: BaseQuizViewController, QuizViewControllerProtoc
     private func dismissAIThemeGenerationAlert(_ alert: AIQuizGenerationAlert) {
         guard homeAIThemeCardState.activeAlert == alert else { return }
         dismissAIThemeAlertPresentation { [weak self] in
-            guard let self else { return }
-            if alert.shouldFocusPromptOnDismiss {
+            guard
+                let self,
+                self.homeAIThemeCardState.activeAlert == alert
+            else { return }
+            if alert.offersEditAction {
                 self.editAIThemeAfterAlert()
             } else {
                 self.clearAIThemeGenerationAlert()
@@ -2964,6 +2974,9 @@ final class QuizViewController: BaseQuizViewController, QuizViewControllerProtoc
     }
 
     private func removeExpandedThemeCardViews() {
+        aiAlertPresentationTask?.cancel()
+        aiAlertPresentationTask = nil
+        aiAlertPresenter.dismiss()
         expandedAIKeyboardAnimator?.stopAnimation(true)
         expandedAIKeyboardAnimator = nil
         expandedThemeCardView?.setParallaxPresentationPhase(.inactive)

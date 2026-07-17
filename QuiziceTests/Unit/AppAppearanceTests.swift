@@ -112,6 +112,28 @@ final class AppAppearanceTests: XCTestCase {
         XCTAssertTrue(cleanSystemKeyboard.doneButtonTintColor.isEqual(cleanSystem.accentColor))
     }
 
+    func testQuizAlertActionTextContrastsCleanButtonSurfaces() {
+        for colorScheme in [CleanColorSchemePreference.light, .dark] {
+            let appearance = SnapshotSupport.appearance(
+                designStyle: .clean,
+                cleanColorScheme: colorScheme
+            )
+
+            XCTAssertTrue(
+                QuizAlertAction.Emphasis.primary.textColor(in: appearance)
+                    .isEqual(appearance.accentForegroundColor)
+            )
+            XCTAssertFalse(
+                QuizAlertAction.Emphasis.primary.textColor(in: appearance)
+                    .isEqual(appearance.primaryButton.backgroundColor)
+            )
+            XCTAssertTrue(
+                QuizAlertAction.Emphasis.secondary.textColor(in: appearance)
+                    .isEqual(appearance.accentColor)
+            )
+        }
+    }
+
     func testQuizThemeActionsStayMonochromeWithoutChangingCatalogIdentity() throws {
         let appearance = SnapshotSupport.appearance(designStyle: .clean, cleanColorScheme: .light)
         let darkAppearance = SnapshotSupport.appearance(designStyle: .clean, cleanColorScheme: .dark)

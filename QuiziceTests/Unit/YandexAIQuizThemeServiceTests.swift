@@ -599,6 +599,8 @@ final class YandexAIQuizThemeServiceTests: XCTestCase {
     func testUserFacingErrorsAreClassifiedWithoutServiceText() {
         let refusalAlert = AIQuizGenerationAlert(error: YandexAIQuizThemeServiceError.refused)
         let emptyResponseAlert = AIQuizGenerationAlert(error: YandexAIQuizThemeServiceError.missingOutputText)
+        let serviceAlert = AIQuizGenerationAlert(error: YandexAIQuizThemeServiceError.httpStatus(503))
+        let unavailableAlert = AIQuizGenerationAlert(error: YandexAIQuizThemeServiceError.missingAPIKey)
 
         XCTAssertEqual(refusalAlert.kind, .refusal)
         XCTAssertEqual(emptyResponseAlert.kind, .invalidQuiz)
@@ -606,6 +608,10 @@ final class YandexAIQuizThemeServiceTests: XCTestCase {
         XCTAssertNotEqual(refusalAlert.message, emptyResponseAlert.message)
         XCTAssertFalse(refusalAlert.canRetry)
         XCTAssertTrue(emptyResponseAlert.canRetry)
+        XCTAssertTrue(refusalAlert.offersEditAction)
+        XCTAssertTrue(emptyResponseAlert.offersEditAction)
+        XCTAssertTrue(serviceAlert.offersEditAction)
+        XCTAssertFalse(unavailableAlert.offersEditAction)
         XCTAssertEqual(
             AIQuizGenerationAlert(error: YandexAIQuizThemeServiceError.network(.notConnectedToInternet)).kind,
             .network

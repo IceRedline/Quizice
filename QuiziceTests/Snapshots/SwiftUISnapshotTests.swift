@@ -163,6 +163,51 @@ final class SwiftUISnapshotTests: XCTestCase {
         )
     }
 
+    func testAlertPresenterIgnoresReentrantDismissal() throws {
+        let appearance = SnapshotSupport.appearance(designStyle: .clean)
+        var pendingDismissal: (() -> Void)?
+        var requestedAnimation: Bool?
+        let presenter = QuizAlertPresenter { controller, animated, completion in
+            XCTAssertFalse(controller.view.isUserInteractionEnabled)
+            requestedAnimation = animated
+            pendingDismissal = completion
+        }
+        let previousKeyWindow = UIApplication.shared.connectedScenes
+            .compactMap { $0 as? UIWindowScene }
+            .flatMap(\.windows)
+            .first(where: \.isKeyWindow)
+        let window = UIWindow(frame: CGRect(x: 0, y: 0, width: 390, height: 844))
+        let rootViewController = UIViewController()
+        window.rootViewController = rootViewController
+        window.makeKeyAndVisible()
+        presenter.presentingViewController = rootViewController
+        defer {
+            rootViewController.dismiss(animated: false)
+            window.isHidden = true
+            window.rootViewController = nil
+            previousKeyWindow?.makeKey()
+        }
+
+        XCTAssertTrue(presenter.present(Color.clear, appearance: appearance, reduceMotion: true))
+
+        var firstCompletionCount = 0
+        var reentrantCompletionCount = 0
+        presenter.dismiss { firstCompletionCount += 1 }
+        presenter.dismiss { reentrantCompletionCount += 1 }
+
+        XCTAssertTrue(presenter.isDismissing)
+        XCTAssertEqual(requestedAnimation, false)
+        XCTAssertEqual(firstCompletionCount, 0)
+        XCTAssertEqual(reentrantCompletionCount, 0)
+
+        try XCTUnwrap(pendingDismissal)()
+
+        XCTAssertFalse(presenter.isDismissing)
+        XCTAssertNil(presenter.alertViewController)
+        XCTAssertEqual(firstCompletionCount, 1)
+        XCTAssertEqual(reentrantCompletionCount, 0)
+    }
+
     private func makeHostingController<Content: View>(rootView: Content) -> UIHostingController<Content> {
         let viewController = UIHostingController(rootView: rootView)
         viewController.loadViewIfNeeded()
@@ -177,7 +222,7 @@ final class SwiftUISnapshotTests: XCTestCase {
         appearance: AppAppearance
     ) -> UIViewController {
         let dismissAction = QuizAlertAction(
-            title: alert.canRetry || alert.shouldFocusPromptOnDismiss
+            title: alert.offersEditAction
                 ? L10n.AITheme.editTheme
                 : L10n.Settings.alertAction,
             emphasis: alert.canRetry ? .secondary : .primary,
