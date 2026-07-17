@@ -506,6 +506,50 @@ final class QuizFlowCoordinatorAdditionalTests: XCTestCase {
         XCTAssertNil(harness.session.chosenTheme)
     }
 
+    func testReturningToThemesDismissesPresentedInlineAIAlert() async throws {
+        let service = ControllableRoutingAIQuizThemeService()
+        let harness = try makeInlineAIHarness(service: service)
+        defer { harness.dispose() }
+        let controls = try revealInlineAIBack(
+            in: harness.viewController,
+            prompt: "Архитектура"
+        )
+
+        controls.submitButton.sendActions(for: .touchUpInside)
+        try await waitUntil { service.generatedConfigurations.count == 1 }
+        service.resolveNext(
+            with: .failure(YandexAIQuizThemeServiceError.network(.timedOut))
+        )
+        try await waitUntil {
+            harness.viewController.presentedViewController?.modalPresentationStyle == .overFullScreen
+        }
+
+        harness.viewController.quizFlowWillReturnToThemes()
+
+        try await waitUntil { harness.viewController.presentedViewController == nil }
+        XCTAssertNil(
+            descendant(
+                in: harness.viewController.view,
+                accessibilityIdentifier: "homeExpandedAIThemeCard"
+            )
+        )
+        XCTAssertNil(
+            descendant(
+                in: harness.viewController.view,
+                accessibilityIdentifier: "homeExpandedThemeCardBackdrop"
+            )
+        )
+        let collectionView = try XCTUnwrap(
+            descendant(
+                in: harness.viewController.view,
+                accessibilityIdentifier: "homeThemesCollectionView"
+            ) as? UICollectionView
+        )
+        XCTAssertTrue(collectionView.isUserInteractionEnabled)
+        XCTAssertEqual(harness.router.showDescriptionCallCount, 0)
+        XCTAssertNil(harness.session.chosenTheme)
+    }
+
     func testClosingInlineAIThemeCancelsOnceAndIgnoresStaleSuccess() async throws {
         let service = ControllableRoutingAIQuizThemeService()
         let harness = try makeInlineAIHarness(service: service)

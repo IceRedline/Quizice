@@ -60,6 +60,10 @@ struct AIQuizGenerationAlert: Identifiable, Equatable {
         kind == .refusal || kind == .invalidQuiz
     }
 
+    var offersEditAction: Bool {
+        canRetry || shouldFocusPromptOnDismiss
+    }
+
     init(error: Error) {
         guard let serviceError = error as? YandexAIQuizThemeServiceError else {
             kind = .unavailable
@@ -98,6 +102,21 @@ struct QuizAlertAction {
     enum Emphasis {
         case primary
         case secondary
+
+        func textColor(in appearance: AppAppearance) -> UIColor {
+            switch self {
+            case .primary:
+                return QuizThemeAccentStyle.primaryButtonTextColor(
+                    themeID: nil,
+                    appearance: appearance
+                )
+            case .secondary:
+                return QuizThemeAccentStyle.secondaryButtonTextColor(
+                    themeID: nil,
+                    appearance: appearance
+                )
+            }
+        }
     }
 
     let title: String
@@ -108,9 +127,25 @@ struct QuizAlertAction {
 
 @MainActor
 final class QuizAlertPresenter {
+    typealias DismissViewController = @MainActor (
+        UIViewController,
+        Bool,
+        @escaping () -> Void
+    ) -> Void
+
     weak var presentingViewController: UIViewController?
     private(set) weak var alertViewController: UIViewController?
+    private(set) var isDismissing = false
     private var animatesPresentation = true
+    private let dismissViewController: DismissViewController
+
+    init(
+        dismissViewController: @escaping DismissViewController = { controller, animated, completion in
+            controller.dismiss(animated: animated, completion: completion)
+        }
+    ) {
+        self.dismissViewController = dismissViewController
+    }
 
     @discardableResult
     func present<Content: View>(
@@ -118,6 +153,7 @@ final class QuizAlertPresenter {
         appearance: AppAppearance,
         reduceMotion: Bool
     ) -> Bool {
+        guard !isDismissing else { return false }
         if alertViewController != nil { return true }
         guard let presentingViewController,
               presentingViewController.viewIfLoaded?.window != nil,
@@ -135,13 +171,19 @@ final class QuizAlertPresenter {
     }
 
     func dismiss(completion: @escaping () -> Void = {}) {
+        guard !isDismissing else { return }
         guard let alertViewController else {
             completion()
             return
         }
 
-        self.alertViewController = nil
-        alertViewController.dismiss(animated: animatesPresentation, completion: completion)
+        isDismissing = true
+        alertViewController.view.isUserInteractionEnabled = false
+        dismissViewController(alertViewController, animatesPresentation) { [weak self] in
+            self?.alertViewController = nil
+            self?.isDismissing = false
+            completion()
+        }
     }
 
     func makeAlertViewController<Content: View>(
@@ -324,9 +366,7 @@ struct QuizAlertOverlay: View {
 
     private func actionButton(_ action: QuizAlertAction) -> some View {
         let style = action.emphasis == .primary ? appearance.primaryButton : appearance.secondaryButton
-        let textColor = action.emphasis == .secondary && appearance.designStyle == .clean
-            ? appearance.accentColor
-            : appearance.screenTextColor
+        let textColor = action.emphasis.textColor(in: appearance)
 
         return Button(action: action.action) {
             Text(action.title)
