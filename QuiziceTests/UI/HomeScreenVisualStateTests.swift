@@ -513,6 +513,7 @@ final class HomeScreenVisualStateTests: XCTestCase {
         XCTAssertFalse(playButton.isEnabled)
         XCTAssertFalse(frontView.isHidden)
         XCTAssertTrue(backView.isHidden)
+        XCTAssertFalse(promptEditor.isFirstResponder)
         XCTAssertFalse(promptEditor.isScrollEnabled)
 
         promptEditor.text = " \n\t "
