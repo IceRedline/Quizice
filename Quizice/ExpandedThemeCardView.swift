@@ -9,10 +9,13 @@ private final class ThemeCardTransformCarrierView: UIView {
 final class ExpandedThemeCardView: UIView, UIGestureRecognizerDelegate {
     private enum AccessibilityID {
         static let root = "expandedThemeCardView"
+        static let parallaxCarrier = "expandedThemeCardParallaxCarrier"
         static let frontPlane = "expandedThemeCardFrontPlane"
         static let backPlane = "expandedThemeCardBackPlane"
         static let rotatingCarrier = "expandedThemeCardRotatingCarrier"
         static let shadowProxy = "expandedThemeCardShadowProxy"
+        static let frontArtworkDepth = "expandedThemeCardFrontArtworkDepth"
+        static let frontTitleDepth = "expandedThemeCardFrontTitleDepth"
         static let flipInteractionOverlay = "expandedThemeCardFlipInteractionOverlay"
         static let front = "expandedThemeCardFrontView"
         static let frontSurfaceButton = "expandedThemeCardFrontSurfaceButton"
@@ -64,6 +67,9 @@ final class ExpandedThemeCardView: UIView, UIGestureRecognizerDelegate {
         static let flipDuration: TimeInterval = 0.28
         static let reducedMotionDuration: TimeInterval = 0.18
         static let perspectiveDistance: CGFloat = 760
+        static let parallaxReturnDuration: TimeInterval = 0.32
+        static let parallaxReturnDamping: CGFloat = 0.86
+        static let parallaxTransitionSettleDuration: TimeInterval = 0.18
     }
 
     private static let supportedQuestionCounts = QuizQuestionCountPolicy.supportedCounts
@@ -75,15 +81,25 @@ final class ExpandedThemeCardView: UIView, UIGestureRecognizerDelegate {
     var onStart: (() -> Void)?
     var onAccessibilityEscape: (() -> Void)?
     var reduceMotionProvider: () -> Bool = { UIAccessibility.isReduceMotionEnabled }
+    var deviceParallaxEnabledProvider: () -> Bool = { true }
+    var deviceMotionProvider: HomeThemeCardMotionProviding = CoreMotionHomeThemeCardMotionProvider() {
+        didSet {
+            oldValue.stop()
+            isDeviceMotionActive = false
+            updateDeviceParallaxAvailability()
+        }
+    }
 
     var frontFocusView: UIView { frontTitleLabel }
     var backFocusView: UIView { backTitleLabel }
     var transitionSourceView: UIView { self }
+    var isParallaxSettling: Bool { parallaxReturnAnimator != nil }
 
     private(set) var selectedQuestionCount: Int?
     private(set) var face: HomeThemeCardFace = .front
 
     private let perspectiveStageView = UIView()
+    private let parallaxPoseProbeView = UIView()
     private let shadowProxyView = UIView()
     private let rotatingCardView = ThemeCardTransformCarrierView()
     private let frontPlaneView = UIView()
@@ -95,7 +111,9 @@ final class ExpandedThemeCardView: UIView, UIGestureRecognizerDelegate {
     private let flipInteractionButton = UIButton(type: .custom)
 
     private let frontSurfaceButton = UIButton(type: .custom)
+    private let frontArtworkDepthView = UIView()
     private let frontImageView = UIImageView()
+    private let frontTitleDepthView = UIView()
     private let frontTitleLabel = UILabel()
     private let closeButton = UIButton(type: .system)
     private let infoButton = UIButton(type: .system)
@@ -116,6 +134,10 @@ final class ExpandedThemeCardView: UIView, UIGestureRecognizerDelegate {
         target: self,
         action: #selector(backTapped)
     )
+    private lazy var cardParallaxPanGestureRecognizer = UIPanGestureRecognizer(
+        target: self,
+        action: #selector(cardParallaxPanned(_:))
+    )
 
     private var availableQuestionCounts: Set<Int> = []
     private var activeFaceAnimator: UIViewPropertyAnimator?
@@ -131,12 +153,28 @@ final class ExpandedThemeCardView: UIView, UIGestureRecognizerDelegate {
     private var configuredBorderColor = UIColor.clear
     private var configuredBorderWidth: CGFloat = 0
     private var isTransitionSurfaceHidden = false
+    private let deviceParallaxStyle = HomeThemeCardDeviceParallaxStyle.standard
+    private var parallaxPresentationPhase: HomeThemeCardParallaxPresentationPhase = .inactive
+    private var isApplicationActive = true
+    private var isDeviceMotionActive = false
+    private var isTouchParallaxActive = false
+    private var parallaxPanStartedInDescription = false
+    private var touchParallaxStartInput = HomeThemeCardParallaxInput.zero
+    private var renderedParallaxInput = HomeThemeCardParallaxInput.zero
+    private var parallaxReturnAnimator: UIViewPropertyAnimator?
 
     override init(frame: CGRect) {
         super.init(frame: frame)
         configureViewHierarchy()
         configureActions()
+        configureParallaxObservers()
         normalizeFaces(showing: .front)
+    }
+
+    deinit {
+        deviceMotionProvider.stop()
+        parallaxReturnAnimator?.stopAnimation(true)
+        NotificationCenter.default.removeObserver(self)
     }
 
     @available(*, unavailable)
@@ -151,6 +189,14 @@ final class ExpandedThemeCardView: UIView, UIGestureRecognizerDelegate {
             cornerRadius: cardCornerRadius
         ).cgPath
         shadowProxyView.layer.shadowPath = shadowPath
+    }
+
+    override func didMoveToWindow() {
+        super.didMoveToWindow()
+        if window == nil {
+            cancelTouchParallaxAndReset()
+        }
+        updateDeviceParallaxAvailability()
     }
 
     func configure(
@@ -170,6 +216,13 @@ final class ExpandedThemeCardView: UIView, UIGestureRecognizerDelegate {
         frontImageView.image = frontArtworkImage(themeID: themeID, appearance: appearance)
         frontImageView.tintColor = borderColor
         frontImageView.transform = .identity
+        frontTitleLabel.transform = .identity
+        frontArtworkDepthView.transform = .identity
+        frontTitleDepthView.transform = .identity
+        perspectiveStageView.layer.transform = CATransform3DIdentity
+        parallaxPoseProbeView.transform = .identity
+        layer.sublayerTransform = CATransform3DIdentity
+        renderedParallaxInput = .zero
         frontImageSizeConstraint.constant = frontArtworkPointSize(for: appearance.designStyle)
 
         frontTitleLabel.text = theme.theme
@@ -190,6 +243,27 @@ final class ExpandedThemeCardView: UIView, UIGestureRecognizerDelegate {
 
         face = .front
         normalizeFaces(showing: .front)
+    }
+
+    func setParallaxPresentationPhase(_ phase: HomeThemeCardParallaxPresentationPhase) {
+        guard parallaxPresentationPhase != phase else {
+            updateDeviceParallaxAvailability()
+            return
+        }
+
+        let previousPhase = parallaxPresentationPhase
+        parallaxPresentationPhase = phase
+        if previousPhase.preservesParallaxContinuity,
+           !phase.preservesParallaxContinuity {
+            if phase == .inactive {
+                // Launch/removal must stop sampling before the router snapshots
+                // the transition source; no return animation may outlive the card.
+                cancelTouchParallaxAndReset()
+            } else {
+                settleParallaxForPresentationTransition()
+            }
+        }
+        updateDeviceParallaxAvailability()
     }
 
     func setFace(
@@ -247,23 +321,35 @@ final class ExpandedThemeCardView: UIView, UIGestureRecognizerDelegate {
     ) {
         layoutIfNeeded()
         let visualState = HomeThemeCardTransitionVisualState(progress: progress)
+        let parallaxState = HomeThemeCardExpansionParallaxState(progress: progress)
         let remainingTranslation = 1 - visualState.progress
         let imageTranslation = sourceGeometry.imageTranslation(
-            toAlignDestinationCenter: frontImageView.center,
+            toAlignDestinationCenter: frontArtworkDepthView.center,
             in: bounds.size
         )
         let titleTranslation = sourceGeometry.titleTranslation(
-            toAlignDestinationCenter: frontTitleLabel.center,
+            toAlignDestinationCenter: frontTitleDepthView.center,
             in: bounds.size
         )
+        let usesSpatialMotion = !reduceMotionProvider()
+        let artworkScale = usesSpatialMotion ? parallaxState.artworkScale : 1
+        let titleScale = usesSpatialMotion ? parallaxState.titleScale : 1
 
-        frontImageView.transform = CGAffineTransform(
-            translationX: imageTranslation.x * remainingTranslation,
-            y: imageTranslation.y * remainingTranslation
+        frontArtworkDepthView.transform = CGAffineTransform(
+            a: artworkScale,
+            b: 0,
+            c: 0,
+            d: artworkScale,
+            tx: imageTranslation.x * remainingTranslation,
+            ty: imageTranslation.y * remainingTranslation
         )
-        frontTitleLabel.transform = CGAffineTransform(
-            translationX: titleTranslation.x * remainingTranslation,
-            y: titleTranslation.y * remainingTranslation
+        frontTitleDepthView.transform = CGAffineTransform(
+            a: titleScale,
+            b: 0,
+            c: 0,
+            d: titleScale,
+            tx: titleTranslation.x * remainingTranslation,
+            ty: titleTranslation.y * remainingTranslation
         )
     }
 
@@ -291,7 +377,16 @@ final class ExpandedThemeCardView: UIView, UIGestureRecognizerDelegate {
 
         perspectiveStageView.translatesAutoresizingMaskIntoConstraints = false
         perspectiveStageView.clipsToBounds = false
+        perspectiveStageView.accessibilityIdentifier = AccessibilityID.parallaxCarrier
         addSubview(perspectiveStageView)
+
+        // A clear one-point probe stores the normalized pose so an interrupted
+        // spring can sample its presentation value without moving visible content.
+        parallaxPoseProbeView.translatesAutoresizingMaskIntoConstraints = false
+        parallaxPoseProbeView.backgroundColor = .clear
+        parallaxPoseProbeView.isUserInteractionEnabled = false
+        parallaxPoseProbeView.accessibilityElementsHidden = true
+        addSubview(parallaxPoseProbeView)
 
         shadowProxyView.accessibilityIdentifier = AccessibilityID.shadowProxy
         shadowProxyView.translatesAutoresizingMaskIntoConstraints = false
@@ -342,6 +437,7 @@ final class ExpandedThemeCardView: UIView, UIGestureRecognizerDelegate {
                 faceView.topAnchor.constraint(equalTo: surfaceView.topAnchor),
                 faceView.bottomAnchor.constraint(equalTo: surfaceView.bottomAnchor)
             ])
+
         }
 
         flipInteractionButton.accessibilityIdentifier = AccessibilityID.flipInteractionOverlay
@@ -355,6 +451,11 @@ final class ExpandedThemeCardView: UIView, UIGestureRecognizerDelegate {
             perspectiveStageView.trailingAnchor.constraint(equalTo: trailingAnchor),
             perspectiveStageView.topAnchor.constraint(equalTo: topAnchor),
             perspectiveStageView.bottomAnchor.constraint(equalTo: bottomAnchor),
+
+            parallaxPoseProbeView.leadingAnchor.constraint(equalTo: leadingAnchor),
+            parallaxPoseProbeView.topAnchor.constraint(equalTo: topAnchor),
+            parallaxPoseProbeView.widthAnchor.constraint(equalToConstant: 1),
+            parallaxPoseProbeView.heightAnchor.constraint(equalToConstant: 1),
 
             shadowProxyView.leadingAnchor.constraint(equalTo: perspectiveStageView.leadingAnchor),
             shadowProxyView.trailingAnchor.constraint(equalTo: perspectiveStageView.trailingAnchor),
@@ -383,11 +484,19 @@ final class ExpandedThemeCardView: UIView, UIGestureRecognizerDelegate {
         frontSurfaceButton.isAccessibilityElement = false
         frontSurfaceButton.translatesAutoresizingMaskIntoConstraints = false
 
+        frontArtworkDepthView.accessibilityIdentifier = AccessibilityID.frontArtworkDepth
+        frontArtworkDepthView.translatesAutoresizingMaskIntoConstraints = false
+        frontArtworkDepthView.isUserInteractionEnabled = false
+
         frontImageView.accessibilityIdentifier = AccessibilityID.frontImage
         frontImageView.contentMode = .scaleAspectFit
         frontImageView.isAccessibilityElement = false
         frontImageView.isUserInteractionEnabled = false
         frontImageView.translatesAutoresizingMaskIntoConstraints = false
+
+        frontTitleDepthView.accessibilityIdentifier = AccessibilityID.frontTitleDepth
+        frontTitleDepthView.translatesAutoresizingMaskIntoConstraints = false
+        frontTitleDepthView.isUserInteractionEnabled = false
 
         frontTitleLabel.adjustsFontForContentSizeCategory = true
         frontTitleLabel.numberOfLines = 2
@@ -410,11 +519,13 @@ final class ExpandedThemeCardView: UIView, UIGestureRecognizerDelegate {
         )
 
         frontFaceView.addSubview(frontSurfaceButton)
-        frontFaceView.addSubview(frontImageView)
-        frontFaceView.addSubview(frontTitleLabel)
+        frontFaceView.addSubview(frontArtworkDepthView)
+        frontArtworkDepthView.addSubview(frontImageView)
+        frontFaceView.addSubview(frontTitleDepthView)
+        frontTitleDepthView.addSubview(frontTitleLabel)
         frontFaceView.addSubview(closeButton)
         frontFaceView.addSubview(infoButton)
-        frontImageSizeConstraint = frontImageView.widthAnchor.constraint(
+        frontImageSizeConstraint = frontArtworkDepthView.widthAnchor.constraint(
             equalToConstant: Layout.cleanFrontArtworkPointSize
         )
 
@@ -446,34 +557,44 @@ final class ExpandedThemeCardView: UIView, UIGestureRecognizerDelegate {
             infoButton.widthAnchor.constraint(equalToConstant: Layout.iconButtonSize),
             infoButton.heightAnchor.constraint(equalToConstant: Layout.iconButtonSize),
 
-            frontTitleLabel.leadingAnchor.constraint(
+            frontTitleDepthView.leadingAnchor.constraint(
                 equalTo: frontFaceView.leadingAnchor,
                 constant: Layout.frontImageHorizontalInset
             ),
-            frontTitleLabel.trailingAnchor.constraint(
+            frontTitleDepthView.trailingAnchor.constraint(
                 lessThanOrEqualTo: infoButton.leadingAnchor,
                 constant: -Layout.frontTitleToInfoSpacing
             ),
-            frontTitleLabel.bottomAnchor.constraint(
+            frontTitleDepthView.bottomAnchor.constraint(
                 equalTo: frontFaceView.bottomAnchor,
                 constant: -Layout.frontTitleBottomInset
             ),
 
-            frontImageView.centerXAnchor.constraint(equalTo: frontFaceView.centerXAnchor),
-            frontImageView.centerYAnchor.constraint(
+            frontTitleLabel.leadingAnchor.constraint(equalTo: frontTitleDepthView.leadingAnchor),
+            frontTitleLabel.trailingAnchor.constraint(equalTo: frontTitleDepthView.trailingAnchor),
+            frontTitleLabel.topAnchor.constraint(equalTo: frontTitleDepthView.topAnchor),
+            frontTitleLabel.bottomAnchor.constraint(equalTo: frontTitleDepthView.bottomAnchor),
+
+            frontArtworkDepthView.centerXAnchor.constraint(equalTo: frontFaceView.centerXAnchor),
+            frontArtworkDepthView.centerYAnchor.constraint(
                 equalTo: frontFaceView.centerYAnchor,
                 constant: Layout.frontArtworkCenterYOffset
             ),
             frontImageSizeConstraint,
-            frontImageView.heightAnchor.constraint(equalTo: frontImageView.widthAnchor),
-            frontImageView.topAnchor.constraint(
+            frontArtworkDepthView.heightAnchor.constraint(equalTo: frontArtworkDepthView.widthAnchor),
+            frontArtworkDepthView.topAnchor.constraint(
                 greaterThanOrEqualTo: closeButton.bottomAnchor,
                 constant: Layout.frontImageToTitleSpacing
             ),
-            frontImageView.bottomAnchor.constraint(
-                lessThanOrEqualTo: frontTitleLabel.topAnchor,
+            frontArtworkDepthView.bottomAnchor.constraint(
+                lessThanOrEqualTo: frontTitleDepthView.topAnchor,
                 constant: -Layout.frontImageToTitleSpacing
-            )
+            ),
+
+            frontImageView.leadingAnchor.constraint(equalTo: frontArtworkDepthView.leadingAnchor),
+            frontImageView.trailingAnchor.constraint(equalTo: frontArtworkDepthView.trailingAnchor),
+            frontImageView.topAnchor.constraint(equalTo: frontArtworkDepthView.topAnchor),
+            frontImageView.bottomAnchor.constraint(equalTo: frontArtworkDepthView.bottomAnchor)
         ])
 
         frontFaceView.accessibilityElements = [frontTitleLabel, infoButton, closeButton]
@@ -507,6 +628,7 @@ final class ExpandedThemeCardView: UIView, UIGestureRecognizerDelegate {
 
         descriptionScrollView.accessibilityIdentifier = "descriptionScrollView"
         descriptionScrollView.alwaysBounceVertical = false
+        descriptionScrollView.isDirectionalLockEnabled = true
         descriptionScrollView.keyboardDismissMode = .onDrag
         descriptionScrollView.translatesAutoresizingMaskIntoConstraints = false
 
@@ -663,6 +785,21 @@ final class ExpandedThemeCardView: UIView, UIGestureRecognizerDelegate {
     }
 
     private func configureActions() {
+        cardParallaxPanGestureRecognizer.name = "expandedThemeCardParallaxPan"
+        cardParallaxPanGestureRecognizer.maximumNumberOfTouches = 1
+        cardParallaxPanGestureRecognizer.cancelsTouchesInView = true
+        cardParallaxPanGestureRecognizer.delaysTouchesBegan = false
+        cardParallaxPanGestureRecognizer.delegate = self
+        // The outer card owns one pan for both faces. The delegate keeps front
+        // controls and back controls independent. On the description, the
+        // gesture delegate routes horizontal movement to parallax and vertical
+        // movement to scrolling.
+        addGestureRecognizer(cardParallaxPanGestureRecognizer)
+        descriptionScrollView.panGestureRecognizer.require(
+            toFail: cardParallaxPanGestureRecognizer
+        )
+        backTapGestureRecognizer.require(toFail: cardParallaxPanGestureRecognizer)
+
         frontSurfaceButton.addTarget(self, action: #selector(flipTapped), for: .touchUpInside)
         backSurfaceButton.addTarget(self, action: #selector(backTapped), for: .touchUpInside)
         infoButton.addTarget(self, action: #selector(flipTapped), for: .touchUpInside)
@@ -938,6 +1075,7 @@ final class ExpandedThemeCardView: UIView, UIGestureRecognizerDelegate {
         faceAnimationEnd = targetFace
         faceAnimationTarget = targetFace
         faceAnimationCompletion = completion
+        updateDeviceParallaxAvailability()
 
         animator.addCompletion { [weak self, weak animator] position in
             guard let self, let animator, self.activeFaceAnimator === animator else { return }
@@ -1016,6 +1154,7 @@ final class ExpandedThemeCardView: UIView, UIGestureRecognizerDelegate {
         backFaceView.layer.transform = CATransform3DIdentity
         CATransaction.commit()
         updateAccessibilityVisibility(for: face)
+        updateDeviceParallaxAvailability()
     }
 
     private func prepareFaceAnimation(
@@ -1093,7 +1232,402 @@ final class ExpandedThemeCardView: UIView, UIGestureRecognizerDelegate {
         CATransform3DMakeRotation(angle, 0, 1, 0)
     }
 
+    private func configureParallaxObservers() {
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(applicationWillResignActive),
+            name: UIApplication.willResignActiveNotification,
+            object: nil
+        )
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(applicationDidBecomeActive),
+            name: UIApplication.didBecomeActiveNotification,
+            object: nil
+        )
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(reduceMotionStatusDidChange),
+            name: UIAccessibility.reduceMotionStatusDidChangeNotification,
+            object: nil
+        )
+    }
+
+    private var canUseTouchParallax: Bool {
+        window != nil &&
+            isApplicationActive &&
+            !reduceMotionProvider() &&
+            parallaxPresentationPhase.permitsTouchParallax(currentFace: face) &&
+            activeFaceAnimator == nil
+    }
+
+    private func updateDeviceParallaxAvailability() {
+        let shouldEnableTouch = canUseTouchParallax
+        if cardParallaxPanGestureRecognizer.isEnabled != shouldEnableTouch {
+            cardParallaxPanGestureRecognizer.isEnabled = shouldEnableTouch
+        }
+
+        let shouldStartDeviceMotion = window != nil &&
+            isApplicationActive &&
+            !reduceMotionProvider() &&
+            deviceParallaxEnabledProvider() &&
+            deviceMotionProvider.isAvailable &&
+            !isTouchParallaxActive &&
+            parallaxReturnAnimator == nil &&
+            parallaxPresentationPhase.permitsDeviceMotion(currentFace: face)
+
+        if shouldStartDeviceMotion, !isDeviceMotionActive {
+            isDeviceMotionActive = true
+            deviceMotionProvider.start { [weak self] input in
+                guard let self else { return }
+                if Thread.isMainThread {
+                    self.receiveDeviceParallaxInput(input)
+                } else {
+                    DispatchQueue.main.async { [weak self] in
+                        self?.receiveDeviceParallaxInput(input)
+                    }
+                }
+            }
+        } else if !shouldStartDeviceMotion, isDeviceMotionActive {
+            isDeviceMotionActive = false
+            deviceMotionProvider.stop()
+            if !isTouchParallaxActive, parallaxReturnAnimator == nil {
+                applyParallaxInput(.zero, disablesImplicitAnimations: true)
+            }
+        } else if !shouldStartDeviceMotion,
+                  !isTouchParallaxActive,
+                  parallaxReturnAnimator == nil,
+                  !renderedParallaxInput.isNeutral {
+            applyParallaxInput(.zero, disablesImplicitAnimations: true)
+        }
+    }
+
+    private func receiveDeviceParallaxInput(_ input: HomeThemeCardParallaxInput) {
+        guard
+            isDeviceMotionActive,
+            !isTouchParallaxActive,
+            !reduceMotionProvider(),
+            parallaxPresentationPhase.permitsDeviceMotion(currentFace: face)
+        else { return }
+
+        applyParallaxInput(input, disablesImplicitAnimations: true)
+    }
+
+    private func applyParallaxInput(
+        _ input: HomeThemeCardParallaxInput,
+        disablesImplicitAnimations: Bool
+    ) {
+        let renderState = HomeThemeCardParallaxRenderState(
+            input: input,
+            style: deviceParallaxStyle
+        )
+
+        let applyChanges = {
+            if renderState.isNeutral {
+                self.layer.sublayerTransform = CATransform3DIdentity
+                self.perspectiveStageView.layer.transform = CATransform3DIdentity
+                self.parallaxPoseProbeView.transform = .identity
+            } else {
+                var perspective = CATransform3DIdentity
+                perspective.m34 = -1 / renderState.perspectiveDistance
+                self.layer.sublayerTransform = perspective
+
+                var cardTransform = CATransform3DIdentity
+                cardTransform = CATransform3DRotate(
+                    cardTransform,
+                    renderState.rotationX,
+                    1,
+                    0,
+                    0
+                )
+                cardTransform = CATransform3DRotate(
+                    cardTransform,
+                    renderState.rotationY,
+                    0,
+                    1,
+                    0
+                )
+                self.perspectiveStageView.layer.transform = cardTransform
+                self.parallaxPoseProbeView.transform = CGAffineTransform(
+                    translationX: input.x,
+                    y: input.y
+                )
+            }
+        }
+
+        if disablesImplicitAnimations {
+            CATransaction.begin()
+            CATransaction.setDisableActions(true)
+            applyChanges()
+            CATransaction.commit()
+        } else {
+            applyChanges()
+        }
+        renderedParallaxInput = input
+    }
+
+    private func beginTouchParallax() {
+        guard canUseTouchParallax else { return }
+        let liveInput = presentationParallaxInput()
+        parallaxReturnAnimator?.stopAnimation(true)
+        parallaxReturnAnimator = nil
+        applyParallaxInput(liveInput, disablesImplicitAnimations: true)
+
+        if isDeviceMotionActive {
+            isDeviceMotionActive = false
+            deviceMotionProvider.stop()
+        }
+        touchParallaxStartInput = liveInput
+        isTouchParallaxActive = true
+    }
+
+    private func finishTouchParallax(velocity: CGPoint) {
+        guard isTouchParallaxActive else { return }
+        isTouchParallaxActive = false
+        parallaxPanStartedInDescription = false
+
+        let liveInput = presentationParallaxInput()
+        applyParallaxInput(liveInput, disablesImplicitAnimations: true)
+        let normalizedVelocity = HomeThemeCardPanParallaxMapper.normalizedVelocity(
+            velocity,
+            in: bounds.size
+        )
+        let timing = UISpringTimingParameters(
+            dampingRatio: Animation.parallaxReturnDamping,
+            initialVelocity: CGVector(
+                dx: relativeSpringVelocity(
+                    normalizedVelocity.dx,
+                    currentValue: liveInput.x
+                ),
+                dy: relativeSpringVelocity(
+                    normalizedVelocity.dy,
+                    currentValue: liveInput.y
+                )
+            )
+        )
+        let animator = UIViewPropertyAnimator(
+            duration: Animation.parallaxReturnDuration,
+            timingParameters: timing
+        )
+        parallaxReturnAnimator = animator
+        animator.addAnimations { [weak self] in
+            self?.applyParallaxInput(.zero, disablesImplicitAnimations: false)
+        }
+        animator.addCompletion { [weak self, weak animator] _ in
+            guard let self, let animator, self.parallaxReturnAnimator === animator else { return }
+            self.parallaxReturnAnimator = nil
+            self.applyParallaxInput(.zero, disablesImplicitAnimations: true)
+            self.updateDeviceParallaxAvailability()
+        }
+        animator.startAnimation()
+    }
+
+    private func relativeSpringVelocity(
+        _ velocity: CGFloat,
+        currentValue: CGFloat
+    ) -> CGFloat {
+        let remainingDistance = -currentValue
+        guard abs(remainingDistance) > 0.01 else { return 0 }
+        return min(max(velocity / remainingDistance, -8), 8)
+    }
+
+    private func presentationParallaxInput() -> HomeThemeCardParallaxInput {
+        guard let presentationTransform = parallaxPoseProbeView.layer.presentation()?.transform else {
+            return renderedParallaxInput
+        }
+
+        return HomeThemeCardParallaxInput(
+            x: presentationTransform.m41,
+            y: presentationTransform.m42
+        )
+    }
+
+    private func cancelTouchParallaxAndReset() {
+        isTouchParallaxActive = false
+        parallaxPanStartedInDescription = false
+        touchParallaxStartInput = .zero
+        parallaxReturnAnimator?.stopAnimation(true)
+        parallaxReturnAnimator = nil
+        applyParallaxInput(.zero, disablesImplicitAnimations: true)
+    }
+
+    private func settleParallaxForPresentationTransition() {
+        isTouchParallaxActive = false
+        touchParallaxStartInput = .zero
+
+        if isDeviceMotionActive {
+            isDeviceMotionActive = false
+            deviceMotionProvider.stop()
+        }
+
+        guard !reduceMotionProvider() else {
+            cancelTouchParallaxAndReset()
+            return
+        }
+
+        let liveInput = presentationParallaxInput()
+        parallaxReturnAnimator?.stopAnimation(true)
+        parallaxReturnAnimator = nil
+        applyParallaxInput(liveInput, disablesImplicitAnimations: true)
+
+        guard !liveInput.isNeutral else {
+            applyParallaxInput(.zero, disablesImplicitAnimations: true)
+            return
+        }
+
+        let animator = UIViewPropertyAnimator(
+            duration: Animation.parallaxTransitionSettleDuration,
+            curve: .easeOut
+        )
+        parallaxReturnAnimator = animator
+        animator.addAnimations { [weak self] in
+            self?.applyParallaxInput(.zero, disablesImplicitAnimations: false)
+        }
+        animator.addCompletion { [weak self, weak animator] _ in
+            guard let self, let animator, self.parallaxReturnAnimator === animator else { return }
+            self.parallaxReturnAnimator = nil
+            self.applyParallaxInput(.zero, disablesImplicitAnimations: true)
+            self.updateDeviceParallaxAvailability()
+        }
+        animator.startAnimation()
+    }
+
+    @objc private func cardParallaxPanned(_ recognizer: UIPanGestureRecognizer) {
+        handleFrontParallaxPan(
+            state: recognizer.state,
+            translation: recognizer.translation(in: self),
+            velocity: recognizer.velocity(in: self)
+        )
+    }
+
+    func handleFrontParallaxPan(
+        state: UIGestureRecognizer.State,
+        translation: CGPoint,
+        velocity: CGPoint
+    ) {
+        switch state {
+        case .began:
+            beginTouchParallax()
+
+        case .changed:
+            if !isTouchParallaxActive {
+                beginTouchParallax()
+            }
+            guard isTouchParallaxActive else { return }
+            let input = HomeThemeCardPanParallaxMapper.input(
+                translation: translation,
+                in: bounds.size,
+                startingAt: touchParallaxStartInput
+            )
+            applyParallaxInput(input, disablesImplicitAnimations: true)
+
+        case .ended:
+            guard isTouchParallaxActive else { return }
+            let input = HomeThemeCardPanParallaxMapper.input(
+                translation: translation,
+                in: bounds.size,
+                startingAt: touchParallaxStartInput
+            )
+            applyParallaxInput(input, disablesImplicitAnimations: true)
+            finishTouchParallax(velocity: velocity)
+
+        case .cancelled, .failed:
+            finishTouchParallax(velocity: .zero)
+
+        case .possible:
+            break
+
+        @unknown default:
+            cancelTouchParallaxAndReset()
+        }
+    }
+
+    @objc private func applicationWillResignActive() {
+        isApplicationActive = false
+        cancelTouchParallaxAndReset()
+        updateDeviceParallaxAvailability()
+    }
+
+    @objc private func applicationDidBecomeActive() {
+        isApplicationActive = true
+        updateDeviceParallaxAvailability()
+    }
+
+    @objc private func reduceMotionStatusDidChange() {
+        if reduceMotionProvider() {
+            cancelTouchParallaxAndReset()
+        }
+        updateDeviceParallaxAvailability()
+    }
+
+    override func gestureRecognizerShouldBegin(_ gestureRecognizer: UIGestureRecognizer) -> Bool {
+        guard gestureRecognizer === cardParallaxPanGestureRecognizer else { return true }
+        guard canUseTouchParallax else { return false }
+
+        let permitsParallax = HomeThemeCardParallaxGesturePolicy.permitsParallax(
+            startedInDescription: parallaxPanStartedInDescription,
+            descriptionCanScrollVertically: descriptionCanScrollVertically,
+            velocity: cardParallaxPanGestureRecognizer.velocity(in: self)
+        )
+        if !permitsParallax {
+            parallaxPanStartedInDescription = false
+        }
+        return permitsParallax
+    }
+
+    private var descriptionCanScrollVertically: Bool {
+        descriptionScrollView.layoutIfNeeded()
+        let insets = descriptionScrollView.adjustedContentInset
+        let visibleHeight = max(
+            descriptionScrollView.bounds.height - insets.top - insets.bottom,
+            0
+        )
+        return descriptionScrollView.contentSize.height > visibleHeight + 1
+    }
+
+    private func isInDescriptionScrollView(_ view: UIView) -> Bool {
+        view === descriptionScrollView || view.isDescendant(of: descriptionScrollView)
+    }
+
+    func allowsParallaxPan(startingAt touchedView: UIView?) -> Bool {
+        guard let touchedView else { return false }
+
+        switch face {
+        case .front:
+            let touchesFront = touchedView === frontFaceView ||
+                touchedView.isDescendant(of: frontFaceView)
+            let touchesClose = touchedView === closeButton ||
+                touchedView.isDescendant(of: closeButton)
+            let touchesInfo = touchedView === infoButton ||
+                touchedView.isDescendant(of: infoButton)
+            return touchesFront && !touchesClose && !touchesInfo
+
+        case .back:
+            let touchesBack = touchedView === backFaceView ||
+                touchedView.isDescendant(of: backFaceView)
+            guard touchesBack else { return false }
+
+            var currentView: UIView? = touchedView
+            while let view = currentView, view !== backFaceView {
+                if let control = view as? UIControl,
+                   control !== backSurfaceButton {
+                    return false
+                }
+                currentView = view.superview
+            }
+            return true
+        }
+    }
+
     func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldReceive touch: UITouch) -> Bool {
+        if gestureRecognizer === cardParallaxPanGestureRecognizer {
+            parallaxPanStartedInDescription = touch.view.map(isInDescriptionScrollView) ?? false
+            let permitsPan = allowsParallaxPan(startingAt: touch.view)
+            if !permitsPan {
+                parallaxPanStartedInDescription = false
+            }
+            return permitsPan
+        }
         guard gestureRecognizer === backTapGestureRecognizer else { return true }
         guard
             !descriptionScrollView.isTracking,
@@ -1115,12 +1649,7 @@ final class ExpandedThemeCardView: UIView, UIGestureRecognizerDelegate {
         _ gestureRecognizer: UIGestureRecognizer,
         shouldRecognizeSimultaneouslyWith otherGestureRecognizer: UIGestureRecognizer
     ) -> Bool {
-        let includesBackTap = gestureRecognizer === backTapGestureRecognizer ||
-            otherGestureRecognizer === backTapGestureRecognizer
-        guard includesBackTap else { return false }
-
-        return gestureRecognizer !== descriptionScrollView.panGestureRecognizer &&
-            otherGestureRecognizer !== descriptionScrollView.panGestureRecognizer
+        false
     }
 
     @objc private func closeTapped() {

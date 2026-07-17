@@ -153,6 +153,8 @@ final class QuizViewController: BaseQuizViewController, QuizViewControllerProtoc
     private let randomThemeIDProvider: ([QuizTheme]) -> String?
     private let cardReduceMotionProvider: () -> Bool
     private let cardReduceTransparencyProvider: () -> Bool
+    private let cardDeviceParallaxEnabledProvider: () -> Bool
+    private let cardMotionProvider: HomeThemeCardMotionProviding
     private let animationsEngine = Animations()
     private let motivationBlurContext = CIContext(options: nil)
     private var motivationBlurSnapshotSignature: String?
@@ -204,7 +206,9 @@ final class QuizViewController: BaseQuizViewController, QuizViewControllerProtoc
         motivationPromptProvider: @escaping (String?) -> String = QuizViewController.randomMotivationPrompt,
         randomThemeIDProvider: @escaping ([QuizTheme]) -> String? = { $0.randomElement()?.stableID },
         cardReduceMotionProvider: @escaping () -> Bool = { UIAccessibility.isReduceMotionEnabled },
-        cardReduceTransparencyProvider: @escaping () -> Bool = { UIAccessibility.isReduceTransparencyEnabled }
+        cardReduceTransparencyProvider: @escaping () -> Bool = { UIAccessibility.isReduceTransparencyEnabled },
+        cardDeviceParallaxEnabledProvider: @escaping () -> Bool = { true },
+        cardMotionProvider: HomeThemeCardMotionProviding = CoreMotionHomeThemeCardMotionProvider()
     ) {
         self.themeRepository = themeRepository
         self.session = session
@@ -218,6 +222,8 @@ final class QuizViewController: BaseQuizViewController, QuizViewControllerProtoc
         )
         self.cardReduceMotionProvider = cardReduceMotionProvider
         self.cardReduceTransparencyProvider = cardReduceTransparencyProvider
+        self.cardDeviceParallaxEnabledProvider = cardDeviceParallaxEnabledProvider
+        self.cardMotionProvider = cardMotionProvider
         super.init(nibName: nil, bundle: nil)
     }
 
@@ -837,6 +843,7 @@ final class QuizViewController: BaseQuizViewController, QuizViewControllerProtoc
             reverseExpandedCardTransition()
 
         case let .launch(themeID, questionCount):
+            updateExpandedThemeCardParallaxPhase()
             launchQuiz(themeID: themeID, questionCount: questionCount)
         }
     }
@@ -886,6 +893,8 @@ final class QuizViewController: BaseQuizViewController, QuizViewControllerProtoc
 
         let cardView = ExpandedThemeCardView(frame: targetFrame)
         cardView.reduceMotionProvider = cardReduceMotionProvider
+        cardView.deviceParallaxEnabledProvider = cardDeviceParallaxEnabledProvider
+        cardView.deviceMotionProvider = cardMotionProvider
         cardView.accessibilityIdentifier = AccessibilityID.expandedCard
         cardView.layer.zPosition = Appearance.expandedCardLayerZPosition
         cardView.configure(
@@ -894,6 +903,7 @@ final class QuizViewController: BaseQuizViewController, QuizViewControllerProtoc
             availableQuestionCounts: homeCardState.availableQuestionCounts,
             selectedQuestionCount: homeCardState.selectedQuestionCount
         )
+        cardView.setParallaxPresentationPhase(homeCardState.phase.parallaxPresentationPhase)
         wireExpandedThemeCardActions(cardView)
         cardView.layoutIfNeeded()
         expandedThemeCardView = cardView
@@ -1165,6 +1175,7 @@ final class QuizViewController: BaseQuizViewController, QuizViewControllerProtoc
     }
 
     private func flipExpandedThemeCard(to face: HomeThemeCardFace) {
+        updateExpandedThemeCardParallaxPhase()
         expandedThemeCardView?.setFace(face, animated: true) { [weak self] completedFace in
             guard let self else { return }
             let previousPhase = self.homeCardState.phase
@@ -1172,6 +1183,7 @@ final class QuizViewController: BaseQuizViewController, QuizViewControllerProtoc
                 state: &self.homeCardState,
                 action: .flipCompleted(completedFace)
             )
+            self.updateExpandedThemeCardParallaxPhase()
             let completedStableFlip: Bool
             switch (previousPhase, completedFace, self.homeCardState.phase) {
             case (.flippingToBack, .back, .expandedBack),
@@ -1227,6 +1239,8 @@ final class QuizViewController: BaseQuizViewController, QuizViewControllerProtoc
             resetExpandedThemeCard()
             return
         }
+
+        updateExpandedThemeCardParallaxPhase()
 
         let reduceMotion = cardReduceMotionProvider()
         let currentSourceButton = homeCardState.themeID.flatMap { sourceButton(themeID: $0) }
@@ -1514,6 +1528,7 @@ final class QuizViewController: BaseQuizViewController, QuizViewControllerProtoc
             state: &homeCardState,
             action: .expansionCompleted
         )
+        updateExpandedThemeCardParallaxPhase()
         if expandedCardNeedsRefresh {
             refreshExpandedThemeCardAppearance()
         }
@@ -1881,6 +1896,7 @@ final class QuizViewController: BaseQuizViewController, QuizViewControllerProtoc
             selectedQuestionCount: homeCardState.selectedQuestionCount
         )
         cardView.setFace(face, animated: false)
+        updateExpandedThemeCardParallaxPhase()
         if expandedCardBlurView == nil {
             expandedCardBackdropView?.backgroundColor = currentAppearance().backgroundColor.withAlphaComponent(
                 Appearance.reducedTransparencyBackdropAlpha
@@ -1908,6 +1924,7 @@ final class QuizViewController: BaseQuizViewController, QuizViewControllerProtoc
     }
 
     private func removeExpandedThemeCardViews() {
+        expandedThemeCardView?.setParallaxPresentationPhase(.inactive)
         expandedThemeCardView?.removeFromSuperview()
         expandedStatisticsCardView?.removeFromSuperview()
         expandedCardSnapshotView?.removeFromSuperview()
@@ -1932,6 +1949,12 @@ final class QuizViewController: BaseQuizViewController, QuizViewControllerProtoc
         expandedCardNeedsRefresh = false
         expandedCardScreenViewTracked = false
         expandedCardLastTrackedFace = nil
+    }
+
+    private func updateExpandedThemeCardParallaxPhase() {
+        expandedThemeCardView?.setParallaxPresentationPhase(
+            homeCardState.phase.parallaxPresentationPhase
+        )
     }
 
     private func restoreGridAfterExpandedCard(presentedCard: HomePresentedCard?) {
