@@ -176,7 +176,8 @@ final class AnalyticsServiceTests: XCTestCase {
             statisticsStore: makeStatisticsStore(),
             analytics: analytics
         )
-        presenter.view = AnalyticsQuestionViewSpy()
+        let view = AnalyticsQuestionViewSpy()
+        presenter.view = view
         presenter.loadQuestions()
         presenter.loadQuestion()
 

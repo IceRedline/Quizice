@@ -1,0 +1,325 @@
+import SwiftUI
+import XCTest
+@testable import Quizice
+
+@MainActor
+final class HomeAIThemeCardInteractionTests: HomeScreenVisualStateTestCase {
+    func testAIThemeCardExpandsInlineAboveFullScreenBackdropAndDisablesGrid() throws {
+        QuizFactory.shared.themes = [makeTheme(name: "Музыка")]
+
+        let viewController = makeHomeViewController(in: CGRect(x: 0, y: 0, width: 390, height: 844))
+        let router = HomeRouterSpy()
+        viewController.router = router
+        let collectionView = try XCTUnwrap(
+            viewController.view.descendant(
+                withAccessibilityIdentifier: "homeThemesCollectionView"
+            ) as? UICollectionView
+        )
+        collectionView.layoutIfNeeded()
+        let sourceButton = try XCTUnwrap(
+            viewController.view.descendant(
+                withAccessibilityIdentifier: "homeCreateWithAIButton"
+            ) as? UIButton
+        )
+        let initialScrollEnabled = collectionView.isScrollEnabled
+        let initialContentOffset = collectionView.contentOffset
+
+        sourceButton.sendActions(for: .touchUpInside)
+        drainAnimations()
+
+        let backdrop = try XCTUnwrap(
+            viewController.view.descendant(
+                withAccessibilityIdentifier: "homeExpandedThemeCardBackdrop"
+            )
+        )
+        let card = try XCTUnwrap(
+            viewController.view.descendant(
+                withAccessibilityIdentifier: "homeExpandedAIThemeCard"
+            )
+        )
+
+        XCTAssertTrue(backdrop.superview === viewController.view)
+        XCTAssertEqual(backdrop.frame, viewController.view.bounds)
+        XCTAssertTrue(backdrop is UIVisualEffectView)
+        XCTAssertNotNil((backdrop as? UIVisualEffectView)?.effect)
+        XCTAssertTrue(card.superview === viewController.view)
+        XCTAssertFalse(card.isDescendant(of: backdrop))
+        XCTAssertGreaterThan(card.layer.zPosition, backdrop.layer.zPosition)
+        XCTAssertTrue(card.accessibilityViewIsModal)
+        let presentedSourceButton = try XCTUnwrap(
+            viewController.view.descendant(
+                withAccessibilityIdentifier: "homeCreateWithAIButton"
+            ) as? UIButton
+        )
+        XCTAssertTrue(presentedSourceButton.isHidden)
+        XCTAssertFalse(presentedSourceButton.isEnabled)
+        XCTAssertFalse(collectionView.isUserInteractionEnabled)
+        XCTAssertFalse(collectionView.isScrollEnabled)
+        XCTAssertNil(
+            viewController.view.descendant(
+                withAccessibilityIdentifier: "homeExpandedAIThemeCardTransition"
+            )
+        )
+        XCTAssertEqual(router.showDescriptionCallCount, 0)
+        XCTAssertEqual(router.showStatisticsCallCount, 0)
+
+        let backdropDismissButton = try XCTUnwrap(
+            viewController.view.descendant(
+                withAccessibilityIdentifier: "homeExpandedThemeCardBackdropDismissButton"
+            ) as? UIButton
+        )
+        backdropDismissButton.sendActions(for: .touchUpInside)
+        drainAnimations()
+
+        XCTAssertNil(
+            viewController.view.descendant(
+                withAccessibilityIdentifier: "homeExpandedAIThemeCard"
+            )
+        )
+        XCTAssertNil(
+            viewController.view.descendant(
+                withAccessibilityIdentifier: "homeExpandedThemeCardBackdrop"
+            )
+        )
+        let restoredSourceButton = try XCTUnwrap(
+            viewController.view.descendant(
+                withAccessibilityIdentifier: "homeCreateWithAIButton"
+            ) as? UIButton
+        )
+        XCTAssertFalse(restoredSourceButton.isHidden)
+        XCTAssertTrue(restoredSourceButton.isEnabled)
+        XCTAssertTrue(restoredSourceButton.isAccessibilityElement)
+        XCTAssertTrue(collectionView.isUserInteractionEnabled)
+        XCTAssertEqual(collectionView.isScrollEnabled, initialScrollEnabled)
+        XCTAssertEqual(collectionView.contentOffset.x, initialContentOffset.x, accuracy: 0.001)
+        XCTAssertEqual(collectionView.contentOffset.y, initialContentOffset.y, accuracy: 0.001)
+        XCTAssertEqual(router.showDescriptionCallCount, 0)
+        XCTAssertEqual(router.showStatisticsCallCount, 0)
+    }
+
+    func testAIThemeCardRequiresTrimmedPromptBeforeFlipAndHasNoParallax() throws {
+        QuizFactory.shared.themes = [makeTheme(name: "Музыка")]
+
+        let motionProvider = HomeThemeCardMotionProviderFake()
+        let viewController = QuizViewController(
+            cardReduceMotionProvider: { false },
+            cardDeviceParallaxEnabledProvider: { true },
+            cardMotionProvider: motionProvider
+        )
+        let window = UIWindow(frame: CGRect(x: 0, y: 0, width: 390, height: 844))
+        window.rootViewController = viewController
+        window.makeKeyAndVisible()
+        window.layoutIfNeeded()
+        testWindows.append(window)
+        let collectionView = try XCTUnwrap(
+            viewController.view.descendant(
+                withAccessibilityIdentifier: "homeThemesCollectionView"
+            ) as? UICollectionView
+        )
+        collectionView.layoutIfNeeded()
+        let sourceButton = try XCTUnwrap(
+            viewController.view.descendant(
+                withAccessibilityIdentifier: "homeCreateWithAIButton"
+            ) as? UIButton
+        )
+
+        sourceButton.sendActions(for: .touchUpInside)
+        drainAnimations()
+
+        let card = try XCTUnwrap(
+            viewController.view.descendant(
+                withAccessibilityIdentifier: "homeExpandedAIThemeCard"
+            )
+        )
+        let promptEditor = try XCTUnwrap(
+            card.descendant(withAccessibilityIdentifier: "aiThemePromptEditor") as? UITextView
+        )
+        let playButton = try XCTUnwrap(
+            card.descendant(
+                withAccessibilityIdentifier: "expandedAIThemeCardPlayButton"
+            ) as? UIButton
+        )
+        let frontView = try XCTUnwrap(
+            card.descendant(withAccessibilityIdentifier: "expandedAIThemeCardFrontView")
+        )
+        let backView = try XCTUnwrap(
+            card.descendant(withAccessibilityIdentifier: "expandedAIThemeCardBackView")
+        )
+
+        XCTAssertFalse(playButton.isEnabled)
+        XCTAssertFalse(frontView.isHidden)
+        XCTAssertTrue(backView.isHidden)
+        XCTAssertFalse(promptEditor.isFirstResponder)
+        XCTAssertFalse(promptEditor.isScrollEnabled)
+
+        promptEditor.text = " \n\t "
+        promptEditor.delegate?.textViewDidChange?(promptEditor)
+
+        XCTAssertFalse(playButton.isEnabled)
+
+        promptEditor.text = "  Космос  \n"
+        promptEditor.delegate?.textViewDidChange?(promptEditor)
+
+        XCTAssertTrue(playButton.isEnabled)
+
+        playButton.sendActions(for: .touchUpInside)
+        drainAnimations()
+
+        XCTAssertTrue(frontView.isHidden)
+        XCTAssertFalse(backView.isHidden)
+        XCTAssertFalse(backView.accessibilityElementsHidden)
+        XCTAssertNil(
+            card.descendant(
+                withAccessibilityIdentifier: "expandedAIThemeCardParallaxCarrier"
+            )
+        )
+        XCTAssertNil(
+            card.descendant(
+                withAccessibilityIdentifier: "expandedThemeCardParallaxCarrier"
+            )
+        )
+        XCTAssertNil(parallaxPanGestureRecognizer(in: card))
+        XCTAssertFalse(
+            (card.gestureRecognizers ?? []).contains { $0 is UIPanGestureRecognizer }
+        )
+        XCTAssertEqual(motionProvider.startCallCount, 0)
+        XCTAssertFalse(motionProvider.isStarted)
+    }
+
+    func testAIThemeCardMovesUpForKeyboardWithoutAccumulatingOffsetAndRestores() throws {
+        QuizFactory.shared.themes = [makeTheme(name: "Музыка")]
+        let viewController = QuizViewController(cardReduceMotionProvider: { false })
+        let window = UIWindow(frame: CGRect(x: 0, y: 0, width: 390, height: 844))
+        window.rootViewController = viewController
+        window.makeKeyAndVisible()
+        window.layoutIfNeeded()
+        testWindows.append(window)
+
+        let sourceButton = try XCTUnwrap(
+            viewController.view.descendant(withAccessibilityIdentifier: "homeCreateWithAIButton") as? UIButton
+        )
+        sourceButton.sendActions(for: .touchUpInside)
+        drainAnimations()
+
+        let card = try XCTUnwrap(
+            viewController.view.descendant(withAccessibilityIdentifier: "homeExpandedAIThemeCard")
+        )
+        let promptEditor = try XCTUnwrap(
+            card.descendant(withAccessibilityIdentifier: "aiThemePromptEditor") as? UITextView
+        )
+        let promptContainer = try XCTUnwrap(promptEditor.superview)
+        let originalFrame = card.frame
+        XCTAssertTrue(promptEditor.becomeFirstResponder())
+
+        let initialPromptFrame = promptContainer.convert(promptContainer.bounds, to: viewController.view)
+        let keyboardTop = initialPromptFrame.maxY - 36
+        let keyboardFrameInWindow = CGRect(
+            x: 0,
+            y: keyboardTop,
+            width: window.bounds.width,
+            height: window.bounds.maxY - keyboardTop
+        )
+        let keyboardFrameInScreen = window.convert(
+            keyboardFrameInWindow,
+            to: window.screen.coordinateSpace
+        )
+        let userInfo: [AnyHashable: Any] = [
+            UIResponder.keyboardFrameEndUserInfoKey: keyboardFrameInScreen,
+            UIResponder.keyboardAnimationDurationUserInfoKey: TimeInterval(0),
+            UIResponder.keyboardAnimationCurveUserInfoKey: UInt(UIView.AnimationCurve.easeInOut.rawValue)
+        ]
+
+        NotificationCenter.default.post(
+            name: UIResponder.keyboardWillChangeFrameNotification,
+            object: nil,
+            userInfo: userInfo
+        )
+        viewController.view.layoutIfNeeded()
+
+        XCTAssertLessThan(card.frame.minY, originalFrame.minY)
+        XCTAssertGreaterThanOrEqual(
+            card.frame.minY,
+            viewController.view.safeAreaLayoutGuide.layoutFrame.minY + 7.5
+        )
+        let visiblePromptFrame = promptContainer.convert(promptContainer.bounds, to: viewController.view)
+        XCTAssertLessThanOrEqual(visiblePromptFrame.maxY, keyboardTop - 11.5)
+
+        let firstLiftedFrame = card.frame
+        NotificationCenter.default.post(
+            name: UIResponder.keyboardWillChangeFrameNotification,
+            object: nil,
+            userInfo: userInfo
+        )
+        XCTAssertEqual(card.frame.minY, firstLiftedFrame.minY, accuracy: 0.01)
+
+        NotificationCenter.default.post(
+            name: UIResponder.keyboardWillHideNotification,
+            object: nil,
+            userInfo: userInfo
+        )
+        XCTAssertEqual(card.frame.minY, originalFrame.minY, accuracy: 0.01)
+        _ = promptEditor.resignFirstResponder()
+    }
+
+    func testAIThemeCollapseStartsFromVisibleFrameDuringKeyboardLift() throws {
+        QuizFactory.shared.themes = [makeTheme(name: "Музыка")]
+        let viewController = QuizViewController(cardReduceMotionProvider: { false })
+        let window = UIWindow(frame: CGRect(x: 0, y: 0, width: 390, height: 844))
+        window.rootViewController = viewController
+        window.makeKeyAndVisible()
+        window.layoutIfNeeded()
+        testWindows.append(window)
+
+        let sourceButton = try XCTUnwrap(
+            viewController.view.descendant(withAccessibilityIdentifier: "homeCreateWithAIButton") as? UIButton
+        )
+        sourceButton.sendActions(for: .touchUpInside)
+        drainAnimations()
+
+        let card = try XCTUnwrap(
+            viewController.view.descendant(withAccessibilityIdentifier: "homeExpandedAIThemeCard")
+                as? ExpandedAIThemeCardView
+        )
+        let closeButton = try XCTUnwrap(
+            card.descendant(withAccessibilityIdentifier: "expandedAIThemeCardCloseButton") as? UIButton
+        )
+        let restingFrame = card.frame
+
+        let keyboardTop = card.frame.minY + card.promptContainerMaxYAtRest - 80
+        let keyboardFrameInWindow = CGRect(
+            x: 0,
+            y: keyboardTop,
+            width: window.bounds.width,
+            height: window.bounds.maxY - keyboardTop
+        )
+        viewController.updateExpandedAIThemeCardFrameForTesting(
+            keyboardFrameInWindow: keyboardFrameInWindow,
+            duration: 0.8,
+            curveRawValue: 7
+        )
+        _ = try XCTUnwrap(viewController.expandedAIKeyboardAnimatorForTesting)
+        XCTAssertEqual(viewController.expandedAIKeyboardAnimationCurveForTesting, .easeInOut)
+        let liftedFrame = card.frame
+        let visibleCardFrame = CGRect(
+            x: restingFrame.minX,
+            y: restingFrame.minY + (liftedFrame.minY - restingFrame.minY) * 0.25,
+            width: restingFrame.width,
+            height: restingFrame.height
+        )
+        viewController.freezeExpandedAIKeyboardAnimationForTesting(
+            visibleFrame: visibleCardFrame
+        )
+        closeButton.sendActions(for: .touchUpInside)
+
+        XCTAssertNil(viewController.expandedAIKeyboardAnimatorForTesting)
+        let collapseStartFrame = try XCTUnwrap(
+            viewController.expandedCardTransitionInitialFrameForTesting
+        )
+
+        XCTAssertEqual(collapseStartFrame.minY, visibleCardFrame.minY, accuracy: 2)
+        XCTAssertEqual(collapseStartFrame.height, visibleCardFrame.height, accuracy: 2)
+
+        drainAnimations()
+    }
+
+}
