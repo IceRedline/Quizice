@@ -479,7 +479,6 @@ protocol QuizRouting: AnyObject {
     func showQuestion()
     func showResult(_ result: QuizResultState)
     func showStatistics()
-    func showAIThemeCreation()
     func showSettings()
     func closeDescription()
     func closeStatistics()
@@ -522,6 +521,7 @@ final class QuizFlowCoordinator: NSObject, QuizRouting, UIViewControllerTransiti
         let viewController = QuizViewController(
             themeRepository: themeRepository,
             session: session,
+            aiQuizThemeService: aiQuizThemeService,
             analytics: analytics
         )
         viewController.router = self
@@ -563,50 +563,6 @@ final class QuizFlowCoordinator: NSObject, QuizRouting, UIViewControllerTransiti
         let viewController = StatisticsViewController(analytics: analytics)
         viewController.router = self
         navigationController.pushViewController(viewController, animated: true)
-    }
-
-    func showAIThemeCreation() {
-        AppLog.quiz.debug("Opening AI quiz theme creation sheet")
-        let viewControllerReference = WeakViewControllerReference()
-        let appearance = AppAppearanceStore.shared.appearance(
-            compatibleWith: presentedViewController.traitCollection
-        )
-        let rootView = QuizAIThemeCreationView(
-            service: aiQuizThemeService,
-            analytics: analytics,
-            onGenerated: { [weak self, viewControllerReference] theme in
-                guard let viewController = viewControllerReference.viewController else {
-                    AppLog.quiz.error("AI quiz result could not be handled: creation sheet reference is missing")
-                    self?.analytics.reportOperationalError(
-                        AnalyticsOperationalIssue.missingAIViewController,
-                        context: .aiResultHandling
-                    )
-                    return
-                }
-                self?.handleGeneratedAITheme(theme, dismissing: viewController)
-            }
-        )
-        let viewController = UIHostingController(rootView: rootView)
-        viewController.overrideUserInterfaceStyle = AIThemeKeyboardStyle(
-            appearance: appearance
-        ).interfaceStyle
-        viewControllerReference.viewController = viewController
-        viewController.modalPresentationStyle = .pageSheet
-        if let sheetPresentationController = viewController.sheetPresentationController {
-            sheetPresentationController.detents = [.large()]
-            sheetPresentationController.prefersGrabberVisible = true
-        }
-        presentedViewController.present(viewController, animated: true)
-    }
-
-    func handleGeneratedAITheme(_ theme: QuizTheme, dismissing viewController: UIViewController) {
-        AppLog.quiz.info("AI quiz result accepted: questions=\(theme.questions.count, privacy: .public)")
-        session.chosenTheme = ThemeModel(quizTheme: theme)
-        session.questionsCount = theme.questions.count
-        analytics.track(.themeSelected(theme: .ai, method: .ai))
-        viewController.dismiss(animated: true) { [weak self] in
-            self?.showDescription()
-        }
     }
 
     func showSettings() {
@@ -678,10 +634,6 @@ final class QuizFlowCoordinator: NSObject, QuizRouting, UIViewControllerTransiti
         return YandexAIQuizThemeService(apiKey: nil)
         #endif
     }
-}
-
-private final class WeakViewControllerReference {
-    weak var viewController: UIViewController?
 }
 
 #if DEBUG

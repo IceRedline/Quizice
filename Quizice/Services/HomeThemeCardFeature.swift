@@ -1,3 +1,4 @@
+import Foundation
 import CoreGraphics
 import CoreMotion
 import QuartzCore
@@ -181,13 +182,8 @@ struct HomeThemeCardPanParallaxMapper {
 }
 
 struct HomeThemeCardParallaxGesturePolicy {
-    static func permitsParallax(
-        startedInDescription: Bool,
-        descriptionCanScrollVertically: Bool,
-        velocity: CGPoint
-    ) -> Bool {
-        guard startedInDescription, descriptionCanScrollVertically else { return true }
-        return abs(velocity.x) > abs(velocity.y)
+    static func permitsSimultaneousDescriptionScroll(on face: HomeThemeCardFace) -> Bool {
+        face == .back
     }
 }
 
@@ -437,6 +433,7 @@ struct HomeThemeCardFlipTransition: Equatable {
 enum HomePresentedCard: Equatable {
     case theme(String)
     case statistics
+    case ai
 }
 
 struct HomeThemeCardState: Equatable {
@@ -444,6 +441,7 @@ struct HomeThemeCardState: Equatable {
     fileprivate(set) var presentedCard: HomePresentedCard?
     fileprivate(set) var availableQuestionCounts: [Int] = []
     fileprivate(set) var selectedQuestionCount: Int?
+    fileprivate(set) var isFlipAllowed = false
 
     var themeID: String? {
         guard case let .theme(themeID) = presentedCard else { return nil }
@@ -452,6 +450,11 @@ struct HomeThemeCardState: Equatable {
 
     var isStatisticsPresented: Bool {
         guard phase != .grid, presentedCard == .statistics else { return false }
+        return true
+    }
+
+    var isAIThemePresented: Bool {
+        guard phase != .grid, presentedCard == .ai else { return false }
         return true
     }
 
@@ -464,6 +467,17 @@ struct HomeThemeCardState: Equatable {
         selectedQuestionCount.map(availableQuestionCounts.contains) == true
     }
 
+    fileprivate var canRevealBack: Bool {
+        switch presentedCard {
+        case .theme:
+            return true
+        case .ai:
+            return isFlipAllowed
+        case .statistics, nil:
+            return false
+        }
+    }
+
     init() {}
 }
 
@@ -474,7 +488,9 @@ enum HomeThemeCardAction: Equatable {
         preferredQuestionCount: Int?
     )
     case presentStatistics
+    case presentAI
     case expansionCompleted
+    case flipAvailabilityChanged(Bool)
     case flipRequested
     case flipCompleted(HomeThemeCardFace)
     case closeRequested
@@ -487,9 +503,11 @@ enum HomeThemeCardAction: Equatable {
 enum HomeThemeCardEffect: Equatable {
     case expand(themeID: String)
     case expandStatistics
+    case expandAI
     case flip(HomeThemeCardFace)
     case collapse(themeID: String)
     case collapseStatistics
+    case collapseAI
     case reverseExpansion(shouldPresent: Bool)
     case launch(themeID: String, questionCount: Int)
 }
@@ -521,18 +539,39 @@ enum HomeThemeCardReducer {
             state.presentedCard = .statistics
             state.availableQuestionCounts = []
             state.selectedQuestionCount = nil
+            state.isFlipAllowed = false
             state.phase = .expanding
             return .expandStatistics
+
+        case .presentAI:
+            guard state.phase == .grid else { return nil }
+            state.presentedCard = .ai
+            state.availableQuestionCounts = []
+            state.selectedQuestionCount = nil
+            state.isFlipAllowed = false
+            state.phase = .expanding
+            return .expandAI
 
         case .expansionCompleted:
             guard state.phase == .expanding else { return nil }
             state.phase = .expandedFront
             return nil
 
+        case let .flipAvailabilityChanged(isAllowed):
+            guard state.presentedCard == .ai else { return nil }
+            switch state.phase {
+            case .expanding, .expandedFront, .flippingToBack,
+                 .expandedBack, .flippingToFront:
+                state.isFlipAllowed = isAllowed
+            case .grid, .collapsing, .launching:
+                return nil
+            }
+            return nil
+
         case .flipRequested:
-            guard state.themeID != nil else { return nil }
             switch state.phase {
             case .expandedFront:
+                guard state.canRevealBack else { return nil }
                 state.phase = .flippingToBack
                 return .flip(.back)
             case .flippingToBack:
@@ -542,6 +581,7 @@ enum HomeThemeCardReducer {
                 state.phase = .flippingToFront
                 return .flip(.front)
             case .flippingToFront:
+                guard state.canRevealBack else { return nil }
                 state.phase = .flippingToBack
                 return .flip(.back)
             case .grid, .expanding, .collapsing, .launching:
@@ -581,6 +621,8 @@ enum HomeThemeCardReducer {
                     return .collapse(themeID: themeID)
                 case .statistics:
                     return .collapseStatistics
+                case .ai:
+                    return .collapseAI
                 }
             case .collapsing:
                 state.phase = .expanding
@@ -619,6 +661,175 @@ enum HomeThemeCardReducer {
         case .reset:
             state = HomeThemeCardState()
             return nil
+        }
+    }
+}
+
+enum HomeAIGenerationPhase: Int, CaseIterable, Equatable {
+    case analyzing
+    case sending
+    case generating
+    case almostReady
+
+    var title: String {
+        switch self {
+        case .analyzing:
+            return L10n.AITheme.Progress.analyzing
+        case .sending:
+            return L10n.AITheme.Progress.sending
+        case .generating:
+            return L10n.AITheme.Progress.generating
+        case .almostReady:
+            return L10n.AITheme.Progress.almostReady
+        }
+    }
+}
+
+struct HomeAIThemeCardSubmission: Equatable {
+    let id: UUID
+    let configuration: AIQuizGenerationConfiguration
+    let startedAt: Date
+}
+
+struct HomeAIThemeCardState: Equatable {
+    fileprivate(set) var prompt = ""
+    fileprivate(set) var selectedQuestionCount =
+        AIQuizGenerationConfiguration.supportedQuestionCounts[0]
+    fileprivate(set) var selectedDifficulty: AIQuizDifficulty = .medium
+    fileprivate(set) var activeSubmission: HomeAIThemeCardSubmission?
+    fileprivate(set) var generationPhase: HomeAIGenerationPhase?
+    fileprivate(set) var activeAlert: AIQuizGenerationAlert?
+
+    var trimmedPrompt: String {
+        prompt.trimmingCharacters(in: .whitespacesAndNewlines)
+    }
+
+    var canRevealConfiguration: Bool {
+        !trimmedPrompt.isEmpty
+    }
+
+    var isSubmitting: Bool {
+        activeSubmission != nil
+    }
+
+    var canSubmit: Bool {
+        canRevealConfiguration &&
+        !isSubmitting &&
+        AIQuizGenerationConfiguration.supportedQuestionCounts.contains(selectedQuestionCount)
+    }
+
+    init() {}
+}
+
+enum HomeAIThemeCardAction: Equatable {
+    case promptChanged(String)
+    case questionCountSelected(Int)
+    case difficultySelected(AIQuizDifficulty)
+    case submitRequested(requestID: UUID, locale: Locale, now: Date)
+    case progressAdvanced(requestID: UUID, phase: HomeAIGenerationPhase)
+    case submissionSucceeded(requestID: UUID)
+    case submissionFailed(requestID: UUID, alert: AIQuizGenerationAlert)
+    case cancelRequested
+    case alertDismissed
+    case reset
+}
+
+enum HomeAIThemeCardEffect: Equatable {
+    case flipAvailabilityChanged(Bool)
+    case submit(HomeAIThemeCardSubmission)
+    case cancelSubmission(HomeAIThemeCardSubmission)
+    case submissionCompleted(requestID: UUID)
+    case presentAlert(AIQuizGenerationAlert)
+    case focusPrompt
+}
+
+enum HomeAIThemeCardReducer {
+    @discardableResult
+    static func reduce(
+        state: inout HomeAIThemeCardState,
+        action: HomeAIThemeCardAction
+    ) -> HomeAIThemeCardEffect? {
+        switch action {
+        case let .promptChanged(prompt):
+            guard !state.isSubmitting else { return nil }
+            let wasAvailable = state.canRevealConfiguration
+            state.prompt = prompt
+            let isAvailable = state.canRevealConfiguration
+            guard wasAvailable != isAvailable else { return nil }
+            return .flipAvailabilityChanged(isAvailable)
+
+        case let .questionCountSelected(questionCount):
+            guard
+                !state.isSubmitting,
+                AIQuizGenerationConfiguration.supportedQuestionCounts.contains(questionCount)
+            else {
+                return nil
+            }
+            state.selectedQuestionCount = questionCount
+            return nil
+
+        case let .difficultySelected(difficulty):
+            guard !state.isSubmitting else { return nil }
+            state.selectedDifficulty = difficulty
+            return nil
+
+        case let .submitRequested(requestID, locale, now):
+            guard state.canSubmit else { return nil }
+            let submission = HomeAIThemeCardSubmission(
+                id: requestID,
+                configuration: AIQuizGenerationConfiguration(
+                    theme: state.trimmedPrompt,
+                    questionCount: state.selectedQuestionCount,
+                    difficulty: state.selectedDifficulty,
+                    locale: locale
+                ),
+                startedAt: now
+            )
+            state.activeSubmission = submission
+            state.generationPhase = .analyzing
+            state.activeAlert = nil
+            return .submit(submission)
+
+        case let .progressAdvanced(requestID, phase):
+            guard
+                state.activeSubmission?.id == requestID,
+                let currentPhase = state.generationPhase,
+                phase.rawValue > currentPhase.rawValue
+            else {
+                return nil
+            }
+            state.generationPhase = phase
+            return nil
+
+        case let .submissionSucceeded(requestID):
+            guard state.activeSubmission?.id == requestID else { return nil }
+            state.activeSubmission = nil
+            state.generationPhase = nil
+            state.activeAlert = nil
+            return .submissionCompleted(requestID: requestID)
+
+        case let .submissionFailed(requestID, alert):
+            guard state.activeSubmission?.id == requestID else { return nil }
+            state.activeSubmission = nil
+            state.generationPhase = nil
+            state.activeAlert = alert
+            return .presentAlert(alert)
+
+        case .cancelRequested:
+            guard let submission = state.activeSubmission else { return nil }
+            state.activeSubmission = nil
+            state.generationPhase = nil
+            return .cancelSubmission(submission)
+
+        case .alertDismissed:
+            guard let alert = state.activeAlert else { return nil }
+            state.activeAlert = nil
+            return alert.shouldFocusPromptOnDismiss ? .focusPrompt : nil
+
+        case .reset:
+            let submission = state.activeSubmission
+            state = HomeAIThemeCardState()
+            return submission.map(HomeAIThemeCardEffect.cancelSubmission)
         }
     }
 }

@@ -368,19 +368,185 @@ final class HomeScreenVisualStateTests: XCTestCase {
         XCTAssertEqual(visualSurface.layer.cornerCurve, .circular)
     }
 
-    func testHomeAIThemeButtonPresentsAIThemeCreationScreen() throws {
+    func testAIThemeCardExpandsInlineAboveFullScreenBackdropAndDisablesGrid() throws {
         QuizFactory.shared.themes = [makeTheme(name: "Музыка")]
 
         let viewController = makeHomeViewController(in: CGRect(x: 0, y: 0, width: 390, height: 844))
         let router = HomeRouterSpy()
         viewController.router = router
-        let collectionView = try XCTUnwrap(viewController.view.descendant(withAccessibilityIdentifier: "homeThemesCollectionView") as? UICollectionView)
+        let collectionView = try XCTUnwrap(
+            viewController.view.descendant(
+                withAccessibilityIdentifier: "homeThemesCollectionView"
+            ) as? UICollectionView
+        )
         collectionView.layoutIfNeeded()
-        let createWithAIButton = try XCTUnwrap(viewController.view.descendant(withAccessibilityIdentifier: "homeCreateWithAIButton") as? UIButton)
+        let sourceButton = try XCTUnwrap(
+            viewController.view.descendant(
+                withAccessibilityIdentifier: "homeCreateWithAIButton"
+            ) as? UIButton
+        )
+        let initialScrollEnabled = collectionView.isScrollEnabled
+        let initialContentOffset = collectionView.contentOffset
 
-        createWithAIButton.sendActions(for: .touchUpInside)
+        sourceButton.sendActions(for: .touchUpInside)
+        drainAnimations()
 
-        XCTAssertEqual(router.showAIThemeCreationCallCount, 1)
+        let backdrop = try XCTUnwrap(
+            viewController.view.descendant(
+                withAccessibilityIdentifier: "homeExpandedThemeCardBackdrop"
+            )
+        )
+        let card = try XCTUnwrap(
+            viewController.view.descendant(
+                withAccessibilityIdentifier: "homeExpandedAIThemeCard"
+            )
+        )
+
+        XCTAssertTrue(backdrop.superview === viewController.view)
+        XCTAssertEqual(backdrop.frame, viewController.view.bounds)
+        XCTAssertTrue(backdrop is UIVisualEffectView)
+        XCTAssertNotNil((backdrop as? UIVisualEffectView)?.effect)
+        XCTAssertTrue(card.superview === viewController.view)
+        XCTAssertFalse(card.isDescendant(of: backdrop))
+        XCTAssertGreaterThan(card.layer.zPosition, backdrop.layer.zPosition)
+        XCTAssertTrue(card.accessibilityViewIsModal)
+        let presentedSourceButton = try XCTUnwrap(
+            viewController.view.descendant(
+                withAccessibilityIdentifier: "homeCreateWithAIButton"
+            ) as? UIButton
+        )
+        XCTAssertTrue(presentedSourceButton.isHidden)
+        XCTAssertFalse(presentedSourceButton.isEnabled)
+        XCTAssertFalse(collectionView.isUserInteractionEnabled)
+        XCTAssertFalse(collectionView.isScrollEnabled)
+        XCTAssertNil(
+            viewController.view.descendant(
+                withAccessibilityIdentifier: "homeExpandedAIThemeCardTransition"
+            )
+        )
+        XCTAssertEqual(router.showDescriptionCallCount, 0)
+        XCTAssertEqual(router.showStatisticsCallCount, 0)
+
+        let backdropDismissButton = try XCTUnwrap(
+            viewController.view.descendant(
+                withAccessibilityIdentifier: "homeExpandedThemeCardBackdropDismissButton"
+            ) as? UIButton
+        )
+        backdropDismissButton.sendActions(for: .touchUpInside)
+        drainAnimations()
+
+        XCTAssertNil(
+            viewController.view.descendant(
+                withAccessibilityIdentifier: "homeExpandedAIThemeCard"
+            )
+        )
+        XCTAssertNil(
+            viewController.view.descendant(
+                withAccessibilityIdentifier: "homeExpandedThemeCardBackdrop"
+            )
+        )
+        let restoredSourceButton = try XCTUnwrap(
+            viewController.view.descendant(
+                withAccessibilityIdentifier: "homeCreateWithAIButton"
+            ) as? UIButton
+        )
+        XCTAssertFalse(restoredSourceButton.isHidden)
+        XCTAssertTrue(restoredSourceButton.isEnabled)
+        XCTAssertTrue(restoredSourceButton.isAccessibilityElement)
+        XCTAssertTrue(collectionView.isUserInteractionEnabled)
+        XCTAssertEqual(collectionView.isScrollEnabled, initialScrollEnabled)
+        XCTAssertEqual(collectionView.contentOffset.x, initialContentOffset.x, accuracy: 0.001)
+        XCTAssertEqual(collectionView.contentOffset.y, initialContentOffset.y, accuracy: 0.001)
+        XCTAssertEqual(router.showDescriptionCallCount, 0)
+        XCTAssertEqual(router.showStatisticsCallCount, 0)
+    }
+
+    func testAIThemeCardRequiresTrimmedPromptBeforeFlipAndHasNoParallax() throws {
+        QuizFactory.shared.themes = [makeTheme(name: "Музыка")]
+
+        let motionProvider = HomeThemeCardMotionProviderFake()
+        let viewController = QuizViewController(
+            cardReduceMotionProvider: { false },
+            cardDeviceParallaxEnabledProvider: { true },
+            cardMotionProvider: motionProvider
+        )
+        let window = UIWindow(frame: CGRect(x: 0, y: 0, width: 390, height: 844))
+        window.rootViewController = viewController
+        window.makeKeyAndVisible()
+        window.layoutIfNeeded()
+        testWindows.append(window)
+        let collectionView = try XCTUnwrap(
+            viewController.view.descendant(
+                withAccessibilityIdentifier: "homeThemesCollectionView"
+            ) as? UICollectionView
+        )
+        collectionView.layoutIfNeeded()
+        let sourceButton = try XCTUnwrap(
+            viewController.view.descendant(
+                withAccessibilityIdentifier: "homeCreateWithAIButton"
+            ) as? UIButton
+        )
+
+        sourceButton.sendActions(for: .touchUpInside)
+        drainAnimations()
+
+        let card = try XCTUnwrap(
+            viewController.view.descendant(
+                withAccessibilityIdentifier: "homeExpandedAIThemeCard"
+            )
+        )
+        let promptEditor = try XCTUnwrap(
+            card.descendant(withAccessibilityIdentifier: "aiThemePromptEditor") as? UITextView
+        )
+        let playButton = try XCTUnwrap(
+            card.descendant(
+                withAccessibilityIdentifier: "expandedAIThemeCardPlayButton"
+            ) as? UIButton
+        )
+        let frontView = try XCTUnwrap(
+            card.descendant(withAccessibilityIdentifier: "expandedAIThemeCardFrontView")
+        )
+        let backView = try XCTUnwrap(
+            card.descendant(withAccessibilityIdentifier: "expandedAIThemeCardBackView")
+        )
+
+        XCTAssertFalse(playButton.isEnabled)
+        XCTAssertFalse(frontView.isHidden)
+        XCTAssertTrue(backView.isHidden)
+        XCTAssertFalse(promptEditor.isScrollEnabled)
+
+        promptEditor.text = " \n\t "
+        promptEditor.delegate?.textViewDidChange?(promptEditor)
+
+        XCTAssertFalse(playButton.isEnabled)
+
+        promptEditor.text = "  Космос  \n"
+        promptEditor.delegate?.textViewDidChange?(promptEditor)
+
+        XCTAssertTrue(playButton.isEnabled)
+
+        playButton.sendActions(for: .touchUpInside)
+        drainAnimations()
+
+        XCTAssertTrue(frontView.isHidden)
+        XCTAssertFalse(backView.isHidden)
+        XCTAssertFalse(backView.accessibilityElementsHidden)
+        XCTAssertNil(
+            card.descendant(
+                withAccessibilityIdentifier: "expandedAIThemeCardParallaxCarrier"
+            )
+        )
+        XCTAssertNil(
+            card.descendant(
+                withAccessibilityIdentifier: "expandedThemeCardParallaxCarrier"
+            )
+        )
+        XCTAssertNil(parallaxPanGestureRecognizer(in: card))
+        XCTAssertFalse(
+            (card.gestureRecognizers ?? []).contains { $0 is UIPanGestureRecognizer }
+        )
+        XCTAssertEqual(motionProvider.startCallCount, 0)
+        XCTAssertFalse(motionProvider.isStarted)
     }
 
     func testStatisticsCardExpandsInlineTracksOnceAndRestoresTheGridWithoutQuizCancellation() throws {
@@ -390,9 +556,12 @@ final class HomeScreenVisualStateTests: XCTestCase {
             (correctAnswers: 5, totalQuestions: 5)
         ])
         let analytics = HomeAnalyticsTrackingSpy()
+        let motionProvider = HomeThemeCardMotionProviderFake()
         let viewController = QuizViewController(
             statisticsStore: statisticsStore,
-            analytics: analytics
+            analytics: analytics,
+            cardDeviceParallaxEnabledProvider: { true },
+            cardMotionProvider: motionProvider
         )
         let router = HomeRouterSpy()
         viewController.router = router
@@ -450,6 +619,12 @@ final class HomeScreenVisualStateTests: XCTestCase {
                 withAccessibilityIdentifier: "homeExpandedStatisticsCardTransition"
             )
         )
+        XCTAssertFalse(
+            (expandedCard.gestureRecognizers ?? []).contains { $0 is UIPanGestureRecognizer }
+        )
+        XCTAssertNil(parallaxPanGestureRecognizer(in: expandedCard))
+        XCTAssertEqual(motionProvider.startCallCount, 0)
+        XCTAssertFalse(motionProvider.isStarted)
 
         let expectedMetrics: [(id: String, title: String, value: String)] = [
             ("playedQuizzes", L10n.Statistics.playedQuizzes, "2"),
@@ -1306,13 +1481,13 @@ final class HomeScreenVisualStateTests: XCTestCase {
         XCTAssertTrue(descriptionScrollView.panGestureRecognizer.isEnabled)
         XCTAssertTrue(descriptionScrollView.isDirectionalLockEnabled)
         XCTAssertFalse(parallaxPan === descriptionScrollView.panGestureRecognizer)
-        XCTAssertFalse(
+        XCTAssertTrue(
             card.gestureRecognizer(
                 parallaxPan,
                 shouldRecognizeSimultaneouslyWith: descriptionScrollView.panGestureRecognizer
             )
         )
-        XCTAssertFalse(
+        XCTAssertTrue(
             card.gestureRecognizer(
                 descriptionScrollView.panGestureRecognizer,
                 shouldRecognizeSimultaneouslyWith: parallaxPan
@@ -1333,18 +1508,23 @@ final class HomeScreenVisualStateTests: XCTestCase {
         XCTAssertTrue(questionCountControl.isEnabled)
         XCTAssertTrue(startButton.isEnabled)
         XCTAssertTrue(backButton.isEnabled)
+        XCTAssertTrue(card.gestureRecognizerShouldBegin(parallaxPan))
         XCTAssertTrue(card.allowsParallaxPan(startingAt: descriptionScrollView))
         XCTAssertTrue(card.allowsParallaxPan(startingAt: descriptionLabel))
-        XCTAssertFalse(card.allowsParallaxPan(startingAt: questionCountControl))
-        XCTAssertFalse(card.allowsParallaxPan(startingAt: startButton))
-        XCTAssertFalse(card.allowsParallaxPan(startingAt: backButton))
+        XCTAssertTrue(card.allowsParallaxPan(startingAt: questionCountControl))
+        XCTAssertTrue(card.allowsParallaxPan(startingAt: startButton))
+        XCTAssertTrue(card.allowsParallaxPan(startingAt: backButton))
         XCTAssertTrue(card.allowsParallaxPan(startingAt: backTitleLabel))
         XCTAssertTrue(card.allowsParallaxPan(startingAt: backSurfaceButton))
-        XCTAssertTrue(
-            hitView(in: card, for: questionCountControl)?.isDescendant(of: questionCountControl) == true
-        )
-        XCTAssertTrue(hitView(in: card, for: startButton)?.isDescendant(of: startButton) == true)
-        XCTAssertTrue(hitView(in: card, for: backButton)?.isDescendant(of: backButton) == true)
+        let questionCountHitView = try XCTUnwrap(hitView(in: card, for: questionCountControl))
+        let startHitView = try XCTUnwrap(hitView(in: card, for: startButton))
+        let backHitView = try XCTUnwrap(hitView(in: card, for: backButton))
+        XCTAssertTrue(questionCountHitView.isDescendant(of: questionCountControl))
+        XCTAssertTrue(startHitView.isDescendant(of: startButton))
+        XCTAssertTrue(backHitView.isDescendant(of: backButton))
+        XCTAssertTrue(card.allowsParallaxPan(startingAt: questionCountHitView))
+        XCTAssertTrue(card.allowsParallaxPan(startingAt: startHitView))
+        XCTAssertTrue(card.allowsParallaxPan(startingAt: backHitView))
 
         questionCountControl.selectedSegmentIndex = 0
         questionCountControl.sendActions(for: .valueChanged)
@@ -1354,6 +1534,80 @@ final class HomeScreenVisualStateTests: XCTestCase {
         XCTAssertEqual(selectedQuestionCount, 5)
         XCTAssertEqual(startCallCount, 1)
         XCTAssertEqual(backCallCount, 1)
+    }
+
+    func testExpandedThemeBackCenterSupportsVerticalTiltAndDescriptionScrollTogether() throws {
+        let card = makeHostedExpandedThemeCard(
+            motionProvider: HomeThemeCardMotionProviderFake(isAvailable: false)
+        )
+        let longDescription = Array(
+            repeating: "A deliberately long theme description that must scroll vertically.",
+            count: 24
+        ).joined(separator: " ")
+        card.configure(
+            theme: makeTheme(
+                name: "Музыка",
+                questionCount: 5,
+                description: longDescription
+            ),
+            appearance: SnapshotSupport.appearance(designStyle: .clean),
+            availableQuestionCounts: [5],
+            selectedQuestionCount: 5
+        )
+        card.setFace(.back, animated: false)
+        card.setParallaxPresentationPhase(.back)
+        card.layoutIfNeeded()
+
+        let parallaxCarrier = try XCTUnwrap(
+            card.descendant(withAccessibilityIdentifier: "expandedThemeCardParallaxCarrier")
+        )
+        let parallaxPan = try XCTUnwrap(parallaxPanGestureRecognizer(in: card))
+        let descriptionScrollView = try XCTUnwrap(
+            card.descendant(withAccessibilityIdentifier: "descriptionScrollView") as? UIScrollView
+        )
+        let centerInCard = descriptionScrollView.convert(
+            CGPoint(
+                x: descriptionScrollView.bounds.midX,
+                y: descriptionScrollView.bounds.midY
+            ),
+            to: card
+        )
+        let centerHitView = try XCTUnwrap(card.hitTest(centerInCard, with: nil))
+
+        XCTAssertGreaterThan(
+            descriptionScrollView.contentSize.height,
+            descriptionScrollView.bounds.height
+        )
+        XCTAssertTrue(
+            centerHitView === descriptionScrollView ||
+                centerHitView.isDescendant(of: descriptionScrollView)
+        )
+        XCTAssertTrue(card.allowsParallaxPan(startingAt: centerHitView))
+        XCTAssertTrue(
+            card.gestureRecognizer(
+                parallaxPan,
+                shouldRecognizeSimultaneouslyWith: descriptionScrollView.panGestureRecognizer
+            )
+        )
+
+        card.handleFrontParallaxPan(state: .began, translation: .zero, velocity: .zero)
+        card.handleFrontParallaxPan(
+            state: .changed,
+            translation: CGPoint(x: 0, y: 72),
+            velocity: CGPoint(x: 0, y: 180)
+        )
+
+        XCTAssertFalse(CATransform3DIsIdentity(parallaxCarrier.layer.transform))
+        XCTAssertTrue(descriptionScrollView.isScrollEnabled)
+        XCTAssertTrue(descriptionScrollView.panGestureRecognizer.isEnabled)
+
+        card.handleFrontParallaxPan(
+            state: .cancelled,
+            translation: CGPoint(x: 0, y: 72),
+            velocity: .zero
+        )
+        drainAnimations(0.45)
+        XCTAssertTrue(CATransform3DIsIdentity(parallaxCarrier.layer.transform))
     }
 
     func testExpandedThemeStartStopsBackMotionBeforeRoutingAndIgnoresRepeatedStart() throws {
@@ -2562,7 +2816,11 @@ final class HomeScreenVisualStateTests: XCTestCase {
         return store
     }
 
-    private func makeTheme(name: String, questionCount: Int = 0) -> QuizTheme {
+    private func makeTheme(
+        name: String,
+        questionCount: Int = 0,
+        description: String = "Synthetic home-screen test theme"
+    ) -> QuizTheme {
         let id: String
         switch name {
         case "Музыка":
@@ -2586,7 +2844,7 @@ final class HomeScreenVisualStateTests: XCTestCase {
         return QuizTheme(
             id: id,
             theme: name,
-            themeDescription: "Synthetic home-screen test theme",
+            themeDescription: description,
             questions: questions
         )
     }
@@ -2737,7 +2995,6 @@ private final class HomeRouterSpy: QuizRouting {
     private(set) var showQuestionCallCount = 0
     private(set) var showResultCallCount = 0
     private(set) var showStatisticsCallCount = 0
-    private(set) var showAIThemeCreationCallCount = 0
     private(set) var showSettingsCallCount = 0
     private(set) var closeDescriptionCallCount = 0
     private(set) var closeStatisticsCallCount = 0
@@ -2752,7 +3009,6 @@ private final class HomeRouterSpy: QuizRouting {
     }
     func showResult(_ result: QuizResultState) { showResultCallCount += 1 }
     func showStatistics() { showStatisticsCallCount += 1 }
-    func showAIThemeCreation() { showAIThemeCreationCallCount += 1 }
     func showSettings() { showSettingsCallCount += 1 }
     func closeDescription() { closeDescriptionCallCount += 1 }
     func closeStatistics() { closeStatisticsCallCount += 1 }

@@ -158,7 +158,6 @@ final class ExpandedThemeCardView: UIView, UIGestureRecognizerDelegate {
     private var isApplicationActive = true
     private var isDeviceMotionActive = false
     private var isTouchParallaxActive = false
-    private var parallaxPanStartedInDescription = false
     private var touchParallaxStartInput = HomeThemeCardParallaxInput.zero
     private var renderedParallaxInput = HomeThemeCardParallaxInput.zero
     private var parallaxReturnAnimator: UIViewPropertyAnimator?
@@ -790,14 +789,10 @@ final class ExpandedThemeCardView: UIView, UIGestureRecognizerDelegate {
         cardParallaxPanGestureRecognizer.cancelsTouchesInView = true
         cardParallaxPanGestureRecognizer.delaysTouchesBegan = false
         cardParallaxPanGestureRecognizer.delegate = self
-        // The outer card owns one pan for both faces. The delegate keeps front
-        // controls and back controls independent. On the description, the
-        // gesture delegate routes horizontal movement to parallax and vertical
-        // movement to scrolling.
+        // The outer card owns one pan for both faces. On the back, it recognizes
+        // alongside the description scroll view so the whole card remains a
+        // continuous tilt surface without taking scrolling away from the user.
         addGestureRecognizer(cardParallaxPanGestureRecognizer)
-        descriptionScrollView.panGestureRecognizer.require(
-            toFail: cardParallaxPanGestureRecognizer
-        )
         backTapGestureRecognizer.require(toFail: cardParallaxPanGestureRecognizer)
 
         frontSurfaceButton.addTarget(self, action: #selector(flipTapped), for: .touchUpInside)
@@ -1384,7 +1379,6 @@ final class ExpandedThemeCardView: UIView, UIGestureRecognizerDelegate {
     private func finishTouchParallax(velocity: CGPoint) {
         guard isTouchParallaxActive else { return }
         isTouchParallaxActive = false
-        parallaxPanStartedInDescription = false
 
         let liveInput = presentationParallaxInput()
         applyParallaxInput(liveInput, disablesImplicitAnimations: true)
@@ -1444,7 +1438,6 @@ final class ExpandedThemeCardView: UIView, UIGestureRecognizerDelegate {
 
     private func cancelTouchParallaxAndReset() {
         isTouchParallaxActive = false
-        parallaxPanStartedInDescription = false
         touchParallaxStartInput = .zero
         parallaxReturnAnimator?.stopAnimation(true)
         parallaxReturnAnimator = nil
@@ -1562,31 +1555,7 @@ final class ExpandedThemeCardView: UIView, UIGestureRecognizerDelegate {
 
     override func gestureRecognizerShouldBegin(_ gestureRecognizer: UIGestureRecognizer) -> Bool {
         guard gestureRecognizer === cardParallaxPanGestureRecognizer else { return true }
-        guard canUseTouchParallax else { return false }
-
-        let permitsParallax = HomeThemeCardParallaxGesturePolicy.permitsParallax(
-            startedInDescription: parallaxPanStartedInDescription,
-            descriptionCanScrollVertically: descriptionCanScrollVertically,
-            velocity: cardParallaxPanGestureRecognizer.velocity(in: self)
-        )
-        if !permitsParallax {
-            parallaxPanStartedInDescription = false
-        }
-        return permitsParallax
-    }
-
-    private var descriptionCanScrollVertically: Bool {
-        descriptionScrollView.layoutIfNeeded()
-        let insets = descriptionScrollView.adjustedContentInset
-        let visibleHeight = max(
-            descriptionScrollView.bounds.height - insets.top - insets.bottom,
-            0
-        )
-        return descriptionScrollView.contentSize.height > visibleHeight + 1
-    }
-
-    private func isInDescriptionScrollView(_ view: UIView) -> Bool {
-        view === descriptionScrollView || view.isDescendant(of: descriptionScrollView)
+        return canUseTouchParallax
     }
 
     func allowsParallaxPan(startingAt touchedView: UIView?) -> Bool {
@@ -1605,28 +1574,19 @@ final class ExpandedThemeCardView: UIView, UIGestureRecognizerDelegate {
         case .back:
             let touchesBack = touchedView === backFaceView ||
                 touchedView.isDescendant(of: backFaceView)
-            guard touchesBack else { return false }
-
-            var currentView: UIView? = touchedView
-            while let view = currentView, view !== backFaceView {
-                if let control = view as? UIControl,
-                   control !== backSurfaceButton {
-                    return false
-                }
-                currentView = view.superview
-            }
-            return true
+            // A pan has its own movement threshold. Let it begin anywhere on
+            // the back, including over controls: a stationary touch still
+            // reaches the control, while an intentional drag cancels that
+            // touch and drives the card tilt. Filtering UIControl descendants
+            // left the whole central controls column as a dead parallax
+            // zone, so the gesture appeared to work only near the edges.
+            return touchesBack
         }
     }
 
     func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldReceive touch: UITouch) -> Bool {
         if gestureRecognizer === cardParallaxPanGestureRecognizer {
-            parallaxPanStartedInDescription = touch.view.map(isInDescriptionScrollView) ?? false
-            let permitsPan = allowsParallaxPan(startingAt: touch.view)
-            if !permitsPan {
-                parallaxPanStartedInDescription = false
-            }
-            return permitsPan
+            return allowsParallaxPan(startingAt: touch.view)
         }
         guard gestureRecognizer === backTapGestureRecognizer else { return true }
         guard
@@ -1649,7 +1609,14 @@ final class ExpandedThemeCardView: UIView, UIGestureRecognizerDelegate {
         _ gestureRecognizer: UIGestureRecognizer,
         shouldRecognizeSimultaneouslyWith otherGestureRecognizer: UIGestureRecognizer
     ) -> Bool {
-        false
+        let isParallaxAndDescriptionPair =
+            (gestureRecognizer === cardParallaxPanGestureRecognizer &&
+                otherGestureRecognizer === descriptionScrollView.panGestureRecognizer) ||
+            (gestureRecognizer === descriptionScrollView.panGestureRecognizer &&
+                otherGestureRecognizer === cardParallaxPanGestureRecognizer)
+        guard isParallaxAndDescriptionPair else { return false }
+        return HomeThemeCardParallaxGesturePolicy
+            .permitsSimultaneousDescriptionScroll(on: face)
     }
 
     @objc private func closeTapped() {
