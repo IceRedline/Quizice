@@ -404,7 +404,7 @@ final class ExpandedThemeCardView: UIView, UIGestureRecognizerDelegate {
         )
         configureIconButton(
             infoButton,
-            systemImageName: "info",
+            systemImageName: "play.fill",
             accessibilityIdentifier: AccessibilityID.infoButton,
             accessibilityLabel: L10n.ThemeCard.showDescriptionAccessibilityLabel
         )
