@@ -1,5 +1,4 @@
 import UIKit
-import SwiftUI
 
 final class QuizViewController: BaseQuizViewController, QuizViewControllerProtocol, ThemeCollectionDelegate, QuizCardSlideTransitionSource, QuizHomeReturnHandling {
     private enum Content {
@@ -23,12 +22,15 @@ final class QuizViewController: BaseQuizViewController, QuizViewControllerProtoc
         static let settingsVisualSurface = "homeSettingsVisualSurface"
         static let expandedCard = "homeExpandedThemeCard"
         static let expandedStatisticsCard = "homeExpandedStatisticsCard"
+        static let expandedAIThemeCard = "homeExpandedAIThemeCard"
         static let expandedCardBackdrop = "homeExpandedThemeCardBackdrop"
         static let expandedCardBackdropDismissButton = "homeExpandedThemeCardBackdropDismissButton"
         static let expandedCardTransition = "homeExpandedThemeCardTransition"
         static let expandedStatisticsCardTransition = "homeExpandedStatisticsCardTransition"
+        static let expandedAIThemeCardTransition = "homeExpandedAIThemeCardTransition"
         static let expandedCardSourceSnapshot = "homeExpandedThemeCardSourceSnapshot"
         static let expandedStatisticsCardSourceSnapshot = "homeExpandedStatisticsCardSourceSnapshot"
+        static let expandedAIThemeCardSourceSnapshot = "homeExpandedAIThemeCardSourceSnapshot"
     }
 
     private enum Layout {
@@ -147,6 +149,7 @@ final class QuizViewController: BaseQuizViewController, QuizViewControllerProtoc
     private let themeRepository: ThemeRepository
     private let session: QuizSessionManaging
     private let statisticsStore: StatisticsStore
+    private let aiQuizThemeService: AIQuizThemeServiceProtocol
     private let analytics: AnalyticsTracking
     private let themesCollectionService: ThemesCollectionService
     private let motivationPromptProvider: (String?) -> String
@@ -155,12 +158,16 @@ final class QuizViewController: BaseQuizViewController, QuizViewControllerProtoc
     private let cardReduceTransparencyProvider: () -> Bool
     private let cardDeviceParallaxEnabledProvider: () -> Bool
     private let cardMotionProvider: HomeThemeCardMotionProviding
+    private let aiNow: () -> Date
+    private let aiRequestIDProvider: () -> UUID
     private let animationsEngine = Animations()
     private let motivationBlurContext = CIContext(options: nil)
     private var motivationBlurSnapshotSignature: String?
     private var homeCardState = HomeThemeCardState()
+    private var homeAIThemeCardState = HomeAIThemeCardState()
     private var expandedThemeCardView: ExpandedThemeCardView?
     private var expandedStatisticsCardView: ExpandedStatisticsCardView?
+    private var expandedAIThemeCardView: ExpandedAIThemeCardView?
     private var expandedCardBackdropView: UIView?
     private var expandedCardBackdropDismissButton: UIButton?
     private var expandedCardBlurView: UIVisualEffectView?
@@ -172,9 +179,12 @@ final class QuizViewController: BaseQuizViewController, QuizViewControllerProtoc
     private var expandedCardAnimator: UIViewPropertyAnimator?
     private var expandedTheme: QuizTheme?
     private var expandedStatisticsSummary: StatisticsSummary?
+    private var aiSubmissionTask: Task<Void, Never>?
+    private var aiProgressTask: Task<Void, Never>?
     private weak var quizTransitionSourceView: UIView?
     private var isQuizLaunchPending = false
     private var closeAfterFlipToFront = false
+    private var focusAIThemePromptAfterFlip = false
     private var expandedCardNeedsRefresh = false
     private var expandedCardScreenViewTracked = false
     private var expandedCardLastTrackedFace: HomeThemeCardFace?
@@ -184,6 +194,7 @@ final class QuizViewController: BaseQuizViewController, QuizViewControllerProtoc
     var cardSlideTransitionSourceView: UIView {
         quizTransitionSourceView
             ?? expandedThemeCardView?.transitionSourceView
+            ?? expandedAIThemeCardView
             ?? themesCollectionView
     }
 
@@ -191,7 +202,8 @@ final class QuizViewController: BaseQuizViewController, QuizViewControllerProtoc
 
     private var expandedCardContentView: UIView? {
         if let expandedThemeCardView { return expandedThemeCardView }
-        return expandedStatisticsCardView
+        if let expandedStatisticsCardView { return expandedStatisticsCardView }
+        return expandedAIThemeCardView
     }
 
     private var startupAnimatedViews: [UIView] {
@@ -202,17 +214,21 @@ final class QuizViewController: BaseQuizViewController, QuizViewControllerProtoc
         themeRepository: ThemeRepository = QuizFactory.shared,
         session: QuizSessionManaging = QuizSessionStore.shared,
         statisticsStore: StatisticsStore = StatisticsStore(),
+        aiQuizThemeService: AIQuizThemeServiceProtocol = MockAIQuizThemeService(),
         analytics: AnalyticsTracking = AppMetricaAnalyticsTracker.shared,
         motivationPromptProvider: @escaping (String?) -> String = QuizViewController.randomMotivationPrompt,
         randomThemeIDProvider: @escaping ([QuizTheme]) -> String? = { $0.randomElement()?.stableID },
         cardReduceMotionProvider: @escaping () -> Bool = { UIAccessibility.isReduceMotionEnabled },
         cardReduceTransparencyProvider: @escaping () -> Bool = { UIAccessibility.isReduceTransparencyEnabled },
         cardDeviceParallaxEnabledProvider: @escaping () -> Bool = { true },
-        cardMotionProvider: HomeThemeCardMotionProviding = CoreMotionHomeThemeCardMotionProvider()
+        cardMotionProvider: HomeThemeCardMotionProviding = CoreMotionHomeThemeCardMotionProvider(),
+        aiNow: @escaping () -> Date = Date.init,
+        aiRequestIDProvider: @escaping () -> UUID = UUID.init
     ) {
         self.themeRepository = themeRepository
         self.session = session
         self.statisticsStore = statisticsStore
+        self.aiQuizThemeService = aiQuizThemeService
         self.analytics = analytics
         self.motivationPromptProvider = motivationPromptProvider
         self.randomThemeIDProvider = randomThemeIDProvider
@@ -224,7 +240,14 @@ final class QuizViewController: BaseQuizViewController, QuizViewControllerProtoc
         self.cardReduceTransparencyProvider = cardReduceTransparencyProvider
         self.cardDeviceParallaxEnabledProvider = cardDeviceParallaxEnabledProvider
         self.cardMotionProvider = cardMotionProvider
+        self.aiNow = aiNow
+        self.aiRequestIDProvider = aiRequestIDProvider
         super.init(nibName: nil, bundle: nil)
+    }
+
+    deinit {
+        aiSubmissionTask?.cancel()
+        aiProgressTask?.cancel()
     }
 
     @available(*, unavailable)
@@ -272,6 +295,7 @@ final class QuizViewController: BaseQuizViewController, QuizViewControllerProtoc
            homeCardState.phase == .expandedFront || homeCardState.phase == .expandedBack {
             expandedThemeCardView?.frame = expandedThemeCardFrame()
             expandedStatisticsCardView?.frame = expandedThemeCardFrame()
+            expandedAIThemeCardView?.frame = expandedThemeCardFrame()
         }
         if !session.startup1st {
             updateMotivationHeaderVisibility(for: themesCollectionView)
@@ -728,7 +752,16 @@ final class QuizViewController: BaseQuizViewController, QuizViewControllerProtoc
 
     func aiThemeButtonTouchedUpInside(_ sender: UIButton) {
         animationsEngine.animateUpFloat(sender)
-        showAIThemeCreationView()
+        guard homeCardState.phase == .grid, !isQuizLaunchPending else { return }
+        let effect = HomeThemeCardReducer.reduce(
+            state: &homeCardState,
+            action: .presentAI
+        )
+        guard let effect else { return }
+        sender.layer.removeAllAnimations()
+        sender.transform = .identity
+        sender.alpha = Appearance.visibleAlpha
+        handleHomeCardEffect(effect, sourceView: sender)
     }
 
     func statisticsButtonTouchedUpInside(_ sender: UIButton) {
@@ -830,14 +863,25 @@ final class QuizViewController: BaseQuizViewController, QuizViewControllerProtoc
                 from: sourceView
             )
 
+        case .expandAI:
+            guard let sourceView else { return }
+            expandAIThemeCard(from: sourceView)
+
         case let .flip(face):
-            flipExpandedThemeCard(to: face)
+            if homeCardState.isAIThemePresented {
+                flipExpandedAIThemeCard(to: face)
+            } else {
+                flipExpandedThemeCard(to: face)
+            }
 
         case .collapse:
             collapseExpandedThemeCard()
 
         case .collapseStatistics:
             collapseExpandedStatisticsCard()
+
+        case .collapseAI:
+            collapseExpandedAIThemeCard()
 
         case .reverseExpansion:
             reverseExpandedCardTransition()
@@ -1137,6 +1181,146 @@ final class QuizViewController: BaseQuizViewController, QuizViewControllerProtoc
         animator.startAnimation()
     }
 
+    private func expandAIThemeCard(from sourceView: UIView) {
+        guard
+            expandedThemeCardView == nil,
+            expandedStatisticsCardView == nil,
+            expandedAIThemeCardView == nil,
+            expandedCardBackdropView == nil
+        else { return }
+
+        homeAIThemeCardState = HomeAIThemeCardState()
+        expandedCardScreenViewTracked = false
+        expandedCardLastTrackedFace = .front
+        view.layoutIfNeeded()
+        let sourceFrame = sourceView.convert(sourceView.bounds, to: view)
+        let targetFrame = expandedThemeCardFrame()
+        let appearance = currentAppearance()
+        let reduceMotion = cardReduceMotionProvider()
+        let snapshotView = sourceView.snapshotView(afterScreenUpdates: false)
+            ?? makeSnapshotFallback(from: sourceView)
+        snapshotView.frame = sourceFrame
+        snapshotView.layer.cornerRadius = sourceView.layer.cornerRadius
+        snapshotView.layer.cornerCurve = sourceView.layer.cornerCurve
+        snapshotView.layer.masksToBounds = true
+        snapshotView.layer.zPosition = Appearance.expandedCardLayerZPosition + 1
+        snapshotView.accessibilityIdentifier = "homeExpandedAIThemeCardReducedMotionSourceSnapshot"
+
+        let sourceContentView = makeAIThemeCardSourceContent(from: sourceView)
+        sourceContentView.accessibilityIdentifier = AccessibilityID.expandedAIThemeCardSourceSnapshot
+
+        themesCollectionService.isAIThemePresented = true
+        themesCollectionView.isUserInteractionEnabled = false
+        updateCollectionScrollAvailability()
+        setBackgroundAccessibilityHidden(true)
+
+        let backdropView = makeExpandedCardBackdrop(appearance: appearance)
+        backdropView.frame = view.bounds
+        backdropView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+        backdropView.layer.zPosition = Appearance.expandedCardBackdropLayerZPosition
+        view.addSubview(backdropView)
+        expandedCardBackdropView = backdropView
+        installExpandedCardBackdropDismissButton()
+
+        let cardView = ExpandedAIThemeCardView(frame: targetFrame)
+        cardView.reduceMotionProvider = cardReduceMotionProvider
+        cardView.accessibilityIdentifier = AccessibilityID.expandedAIThemeCard
+        cardView.layer.zPosition = Appearance.expandedCardLayerZPosition
+        cardView.configure(state: homeAIThemeCardState, appearance: appearance)
+        wireExpandedAIThemeCardActions(cardView)
+        cardView.layoutIfNeeded()
+        expandedAIThemeCardView = cardView
+
+        if reduceMotion {
+            cardView.alpha = 0
+            view.addSubview(cardView)
+            view.addSubview(snapshotView)
+            installExpandedCardInteractionButton(tracking: [cardView, snapshotView])
+        } else {
+            cardView.setTransitionShadowHidden(true)
+            cardView.setTransitionSurfaceHidden(true)
+            let transitionView = makeAIThemeCardTransitionView(
+                frame: sourceFrame,
+                targetFrame: targetFrame,
+                surfaceColor: sourceView.backgroundColor ?? appearance.card.backgroundColor,
+                borderColor: transitionBorderColor(
+                    for: sourceView,
+                    fallback: appearance.card.borderColor
+                ),
+                borderWidth: sourceView.layer.borderWidth,
+                initialCornerRadius: sourceView.layer.cornerRadius,
+                initialVisualState: HomeThemeCardTransitionVisualState(progress: 0),
+                initialShadow: .none
+            )
+            transitionView.layer.zPosition = Appearance.expandedCardLayerZPosition
+            view.addSubview(transitionView)
+            transitionView.install(
+                destinationView: cardView,
+                sourceContentView: sourceContentView,
+                visualState: HomeThemeCardTransitionVisualState(progress: 0)
+            )
+            expandedCardTransitionView = transitionView
+            installExpandedCardInteractionButton(tracking: [transitionView])
+        }
+
+        expandedCardSnapshotView = snapshotView
+        expandedCardSourceContentView = sourceContentView
+        expandedCardSourceContentGeometry = nil
+
+        if reduceMotion, expandedCardBlurView == nil {
+            backdropView.alpha = 0
+        }
+
+        let animator: UIViewPropertyAnimator
+        if reduceMotion {
+            animator = UIViewPropertyAnimator(
+                duration: AnimationTiming.reducedMotionDuration,
+                curve: .easeInOut
+            )
+        } else {
+            animator = UIViewPropertyAnimator(
+                duration: AnimationTiming.cardExpansionDuration,
+                dampingRatio: AnimationTiming.cardExpansionDampingRatio
+            )
+        }
+
+        animator.addAnimations { [weak self, weak snapshotView, weak cardView, weak backdropView] in
+            guard let self else { return }
+            if let blurView = self.expandedCardBlurView {
+                blurView.effect = UIBlurEffect(style: .systemMaterial)
+            } else {
+                backdropView?.alpha = 1
+            }
+
+            if reduceMotion {
+                snapshotView?.alpha = 0
+                cardView?.alpha = 1
+            } else {
+                self.expandedCardTransitionView?.move(
+                    to: targetFrame,
+                    cornerRadius: appearance.card.cornerRadius,
+                    visualState: HomeThemeCardTransitionVisualState(progress: 1),
+                    shadow: appearance.card.shadow,
+                    surfaceColor: appearance.card.backgroundColor,
+                    borderColor: appearance.card.borderColor,
+                    borderWidth: appearance.card.borderWidth
+                )
+            }
+        }
+        animator.addCompletion { [weak self, weak animator] position in
+            guard let self, let animator else { return }
+            self.completeExpandedCardAnimation(
+                animator: animator,
+                position: position,
+                expandedPosition: .end,
+                targetFrame: targetFrame
+            )
+        }
+
+        expandedCardAnimator = animator
+        animator.startAnimation()
+    }
+
     private func wireExpandedThemeCardActions(_ cardView: ExpandedThemeCardView) {
         cardView.onClose = { [weak self] in
             self?.sendHomeCardAction(.closeRequested)
@@ -1164,6 +1348,313 @@ final class QuizViewController: BaseQuizViewController, QuizViewControllerProtoc
         }
         cardView.onAccessibilityEscape = { [weak self] in
             self?.sendHomeCardAction(.closeRequested)
+        }
+    }
+
+    private func wireExpandedAIThemeCardActions(_ cardView: ExpandedAIThemeCardView) {
+        cardView.onClose = { [weak self] in
+            self?.requestExpandedCardClose()
+        }
+        cardView.onFlip = { [weak self] in
+            self?.handleExpandedThemeCardFlipTap()
+        }
+        cardView.onBack = { [weak self] in
+            guard let self else { return }
+            if self.homeAIThemeCardState.isSubmitting {
+                self.sendAIThemeCardAction(.cancelRequested)
+            }
+            self.focusAIThemePromptAfterFlip = true
+            self.handleExpandedThemeCardFlipTap()
+        }
+        cardView.onPromptChanged = { [weak self] prompt in
+            self?.sendAIThemeCardAction(.promptChanged(prompt))
+        }
+        cardView.onQuestionCountChanged = { [weak self] count in
+            self?.sendAIThemeCardAction(.questionCountSelected(count))
+        }
+        cardView.onDifficultyChanged = { [weak self] difficulty in
+            self?.sendAIThemeCardAction(.difficultySelected(difficulty))
+        }
+        cardView.onSubmit = { [weak self] in
+            guard let self else { return }
+            self.sendAIThemeCardAction(
+                .submitRequested(
+                    requestID: self.aiRequestIDProvider(),
+                    locale: AppLocalizationStore.shared.resolvedLocale,
+                    now: self.aiNow()
+                )
+            )
+        }
+        cardView.onAccessibilityEscape = { [weak self] in
+            self?.handleExpandedCardAccessibilityEscape()
+        }
+    }
+
+    private func sendAIThemeCardAction(_ action: HomeAIThemeCardAction) {
+        let effect = HomeAIThemeCardReducer.reduce(
+            state: &homeAIThemeCardState,
+            action: action
+        )
+        refreshExpandedAIThemeCard()
+        guard let effect else { return }
+        handleAIThemeCardEffect(effect)
+    }
+
+    private func handleAIThemeCardEffect(_ effect: HomeAIThemeCardEffect) {
+        switch effect {
+        case let .flipAvailabilityChanged(isAllowed):
+            _ = HomeThemeCardReducer.reduce(
+                state: &homeCardState,
+                action: .flipAvailabilityChanged(isAllowed)
+            )
+
+        case let .submit(submission):
+            startAIThemeSubmission(submission)
+
+        case let .cancelSubmission(submission):
+            cancelAIThemeSubmission(submission)
+
+        case .submissionCompleted:
+            break
+
+        case let .presentAlert(alert):
+            presentAIThemeGenerationAlert(alert)
+
+        case .focusPrompt:
+            focusAIThemePrompt()
+        }
+    }
+
+    private func refreshExpandedAIThemeCard() {
+        guard let cardView = expandedAIThemeCardView else { return }
+        let face = cardView.face
+        cardView.configure(state: homeAIThemeCardState, appearance: currentAppearance())
+        cardView.setFace(face, animated: false)
+    }
+
+    private func startAIThemeSubmission(_ submission: HomeAIThemeCardSubmission) {
+        guard homeAIThemeCardState.activeSubmission?.id == submission.id else { return }
+
+        aiSubmissionTask?.cancel()
+        aiProgressTask?.cancel()
+        analytics.track(
+            .aiGenerationStarted(
+                locale: submission.configuration.locale.identifier,
+                promptLength: submission.configuration.theme.count,
+                questionCount: submission.configuration.questionCount,
+                difficulty: submission.configuration.difficulty
+            )
+        )
+        AppLog.quiz.info(
+            "AI quiz submission started: locale=\(submission.configuration.locale.identifier, privacy: .public) prompt_length=\(submission.configuration.theme.count, privacy: .public) questions=\(submission.configuration.questionCount, privacy: .public) difficulty=\(submission.configuration.difficulty.rawValue, privacy: .public)"
+        )
+
+        startAIThemeProgressUpdates(for: submission.id)
+        let service = aiQuizThemeService
+        aiSubmissionTask = Task { @MainActor [weak self] in
+            do {
+                let theme = try await service.generateQuizTheme(
+                    configuration: submission.configuration
+                )
+                try Task.checkCancellation()
+                self?.completeAIThemeSubmission(
+                    theme: theme,
+                    submission: submission
+                )
+            } catch is CancellationError {
+                return
+            } catch {
+                guard !Task.isCancelled else { return }
+                self?.failAIThemeSubmission(error: error, submission: submission)
+            }
+        }
+    }
+
+    private func startAIThemeProgressUpdates(for requestID: UUID) {
+        aiProgressTask?.cancel()
+        aiProgressTask = Task { @MainActor [weak self] in
+            let updates: [(UInt64, HomeAIGenerationPhase)] = [
+                (1_000_000_000, .sending),
+                (1_500_000_000, .generating),
+                (3_500_000_000, .almostReady)
+            ]
+            do {
+                for (delay, phase) in updates {
+                    try await Task.sleep(nanoseconds: delay)
+                    try Task.checkCancellation()
+                    guard
+                        let self,
+                        self.homeAIThemeCardState.activeSubmission?.id == requestID
+                    else {
+                        return
+                    }
+                    _ = HomeAIThemeCardReducer.reduce(
+                        state: &self.homeAIThemeCardState,
+                        action: .progressAdvanced(requestID: requestID, phase: phase)
+                    )
+                    self.refreshExpandedAIThemeCard()
+                }
+            } catch {
+                return
+            }
+        }
+    }
+
+    private func completeAIThemeSubmission(
+        theme: QuizTheme,
+        submission: HomeAIThemeCardSubmission
+    ) {
+        guard
+            homeAIThemeCardState.activeSubmission?.id == submission.id,
+            let router
+        else { return }
+        guard case .submissionCompleted = HomeAIThemeCardReducer.reduce(
+            state: &homeAIThemeCardState,
+            action: .submissionSucceeded(requestID: submission.id)
+        ) else { return }
+
+        aiSubmissionTask = nil
+        aiProgressTask?.cancel()
+        aiProgressTask = nil
+        refreshExpandedAIThemeCard()
+        analytics.track(
+            .aiGenerationSucceeded(
+                locale: submission.configuration.locale.identifier,
+                questionCount: theme.questions.count,
+                difficulty: submission.configuration.difficulty,
+                durationMilliseconds: aiSubmissionDurationMilliseconds(submission)
+            )
+        )
+        AppLog.quiz.info(
+            "AI quiz result accepted: questions=\(theme.questions.count, privacy: .public)"
+        )
+
+        session.chosenTheme = ThemeModel(quizTheme: theme)
+        session.questionsCount = theme.questions.count
+        analytics.track(.themeSelected(theme: .ai, method: .ai))
+
+        UIView.performWithoutAnimation {
+            removeExpandedThemeCardViews()
+            _ = HomeThemeCardReducer.reduce(state: &homeCardState, action: .reset)
+            restoreGridAfterExpandedCard(presentedCard: nil)
+            view.layoutIfNeeded()
+        }
+        router.showDescription()
+    }
+
+    private func failAIThemeSubmission(
+        error: Error,
+        submission: HomeAIThemeCardSubmission
+    ) {
+        guard homeAIThemeCardState.activeSubmission?.id == submission.id else { return }
+        let alert = AIQuizGenerationAlert(error: error)
+        guard let effect = HomeAIThemeCardReducer.reduce(
+            state: &homeAIThemeCardState,
+            action: .submissionFailed(requestID: submission.id, alert: alert)
+        ) else { return }
+
+        aiSubmissionTask = nil
+        aiProgressTask?.cancel()
+        aiProgressTask = nil
+        let errorCode = (error as? YandexAIQuizThemeServiceError)?.analyticsCode ?? "unexpected"
+        analytics.track(
+            .aiGenerationFailed(
+                locale: submission.configuration.locale.identifier,
+                errorCode: errorCode,
+                durationMilliseconds: aiSubmissionDurationMilliseconds(submission)
+            )
+        )
+        analytics.reportOperationalError(error, context: .aiGeneration(code: errorCode))
+        refreshExpandedAIThemeCard()
+        handleAIThemeCardEffect(effect)
+    }
+
+    private func cancelAIThemeSubmission(_ submission: HomeAIThemeCardSubmission) {
+        aiSubmissionTask?.cancel()
+        aiSubmissionTask = nil
+        aiProgressTask?.cancel()
+        aiProgressTask = nil
+        analytics.track(
+            .aiGenerationCancelled(
+                locale: submission.configuration.locale.identifier,
+                durationMilliseconds: aiSubmissionDurationMilliseconds(submission)
+            )
+        )
+        refreshExpandedAIThemeCard()
+    }
+
+    private func aiSubmissionDurationMilliseconds(
+        _ submission: HomeAIThemeCardSubmission
+    ) -> Int {
+        max(Int(aiNow().timeIntervalSince(submission.startedAt) * 1_000), 0)
+    }
+
+    private func presentAIThemeGenerationAlert(_ alert: AIQuizGenerationAlert) {
+        guard
+            homeAIThemeCardState.activeAlert == alert,
+            presentedViewController == nil
+        else { return }
+
+        let alertController = UIAlertController(
+            title: alert.title,
+            message: alert.message,
+            preferredStyle: .alert
+        )
+        if alert.canRetry {
+            let retryAction = UIAlertAction(
+                title: L10n.AITheme.retry,
+                style: .default
+            ) { [weak self] _ in
+                guard let self else { return }
+                self.clearAIThemeGenerationAlert()
+                self.sendAIThemeCardAction(
+                    .submitRequested(
+                        requestID: self.aiRequestIDProvider(),
+                        locale: AppLocalizationStore.shared.resolvedLocale,
+                        now: self.aiNow()
+                    )
+                )
+            }
+            alertController.addAction(retryAction)
+            alertController.preferredAction = retryAction
+            alertController.addAction(
+                UIAlertAction(title: L10n.AITheme.editTheme, style: .cancel) { [weak self] _ in
+                    self?.editAIThemeAfterAlert()
+                }
+            )
+        } else {
+            let actionTitle = alert.shouldFocusPromptOnDismiss
+                ? L10n.AITheme.editTheme
+                : L10n.Settings.alertAction
+            alertController.addAction(
+                UIAlertAction(title: actionTitle, style: .default) { [weak self] _ in
+                    guard let self else { return }
+                    if alert.shouldFocusPromptOnDismiss {
+                        self.editAIThemeAfterAlert()
+                    } else {
+                        self.clearAIThemeGenerationAlert()
+                    }
+                }
+            )
+        }
+        present(alertController, animated: true)
+    }
+
+    private func clearAIThemeGenerationAlert() {
+        _ = HomeAIThemeCardReducer.reduce(
+            state: &homeAIThemeCardState,
+            action: .alertDismissed
+        )
+        refreshExpandedAIThemeCard()
+    }
+
+    private func editAIThemeAfterAlert() {
+        clearAIThemeGenerationAlert()
+        focusAIThemePromptAfterFlip = true
+        if homeCardState.phase == .expandedBack {
+            sendHomeCardAction(.flipRequested)
+        } else {
+            focusAIThemePrompt()
         }
     }
 
@@ -1222,13 +1713,95 @@ final class QuizViewController: BaseQuizViewController, QuizViewControllerProtoc
         }
     }
 
+    private func flipExpandedAIThemeCard(to face: HomeThemeCardFace) {
+        expandedAIThemeCardView?.setFace(face, animated: true) { [weak self] completedFace in
+            guard let self else { return }
+            let previousPhase = self.homeCardState.phase
+            _ = HomeThemeCardReducer.reduce(
+                state: &self.homeCardState,
+                action: .flipCompleted(completedFace)
+            )
+
+            let completedStableFlip: Bool
+            switch (previousPhase, completedFace, self.homeCardState.phase) {
+            case (.flippingToBack, .back, .expandedBack),
+                 (.flippingToFront, .front, .expandedFront):
+                completedStableFlip = true
+            default:
+                completedStableFlip = false
+            }
+
+            if completedStableFlip, self.expandedCardLastTrackedFace != completedFace {
+                self.expandedCardLastTrackedFace = completedFace
+                self.analytics.track(
+                    .themeCardFlipped(
+                        theme: .ai,
+                        visibleFace: completedFace == .front ? .front : .back
+                    )
+                )
+            }
+
+            if self.closeAfterFlipToFront, completedFace == .front {
+                self.closeAfterFlipToFront = false
+                self.requestExpandedCardClose()
+                return
+            }
+
+            if completedStableFlip,
+               completedFace == .front,
+               self.focusAIThemePromptAfterFlip {
+                self.focusAIThemePromptAfterFlip = false
+                self.focusAIThemePrompt()
+            } else if completedStableFlip {
+                UIAccessibility.post(
+                    notification: .layoutChanged,
+                    argument: completedFace == .front
+                        ? self.expandedAIThemeCardView?.frontFocusView
+                        : self.expandedAIThemeCardView?.backFocusView
+                )
+            }
+            if self.expandedCardNeedsRefresh {
+                self.refreshExpandedThemeCardAppearance()
+            }
+        }
+    }
+
+    private func focusAIThemePrompt(
+        accessibilityNotification: UIAccessibility.Notification = .layoutChanged
+    ) {
+        guard let cardView = expandedAIThemeCardView else { return }
+        if cardView.face == .front {
+            _ = cardView.focusPrompt()
+            UIAccessibility.post(
+                notification: accessibilityNotification,
+                argument: cardView.frontFocusView
+            )
+            return
+        }
+        focusAIThemePromptAfterFlip = true
+        sendHomeCardAction(.flipRequested)
+    }
+
+    private func requestExpandedCardClose() {
+        if homeCardState.isAIThemePresented,
+           homeAIThemeCardState.isSubmitting {
+            sendAIThemeCardAction(.cancelRequested)
+        }
+        sendHomeCardAction(.closeRequested)
+    }
+
     private func handleExpandedCardAccessibilityEscape() {
         switch homeCardState.phase {
         case .expandedBack:
+            if homeCardState.isAIThemePresented,
+               homeAIThemeCardState.isSubmitting {
+                requestExpandedCardClose()
+                return
+            }
             closeAfterFlipToFront = true
             sendHomeCardAction(.flipRequested)
         case .expandedFront:
-            sendHomeCardAction(.closeRequested)
+            requestExpandedCardClose()
         case .grid, .expanding, .flippingToBack, .flippingToFront, .collapsing, .launching:
             break
         }
@@ -1467,6 +2040,121 @@ final class QuizViewController: BaseQuizViewController, QuizViewControllerProtoc
         animator.startAnimation()
     }
 
+    private func collapseExpandedAIThemeCard() {
+        guard let cardView = expandedAIThemeCardView else {
+            resetExpandedThemeCard()
+            return
+        }
+
+        _ = cardView.resignPrompt()
+        let reduceMotion = cardReduceMotionProvider()
+        let currentSourceButton = sourceAIThemeButton()
+        let sourceFrame = currentSourceButton.map { $0.convert($0.bounds, to: view) }
+        let targetFrame = cardView.convert(cardView.bounds, to: view)
+        let appearance = currentAppearance()
+        let snapshotView = expandedCardSnapshotView
+
+        if let currentSourceButton {
+            let refreshedSourceContent = makeAIThemeCardSourceContent(from: currentSourceButton)
+            refreshedSourceContent.accessibilityIdentifier = AccessibilityID.expandedAIThemeCardSourceSnapshot
+            expandedCardSourceContentView?.removeFromSuperview()
+            expandedCardSourceContentView = refreshedSourceContent
+        }
+
+        let sourceContentView = expandedCardSourceContentView
+        if reduceMotion {
+            cardView.alpha = 1
+            snapshotView?.isHidden = false
+            snapshotView?.alpha = 0
+            snapshotView?.layer.zPosition = Appearance.expandedCardLayerZPosition + 1
+            if let snapshotView, let sourceFrame {
+                snapshotView.frame = sourceFrame
+                view.addSubview(snapshotView)
+            }
+            installExpandedCardInteractionButton(
+                tracking: [cardView] + [snapshotView].compactMap { $0 }
+            )
+        } else {
+            sourceContentView?.isHidden = false
+            cardView.setTransitionShadowHidden(true)
+            cardView.setTransitionSurfaceHidden(true)
+            let transitionView = makeAIThemeCardTransitionView(
+                frame: targetFrame,
+                targetFrame: targetFrame,
+                surfaceColor: appearance.card.backgroundColor,
+                borderColor: appearance.card.borderColor,
+                borderWidth: appearance.card.borderWidth,
+                initialCornerRadius: appearance.card.cornerRadius,
+                initialVisualState: HomeThemeCardTransitionVisualState(progress: 1),
+                initialShadow: appearance.card.shadow
+            )
+            transitionView.layer.zPosition = Appearance.expandedCardLayerZPosition
+            view.addSubview(transitionView)
+            if let sourceContentView {
+                transitionView.install(
+                    destinationView: cardView,
+                    sourceContentView: sourceContentView,
+                    visualState: HomeThemeCardTransitionVisualState(progress: 1)
+                )
+            }
+            expandedCardTransitionView = transitionView
+            installExpandedCardInteractionButton(tracking: [transitionView])
+        }
+
+        let animator: UIViewPropertyAnimator
+        if reduceMotion {
+            animator = UIViewPropertyAnimator(
+                duration: AnimationTiming.reducedMotionDuration,
+                curve: .easeInOut
+            )
+        } else {
+            animator = UIViewPropertyAnimator(
+                duration: AnimationTiming.cardExpansionDuration,
+                dampingRatio: AnimationTiming.cardExpansionDampingRatio
+            )
+        }
+
+        animator.addAnimations { [weak self, weak snapshotView, weak cardView] in
+            guard let self else { return }
+            self.expandedCardBlurView?.effect = nil
+            if self.expandedCardBlurView == nil {
+                self.expandedCardBackdropView?.alpha = 0
+            }
+
+            if reduceMotion {
+                cardView?.alpha = 0
+                snapshotView?.alpha = sourceFrame == nil ? 0 : 1
+            } else if let sourceFrame {
+                self.expandedCardTransitionView?.move(
+                    to: sourceFrame,
+                    cornerRadius: currentSourceButton?.layer.cornerRadius ?? appearance.row.cornerRadius,
+                    visualState: HomeThemeCardTransitionVisualState(progress: 0),
+                    shadow: .none,
+                    surfaceColor: currentSourceButton?.backgroundColor ?? appearance.row.backgroundColor,
+                    borderColor: self.transitionBorderColor(
+                        for: currentSourceButton,
+                        fallback: appearance.row.borderColor
+                    ),
+                    borderWidth: currentSourceButton?.layer.borderWidth ?? appearance.row.borderWidth
+                )
+            } else {
+                self.expandedCardTransitionView?.alpha = 0
+            }
+        }
+        animator.addCompletion { [weak self, weak animator] position in
+            guard let self, let animator else { return }
+            self.completeExpandedCardAnimation(
+                animator: animator,
+                position: position,
+                expandedPosition: .start,
+                targetFrame: targetFrame
+            )
+        }
+
+        expandedCardAnimator = animator
+        animator.startAnimation()
+    }
+
     private func reverseExpandedCardTransition() {
         guard
             let animator = expandedCardAnimator,
@@ -1543,12 +2231,21 @@ final class QuizViewController: BaseQuizViewController, QuizViewControllerProtoc
                     accuracyPercent: summary.percentage
                 )
             )
+        } else if presentedCard == .ai, !expandedCardScreenViewTracked {
+            expandedCardScreenViewTracked = true
+            analytics.track(.screenView(screen: .aiThemeCreation, theme: .ai))
         }
-        UIAccessibility.post(
-            notification: .screenChanged,
-            argument: expandedThemeCardView?.frontFocusView
-                ?? expandedStatisticsCardView?.initialFocusView
-        )
+        if presentedCard == .ai {
+            DispatchQueue.main.async { [weak self] in
+                self?.focusAIThemePrompt(accessibilityNotification: .screenChanged)
+            }
+        } else {
+            UIAccessibility.post(
+                notification: .screenChanged,
+                argument: expandedThemeCardView?.frontFocusView
+                    ?? expandedStatisticsCardView?.initialFocusView
+            )
+        }
     }
 
     private func completeExpandedCardCollapse() {
@@ -1560,6 +2257,7 @@ final class QuizViewController: BaseQuizViewController, QuizViewControllerProtoc
         }
         themesCollectionService.presentedThemeID = nil
         themesCollectionService.isStatisticsPresented = false
+        themesCollectionService.isAIThemePresented = false
         themesCollectionView.layoutIfNeeded()
         removeExpandedThemeCardViews()
         _ = HomeThemeCardReducer.reduce(
@@ -1619,6 +2317,31 @@ final class QuizViewController: BaseQuizViewController, QuizViewControllerProtoc
         return transitionView
     }
 
+    private func makeAIThemeCardTransitionView(
+        frame: CGRect,
+        targetFrame: CGRect,
+        surfaceColor: UIColor,
+        borderColor: UIColor,
+        borderWidth: CGFloat,
+        initialCornerRadius: CGFloat,
+        initialVisualState: HomeThemeCardTransitionVisualState,
+        initialShadow: AppShadowStyle
+    ) -> ThemeCardExpansionTransitionView {
+        let transitionView = ThemeCardExpansionTransitionView(
+            frame: frame,
+            targetFrameInRoot: targetFrame,
+            surfaceColor: surfaceColor,
+            borderColor: borderColor,
+            borderWidth: borderWidth,
+            cornerRadius: initialCornerRadius,
+            visualState: initialVisualState,
+            shadow: initialShadow,
+            usesIntensityLayer: false
+        )
+        transitionView.accessibilityIdentifier = AccessibilityID.expandedAIThemeCardTransition
+        return transitionView
+    }
+
     private func transitionBorderColor(for view: UIView?, fallback: UIColor) -> UIColor {
         guard let color = view?.layer.borderColor else { return fallback }
         return UIColor(cgColor: color)
@@ -1642,6 +2365,8 @@ final class QuizViewController: BaseQuizViewController, QuizViewControllerProtoc
             expandedThemeCardView?.setTransitionShadowHidden(false)
             expandedStatisticsCardView?.setTransitionSurfaceHidden(false)
             expandedStatisticsCardView?.setTransitionShadowHidden(false)
+            expandedAIThemeCardView?.setTransitionSurfaceHidden(false)
+            expandedAIThemeCardView?.setTransitionShadowHidden(false)
             view.addSubview(cardView)
             expandedCardTransitionView?.removeFromSuperview()
             expandedCardTransitionView = nil
@@ -1712,7 +2437,7 @@ final class QuizViewController: BaseQuizViewController, QuizViewControllerProtoc
     @objc private func expandedCardBackdropTapped() {
         switch homeCardState.phase {
         case .expanding, .expandedFront, .expandedBack:
-            sendHomeCardAction(.closeRequested)
+            requestExpandedCardClose()
 
         case .flippingToBack:
             // Finish the user's dismissal through the sharp front face. Retargeting
@@ -1830,6 +2555,23 @@ final class QuizViewController: BaseQuizViewController, QuizViewControllerProtoc
         return containerView
     }
 
+    private func makeAIThemeCardSourceContent(from sourceView: UIView) -> UIView {
+        let wasHidden = sourceView.isHidden
+        sourceView.isHidden = false
+        sourceView.layoutIfNeeded()
+        defer { sourceView.isHidden = wasHidden }
+
+        let containerView = UIView(frame: sourceView.bounds)
+        containerView.backgroundColor = .clear
+        containerView.isUserInteractionEnabled = false
+        containerView.accessibilityElementsHidden = true
+        if let snapshotView = sourceView.snapshotView(afterScreenUpdates: false) {
+            snapshotView.frame = sourceView.bounds
+            containerView.addSubview(snapshotView)
+        }
+        return containerView
+    }
+
     private func sourceButton(themeID: String) -> UIButton? {
         themesCollectionView.visibleCells
             .compactMap { $0 as? ThemeCardCollectionViewCell }
@@ -1847,6 +2589,16 @@ final class QuizViewController: BaseQuizViewController, QuizViewControllerProtoc
             .compactMap { $0 as? StatisticsCardCollectionViewCell }
             .map(\.actionButton)
             .first
+    }
+
+    private func sourceAIThemeButton() -> UIButton? {
+        themesCollectionView.visibleCells
+            .lazy
+            .flatMap { $0.contentView.subviews }
+            .compactMap { $0 as? UIButton }
+            .first(where: {
+                $0.accessibilityIdentifier == ThemesCollectionService.Content.aiThemeAccessibilityID
+            })
     }
 
     private func setBackgroundAccessibilityHidden(_ isHidden: Bool) {
@@ -1872,6 +2624,20 @@ final class QuizViewController: BaseQuizViewController, QuizViewControllerProtoc
             let summary = statisticsStore.loadSummary()
             expandedStatisticsSummary = summary
             cardView.configure(summary: summary, appearance: currentAppearance())
+            if expandedCardBlurView == nil {
+                expandedCardBackdropView?.backgroundColor = currentAppearance().backgroundColor.withAlphaComponent(
+                    Appearance.reducedTransparencyBackdropAlpha
+                )
+            }
+            return
+        }
+
+        if homeCardState.isAIThemePresented,
+           let cardView = expandedAIThemeCardView {
+            expandedCardNeedsRefresh = false
+            let face = cardView.face
+            cardView.configure(state: homeAIThemeCardState, appearance: currentAppearance())
+            cardView.setFace(face, animated: false)
             if expandedCardBlurView == nil {
                 expandedCardBackdropView?.backgroundColor = currentAppearance().backgroundColor.withAlphaComponent(
                     Appearance.reducedTransparencyBackdropAlpha
@@ -1907,6 +2673,12 @@ final class QuizViewController: BaseQuizViewController, QuizViewControllerProtoc
     private func resetExpandedThemeCard() {
         expandedCardAnimator?.stopAnimation(true)
         expandedCardAnimator = nil
+        if let effect = HomeAIThemeCardReducer.reduce(
+            state: &homeAIThemeCardState,
+            action: .reset
+        ) {
+            handleAIThemeCardEffect(effect)
+        }
         removeExpandedThemeCardViews()
         _ = HomeThemeCardReducer.reduce(state: &homeCardState, action: .reset)
         guard isViewLoaded else {
@@ -1927,6 +2699,7 @@ final class QuizViewController: BaseQuizViewController, QuizViewControllerProtoc
         expandedThemeCardView?.setParallaxPresentationPhase(.inactive)
         expandedThemeCardView?.removeFromSuperview()
         expandedStatisticsCardView?.removeFromSuperview()
+        expandedAIThemeCardView?.removeFromSuperview()
         expandedCardSnapshotView?.removeFromSuperview()
         expandedCardSourceContentView?.removeFromSuperview()
         expandedCardTransitionView?.removeFromSuperview()
@@ -1935,6 +2708,7 @@ final class QuizViewController: BaseQuizViewController, QuizViewControllerProtoc
         expandedCardBackdropView?.removeFromSuperview()
         expandedThemeCardView = nil
         expandedStatisticsCardView = nil
+        expandedAIThemeCardView = nil
         expandedCardSnapshotView = nil
         expandedCardSourceContentView = nil
         expandedCardSourceContentGeometry = nil
@@ -1945,7 +2719,13 @@ final class QuizViewController: BaseQuizViewController, QuizViewControllerProtoc
         expandedCardBlurView = nil
         expandedTheme = nil
         expandedStatisticsSummary = nil
+        aiSubmissionTask?.cancel()
+        aiSubmissionTask = nil
+        aiProgressTask?.cancel()
+        aiProgressTask = nil
+        homeAIThemeCardState = HomeAIThemeCardState()
         closeAfterFlipToFront = false
+        focusAIThemePromptAfterFlip = false
         expandedCardNeedsRefresh = false
         expandedCardScreenViewTracked = false
         expandedCardLastTrackedFace = nil
@@ -1960,6 +2740,7 @@ final class QuizViewController: BaseQuizViewController, QuizViewControllerProtoc
     private func restoreGridAfterExpandedCard(presentedCard: HomePresentedCard?) {
         themesCollectionService.presentedThemeID = nil
         themesCollectionService.isStatisticsPresented = false
+        themesCollectionService.isAIThemePresented = false
         themesCollectionView.isUserInteractionEnabled = true
         setBackgroundAccessibilityHidden(false)
         updateCollectionScrollAvailability()
@@ -1973,15 +2754,13 @@ final class QuizViewController: BaseQuizViewController, QuizViewControllerProtoc
             focusView = sourceButton(themeID: themeID)
         case .statistics:
             focusView = sourceStatisticsButton()
+        case .ai:
+            focusView = sourceAIThemeButton()
         }
         UIAccessibility.post(
             notification: .screenChanged,
             argument: focusView
         )
-    }
-
-    private func showAIThemeCreationView() {
-        router?.showAIThemeCreation()
     }
 
 #if DEBUG

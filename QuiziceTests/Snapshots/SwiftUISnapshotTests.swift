@@ -106,38 +106,6 @@ final class SwiftUISnapshotTests: XCTestCase {
         )
     }
 
-    func testAIThemeCreationViewSnapshot() {
-        let viewController = makeHostingController(
-            rootView: QuizAIThemeCreationView(service: MockAIQuizThemeService())
-        )
-
-        SnapshotSupport.assertScreen(viewController, named: "clean-ai-theme-creation")
-    }
-
-    func testAIThemeCreationCompactSnapshot() {
-        let viewController = makeHostingController(
-            rootView: QuizAIThemeCreationView(service: MockAIQuizThemeService())
-        )
-
-        SnapshotSupport.assertScreen(
-            viewController,
-            named: "clean-ai-theme-creation-iphone-se",
-            device: .iPhone8
-        )
-    }
-
-    func testAIThemeCreationAccessibilitySnapshot() {
-        let viewController = makeHostingController(
-            rootView: QuizAIThemeCreationView(service: MockAIQuizThemeService())
-        )
-
-        SnapshotSupport.assertScreen(
-            viewController,
-            named: "clean-ai-theme-creation-accessibility-xxxl",
-            contentSizeCategory: .accessibilityExtraExtraExtraLarge
-        )
-    }
-
     private func makeHostingController<Content: View>(rootView: Content) -> UIHostingController<Content> {
         let viewController = UIHostingController(rootView: rootView)
         viewController.loadViewIfNeeded()

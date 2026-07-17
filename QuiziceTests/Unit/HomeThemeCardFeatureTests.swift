@@ -408,60 +408,17 @@ final class HomeThemeCardPanParallaxMapperTests: XCTestCase {
 }
 
 final class HomeThemeCardParallaxGesturePolicyTests: XCTestCase {
-    func testScrollableDescriptionPermitsHorizontalParallax() {
+    func testBackPermitsParallaxAlongsideDescriptionScrolling() {
         XCTAssertTrue(
-            HomeThemeCardParallaxGesturePolicy.permitsParallax(
-                startedInDescription: true,
-                descriptionCanScrollVertically: true,
-                velocity: CGPoint(x: 160, y: 30)
-            )
+            HomeThemeCardParallaxGesturePolicy
+                .permitsSimultaneousDescriptionScroll(on: .back)
         )
     }
 
-    func testScrollableDescriptionReservesVerticalIntentForScrolling() {
+    func testFrontDoesNotShareItsPanWithHiddenBackDescription() {
         XCTAssertFalse(
-            HomeThemeCardParallaxGesturePolicy.permitsParallax(
-                startedInDescription: true,
-                descriptionCanScrollVertically: true,
-                velocity: CGPoint(x: 30, y: 160)
-            )
-        )
-    }
-
-    func testScrollableDescriptionReservesAmbiguousIntentForScrolling() {
-        XCTAssertFalse(
-            HomeThemeCardParallaxGesturePolicy.permitsParallax(
-                startedInDescription: true,
-                descriptionCanScrollVertically: true,
-                velocity: CGPoint(x: 80, y: 80)
-            )
-        )
-        XCTAssertFalse(
-            HomeThemeCardParallaxGesturePolicy.permitsParallax(
-                startedInDescription: true,
-                descriptionCanScrollVertically: true,
-                velocity: .zero
-            )
-        )
-    }
-
-    func testNonScrollableDescriptionPermitsVerticalParallax() {
-        XCTAssertTrue(
-            HomeThemeCardParallaxGesturePolicy.permitsParallax(
-                startedInDescription: true,
-                descriptionCanScrollVertically: false,
-                velocity: CGPoint(x: 0, y: 160)
-            )
-        )
-    }
-
-    func testGestureOutsideDescriptionPermitsParallaxRegardlessOfDirection() {
-        XCTAssertTrue(
-            HomeThemeCardParallaxGesturePolicy.permitsParallax(
-                startedInDescription: false,
-                descriptionCanScrollVertically: true,
-                velocity: CGPoint(x: 0, y: 160)
-            )
+            HomeThemeCardParallaxGesturePolicy
+                .permitsSimultaneousDescriptionScroll(on: .front)
         )
     }
 }
@@ -764,6 +721,77 @@ final class HomeThemeCardReducerTests: XCTestCase {
         XCTAssertEqual(state.phase, .expandedBack)
     }
 
+    func testAIPresentationUsesDedicatedIdentityAndRequiresPromptBeforeShowingBack() {
+        var state = HomeThemeCardState()
+
+        XCTAssertEqual(reduce(&state, .presentAI), .expandAI)
+        XCTAssertEqual(state.presentedCard, .ai)
+        XCTAssertTrue(state.isAIThemePresented)
+        XCTAssertFalse(state.isFlipAllowed)
+        XCTAssertEqual(state.phase, .expanding)
+        XCTAssertNil(reduce(&state, .presentAI))
+        XCTAssertNil(reduce(&state, .presentStatistics))
+
+        XCTAssertNil(reduce(&state, .expansionCompleted))
+        XCTAssertNil(reduce(&state, .flipRequested))
+        XCTAssertEqual(state.phase, .expandedFront)
+
+        XCTAssertNil(reduce(&state, .flipAvailabilityChanged(true)))
+        XCTAssertTrue(state.isFlipAllowed)
+        XCTAssertEqual(reduce(&state, .flipRequested), .flip(.back))
+        XCTAssertNil(reduce(&state, .flipCompleted(.back)))
+        XCTAssertEqual(state.phase, .expandedBack)
+    }
+
+    func testAIBackAlwaysReturnsToFrontAndCollapsesWithDedicatedEffect() {
+        var state = aiExpandedBackState()
+
+        XCTAssertNil(reduce(&state, .flipAvailabilityChanged(false)))
+        XCTAssertFalse(state.isFlipAllowed)
+        XCTAssertEqual(reduce(&state, .flipRequested), .flip(.front))
+        XCTAssertNil(reduce(&state, .flipCompleted(.front)))
+        XCTAssertEqual(state.phase, .expandedFront)
+        XCTAssertNil(reduce(&state, .flipRequested))
+
+        XCTAssertEqual(reduce(&state, .closeRequested), .collapseAI)
+        XCTAssertEqual(state.phase, .collapsing)
+        XCTAssertTrue(state.isAIThemePresented)
+        XCTAssertNil(reduce(&state, .collapseCompleted))
+        XCTAssertEqual(state, HomeThemeCardState())
+        XCTAssertFalse(state.isAIThemePresented)
+    }
+
+    func testAIExpansionCanReverseWithoutLosingPromptFlipAvailability() {
+        var state = HomeThemeCardState()
+        _ = reduce(&state, .presentAI)
+        _ = reduce(&state, .flipAvailabilityChanged(true))
+
+        XCTAssertEqual(
+            reduce(&state, .closeRequested),
+            .reverseExpansion(shouldPresent: false)
+        )
+        XCTAssertTrue(state.isAIThemePresented)
+        XCTAssertTrue(state.isFlipAllowed)
+        XCTAssertEqual(
+            reduce(&state, .closeRequested),
+            .reverseExpansion(shouldPresent: true)
+        )
+        XCTAssertEqual(state.presentedCard, .ai)
+        XCTAssertTrue(state.isFlipAllowed)
+        XCTAssertNil(reduce(&state, .expansionCompleted))
+        XCTAssertEqual(reduce(&state, .flipRequested), .flip(.back))
+    }
+
+    func testThemeFlipRemainsAvailableWithoutAIAvailabilitySignal() {
+        var state = presentedState()
+        _ = reduce(&state, .expansionCompleted)
+
+        XCTAssertFalse(state.isFlipAllowed)
+        XCTAssertEqual(reduce(&state, .flipRequested), .flip(.back))
+        XCTAssertNil(reduce(&state, .flipAvailabilityChanged(true)))
+        XCTAssertFalse(state.isFlipAllowed)
+    }
+
     private func presentedState(
         availableQuestionCounts: [Int] = [5, 10, 15]
     ) -> HomeThemeCardState {
@@ -795,11 +823,319 @@ final class HomeThemeCardReducerTests: XCTestCase {
         return state
     }
 
+    private func aiExpandedBackState() -> HomeThemeCardState {
+        var state = HomeThemeCardState()
+        _ = reduce(&state, .presentAI)
+        _ = reduce(&state, .flipAvailabilityChanged(true))
+        _ = reduce(&state, .expansionCompleted)
+        _ = reduce(&state, .flipRequested)
+        _ = reduce(&state, .flipCompleted(.back))
+        return state
+    }
+
     @discardableResult
     private func reduce(
         _ state: inout HomeThemeCardState,
         _ action: HomeThemeCardAction
     ) -> HomeThemeCardEffect? {
         HomeThemeCardReducer.reduce(state: &state, action: action)
+    }
+}
+
+final class HomeAIThemeCardReducerTests: XCTestCase {
+    private let firstRequestID = UUID(uuidString: "AAAAAAAA-BBBB-CCCC-DDDD-EEEEEEEEEEEE")!
+    private let secondRequestID = UUID(uuidString: "11111111-2222-3333-4444-555555555555")!
+    private let firstDate = Date(timeIntervalSince1970: 1_700_000_000)
+    private let secondDate = Date(timeIntervalSince1970: 1_700_000_100)
+    private let locale = Locale(identifier: "ru_RU")
+
+    func testDefaultsAndTrimmedPromptDriveFlipAvailabilityAtBoundaryChangesOnly() {
+        var state = HomeAIThemeCardState()
+
+        XCTAssertEqual(state.prompt, "")
+        XCTAssertEqual(state.trimmedPrompt, "")
+        XCTAssertEqual(state.selectedQuestionCount, 5)
+        XCTAssertEqual(state.selectedDifficulty, .medium)
+        XCTAssertFalse(state.canRevealConfiguration)
+        XCTAssertFalse(state.isSubmitting)
+        XCTAssertFalse(state.canSubmit)
+
+        XCTAssertNil(reduce(&state, .promptChanged(" \n\t ")))
+        XCTAssertFalse(state.canRevealConfiguration)
+        XCTAssertEqual(
+            reduce(&state, .promptChanged("  History of Moscow  \n")),
+            .flipAvailabilityChanged(true)
+        )
+        XCTAssertEqual(state.trimmedPrompt, "History of Moscow")
+        XCTAssertTrue(state.canRevealConfiguration)
+        XCTAssertTrue(state.canSubmit)
+
+        XCTAssertNil(reduce(&state, .promptChanged("Another valid topic")))
+        XCTAssertEqual(
+            reduce(&state, .promptChanged("   ")),
+            .flipAvailabilityChanged(false)
+        )
+        XCTAssertFalse(state.canRevealConfiguration)
+    }
+
+    func testSelectorsAcceptOnlySupportedCountsAndRemainEditableBeforeSubmission() {
+        var state = validDraftState()
+
+        XCTAssertNil(reduce(&state, .questionCountSelected(10)))
+        XCTAssertEqual(state.selectedQuestionCount, 10)
+        XCTAssertNil(reduce(&state, .questionCountSelected(7)))
+        XCTAssertEqual(state.selectedQuestionCount, 10)
+
+        XCTAssertNil(reduce(&state, .difficultySelected(.hard)))
+        XCTAssertEqual(state.selectedDifficulty, .hard)
+        XCTAssertTrue(state.canSubmit)
+    }
+
+    func testSubmitCapturesTrimmedImmutableConfigurationAndStartsAtAnalyzing() {
+        var state = HomeAIThemeCardState()
+        _ = reduce(&state, .promptChanged("  Space exploration \n"))
+        _ = reduce(&state, .questionCountSelected(15))
+        _ = reduce(&state, .difficultySelected(.hard))
+
+        let expectedSubmission = HomeAIThemeCardSubmission(
+            id: firstRequestID,
+            configuration: AIQuizGenerationConfiguration(
+                theme: "Space exploration",
+                questionCount: 15,
+                difficulty: .hard,
+                locale: locale
+            ),
+            startedAt: firstDate
+        )
+
+        XCTAssertEqual(
+            reduce(
+                &state,
+                .submitRequested(requestID: firstRequestID, locale: locale, now: firstDate)
+            ),
+            .submit(expectedSubmission)
+        )
+        XCTAssertEqual(state.activeSubmission, expectedSubmission)
+        XCTAssertEqual(state.generationPhase, .analyzing)
+        XCTAssertTrue(state.isSubmitting)
+        XCTAssertFalse(state.canSubmit)
+        XCTAssertNil(state.activeAlert)
+    }
+
+    func testSubmissionIsSingleFlightAndDraftCannotMutateWhileRequestIsActive() {
+        var state = startedState()
+        let capturedState = state
+
+        XCTAssertNil(reduce(&state, .promptChanged("A different prompt")))
+        XCTAssertNil(reduce(&state, .questionCountSelected(15)))
+        XCTAssertNil(reduce(&state, .difficultySelected(.easy)))
+        XCTAssertNil(
+            reduce(
+                &state,
+                .submitRequested(requestID: secondRequestID, locale: locale, now: secondDate)
+            )
+        )
+        XCTAssertEqual(state, capturedState)
+    }
+
+    func testProgressRequiresActiveRequestAndOnlyMovesForward() {
+        var state = startedState()
+
+        XCTAssertNil(
+            reduce(
+                &state,
+                .progressAdvanced(requestID: secondRequestID, phase: .sending)
+            )
+        )
+        XCTAssertEqual(state.generationPhase, .analyzing)
+        XCTAssertNil(
+            reduce(
+                &state,
+                .progressAdvanced(requestID: firstRequestID, phase: .generating)
+            )
+        )
+        XCTAssertEqual(state.generationPhase, .generating)
+        XCTAssertNil(
+            reduce(
+                &state,
+                .progressAdvanced(requestID: firstRequestID, phase: .sending)
+            )
+        )
+        XCTAssertEqual(state.generationPhase, .generating)
+        XCTAssertNil(
+            reduce(
+                &state,
+                .progressAdvanced(requestID: firstRequestID, phase: .almostReady)
+            )
+        )
+        XCTAssertEqual(state.generationPhase, .almostReady)
+    }
+
+    func testMatchingSuccessCompletesOnceAndStaleResultsAreIgnored() {
+        var state = startedState()
+
+        XCTAssertNil(reduce(&state, .submissionSucceeded(requestID: secondRequestID)))
+        XCTAssertTrue(state.isSubmitting)
+        XCTAssertEqual(
+            reduce(&state, .submissionSucceeded(requestID: firstRequestID)),
+            .submissionCompleted(requestID: firstRequestID)
+        )
+        XCTAssertFalse(state.isSubmitting)
+        XCTAssertNil(state.generationPhase)
+        XCTAssertEqual(state.trimmedPrompt, "Ocean life")
+        XCTAssertEqual(state.selectedQuestionCount, 10)
+        XCTAssertEqual(state.selectedDifficulty, .hard)
+        XCTAssertNil(reduce(&state, .submissionSucceeded(requestID: firstRequestID)))
+    }
+
+    func testFailurePreservesDraftAndRetryCreatesAnIndependentNewSubmission() {
+        var state = startedState()
+        let retryLocale = Locale(identifier: "en_US")
+        let alert = AIQuizGenerationAlert(
+            error: YandexAIQuizThemeServiceError.network(.timedOut)
+        )
+
+        XCTAssertNil(
+            reduce(
+                &state,
+                .submissionFailed(requestID: secondRequestID, alert: alert)
+            )
+        )
+        XCTAssertTrue(state.isSubmitting)
+        XCTAssertEqual(
+            reduce(
+                &state,
+                .submissionFailed(requestID: firstRequestID, alert: alert)
+            ),
+            .presentAlert(alert)
+        )
+        XCTAssertFalse(state.isSubmitting)
+        XCTAssertNil(state.generationPhase)
+        XCTAssertEqual(state.activeAlert, alert)
+        XCTAssertEqual(state.trimmedPrompt, "Ocean life")
+        XCTAssertEqual(state.selectedQuestionCount, 10)
+        XCTAssertEqual(state.selectedDifficulty, .hard)
+
+        guard case let .submit(retrySubmission)? = reduce(
+            &state,
+            .submitRequested(
+                requestID: secondRequestID,
+                locale: retryLocale,
+                now: secondDate
+            )
+        ) else {
+            return XCTFail("Expected a retry submission")
+        }
+        XCTAssertEqual(retrySubmission.id, secondRequestID)
+        XCTAssertEqual(retrySubmission.startedAt, secondDate)
+        XCTAssertEqual(retrySubmission.configuration.theme, "Ocean life")
+        XCTAssertEqual(retrySubmission.configuration.questionCount, 10)
+        XCTAssertEqual(retrySubmission.configuration.difficulty, .hard)
+        XCTAssertEqual(retrySubmission.configuration.locale, retryLocale)
+        XCTAssertNil(state.activeAlert)
+        XCTAssertNil(reduce(&state, .submissionSucceeded(requestID: firstRequestID)))
+        XCTAssertEqual(state.activeSubmission?.id, secondRequestID)
+    }
+
+    func testCancellationIsIdempotentAndKeepsDraftAvailableForRetry() {
+        var state = startedState()
+        let submission = state.activeSubmission
+
+        XCTAssertEqual(
+            reduce(&state, .cancelRequested),
+            submission.map(HomeAIThemeCardEffect.cancelSubmission)
+        )
+        XCTAssertFalse(state.isSubmitting)
+        XCTAssertNil(state.generationPhase)
+        XCTAssertEqual(state.trimmedPrompt, "Ocean life")
+        XCTAssertTrue(state.canSubmit)
+        XCTAssertNil(reduce(&state, .cancelRequested))
+
+        XCTAssertNotNil(
+            reduce(
+                &state,
+                .submitRequested(requestID: secondRequestID, locale: locale, now: secondDate)
+            )
+        )
+        XCTAssertEqual(state.activeSubmission?.id, secondRequestID)
+    }
+
+    func testResetCancelsActiveSubmissionOnceAndClearsEveryDraftField() {
+        var state = startedState()
+        let submission = state.activeSubmission
+
+        XCTAssertEqual(
+            reduce(&state, .reset),
+            submission.map(HomeAIThemeCardEffect.cancelSubmission)
+        )
+        XCTAssertEqual(state, HomeAIThemeCardState())
+        XCTAssertNil(reduce(&state, .reset))
+        XCTAssertEqual(state, HomeAIThemeCardState())
+    }
+
+    func testAlertDismissalFocusesPromptOnlyForEditableFailures() {
+        var state = startedState()
+        let refusal = AIQuizGenerationAlert(error: YandexAIQuizThemeServiceError.refused)
+        _ = reduce(
+            &state,
+            .submissionFailed(requestID: firstRequestID, alert: refusal)
+        )
+
+        XCTAssertEqual(reduce(&state, .alertDismissed), .focusPrompt)
+        XCTAssertNil(state.activeAlert)
+        XCTAssertNil(reduce(&state, .alertDismissed))
+
+        _ = reduce(
+            &state,
+            .submitRequested(requestID: secondRequestID, locale: locale, now: secondDate)
+        )
+        let network = AIQuizGenerationAlert(
+            error: YandexAIQuizThemeServiceError.network(.timedOut)
+        )
+        _ = reduce(
+            &state,
+            .submissionFailed(requestID: secondRequestID, alert: network)
+        )
+        XCTAssertNil(reduce(&state, .alertDismissed))
+        XCTAssertNil(state.activeAlert)
+    }
+
+    func testWhitespaceOnlyPromptCannotSubmit() {
+        var state = HomeAIThemeCardState()
+        _ = reduce(&state, .promptChanged(" \n "))
+
+        XCTAssertNil(
+            reduce(
+                &state,
+                .submitRequested(requestID: firstRequestID, locale: locale, now: firstDate)
+            )
+        )
+        XCTAssertNil(state.activeSubmission)
+        XCTAssertNil(state.generationPhase)
+    }
+
+    private func validDraftState() -> HomeAIThemeCardState {
+        var state = HomeAIThemeCardState()
+        _ = reduce(&state, .promptChanged("Ocean life"))
+        return state
+    }
+
+    private func startedState() -> HomeAIThemeCardState {
+        var state = validDraftState()
+        _ = reduce(&state, .questionCountSelected(10))
+        _ = reduce(&state, .difficultySelected(.hard))
+        _ = reduce(
+            &state,
+            .submitRequested(requestID: firstRequestID, locale: locale, now: firstDate)
+        )
+        return state
+    }
+
+    @discardableResult
+    private func reduce(
+        _ state: inout HomeAIThemeCardState,
+        _ action: HomeAIThemeCardAction
+    ) -> HomeAIThemeCardEffect? {
+        HomeAIThemeCardReducer.reduce(state: &state, action: action)
     }
 }

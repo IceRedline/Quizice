@@ -201,7 +201,6 @@ enum AnalyticsErrorContext {
     case contentLoad
     case themeResolution
     case aiGeneration(code: String)
-    case aiResultHandling
 
     fileprivate var code: Int {
         switch self {
@@ -210,7 +209,6 @@ enum AnalyticsErrorContext {
         case .contentLoad: return 2001
         case .themeResolution: return 2002
         case .aiGeneration: return 3001
-        case .aiResultHandling: return 3002
         }
     }
 
@@ -221,14 +219,12 @@ enum AnalyticsErrorContext {
         case .contentLoad: return "content_load"
         case .themeResolution: return "theme_resolution"
         case let .aiGeneration(code): return "ai_generation.\(code)"
-        case .aiResultHandling: return "ai_result_handling"
         }
     }
 }
 
 enum AnalyticsOperationalIssue: Error {
     case themeResolution
-    case missingAIViewController
 }
 
 final class AppMetricaAnalyticsTracker: AnalyticsTracking {

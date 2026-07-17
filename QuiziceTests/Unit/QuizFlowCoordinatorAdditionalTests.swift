@@ -369,7 +369,7 @@ final class QuizFlowCoordinatorAdditionalTests: XCTestCase {
         XCTAssertEqual(harness.navigationController.dismissAnimationFlags, [true])
     }
 
-    func testModalRoutesPresentQuestionResultSettingsAndAIThemeCreation() {
+    func testModalRoutesPresentQuestionResultAndSettings() {
         let harness = makeHarness()
         harness.coordinator.start()
         harness.navigationController.topViewControllerOverride = harness.navigationController
@@ -392,47 +392,150 @@ final class QuizFlowCoordinatorAdditionalTests: XCTestCase {
         XCTAssertEqual(harness.navigationController.presentedControllers.count, 3)
         XCTAssertEqual(harness.navigationController.presentedControllers.last?.modalPresentationStyle, .pageSheet)
         XCTAssertEqual(harness.navigationController.presentedAnimationFlags.last, true)
-
-        harness.coordinator.showAIThemeCreation()
-        XCTAssertEqual(harness.navigationController.presentedControllers.count, 4)
-        XCTAssertEqual(harness.navigationController.presentedControllers.last?.modalPresentationStyle, .pageSheet)
-        XCTAssertEqual(harness.navigationController.presentedAnimationFlags.last, true)
-        XCTAssertEqual(
-            harness.navigationController.presentedControllers.last?.overrideUserInterfaceStyle,
-            AppAppearanceStore.shared.appearance(
-                compatibleWith: harness.navigationController.traitCollection
-            ).resolvedInterfaceStyle
-        )
     }
 
-    func testGeneratedAIThemeUpdatesSessionAndShowsDescriptionAfterSheetDismissal() {
-        let harness = makeHarness()
-        harness.coordinator.start()
-        let generatedTheme = SnapshotSupport.makeTheme(
-            id: "ai-generated",
-            name: "Generated theme",
-            questions: (1...10).map { index in
-                QuizQuestion(
-                    question: "Question \(index)?",
-                    answers: ["A", "B", "C", "D"],
-                    correctAnswer: "A"
-                )
+    func testInlineAIThemeSubmitIsSingleFlight() async throws {
+        let service = ControllableRoutingAIQuizThemeService()
+        let harness = try makeInlineAIHarness(service: service)
+        defer { harness.dispose() }
+        let controls = try revealInlineAIBack(
+            in: harness.viewController,
+            prompt: "  Космос  \n"
+        )
+
+        controls.submitButton.sendActions(for: .touchUpInside)
+        controls.submitButton.sendActions(for: .touchUpInside)
+
+        try await waitUntil { service.generatedConfigurations.count == 1 }
+        XCTAssertEqual(service.generatedConfigurations.map(\.theme), ["Космос"])
+        XCTAssertEqual(service.generatedConfigurations.map(\.questionCount), [5])
+        XCTAssertFalse(controls.submitButton.isEnabled)
+
+        try closeInlineAICard(in: harness.viewController)
+        try await waitUntil { harness.analytics.aiGenerationCancelledCount == 1 }
+        service.resolveNext(with: .failure(CancellationError()))
+    }
+
+    func testInlineAIThemeSuccessUpdatesSessionAndRoutesToDescriptionExactlyOnce() async throws {
+        let service = ControllableRoutingAIQuizThemeService()
+        let harness = try makeInlineAIHarness(service: service)
+        defer { harness.dispose() }
+        let controls = try revealInlineAIBack(
+            in: harness.viewController,
+            prompt: "  История космоса  "
+        )
+        let countSelector = try XCTUnwrap(
+            descendant(
+                in: controls.card,
+                accessibilityIdentifier: "aiThemeQuestionCountSelector"
+            )
+        )
+        let tenQuestionButton = try XCTUnwrap(
+            countSelector.allDescendants.compactMap { $0 as? UIButton }.first {
+                $0.title(for: .normal) == "10"
             }
         )
-        let creationViewController = DeferredDismissViewControllerSpy()
+        tenQuestionButton.sendActions(for: .touchUpInside)
 
-        harness.coordinator.handleGeneratedAITheme(generatedTheme, dismissing: creationViewController)
+        controls.submitButton.sendActions(for: .touchUpInside)
+        try await waitUntil { service.generatedConfigurations.count == 1 }
+        XCTAssertEqual(service.generatedConfigurations.first?.theme, "История космоса")
+        XCTAssertEqual(service.generatedConfigurations.first?.questionCount, 10)
 
-        XCTAssertTrue(harness.session.chosenTheme?.quizTheme === generatedTheme)
+        let generatedTheme = makeGeneratedAITheme(questionCount: 10)
+        service.resolveNext(with: .success(generatedTheme))
+
+        try await waitUntil { harness.router.showDescriptionCallCount == 1 }
+        XCTAssertEqual(harness.router.showDescriptionCallCount, 1)
+        XCTAssertEqual(harness.session.chosenTheme?.themeID, generatedTheme.stableID)
+        XCTAssertTrue(harness.session.chosenTheme?.isAIGenerated == true)
         XCTAssertEqual(harness.session.questionsCount, 10)
-        XCTAssertEqual(creationViewController.dismissAnimationFlags, [true])
-        XCTAssertTrue(harness.navigationController.pushedControllers.isEmpty)
+        XCTAssertNil(
+            descendant(
+                in: harness.viewController.view,
+                accessibilityIdentifier: "homeExpandedAIThemeCard"
+            )
+        )
+        XCTAssertNil(
+            descendant(
+                in: harness.viewController.view,
+                accessibilityIdentifier: "homeExpandedThemeCardBackdrop"
+            )
+        )
+        let collectionView = try XCTUnwrap(
+            descendant(
+                in: harness.viewController.view,
+                accessibilityIdentifier: "homeThemesCollectionView"
+            ) as? UICollectionView
+        )
+        XCTAssertTrue(collectionView.isUserInteractionEnabled)
 
-        creationViewController.completeDismissal()
+        await Task.yield()
+        XCTAssertEqual(harness.router.showDescriptionCallCount, 1)
+    }
 
-        XCTAssertEqual(harness.navigationController.pushedControllers.count, 1)
-        XCTAssertTrue(harness.navigationController.pushedControllers.last is QuizDescriptionViewController)
-        XCTAssertEqual(harness.navigationController.pushAnimationFlags, [true])
+    func testInlineAIThemeFailurePreservesDraftAndOffersRetryAndEdit() async throws {
+        let service = ControllableRoutingAIQuizThemeService()
+        let harness = try makeInlineAIHarness(service: service)
+        defer { harness.dispose() }
+        let prompt = "Мифы Древней Греции"
+        let controls = try revealInlineAIBack(
+            in: harness.viewController,
+            prompt: prompt
+        )
+
+        controls.submitButton.sendActions(for: .touchUpInside)
+        try await waitUntil { service.generatedConfigurations.count == 1 }
+        service.resolveNext(
+            with: .failure(YandexAIQuizThemeServiceError.network(.timedOut))
+        )
+
+        try await waitUntil { harness.viewController.presentedViewController is UIAlertController }
+        let alert = try XCTUnwrap(
+            harness.viewController.presentedViewController as? UIAlertController
+        )
+        XCTAssertEqual(controls.promptEditor.text, prompt)
+        XCTAssertTrue(controls.submitButton.isEnabled)
+        XCTAssertEqual(
+            Set(alert.actions.compactMap(\.title)),
+            Set([L10n.AITheme.retry, L10n.AITheme.editTheme])
+        )
+        XCTAssertEqual(harness.router.showDescriptionCallCount, 0)
+        XCTAssertNil(harness.session.chosenTheme)
+    }
+
+    func testClosingInlineAIThemeCancelsOnceAndIgnoresStaleSuccess() async throws {
+        let service = ControllableRoutingAIQuizThemeService()
+        let harness = try makeInlineAIHarness(service: service)
+        defer { harness.dispose() }
+        let controls = try revealInlineAIBack(
+            in: harness.viewController,
+            prompt: "Архитектура"
+        )
+
+        controls.submitButton.sendActions(for: .touchUpInside)
+        try await waitUntil { service.generatedConfigurations.count == 1 }
+
+        try closeInlineAICard(in: harness.viewController)
+        try await waitUntil { harness.analytics.aiGenerationCancelledCount == 1 }
+        XCTAssertEqual(harness.analytics.aiGenerationCancelledCount, 1)
+        XCTAssertEqual(harness.router.showDescriptionCallCount, 0)
+        XCTAssertNil(harness.session.chosenTheme)
+
+        service.resolveNext(
+            with: .success(makeGeneratedAITheme(questionCount: 5, id: "stale_ai_theme"))
+        )
+        try await Task.sleep(nanoseconds: 50_000_000)
+
+        XCTAssertEqual(harness.analytics.aiGenerationCancelledCount, 1)
+        XCTAssertEqual(harness.router.showDescriptionCallCount, 0)
+        XCTAssertNil(harness.session.chosenTheme)
+        XCTAssertNil(
+            descendant(
+                in: harness.viewController.view,
+                accessibilityIdentifier: "homeExpandedAIThemeCard"
+            )
+        )
     }
 
     private func makeHarness() -> (
@@ -452,6 +555,154 @@ final class QuizFlowCoordinatorAdditionalTests: XCTestCase {
             aiQuizThemeService: MockAIQuizThemeService()
         )
         return (coordinator, navigationController, session)
+    }
+
+    private func makeInlineAIHarness(
+        service: ControllableRoutingAIQuizThemeService
+    ) throws -> InlineAIHarness {
+        let session = RoutingSession()
+        let router = InlineAIRouterSpy()
+        let analytics = InlineAIAnalyticsSpy()
+        let viewController = QuizViewController(
+            themeRepository: RoutingThemeRepository(themes: []),
+            session: session,
+            aiQuizThemeService: service,
+            analytics: analytics,
+            motivationPromptProvider: { _ in "Prompt" },
+            cardReduceMotionProvider: { true },
+            cardDeviceParallaxEnabledProvider: { false }
+        )
+        viewController.router = router
+        let window = UIWindow(frame: CGRect(x: 0, y: 0, width: 390, height: 844))
+        window.rootViewController = viewController
+        window.makeKeyAndVisible()
+        viewController.loadViewIfNeeded()
+        viewController.view.frame = window.bounds
+        viewController.view.layoutIfNeeded()
+        let collectionView = try XCTUnwrap(
+            descendant(
+                in: viewController.view,
+                accessibilityIdentifier: "homeThemesCollectionView"
+            ) as? UICollectionView
+        )
+        collectionView.layoutIfNeeded()
+
+        return InlineAIHarness(
+            window: window,
+            viewController: viewController,
+            router: router,
+            session: session,
+            analytics: analytics,
+            service: service
+        )
+    }
+
+    private func revealInlineAIBack(
+        in viewController: QuizViewController,
+        prompt: String
+    ) throws -> InlineAIControls {
+        let sourceButton = try XCTUnwrap(
+            descendant(
+                in: viewController.view,
+                accessibilityIdentifier: "homeCreateWithAIButton"
+            ) as? UIButton
+        )
+        sourceButton.sendActions(for: .touchUpInside)
+        drainMainRunLoop(for: 0.4)
+
+        let card = try XCTUnwrap(
+            descendant(
+                in: viewController.view,
+                accessibilityIdentifier: "homeExpandedAIThemeCard"
+            )
+        )
+        let promptEditor = try XCTUnwrap(
+            descendant(
+                in: card,
+                accessibilityIdentifier: "aiThemePromptEditor"
+            ) as? UITextView
+        )
+        let playButton = try XCTUnwrap(
+            descendant(
+                in: card,
+                accessibilityIdentifier: "expandedAIThemeCardPlayButton"
+            ) as? UIButton
+        )
+        promptEditor.text = prompt
+        promptEditor.delegate?.textViewDidChange?(promptEditor)
+        XCTAssertTrue(playButton.isEnabled)
+        // Flip mechanics have dedicated UI coverage. Keep these integration tests
+        // deterministic by exposing the back form without waiting on a 3D animator.
+        try XCTUnwrap(card as? ExpandedAIThemeCardView).setFace(.back, animated: false)
+
+        let submitButton = try XCTUnwrap(
+            descendant(
+                in: card,
+                accessibilityIdentifier: "aiThemeSubmitButton"
+            ) as? UIButton
+        )
+        XCTAssertFalse(
+            try XCTUnwrap(
+                descendant(
+                    in: card,
+                    accessibilityIdentifier: "expandedAIThemeCardBackView"
+                )
+            ).isHidden
+        )
+        return InlineAIControls(
+            card: card,
+            promptEditor: promptEditor,
+            submitButton: submitButton
+        )
+    }
+
+    private func closeInlineAICard(in viewController: QuizViewController) throws {
+        let dismissButton = try XCTUnwrap(
+            descendant(
+                in: viewController.view,
+                accessibilityIdentifier: "homeExpandedThemeCardBackdropDismissButton"
+            ) as? UIButton
+        )
+        dismissButton.sendActions(for: .touchUpInside)
+        drainMainRunLoop(for: 0.4)
+    }
+
+    private func makeGeneratedAITheme(
+        questionCount: Int,
+        id: String = "generated_ai_theme"
+    ) -> QuizTheme {
+        let questions = (0..<questionCount).map { index in
+            QuizQuestion(
+                question: "Question \(index)",
+                answers: ["A", "B", "C", "D"],
+                correctAnswer: "A"
+            )
+        }
+        return QuizTheme(
+            id: id,
+            theme: "Generated AI Theme",
+            themeDescription: "Generated description",
+            questions: questions,
+            source: .ai
+        )
+    }
+
+    private func waitUntil(
+        timeout: TimeInterval = 2,
+        condition: @escaping @MainActor () -> Bool
+    ) async throws {
+        let deadline = Date().addingTimeInterval(timeout)
+        while !condition() {
+            guard Date() < deadline else {
+                XCTFail("Timed out waiting for inline AI state")
+                return
+            }
+            try await Task.sleep(nanoseconds: 10_000_000)
+        }
+    }
+
+    private func drainMainRunLoop(for duration: TimeInterval) {
+        RunLoop.main.run(until: Date().addingTimeInterval(duration))
     }
 
     private func descendant(in rootView: UIView, accessibilityIdentifier: String) -> UIView? {
@@ -576,22 +827,6 @@ private final class RoutingNavigationControllerSpy: UINavigationController {
     }
 }
 
-private final class DeferredDismissViewControllerSpy: UIViewController {
-    private(set) var dismissAnimationFlags: [Bool] = []
-    private var dismissalCompletion: (() -> Void)?
-
-    override func dismiss(animated flag: Bool, completion: (() -> Void)? = nil) {
-        dismissAnimationFlags.append(flag)
-        dismissalCompletion = completion
-    }
-
-    func completeDismissal() {
-        let completion = dismissalCompletion
-        dismissalCompletion = nil
-        completion?()
-    }
-}
-
 private final class RoutingThemeRepository: ThemeRepository {
     var themes: [QuizTheme]?
 
@@ -618,5 +853,114 @@ private final class RoutingSession: QuizSessionManaging {
         }
         chosenTheme = ThemeModel(quizTheme: theme)
         return true
+    }
+}
+
+@MainActor
+private struct InlineAIHarness {
+    let window: UIWindow
+    let viewController: QuizViewController
+    let router: InlineAIRouterSpy
+    let session: RoutingSession
+    let analytics: InlineAIAnalyticsSpy
+    let service: ControllableRoutingAIQuizThemeService
+
+    func dispose() {
+        service.resolveAll(with: .failure(CancellationError()))
+        viewController.dismiss(animated: false)
+        window.isHidden = true
+        window.rootViewController = nil
+    }
+}
+
+private struct InlineAIControls {
+    let card: UIView
+    let promptEditor: UITextView
+    let submitButton: UIButton
+}
+
+private final class InlineAIRouterSpy: QuizRouting {
+    private(set) var showDescriptionCallCount = 0
+
+    func showDescription() { showDescriptionCallCount += 1 }
+    func showQuestion() {}
+    func showResult(_ result: QuizResultState) {}
+    func showStatistics() {}
+    func showSettings() {}
+    func closeDescription() {}
+    func closeStatistics() {}
+    func closeQuestion() {}
+    func replayQuiz() {}
+    func returnToThemes() {}
+}
+
+private final class InlineAIAnalyticsSpy: AnalyticsTracking {
+    private(set) var events: [AnalyticsEvent] = []
+
+    var aiGenerationCancelledCount: Int {
+        events.reduce(into: 0) { count, event in
+            if case .aiGenerationCancelled = event {
+                count += 1
+            }
+        }
+    }
+
+    func track(_ event: AnalyticsEvent) {
+        events.append(event)
+    }
+
+    func reportOperationalError(_ error: Error, context: AnalyticsErrorContext) {}
+}
+
+private final class ControllableRoutingAIQuizThemeService: AIQuizThemeServiceProtocol, @unchecked Sendable {
+    private struct PendingRequest {
+        let continuation: CheckedContinuation<QuizTheme, Error>
+    }
+
+    private let lock = NSLock()
+    private var configurations: [AIQuizGenerationConfiguration] = []
+    private var pendingRequests: [PendingRequest] = []
+
+    var generatedConfigurations: [AIQuizGenerationConfiguration] {
+        withLock { configurations }
+    }
+
+    func generateQuizTheme(
+        configuration: AIQuizGenerationConfiguration
+    ) async throws -> QuizTheme {
+        try await withCheckedThrowingContinuation { continuation in
+            withLock {
+                configurations.append(configuration)
+                pendingRequests.append(PendingRequest(continuation: continuation))
+            }
+        }
+    }
+
+    func resolveNext(with result: Result<QuizTheme, Error>) {
+        let continuation = withLock {
+            pendingRequests.isEmpty ? nil : pendingRequests.removeFirst().continuation
+        }
+        continuation?.resume(with: result)
+    }
+
+    func resolveAll(with result: Result<QuizTheme, Error>) {
+        let continuations = withLock {
+            let continuations = pendingRequests.map(\.continuation)
+            pendingRequests.removeAll()
+            return continuations
+        }
+        continuations.forEach { $0.resume(with: result) }
+    }
+
+    private func withLock<Value>(_ operation: () -> Value) -> Value {
+        lock.lock()
+        defer { lock.unlock() }
+        return operation()
+    }
+}
+
+private extension UIView {
+    var allDescendants: [UIView] {
+        subviews + subviews.flatMap(\.allDescendants)
     }
 }

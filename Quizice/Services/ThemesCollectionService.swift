@@ -90,6 +90,13 @@ final class ThemesCollectionService: NSObject, UICollectionViewDelegate, UIColle
         }
     }
 
+    var isAIThemePresented = false {
+        didSet {
+            guard oldValue != isAIThemePresented else { return }
+            reconfigureAIThemeCell()
+        }
+    }
+
     private let themeRepository: ThemeRepository
     private let statisticsStore: StatisticsStore
     private let appearanceStore = AppAppearanceStore.shared
@@ -231,6 +238,10 @@ final class ThemesCollectionService: NSObject, UICollectionViewDelegate, UIColle
             action: #selector(aiThemeButtonTouchedUpInside(_:)),
             appearance: appearance
         )
+        button.isHidden = isAIThemePresented
+        button.isEnabled = !isAIThemePresented
+        button.isAccessibilityElement = !isAIThemePresented
+        button.accessibilityElementsHidden = isAIThemePresented
         button.layer.borderWidth = 0
         button.layer.borderColor = UIColor.clear.cgColor
         applyRadarGreenGlowStyleIfNeeded(to: button, appearance: appearance)
@@ -404,6 +415,16 @@ final class ThemesCollectionService: NSObject, UICollectionViewDelegate, UIColle
     private func reconfigureStatisticsCell() {
         guard let collectionView = observedCollectionView else { return }
         let indexPath = IndexPath(item: statisticsIndex, section: 0)
+        guard collectionView.numberOfItems(inSection: 0) > indexPath.item else { return }
+
+        UIView.performWithoutAnimation {
+            collectionView.reconfigureItems(at: [indexPath])
+        }
+    }
+
+    private func reconfigureAIThemeCell() {
+        guard let collectionView = observedCollectionView else { return }
+        let indexPath = IndexPath(item: aiThemeIndex, section: 0)
         guard collectionView.numberOfItems(inSection: 0) > indexPath.item else { return }
 
         UIView.performWithoutAnimation {
