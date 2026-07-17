@@ -4,6 +4,8 @@
 <dict>
 	<key>AppMetricaAPIKey</key>
 	<string>$(APPMETRICA_API_KEY)</string>
+	<key>NSMotionUsageDescription</key>
+	<string>Quizice uses device motion to make theme cards respond to how you hold your iPhone.</string>
 	<key>UIAppFonts</key>
 	<array>
 		<string>Inter.ttf</string>

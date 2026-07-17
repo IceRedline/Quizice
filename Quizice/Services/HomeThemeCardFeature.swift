@@ -1,4 +1,6 @@
 import CoreGraphics
+import CoreMotion
+import QuartzCore
 
 enum HomeThemeCardPhase: Equatable {
     case grid
@@ -51,6 +53,289 @@ struct HomeThemeCardTransitionVisualState: Equatable {
         let clampedBaseAlpha = min(max(baseAlpha, 0), 1)
         let overlayAlpha = clampedBaseAlpha * expandedSurfaceLayerAlpha
         return 1 - (1 - clampedBaseAlpha) * (1 - overlayAlpha)
+    }
+}
+
+enum HomeThemeCardParallaxPresentationPhase: Equatable {
+    case inactive
+    case expanding
+    case front
+    case flipping
+    case back
+    case collapsing
+
+    var preservesParallaxContinuity: Bool {
+        switch self {
+        case .front, .flipping, .back:
+            return true
+        case .inactive, .expanding, .collapsing:
+            return false
+        }
+    }
+
+    func permitsDeviceMotion(currentFace: HomeThemeCardFace) -> Bool {
+        switch (self, currentFace) {
+        case (.front, .front), (.back, .back), (.flipping, _):
+            return true
+        case (.inactive, _), (.expanding, _), (.front, .back),
+             (.back, .front), (.collapsing, _):
+            return false
+        }
+    }
+
+    func permitsTouchParallax(currentFace: HomeThemeCardFace) -> Bool {
+        switch (self, currentFace) {
+        case (.front, .front), (.back, .back):
+            return true
+        case (.inactive, _), (.expanding, _), (.front, .back),
+             (.flipping, _), (.back, .front), (.collapsing, _):
+            return false
+        }
+    }
+}
+
+extension HomeThemeCardPhase {
+    var parallaxPresentationPhase: HomeThemeCardParallaxPresentationPhase {
+        switch self {
+        case .grid, .launching:
+            return .inactive
+        case .expanding:
+            return .expanding
+        case .expandedFront:
+            return .front
+        case .flippingToBack, .flippingToFront:
+            return .flipping
+        case .expandedBack:
+            return .back
+        case .collapsing:
+            return .collapsing
+        }
+    }
+}
+
+struct HomeThemeCardExpansionParallaxState: Equatable {
+    let progress: CGFloat
+
+    init(progress: CGFloat) {
+        self.progress = min(max(progress, 0), 1)
+    }
+
+    /// The artwork emerges from a deeper plane than the title while the card grows.
+    var artworkScale: CGFloat {
+        interpolate(from: 0.94, to: 1)
+    }
+
+    var titleScale: CGFloat {
+        interpolate(from: 0.985, to: 1)
+    }
+
+    private func interpolate(from start: CGFloat, to end: CGFloat) -> CGFloat {
+        start + ((end - start) * progress)
+    }
+}
+
+struct HomeThemeCardParallaxInput: Equatable {
+    static let zero = HomeThemeCardParallaxInput(x: 0, y: 0)
+
+    let x: CGFloat
+    let y: CGFloat
+
+    init(x: CGFloat, y: CGFloat) {
+        self.x = min(max(x, -1), 1)
+        self.y = min(max(y, -1), 1)
+    }
+
+    var isNeutral: Bool {
+        abs(x) < 0.000_1 && abs(y) < 0.000_1
+    }
+}
+
+struct HomeThemeCardPanParallaxMapper {
+    private static let horizontalTravelRatio: CGFloat = 0.32
+    private static let verticalTravelRatio: CGFloat = 0.24
+
+    static func input(
+        translation: CGPoint,
+        in containerSize: CGSize,
+        startingAt initialInput: HomeThemeCardParallaxInput = .zero
+    ) -> HomeThemeCardParallaxInput {
+        let horizontalTravel = max(containerSize.width * horizontalTravelRatio, 1)
+        let verticalTravel = max(containerSize.height * verticalTravelRatio, 1)
+        return HomeThemeCardParallaxInput(
+            x: initialInput.x + translation.x / horizontalTravel,
+            y: initialInput.y + translation.y / verticalTravel
+        )
+    }
+
+    static func normalizedVelocity(
+        _ velocity: CGPoint,
+        in containerSize: CGSize
+    ) -> CGVector {
+        let horizontalTravel = max(containerSize.width * horizontalTravelRatio, 1)
+        let verticalTravel = max(containerSize.height * verticalTravelRatio, 1)
+        return CGVector(
+            dx: velocity.x / horizontalTravel,
+            dy: velocity.y / verticalTravel
+        )
+    }
+}
+
+struct HomeThemeCardParallaxGesturePolicy {
+    static func permitsParallax(
+        startedInDescription: Bool,
+        descriptionCanScrollVertically: Bool,
+        velocity: CGPoint
+    ) -> Bool {
+        guard startedInDescription, descriptionCanScrollVertically else { return true }
+        return abs(velocity.x) > abs(velocity.y)
+    }
+}
+
+struct HomeThemeCardDeviceParallaxStyle: Equatable {
+    let horizontalRotation: CGFloat
+    let verticalRotation: CGFloat
+    let perspectiveDistance: CGFloat
+
+    static let standard = HomeThemeCardDeviceParallaxStyle(
+        horizontalRotation: 7 * .pi / 180,
+        verticalRotation: 5 * .pi / 180,
+        perspectiveDistance: 760
+    )
+}
+
+struct HomeThemeCardParallaxRenderState: Equatable {
+    let rotationX: CGFloat
+    let rotationY: CGFloat
+    let perspectiveDistance: CGFloat
+
+    init(
+        input: HomeThemeCardParallaxInput,
+        style: HomeThemeCardDeviceParallaxStyle = .standard
+    ) {
+        rotationX = -input.y * style.verticalRotation
+        // The card leans toward the drag: moving right brings its right edge
+        // forward, matching the reference's negative Y-axis rotation.
+        rotationY = -input.x * style.horizontalRotation
+        perspectiveDistance = style.perspectiveDistance
+    }
+
+    var isNeutral: Bool {
+        abs(rotationX) < 0.000_1 &&
+            abs(rotationY) < 0.000_1
+    }
+}
+
+protocol HomeThemeCardMotionProviding: AnyObject {
+    var isAvailable: Bool { get }
+
+    func start(receive: @escaping (HomeThemeCardParallaxInput) -> Void)
+    func stop()
+}
+
+struct HomeThemeCardMotionInputMapper {
+    static func input(
+        relativeRoll: CGFloat,
+        relativePitch: CGFloat,
+        responseAngle: CGFloat
+    ) -> HomeThemeCardParallaxInput {
+        let safeResponseAngle = max(abs(responseAngle), .leastNonzeroMagnitude)
+        return HomeThemeCardParallaxInput(
+            // The shared renderer maps positive x to a negative Y rotation.
+            // Inverting roll keeps physical +Y device rotation aligned with it.
+            x: -relativeRoll / safeResponseAngle,
+            y: relativePitch / safeResponseAngle
+        )
+    }
+}
+
+final class CoreMotionHomeThemeCardMotionProvider: NSObject, HomeThemeCardMotionProviding {
+    private enum Constants {
+        static let updateInterval: TimeInterval = 1 / 60
+        static let responseAngle: CGFloat = 12 * .pi / 180
+        static let smoothingFactor: CGFloat = 0.18
+        static let deadZone: CGFloat = 0.012
+    }
+
+    private let motionManager: CMMotionManager
+    private var displayLink: CADisplayLink?
+    private var receive: ((HomeThemeCardParallaxInput) -> Void)?
+    private var referenceAttitude: CMAttitude?
+    private var filteredInput = HomeThemeCardParallaxInput.zero
+
+    init(motionManager: CMMotionManager = CMMotionManager()) {
+        self.motionManager = motionManager
+        super.init()
+    }
+
+    deinit {
+        displayLink?.invalidate()
+        motionManager.stopDeviceMotionUpdates()
+    }
+
+    var isAvailable: Bool {
+        motionManager.isDeviceMotionAvailable
+    }
+
+    func start(receive: @escaping (HomeThemeCardParallaxInput) -> Void) {
+        stop()
+        guard isAvailable else { return }
+
+        self.receive = receive
+        referenceAttitude = nil
+        filteredInput = .zero
+        motionManager.deviceMotionUpdateInterval = Constants.updateInterval
+        let availableFrames = CMMotionManager.availableAttitudeReferenceFrames()
+        if availableFrames.contains(.xArbitraryZVertical) {
+            motionManager.startDeviceMotionUpdates(using: .xArbitraryZVertical)
+        } else {
+            motionManager.startDeviceMotionUpdates()
+        }
+
+        let displayLink = CADisplayLink(target: self, selector: #selector(sampleMotion))
+        displayLink.preferredFrameRateRange = CAFrameRateRange(
+            minimum: 30,
+            maximum: 60,
+            preferred: 60
+        )
+        displayLink.add(to: .main, forMode: .common)
+        self.displayLink = displayLink
+    }
+
+    func stop() {
+        displayLink?.invalidate()
+        displayLink = nil
+        motionManager.stopDeviceMotionUpdates()
+        receive = nil
+        referenceAttitude = nil
+        filteredInput = .zero
+    }
+
+    @objc private func sampleMotion() {
+        guard let motion = motionManager.deviceMotion else { return }
+
+        guard let referenceAttitude else {
+            self.referenceAttitude = motion.attitude.copy() as? CMAttitude
+            receive?(.zero)
+            return
+        }
+
+        guard let relativeAttitude = motion.attitude.copy() as? CMAttitude else { return }
+        relativeAttitude.multiply(byInverseOf: referenceAttitude)
+
+        let target = HomeThemeCardMotionInputMapper.input(
+            relativeRoll: CGFloat(relativeAttitude.roll),
+            relativePitch: CGFloat(relativeAttitude.pitch),
+            responseAngle: Constants.responseAngle
+        )
+        let smoothed = HomeThemeCardParallaxInput(
+            x: filteredInput.x + (target.x - filteredInput.x) * Constants.smoothingFactor,
+            y: filteredInput.y + (target.y - filteredInput.y) * Constants.smoothingFactor
+        )
+        filteredInput = HomeThemeCardParallaxInput(
+            x: abs(smoothed.x) < Constants.deadZone ? 0 : smoothed.x,
+            y: abs(smoothed.y) < Constants.deadZone ? 0 : smoothed.y
+        )
+        receive?(filteredInput)
     }
 }
 

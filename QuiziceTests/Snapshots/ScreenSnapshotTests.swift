@@ -272,7 +272,10 @@ final class ScreenSnapshotTests: XCTestCase {
         return viewController
     }
 
-    private func makeHomeViewController(themes: [QuizTheme]? = nil) -> QuizViewController {
+    private func makeHomeViewController(
+        themes: [QuizTheme]? = nil,
+        cardDeviceParallaxEnabledProvider: @escaping () -> Bool = { true }
+    ) -> QuizViewController {
         let suiteName = "ScreenSnapshotTests.home.\(UUID().uuidString)"
         defaultsSuiteNames.append(suiteName)
         let defaults = UserDefaults(suiteName: suiteName)!
@@ -286,7 +289,8 @@ final class ScreenSnapshotTests: XCTestCase {
         QuizFactory.shared.startup1st = false
         return QuizViewController(
             statisticsStore: StatisticsStore(userDefaults: defaults, key: "attempts"),
-            motivationPromptProvider: { _ in "Время\nпроверить факты" }
+            motivationPromptProvider: { _ in "Время\nпроверить факты" },
+            cardDeviceParallaxEnabledProvider: cardDeviceParallaxEnabledProvider
         )
     }
 
@@ -297,7 +301,12 @@ final class ScreenSnapshotTests: XCTestCase {
         contentSizeCategory: UIContentSizeCategory? = nil
     ) throws -> QuizViewController {
         let theme = makeExpandedCardTheme()
-        let viewController = makeHomeViewController(themes: [theme])
+        // Device attitude is intentionally nondeterministic. Snapshot tests
+        // exercise the neutral visual state; lifecycle tests cover live effects.
+        let viewController = makeHomeViewController(
+            themes: [theme],
+            cardDeviceParallaxEnabledProvider: { false }
+        )
         viewController.overrideUserInterfaceStyle = userInterfaceStyle
         if let contentSizeCategory {
             viewController.traitOverrides.preferredContentSizeCategory = contentSizeCategory

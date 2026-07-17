@@ -12,6 +12,7 @@
 		A10000052F60000100A10001 /* HomeThemeCardFeature.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000062F60000100A10001 /* HomeThemeCardFeature.swift */; };
 		A10000072F60000100A10001 /* QuizQuestionCountPolicy.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000082F60000100A10001 /* QuizQuestionCountPolicy.swift */; };
 		A10000092F60000100A10001 /* HomeThemeCardFeatureTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100000A2F60000100A10001 /* HomeThemeCardFeatureTests.swift */; };
+		A20000012F80000100A20001 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = A20000082F80000100A20001 /* InfoPlist.strings */; };
 		C10000012F70000100C10001 /* HomeThemeCardFlipTransitionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C10000022F70000100C10001 /* HomeThemeCardFlipTransitionTests.swift */; };
 		B10000012F70000100B10001 /* StatisticsCardCollectionViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10000022F70000100B10001 /* StatisticsCardCollectionViewCell.swift */; };
 		B10000032F70000100B10001 /* ExpandedStatisticsCardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10000042F70000100B10001 /* ExpandedStatisticsCardView.swift */; };
@@ -151,6 +152,12 @@
 		99C0F1032E50000100C0DE01 /* de */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = de; path = de.lproj/Localizable.strings; sourceTree = "<group>"; };
 		99C0F1042E50000100C0DE01 /* it */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = it; path = it.lproj/Localizable.strings; sourceTree = "<group>"; };
 		99C0F1052E50000100C0DE01 /* fr */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = fr; path = fr.lproj/Localizable.strings; sourceTree = "<group>"; };
+		A20000022F80000100A20001 /* ru */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = ru; path = ru.lproj/InfoPlist.strings; sourceTree = "<group>"; };
+		A20000032F80000100A20001 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/InfoPlist.strings; sourceTree = "<group>"; };
+		A20000042F80000100A20001 /* es */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = es; path = es.lproj/InfoPlist.strings; sourceTree = "<group>"; };
+		A20000052F80000100A20001 /* de */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = de; path = de.lproj/InfoPlist.strings; sourceTree = "<group>"; };
+		A20000062F80000100A20001 /* it */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = it; path = it.lproj/InfoPlist.strings; sourceTree = "<group>"; };
+		A20000072F80000100A20001 /* fr */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = fr; path = fr.lproj/InfoPlist.strings; sourceTree = "<group>"; };
 		99C0F1102E50000100C0DE01 /* ru */ = {isa = PBXFileReference; lastKnownFileType = text.json; name = ru; path = ru.lproj/data.json; sourceTree = "<group>"; };
 		99C0F1112E50000100C0DE01 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.json; name = en; path = en.lproj/data.json; sourceTree = "<group>"; };
 		99C0F1122E50000100C0DE01 /* es */ = {isa = PBXFileReference; lastKnownFileType = text.json; name = es; path = es.lproj/data.json; sourceTree = "<group>"; };
@@ -232,6 +239,7 @@
 				993C1BC82D8D5EC200AD9BE4 /* SceneDelegate.swift */,
 				993C1BC52D8D5EC200AD9BE4 /* LaunchScreen.storyboard */,
 				993C1BC62D8D5EC200AD9BE4 /* Localizable.strings */,
+				A20000082F80000100A20001 /* InfoPlist.strings */,
 				99C0FFEE2E50000100C0DE01 /* L10n.swift */,
 				99C0FFF02E50000100C0DE01 /* AppLocalization.swift */,
 				993C1BDE2D8D601E00AD9BE4 /* Models */,
@@ -481,6 +489,7 @@
 				99722CBB2D9427480028758D /* Quizice Incorrect.m4a in Resources */,
 				993C1BD02D8D5EC200AD9BE4 /* LaunchScreen.storyboard in Resources */,
 				993C1BD12D8D5EC200AD9BE4 /* Localizable.strings in Resources */,
+				A20000012F80000100A20001 /* InfoPlist.strings in Resources */,
 				99722CB52D9424180028758D /* Quizice Enter.m4a in Resources */,
 				993C1C052D8F0A6000AD9BE4 /* data.json in Resources */,
 				99D1000A2E70000100D10001 /* Inter.ttf in Resources */,
@@ -607,6 +616,19 @@
 				99C0F1052E50000100C0DE01 /* fr */,
 			);
 			name = Localizable.strings;
+			sourceTree = "<group>";
+		};
+		A20000082F80000100A20001 /* InfoPlist.strings */ = {
+			isa = PBXVariantGroup;
+			children = (
+				A20000022F80000100A20001 /* ru */,
+				A20000032F80000100A20001 /* en */,
+				A20000042F80000100A20001 /* es */,
+				A20000052F80000100A20001 /* de */,
+				A20000062F80000100A20001 /* it */,
+				A20000072F80000100A20001 /* fr */,
+			);
+			name = InfoPlist.strings;
 			sourceTree = "<group>";
 		};
 		993C1C042D8F0A5B00AD9BE4 /* data.json */ = {
