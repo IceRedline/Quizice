@@ -197,6 +197,11 @@ enum L10n {
         static var theme: String { L10n.localized("settings.theme", comment: "Settings theme row title") }
         static var themeSubtitle: String { L10n.localized("settings.theme.subtitle", comment: "Settings theme row subtitle") }
         static var title: String { L10n.localized("settings.title", comment: "Settings screen title") }
+#if DEBUG
+        static var developerSectionTitle: String { L10n.localized("settings.section.developer", comment: "Debug settings developer section title") }
+        static var localhostBackend: String { L10n.localized("settings.backend.localhost", comment: "Debug localhost backend toggle title") }
+        static var localhostBackendSubtitle: String { L10n.localized("settings.backend.localhost.subtitle", comment: "Debug localhost backend toggle subtitle") }
+#endif
 
         static func restartRequiredMessage(selection: String) -> String {
             L10n.formatted("settings.restart_required.message_format", comment: "Settings restart required alert message format", selection)

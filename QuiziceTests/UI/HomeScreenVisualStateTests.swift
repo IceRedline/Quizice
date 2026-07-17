@@ -15,6 +15,9 @@ final class HomeScreenVisualStateTests: XCTestCase {
         UserDefaults.standard.set(CleanColorSchemePreference.light.rawValue, forKey: AppAppearanceStore.Keys.cleanColorScheme)
         UserDefaults.standard.set(AppDesignStyle.classic.rawValue, forKey: AppAppearanceStore.Keys.designStyle)
         UserDefaults.standard.set(AppBackgroundStyle.defaultStyle.rawValue, forKey: AppAppearanceStore.Keys.backgroundStyle)
+#if DEBUG
+        UserDefaults.standard.removeObject(forKey: DebugBackendSettings.useLocalhostKey)
+#endif
     }
 
     override func tearDown() {
@@ -24,6 +27,9 @@ final class HomeScreenVisualStateTests: XCTestCase {
         UserDefaults.standard.removeObject(forKey: AppAppearanceStore.Keys.cleanColorScheme)
         UserDefaults.standard.removeObject(forKey: AppAppearanceStore.Keys.backgroundStyle)
         UserDefaults.standard.removeObject(forKey: AppLocalizationStore.Keys.language)
+#if DEBUG
+        UserDefaults.standard.removeObject(forKey: DebugBackendSettings.useLocalhostKey)
+#endif
         super.tearDown()
     }
 
@@ -249,10 +255,14 @@ final class HomeScreenVisualStateTests: XCTestCase {
 #if DEBUG
         let menu = try XCTUnwrap(settingsButton.menu)
         let interfaceAction = try XCTUnwrap(menu.children.first as? UIAction)
+        let localhostAction = try XCTUnwrap(menu.children.dropFirst().first as? UIAction)
         let backgroundMenu = try XCTUnwrap(menu.children.last as? UIMenu)
         let backgroundActions = backgroundMenu.children.compactMap { $0 as? UIAction }
 
         XCTAssertEqual(interfaceAction.title, "Hide UI")
+        XCTAssertEqual(localhostAction.title, L10n.Settings.localhostBackend)
+        XCTAssertEqual(localhostAction.subtitle, L10n.Settings.localhostBackendSubtitle)
+        XCTAssertEqual(localhostAction.state, .off)
         XCTAssertEqual(backgroundMenu.title, L10n.Home.backgroundStyleSwitcher)
         XCTAssertEqual(backgroundActions.count, AppBackgroundStyle.allCases.count)
         XCTAssertEqual(backgroundActions.map(\.title), AppBackgroundStyle.allCases.map(\.title))
@@ -272,6 +282,27 @@ final class HomeScreenVisualStateTests: XCTestCase {
         )
 #else
         XCTAssertNil(settingsButton.menu)
+#endif
+    }
+
+    func testHomeSettingsDebugMenuTogglesLocalhostBackend() throws {
+#if DEBUG
+        QuizFactory.shared.themes = [makeTheme(name: "Музыка")]
+
+        let viewController = makeHomeViewController(in: CGRect(x: 0, y: 0, width: 390, height: 844))
+        let settingsButton = try XCTUnwrap(
+            viewController.view.descendant(withAccessibilityIdentifier: "homeSettingsButton") as? UIButton
+        )
+        let localhostAction = try XCTUnwrap(settingsButton.menu?.children.dropFirst().first as? UIAction)
+
+        XCTAssertEqual(localhostAction.state, .off)
+        XCTAssertFalse(UserDefaults.standard.bool(forKey: DebugBackendSettings.useLocalhostKey))
+
+        viewController.toggleDebugLocalhostBackend()
+
+        XCTAssertTrue(UserDefaults.standard.bool(forKey: DebugBackendSettings.useLocalhostKey))
+        let updatedAction = try XCTUnwrap(settingsButton.menu?.children.dropFirst().first as? UIAction)
+        XCTAssertEqual(updatedAction.state, .on)
 #endif
     }
 
