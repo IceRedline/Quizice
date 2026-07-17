@@ -26,7 +26,6 @@ private enum Layout {
 }
 
 private enum Appearance {
-    static let backgroundOverlayOpacity: CGFloat = 0.42
     static let doneButtonBackgroundOpacity: CGFloat = 0.16
     static let doneButtonBorderOpacity: CGFloat = 0.22
     static let doneButtonCornerRadius: CGFloat = 20
@@ -108,6 +107,7 @@ struct QuizSettingsView: View {
     @Environment(\.colorScheme) private var colorScheme
     @AppStorage(AppAppearanceStore.Keys.cleanColorScheme) private var selectedThemeID = CleanColorSchemePreference.system.rawValue
     @AppStorage(AppAppearanceStore.Keys.designStyle) private var selectedDesignStyleID = AppDesignStyle.defaultStyle.rawValue
+    @AppStorage(AppAppearanceStore.Keys.backgroundStyle) private var selectedBackgroundStyleID = AppBackgroundStyle.defaultStyle.rawValue
     @AppStorage(AppLocalizationStore.Keys.language) private var selectedLanguageID = AppLanguagePreference.system.rawValue
     @AppStorage("quizice.settings.icon") private var selectedIconID = AppIcon.classic.rawValue
     @State private var activeAlert: SettingsAlert?
@@ -134,6 +134,10 @@ struct QuizSettingsView: View {
         AppLanguagePreference(rawValue: selectedLanguageID) ?? .system
     }
 
+    private var selectedBackgroundStyle: AppBackgroundStyle {
+        AppBackgroundStyle(rawValue: selectedBackgroundStyleID) ?? .defaultStyle
+    }
+
     private var selectedIcon: AppIcon {
         AppIcon(rawValue: selectedIconID) ?? .classic
     }
@@ -143,6 +147,7 @@ struct QuizSettingsView: View {
         return AppAppearance(
             designStyle: selectedDesignStyle,
             cleanColorSchemePreference: selectedTheme,
+            backgroundStyle: selectedBackgroundStyle,
             traitCollection: traitCollection
         )
     }
@@ -176,15 +181,11 @@ struct QuizSettingsView: View {
 
     @ViewBuilder
     private var settingsBackground: some View {
-        if let imageName = appearance.backgroundImageName {
-            Image(imageName)
-                .resizable()
-                .scaledToFill()
-                .ignoresSafeArea()
-
-            Color(uiColor: appearance.overlayColor)
-                .opacity(Appearance.backgroundOverlayOpacity)
-                .ignoresSafeArea()
+        if appearance.designStyle == .classic {
+            AppBackgroundView(
+                appearance: appearance,
+                motionProfile: .edgeAware
+            )
         } else {
             Color(uiColor: appearance.backgroundColor)
                 .ignoresSafeArea()

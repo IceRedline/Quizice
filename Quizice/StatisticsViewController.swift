@@ -3,12 +3,62 @@ import UIKit
 import SwiftUI
 #endif
 
-final class StatisticsViewController: BaseQuizViewController {
-    private enum Content {
-        static let backgroundImageName = "backgroundImage"
-        static let percentageSuffix = "%"
+struct StatisticsPresentation: Equatable {
+    enum MetricID: String, Equatable {
+        case playedQuizzes
+        case correctAnswers
+        case percentage
+        case bestResult
     }
-    
+
+    struct Metric: Equatable {
+        let id: MetricID
+        let title: String
+        let value: String
+    }
+
+    let subtitle: String
+    let emptyStateText: String?
+    let metrics: [Metric]
+
+    init(summary: StatisticsSummary) {
+        subtitle = summary.playedQuizzes > 0
+            ? L10n.Statistics.subtitleWithStats
+            : L10n.Statistics.subtitleEmpty
+        emptyStateText = summary.playedQuizzes > 0 ? nil : L10n.Statistics.emptyStateText
+        metrics = [
+            Metric(
+                id: .playedQuizzes,
+                title: L10n.Statistics.playedQuizzes,
+                value: "\(summary.playedQuizzes)"
+            ),
+            Metric(
+                id: .correctAnswers,
+                title: L10n.Statistics.correctAnswers,
+                value: "\(summary.correctAnswers)/\(summary.totalQuestions)"
+            ),
+            Metric(
+                id: .percentage,
+                title: L10n.Statistics.percentage,
+                value: "\(summary.percentage)%"
+            ),
+            Metric(
+                id: .bestResult,
+                title: L10n.Statistics.bestResult,
+                value: summary.bestResultDisplay
+            )
+        ]
+    }
+
+    func metric(_ id: MetricID) -> Metric {
+        guard let metric = metrics.first(where: { $0.id == id }) else {
+            preconditionFailure("Missing statistics metric: \(id.rawValue)")
+        }
+        return metric
+    }
+}
+
+final class StatisticsViewController: BaseQuizViewController {
     private enum AccessibilityID {
         static let rootView = "statisticsScreen"
         static let backButton = "statisticsBackButton"
@@ -126,7 +176,7 @@ final class StatisticsViewController: BaseQuizViewController {
 
     override func loadView() {
         let rootView = UIView()
-        rootView.backgroundColor = UIColor(patternImage: UIImage(named: Content.backgroundImageName) ?? UIImage())
+        rootView.backgroundColor = .systemBackground
         rootView.accessibilityIdentifier = AccessibilityID.rootView
         rootView.accessibilityLabel = L10n.Statistics.accessibilityLabel
         view = rootView
@@ -435,21 +485,25 @@ final class StatisticsViewController: BaseQuizViewController {
     }
 
     private func render(summary: StatisticsSummary) {
-        let correctAnswersDisplay = "\(summary.correctAnswers)/\(summary.totalQuestions)"
-        let percentageDisplay = "\(summary.percentage)\(Content.percentageSuffix)"
+        let presentation = StatisticsPresentation(summary: summary)
+        let played = presentation.metric(.playedQuizzes)
+        let correct = presentation.metric(.correctAnswers)
+        let percentage = presentation.metric(.percentage)
+        let best = presentation.metric(.bestResult)
 
-        playedQuizzesValueLabel.text = "\(summary.playedQuizzes)"
-        correctAnswersValueLabel.text = correctAnswersDisplay
-        percentageValueLabel.text = percentageDisplay
-        bestResultValueLabel.text = summary.bestResultDisplay
-        emptyStateLabel.isHidden = summary.playedQuizzes > .zero
-        subtitleLabel.text = summary.playedQuizzes > .zero ? L10n.Statistics.subtitleWithStats : L10n.Statistics.subtitleEmpty
+        playedQuizzesValueLabel.text = played.value
+        correctAnswersValueLabel.text = correct.value
+        percentageValueLabel.text = percentage.value
+        bestResultValueLabel.text = best.value
+        emptyStateLabel.text = presentation.emptyStateText ?? L10n.Statistics.emptyStateText
+        emptyStateLabel.isHidden = presentation.emptyStateText == nil
+        subtitleLabel.text = presentation.subtitle
 
         updateAccessibility(
             playedQuizzes: summary.playedQuizzes,
-            correctAnswersDisplay: correctAnswersDisplay,
-            percentageDisplay: percentageDisplay,
-            bestResultDisplay: summary.bestResultDisplay
+            correctAnswersDisplay: correct.value,
+            percentageDisplay: percentage.value,
+            bestResultDisplay: best.value
         )
     }
 

@@ -27,6 +27,7 @@ enum L10n {
     }
 
     enum Home {
+        static var backgroundStyleSwitcher: String { L10n.localized("home.background_style.switcher", comment: "Experimental home background style switcher label") }
         static var chooseTheme: String { L10n.localized("home.choose_theme", comment: "Home screen theme selection title") }
         static var createWithAI: String { L10n.localized("home.create_with_ai", comment: "Create quiz theme with AI button title") }
         static var createWithAIAccessibilityHint: String { L10n.localized("home.create_with_ai.accessibility_hint", comment: "Create quiz theme with AI accessibility hint") }
@@ -34,6 +35,7 @@ enum L10n {
         static var exitAlertMessage: String { L10n.localized("home.exit_alert.message", comment: "Exit confirmation message") }
         static var feelingLucky: String { L10n.localized("home.feeling_lucky", comment: "Feeling lucky random theme button title") }
         static var feelingLuckyAccessibilityHint: String { L10n.localized("home.feeling_lucky.accessibility_hint", comment: "Feeling lucky button accessibility hint") }
+        static var feelingLuckyLoading: String { L10n.localized("home.feeling_lucky.loading", comment: "Feeling lucky loading state title") }
         static var statisticsAccessibilityHint: String { L10n.localized("home.statistics.accessibility_hint", comment: "Home statistics card accessibility hint") }
         static var statisticsAccessibilityLabel: String { L10n.localized("home.statistics.accessibility_label", comment: "Home statistics card accessibility label") }
         static var statisticsAccuracyShort: String { L10n.localized("home.statistics.accuracy_short", comment: "Home statistics card accuracy metric title") }
@@ -41,6 +43,13 @@ enum L10n {
         static var statisticsPlayedShort: String { L10n.localized("home.statistics.played_short", comment: "Home statistics card played quizzes metric title") }
         static var themesCollectionAccessibilityLabel: String { L10n.localized("home.themes_collection.accessibility_label", comment: "Home themes collection accessibility label") }
         static var unavailableThemes: String { L10n.localized("home.unavailable_themes", comment: "Home screen empty themes title") }
+
+        enum BackgroundStyle {
+            static var original: String { L10n.localized("home.background_style.original", comment: "Original mesh gradient background option") }
+            static var grid4x4: String { L10n.localized("home.background_style.grid_4x4", comment: "4 by 4 mesh gradient background option") }
+            static var grid5x5: String { L10n.localized("home.background_style.grid_5x5", comment: "5 by 5 mesh gradient background option") }
+        }
+
         static var motivationPrompts: [String] {
             [
                 L10n.localized("home.motivation_prompt.1", comment: "Home screen random motivation prompt"),
@@ -231,6 +240,9 @@ enum L10n {
 
     enum ThemeCard {
         static var accessibilityHint: String { L10n.localized("theme.card.accessibility_hint", comment: "Theme card accessibility hint") }
+        static var closeAccessibilityLabel: String { L10n.localized("theme.card.close_accessibility_label", comment: "Expanded theme card close button accessibility label") }
+        static var showDescriptionAccessibilityLabel: String { L10n.localized("theme.card.show_description_accessibility_label", comment: "Expanded theme card show-description accessibility label") }
+        static var showFrontAccessibilityLabel: String { L10n.localized("theme.card.show_front_accessibility_label", comment: "Expanded theme card return-to-front accessibility label") }
 
         static func accessibilityLabel(themeName: String) -> String {
             L10n.formatted("theme.card.accessibility_label_format", comment: "Theme card accessibility label format", themeName)

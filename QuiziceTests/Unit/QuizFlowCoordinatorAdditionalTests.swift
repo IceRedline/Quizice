@@ -28,6 +28,236 @@ final class QuizFlowCoordinatorAdditionalTests: XCTestCase {
         XCTAssertTrue(navigationController.isNavigationBarHidden)
     }
 
+    func testLaunchOverlayPresenterInstallsAndRemovesFakeLaunchAboveRoot() throws {
+        let windowScene = try XCTUnwrap(
+            UIApplication.shared.connectedScenes.compactMap { $0 as? UIWindowScene }.first
+        )
+        let window = UIWindow(windowScene: windowScene)
+        let rootViewController = UINavigationController(rootViewController: UIViewController())
+        window.rootViewController = rootViewController
+        let presenter = LaunchOverlayPresenter()
+        let appearance = makeLaunchAppearance(designStyle: .radar)
+        defer {
+            presenter.dismiss(animated: false)
+            window.isHidden = true
+            window.rootViewController = nil
+        }
+
+        presenter.present(in: window, appearance: appearance, holdDuration: 60)
+
+        let overlayWindow = try XCTUnwrap(
+            windowScene.windows.first {
+                $0.accessibilityIdentifier == LaunchOverlayPresenter.accessibilityIdentifier
+            }
+        )
+        XCTAssertFalse(overlayWindow.isKeyWindow)
+        XCTAssertEqual(overlayWindow.windowLevel.rawValue, window.windowLevel.rawValue + 1)
+        let hostingController = try XCTUnwrap(
+            overlayWindow.rootViewController as? UIHostingController<FakeLaunchScreenView>
+        )
+        XCTAssertEqual(hostingController.rootView.appearance.designStyle, .radar)
+        assertColor(overlayWindow.backgroundColor, equals: .black)
+        assertColor(hostingController.view.backgroundColor, equals: .black)
+        XCTAssertTrue(rootViewController.view.accessibilityElementsHidden)
+        XCTAssertEqual(rootViewController.children.count, 1)
+
+        presenter.dismiss(animated: false)
+
+        XCTAssertTrue(overlayWindow.isHidden)
+        XCTAssertNil(overlayWindow.rootViewController)
+        XCTAssertFalse(rootViewController.view.accessibilityElementsHidden)
+        XCTAssertEqual(rootViewController.children.count, 1)
+    }
+
+    func testLaunchOverlayPresenterAutomaticallyRevealsHomeAndRestoresAccessibility() async throws {
+        let windowScene = try XCTUnwrap(
+            UIApplication.shared.connectedScenes.compactMap { $0 as? UIWindowScene }.first
+        )
+        let window = UIWindow(windowScene: windowScene)
+        let rootViewController = UIViewController()
+        window.rootViewController = rootViewController
+        window.isHidden = false
+        let presenter = LaunchOverlayPresenter()
+        let appearance = makeLaunchAppearance(designStyle: .radar)
+        defer {
+            presenter.dismiss(animated: false)
+            window.isHidden = true
+            window.rootViewController = nil
+        }
+
+        presenter.present(
+            in: window,
+            appearance: appearance,
+            holdDuration: 0,
+            motion: FakeLaunchMotion(logoZoomScale: 42, logoZoomDuration: 0.05)
+        )
+
+        let overlayWindow = try XCTUnwrap(
+            windowScene.windows.first {
+                $0.accessibilityIdentifier == LaunchOverlayPresenter.accessibilityIdentifier
+            }
+        )
+        let dismissalExpectation = XCTNSPredicateExpectation(
+            predicate: NSPredicate { _, _ in
+                overlayWindow.isHidden && overlayWindow.rootViewController == nil
+            },
+            object: nil
+        )
+
+        await fulfillment(of: [dismissalExpectation], timeout: 2)
+
+        XCTAssertFalse(rootViewController.view.accessibilityElementsHidden)
+    }
+
+    func testFakeLaunchUsesCrossfadeCompletionWhenAnimationsAreDisabled() async throws {
+        let windowScene = try XCTUnwrap(
+            UIApplication.shared.connectedScenes.compactMap { $0 as? UIWindowScene }.first
+        )
+        let window = UIWindow(windowScene: windowScene)
+        let completionExpectation = expectation(description: "Fake launch completes without zoom")
+        var completionStyle: FakeLaunchCompletionStyle?
+        let animationsWereEnabled = UIView.areAnimationsEnabled
+        UIView.setAnimationsEnabled(false)
+        let appearance = makeLaunchAppearance(designStyle: .classic)
+        let rootView = FakeLaunchScreenView(
+            appearance: appearance,
+            holdDuration: 0,
+            motion: FakeLaunchMotion(logoZoomScale: 42, logoZoomDuration: 0.01)
+        ) { style in
+            completionStyle = style
+            completionExpectation.fulfill()
+        }
+        let viewController = UIHostingController(rootView: rootView)
+        window.rootViewController = viewController
+        window.isHidden = false
+        defer {
+            UIView.setAnimationsEnabled(animationsWereEnabled)
+            window.isHidden = true
+            window.rootViewController = nil
+        }
+
+        await fulfillment(of: [completionExpectation], timeout: 1)
+
+        XCTAssertEqual(completionStyle, .crossfade)
+    }
+
+    func testStaleLaunchFadeDoesNotRemoveAReplacementOverlay() async throws {
+        let windowScene = try XCTUnwrap(
+            UIApplication.shared.connectedScenes.compactMap { $0 as? UIWindowScene }.first
+        )
+        let window = UIWindow(windowScene: windowScene)
+        let rootViewController = UIViewController()
+        window.rootViewController = rootViewController
+        let presenter = LaunchOverlayPresenter()
+        let appearance = makeLaunchAppearance(designStyle: .classic)
+        defer {
+            presenter.dismiss(animated: false)
+            window.isHidden = true
+            window.rootViewController = nil
+        }
+
+        presenter.present(in: window, appearance: appearance, holdDuration: 60)
+        let firstOverlay = try XCTUnwrap(
+            windowScene.windows.first {
+                $0.accessibilityIdentifier == LaunchOverlayPresenter.accessibilityIdentifier
+            }
+        )
+
+        presenter.dismiss()
+        presenter.dismiss(animated: false)
+        presenter.present(in: window, appearance: appearance, holdDuration: 60)
+
+        let replacementOverlay = try XCTUnwrap(
+            windowScene.windows.first {
+                $0 !== firstOverlay
+                    && $0.accessibilityIdentifier == LaunchOverlayPresenter.accessibilityIdentifier
+                    && !$0.isHidden
+            }
+        )
+        try await Task.sleep(nanoseconds: 300_000_000)
+
+        XCTAssertFalse(replacementOverlay.isHidden)
+        XCTAssertNotNil(replacementOverlay.rootViewController)
+        XCTAssertTrue(rootViewController.view.accessibilityElementsHidden)
+    }
+
+    func testFakeLaunchVisualStyleMatchesSelectedDesignAndColorScheme() throws {
+        let classicAppearance = makeLaunchAppearance(designStyle: .classic)
+        let classicStyle = FakeLaunchVisualStyle(appearance: classicAppearance)
+        XCTAssertEqual(classicStyle.markStyle, .classicImage)
+        XCTAssertTrue(classicStyle.revealsAppBackground)
+        XCTAssertNil(classicStyle.foregroundColor)
+        assertColor(classicStyle.backgroundColor, equals: UIColor(hex: 0x111620))
+
+        let radarAppearance = makeLaunchAppearance(designStyle: .radar)
+        let radarStyle = FakeLaunchVisualStyle(appearance: radarAppearance)
+        XCTAssertEqual(radarStyle.markStyle, .radarText)
+        XCTAssertFalse(radarStyle.revealsAppBackground)
+        assertColor(radarStyle.backgroundColor, equals: .black)
+        assertColor(
+            try XCTUnwrap(radarStyle.foregroundColor),
+            equals: radarAppearance.accentColor
+        )
+
+        let cleanLightAppearance = makeLaunchAppearance(
+            designStyle: .clean,
+            cleanColorSchemePreference: .light
+        )
+        let cleanLightStyle = FakeLaunchVisualStyle(appearance: cleanLightAppearance)
+        XCTAssertEqual(cleanLightStyle.markStyle, .cleanText)
+        XCTAssertFalse(cleanLightStyle.revealsAppBackground)
+        assertColor(cleanLightStyle.backgroundColor, equals: .white)
+        assertColor(try XCTUnwrap(cleanLightStyle.foregroundColor), equals: .black)
+
+        let cleanDarkAppearance = makeLaunchAppearance(
+            designStyle: .clean,
+            cleanColorSchemePreference: .dark
+        )
+        let cleanDarkStyle = FakeLaunchVisualStyle(appearance: cleanDarkAppearance)
+        XCTAssertEqual(cleanDarkStyle.markStyle, .cleanText)
+        XCTAssertFalse(cleanDarkStyle.revealsAppBackground)
+        assertColor(cleanDarkStyle.backgroundColor, equals: .black)
+        assertColor(try XCTUnwrap(cleanDarkStyle.foregroundColor), equals: .white)
+    }
+
+    func testLaunchStoryboardMatchesFakeLaunchBaseGeometryAndColor() throws {
+        let viewController = try XCTUnwrap(
+            UIStoryboard(name: "LaunchScreen", bundle: nil).instantiateInitialViewController()
+        )
+        let logoImageView = try XCTUnwrap(
+            viewController.view.subviews.compactMap { $0 as? UIImageView }.first
+        )
+        let backgroundColor = try XCTUnwrap(viewController.view.backgroundColor)
+        var red: CGFloat = 0
+        var green: CGFloat = 0
+        var blue: CGFloat = 0
+        var alpha: CGFloat = 0
+
+        XCTAssertTrue(backgroundColor.getRed(&red, green: &green, blue: &blue, alpha: &alpha))
+        XCTAssertEqual(red, 17.0 / 255.0, accuracy: 0.000_001)
+        XCTAssertEqual(green, 22.0 / 255.0, accuracy: 0.000_001)
+        XCTAssertEqual(blue, 32.0 / 255.0, accuracy: 0.000_001)
+        XCTAssertEqual(alpha, 1, accuracy: 0.000_001)
+
+        let pixelTolerance = 1 / UIScreen.main.scale
+        for size in [
+            CGSize(width: 320, height: 568),
+            CGSize(width: 393, height: 852),
+            CGSize(width: 600, height: 1_000)
+        ] {
+            viewController.view.frame = CGRect(origin: .zero, size: size)
+            viewController.view.setNeedsLayout()
+            viewController.view.layoutIfNeeded()
+
+            XCTAssertEqual(logoImageView.frame.midX, size.width / 2, accuracy: 0.01)
+            XCTAssertEqual(logoImageView.frame.midY, size.height / 2, accuracy: 0.01)
+            let expectedWidth = min(size.width * 0.7, 360)
+            let expectedHeight = expectedWidth * 399 / 742
+            XCTAssertEqual(logoImageView.frame.width, expectedWidth, accuracy: pixelTolerance)
+            XCTAssertEqual(logoImageView.frame.height, expectedHeight, accuracy: pixelTolerance)
+        }
+    }
+
     func testDescriptionAndStatisticsRoutesPushExpectedControllers() {
         let harness = makeHarness()
         harness.coordinator.start()
@@ -52,6 +282,64 @@ final class QuizFlowCoordinatorAdditionalTests: XCTestCase {
         XCTAssertEqual(harness.navigationController.popToRootAnimationFlags, [false])
         XCTAssertEqual(harness.navigationController.dismissCallCount, 1)
         XCTAssertEqual(harness.navigationController.dismissAnimationFlags, [true])
+    }
+
+    func testImmediateQuestionReturnExplicitlyRestoresLuckyHomeInteraction() async throws {
+        let question = QuizQuestion(
+            question: "Question?",
+            answers: ["A", "B", "C", "D"],
+            correctAnswer: "A"
+        )
+        let theme = SnapshotSupport.makeTheme(
+            id: "music",
+            name: "Music",
+            questions: Array(repeating: question, count: 5)
+        )
+        let window = UIWindow(frame: CGRect(x: 0, y: 0, width: 390, height: 844))
+        let navigationController = RoutingNavigationControllerSpy()
+        let repository = RoutingThemeRepository(themes: [theme])
+        let session = RoutingSession()
+        session.themes = [theme]
+        let coordinator = QuizFlowCoordinator(
+            window: window,
+            navigationController: navigationController,
+            themeRepository: repository,
+            session: session,
+            aiQuizThemeService: MockAIQuizThemeService()
+        )
+        coordinator.start()
+        navigationController.topViewControllerOverride = navigationController
+
+        let home = try XCTUnwrap(navigationController.viewControllers.first as? QuizViewController)
+        home.loadViewIfNeeded()
+        home.view.frame = window.bounds
+        home.view.layoutIfNeeded()
+        let collectionView = try XCTUnwrap(
+            descendant(in: home.view, accessibilityIdentifier: "homeThemesCollectionView") as? UICollectionView
+        )
+        let luckyButton = try XCTUnwrap(
+            descendant(in: home.view, accessibilityIdentifier: "homeFeelingLuckyButton") as? UIButton
+        )
+
+        luckyButton.sendActions(for: .touchUpInside)
+        try await waitUntil(timeout: 1.5) {
+            navigationController.presentedControllers.count == 1
+        }
+        XCTAssertEqual(navigationController.presentedControllers.count, 1)
+
+        luckyButton.isHidden = true
+        coordinator.returnToThemes()
+
+        XCTAssertTrue(collectionView.isUserInteractionEnabled)
+        XCTAssertFalse(luckyButton.isHidden)
+
+        let themeButton = try XCTUnwrap(
+            descendant(in: home.view, accessibilityIdentifier: "music") as? UIButton
+        )
+        themeButton.sendActions(for: .touchUpInside)
+        XCTAssertNotNil(
+            descendant(in: home.view, accessibilityIdentifier: "homeExpandedThemeCard")
+        )
     }
 
     func testReplayPreservesSelectionAndPresentsFreshQuestionController() throws {
@@ -84,7 +372,7 @@ final class QuizFlowCoordinatorAdditionalTests: XCTestCase {
         XCTAssertEqual(harness.navigationController.dismissAnimationFlags, [true])
     }
 
-    func testModalRoutesPresentQuestionResultSettingsAndAIThemeCreation() {
+    func testModalRoutesPresentQuestionResultAndSettings() {
         let harness = makeHarness()
         harness.coordinator.start()
         harness.navigationController.topViewControllerOverride = harness.navigationController
@@ -107,41 +395,150 @@ final class QuizFlowCoordinatorAdditionalTests: XCTestCase {
         XCTAssertEqual(harness.navigationController.presentedControllers.count, 3)
         XCTAssertEqual(harness.navigationController.presentedControllers.last?.modalPresentationStyle, .pageSheet)
         XCTAssertEqual(harness.navigationController.presentedAnimationFlags.last, true)
-
-        harness.coordinator.showAIThemeCreation()
-        XCTAssertEqual(harness.navigationController.presentedControllers.count, 4)
-        XCTAssertEqual(harness.navigationController.presentedControllers.last?.modalPresentationStyle, .pageSheet)
-        XCTAssertEqual(harness.navigationController.presentedAnimationFlags.last, true)
     }
 
-    func testGeneratedAIThemeUpdatesSessionAndShowsDescriptionAfterSheetDismissal() {
-        let harness = makeHarness()
-        harness.coordinator.start()
-        let generatedTheme = SnapshotSupport.makeTheme(
-            id: "ai-generated",
-            name: "Generated theme",
-            questions: (1...10).map { index in
-                QuizQuestion(
-                    question: "Question \(index)?",
-                    answers: ["A", "B", "C", "D"],
-                    correctAnswer: "A"
-                )
+    func testInlineAIThemeSubmitIsSingleFlight() async throws {
+        let service = ControllableRoutingAIQuizThemeService()
+        let harness = try makeInlineAIHarness(service: service)
+        defer { harness.dispose() }
+        let controls = try revealInlineAIBack(
+            in: harness.viewController,
+            prompt: "  Космос  \n"
+        )
+
+        controls.submitButton.sendActions(for: .touchUpInside)
+        controls.submitButton.sendActions(for: .touchUpInside)
+
+        try await waitUntil { service.generatedConfigurations.count == 1 }
+        XCTAssertEqual(service.generatedConfigurations.map(\.theme), ["Космос"])
+        XCTAssertEqual(service.generatedConfigurations.map(\.questionCount), [5])
+        XCTAssertFalse(controls.submitButton.isEnabled)
+
+        try closeInlineAICard(in: harness.viewController)
+        try await waitUntil { harness.analytics.aiGenerationCancelledCount == 1 }
+        service.resolveNext(with: .failure(CancellationError()))
+    }
+
+    func testInlineAIThemeSuccessUpdatesSessionAndRoutesToDescriptionExactlyOnce() async throws {
+        let service = ControllableRoutingAIQuizThemeService()
+        let harness = try makeInlineAIHarness(service: service)
+        defer { harness.dispose() }
+        let controls = try revealInlineAIBack(
+            in: harness.viewController,
+            prompt: "  История космоса  "
+        )
+        let countSelector = try XCTUnwrap(
+            descendant(
+                in: controls.card,
+                accessibilityIdentifier: "aiThemeQuestionCountSelector"
+            )
+        )
+        let tenQuestionButton = try XCTUnwrap(
+            countSelector.allDescendants.compactMap { $0 as? UIButton }.first {
+                $0.title(for: .normal) == "10"
             }
         )
-        let creationViewController = DeferredDismissViewControllerSpy()
+        tenQuestionButton.sendActions(for: .touchUpInside)
 
-        harness.coordinator.handleGeneratedAITheme(generatedTheme, dismissing: creationViewController)
+        controls.submitButton.sendActions(for: .touchUpInside)
+        try await waitUntil { service.generatedConfigurations.count == 1 }
+        XCTAssertEqual(service.generatedConfigurations.first?.theme, "История космоса")
+        XCTAssertEqual(service.generatedConfigurations.first?.questionCount, 10)
 
-        XCTAssertTrue(harness.session.chosenTheme?.quizTheme === generatedTheme)
+        let generatedTheme = makeGeneratedAITheme(questionCount: 10)
+        service.resolveNext(with: .success(generatedTheme))
+
+        try await waitUntil { harness.router.showDescriptionCallCount == 1 }
+        XCTAssertEqual(harness.router.showDescriptionCallCount, 1)
+        XCTAssertEqual(harness.session.chosenTheme?.themeID, generatedTheme.stableID)
+        XCTAssertTrue(harness.session.chosenTheme?.isAIGenerated == true)
         XCTAssertEqual(harness.session.questionsCount, 10)
-        XCTAssertEqual(creationViewController.dismissAnimationFlags, [true])
-        XCTAssertTrue(harness.navigationController.pushedControllers.isEmpty)
+        XCTAssertNil(
+            descendant(
+                in: harness.viewController.view,
+                accessibilityIdentifier: "homeExpandedAIThemeCard"
+            )
+        )
+        XCTAssertNil(
+            descendant(
+                in: harness.viewController.view,
+                accessibilityIdentifier: "homeExpandedThemeCardBackdrop"
+            )
+        )
+        let collectionView = try XCTUnwrap(
+            descendant(
+                in: harness.viewController.view,
+                accessibilityIdentifier: "homeThemesCollectionView"
+            ) as? UICollectionView
+        )
+        XCTAssertTrue(collectionView.isUserInteractionEnabled)
 
-        creationViewController.completeDismissal()
+        await Task.yield()
+        XCTAssertEqual(harness.router.showDescriptionCallCount, 1)
+    }
 
-        XCTAssertEqual(harness.navigationController.pushedControllers.count, 1)
-        XCTAssertTrue(harness.navigationController.pushedControllers.last is QuizDescriptionViewController)
-        XCTAssertEqual(harness.navigationController.pushAnimationFlags, [true])
+    func testInlineAIThemeFailurePreservesDraftAndOffersRetryAndEdit() async throws {
+        let service = ControllableRoutingAIQuizThemeService()
+        let harness = try makeInlineAIHarness(service: service)
+        defer { harness.dispose() }
+        let prompt = "Мифы Древней Греции"
+        let controls = try revealInlineAIBack(
+            in: harness.viewController,
+            prompt: prompt
+        )
+
+        controls.submitButton.sendActions(for: .touchUpInside)
+        try await waitUntil { service.generatedConfigurations.count == 1 }
+        service.resolveNext(
+            with: .failure(YandexAIQuizThemeServiceError.network(.timedOut))
+        )
+
+        try await waitUntil { harness.viewController.presentedViewController is UIAlertController }
+        let alert = try XCTUnwrap(
+            harness.viewController.presentedViewController as? UIAlertController
+        )
+        XCTAssertEqual(controls.promptEditor.text, prompt)
+        XCTAssertTrue(controls.submitButton.isEnabled)
+        XCTAssertEqual(
+            Set(alert.actions.compactMap(\.title)),
+            Set([L10n.AITheme.retry, L10n.AITheme.editTheme])
+        )
+        XCTAssertEqual(harness.router.showDescriptionCallCount, 0)
+        XCTAssertNil(harness.session.chosenTheme)
+    }
+
+    func testClosingInlineAIThemeCancelsOnceAndIgnoresStaleSuccess() async throws {
+        let service = ControllableRoutingAIQuizThemeService()
+        let harness = try makeInlineAIHarness(service: service)
+        defer { harness.dispose() }
+        let controls = try revealInlineAIBack(
+            in: harness.viewController,
+            prompt: "Архитектура"
+        )
+
+        controls.submitButton.sendActions(for: .touchUpInside)
+        try await waitUntil { service.generatedConfigurations.count == 1 }
+
+        try closeInlineAICard(in: harness.viewController)
+        try await waitUntil { harness.analytics.aiGenerationCancelledCount == 1 }
+        XCTAssertEqual(harness.analytics.aiGenerationCancelledCount, 1)
+        XCTAssertEqual(harness.router.showDescriptionCallCount, 0)
+        XCTAssertNil(harness.session.chosenTheme)
+
+        service.resolveNext(
+            with: .success(makeGeneratedAITheme(questionCount: 5, id: "stale_ai_theme"))
+        )
+        try await Task.sleep(nanoseconds: 50_000_000)
+
+        XCTAssertEqual(harness.analytics.aiGenerationCancelledCount, 1)
+        XCTAssertEqual(harness.router.showDescriptionCallCount, 0)
+        XCTAssertNil(harness.session.chosenTheme)
+        XCTAssertNil(
+            descendant(
+                in: harness.viewController.view,
+                accessibilityIdentifier: "homeExpandedAIThemeCard"
+            )
+        )
     }
 
     private func makeHarness() -> (
@@ -161,6 +558,229 @@ final class QuizFlowCoordinatorAdditionalTests: XCTestCase {
             aiQuizThemeService: MockAIQuizThemeService()
         )
         return (coordinator, navigationController, session)
+    }
+
+    private func makeInlineAIHarness(
+        service: ControllableRoutingAIQuizThemeService
+    ) throws -> InlineAIHarness {
+        let session = RoutingSession()
+        let router = InlineAIRouterSpy()
+        let analytics = InlineAIAnalyticsSpy()
+        let viewController = QuizViewController(
+            themeRepository: RoutingThemeRepository(themes: []),
+            session: session,
+            aiQuizThemeService: service,
+            analytics: analytics,
+            motivationPromptProvider: { _ in "Prompt" },
+            cardReduceMotionProvider: { true },
+            cardDeviceParallaxEnabledProvider: { false }
+        )
+        viewController.router = router
+        let window = UIWindow(frame: CGRect(x: 0, y: 0, width: 390, height: 844))
+        window.rootViewController = viewController
+        window.makeKeyAndVisible()
+        viewController.loadViewIfNeeded()
+        viewController.view.frame = window.bounds
+        viewController.view.layoutIfNeeded()
+        let collectionView = try XCTUnwrap(
+            descendant(
+                in: viewController.view,
+                accessibilityIdentifier: "homeThemesCollectionView"
+            ) as? UICollectionView
+        )
+        collectionView.layoutIfNeeded()
+
+        return InlineAIHarness(
+            window: window,
+            viewController: viewController,
+            router: router,
+            session: session,
+            analytics: analytics,
+            service: service
+        )
+    }
+
+    private func revealInlineAIBack(
+        in viewController: QuizViewController,
+        prompt: String
+    ) throws -> InlineAIControls {
+        let sourceButton = try XCTUnwrap(
+            descendant(
+                in: viewController.view,
+                accessibilityIdentifier: "homeCreateWithAIButton"
+            ) as? UIButton
+        )
+        sourceButton.sendActions(for: .touchUpInside)
+        drainMainRunLoop(for: 0.4)
+
+        let card = try XCTUnwrap(
+            descendant(
+                in: viewController.view,
+                accessibilityIdentifier: "homeExpandedAIThemeCard"
+            )
+        )
+        let promptEditor = try XCTUnwrap(
+            descendant(
+                in: card,
+                accessibilityIdentifier: "aiThemePromptEditor"
+            ) as? UITextView
+        )
+        let playButton = try XCTUnwrap(
+            descendant(
+                in: card,
+                accessibilityIdentifier: "expandedAIThemeCardPlayButton"
+            ) as? UIButton
+        )
+        promptEditor.text = prompt
+        promptEditor.delegate?.textViewDidChange?(promptEditor)
+        XCTAssertTrue(playButton.isEnabled)
+        // Flip mechanics have dedicated UI coverage. Keep these integration tests
+        // deterministic by exposing the back form without waiting on a 3D animator.
+        try XCTUnwrap(card as? ExpandedAIThemeCardView).setFace(.back, animated: false)
+
+        let submitButton = try XCTUnwrap(
+            descendant(
+                in: card,
+                accessibilityIdentifier: "aiThemeSubmitButton"
+            ) as? UIButton
+        )
+        XCTAssertFalse(
+            try XCTUnwrap(
+                descendant(
+                    in: card,
+                    accessibilityIdentifier: "expandedAIThemeCardBackView"
+                )
+            ).isHidden
+        )
+        return InlineAIControls(
+            card: card,
+            promptEditor: promptEditor,
+            submitButton: submitButton
+        )
+    }
+
+    private func closeInlineAICard(in viewController: QuizViewController) throws {
+        let dismissButton = try XCTUnwrap(
+            descendant(
+                in: viewController.view,
+                accessibilityIdentifier: "homeExpandedThemeCardBackdropDismissButton"
+            ) as? UIButton
+        )
+        dismissButton.sendActions(for: .touchUpInside)
+        drainMainRunLoop(for: 0.4)
+    }
+
+    private func makeGeneratedAITheme(
+        questionCount: Int,
+        id: String = "generated_ai_theme"
+    ) -> QuizTheme {
+        let questions = (0..<questionCount).map { index in
+            QuizQuestion(
+                question: "Question \(index)",
+                answers: ["A", "B", "C", "D"],
+                correctAnswer: "A"
+            )
+        }
+        return QuizTheme(
+            id: id,
+            theme: "Generated AI Theme",
+            themeDescription: "Generated description",
+            questions: questions,
+            source: .ai
+        )
+    }
+
+    private func waitUntil(
+        timeout: TimeInterval = 2,
+        condition: @escaping @MainActor () -> Bool
+    ) async throws {
+        let deadline = Date().addingTimeInterval(timeout)
+        while !condition() {
+            guard Date() < deadline else {
+                XCTFail("Timed out waiting for inline AI state")
+                return
+            }
+            try await Task.sleep(nanoseconds: 10_000_000)
+        }
+    }
+
+    private func drainMainRunLoop(for duration: TimeInterval) {
+        RunLoop.main.run(until: Date().addingTimeInterval(duration))
+    }
+
+    private func descendant(in rootView: UIView, accessibilityIdentifier: String) -> UIView? {
+        if rootView.accessibilityIdentifier == accessibilityIdentifier {
+            return rootView
+        }
+        for subview in rootView.subviews {
+            if let match = descendant(
+                in: subview,
+                accessibilityIdentifier: accessibilityIdentifier
+            ) {
+                return match
+            }
+        }
+        return nil
+    }
+
+    private func makeLaunchAppearance(
+        designStyle: AppDesignStyle,
+        cleanColorSchemePreference: CleanColorSchemePreference = .dark
+    ) -> AppAppearance {
+        AppAppearance(
+            designStyle: designStyle,
+            cleanColorSchemePreference: cleanColorSchemePreference,
+            backgroundStyle: .slate5x5,
+            traitCollection: UITraitCollection(
+                userInterfaceStyle: cleanColorSchemePreference == .light ? .light : .dark
+            )
+        )
+    }
+
+    private func assertColor(
+        _ actual: UIColor?,
+        equals expected: UIColor,
+        accuracy: CGFloat = 0.000_001,
+        file: StaticString = #filePath,
+        line: UInt = #line
+    ) {
+        guard let actual else {
+            XCTFail("Expected a color", file: file, line: line)
+            return
+        }
+
+        var actualRed: CGFloat = 0
+        var actualGreen: CGFloat = 0
+        var actualBlue: CGFloat = 0
+        var actualAlpha: CGFloat = 0
+        var expectedRed: CGFloat = 0
+        var expectedGreen: CGFloat = 0
+        var expectedBlue: CGFloat = 0
+        var expectedAlpha: CGFloat = 0
+        XCTAssertTrue(
+            actual.getRed(
+                &actualRed,
+                green: &actualGreen,
+                blue: &actualBlue,
+                alpha: &actualAlpha
+            ),
+            file: file,
+            line: line
+        )
+        XCTAssertTrue(
+            expected.getRed(
+                &expectedRed,
+                green: &expectedGreen,
+                blue: &expectedBlue,
+                alpha: &expectedAlpha
+            ),
+            file: file,
+            line: line
+        )
+        XCTAssertEqual(actualRed, expectedRed, accuracy: accuracy, file: file, line: line)
+        XCTAssertEqual(actualGreen, expectedGreen, accuracy: accuracy, file: file, line: line)
+        XCTAssertEqual(actualBlue, expectedBlue, accuracy: accuracy, file: file, line: line)
+        XCTAssertEqual(actualAlpha, expectedAlpha, accuracy: accuracy, file: file, line: line)
     }
 }
 
@@ -210,22 +830,6 @@ private final class RoutingNavigationControllerSpy: UINavigationController {
     }
 }
 
-private final class DeferredDismissViewControllerSpy: UIViewController {
-    private(set) var dismissAnimationFlags: [Bool] = []
-    private var dismissalCompletion: (() -> Void)?
-
-    override func dismiss(animated flag: Bool, completion: (() -> Void)? = nil) {
-        dismissAnimationFlags.append(flag)
-        dismissalCompletion = completion
-    }
-
-    func completeDismissal() {
-        let completion = dismissalCompletion
-        dismissalCompletion = nil
-        completion?()
-    }
-}
-
 private final class RoutingThemeRepository: ThemeRepository {
     var themes: [QuizTheme]?
 
@@ -252,5 +856,114 @@ private final class RoutingSession: QuizSessionManaging {
         }
         chosenTheme = ThemeModel(quizTheme: theme)
         return true
+    }
+}
+
+@MainActor
+private struct InlineAIHarness {
+    let window: UIWindow
+    let viewController: QuizViewController
+    let router: InlineAIRouterSpy
+    let session: RoutingSession
+    let analytics: InlineAIAnalyticsSpy
+    let service: ControllableRoutingAIQuizThemeService
+
+    func dispose() {
+        service.resolveAll(with: .failure(CancellationError()))
+        viewController.dismiss(animated: false)
+        window.isHidden = true
+        window.rootViewController = nil
+    }
+}
+
+private struct InlineAIControls {
+    let card: UIView
+    let promptEditor: UITextView
+    let submitButton: UIButton
+}
+
+private final class InlineAIRouterSpy: QuizRouting {
+    private(set) var showDescriptionCallCount = 0
+
+    func showDescription() { showDescriptionCallCount += 1 }
+    func showQuestion() {}
+    func showResult(_ result: QuizResultState) {}
+    func showStatistics() {}
+    func showSettings() {}
+    func closeDescription() {}
+    func closeStatistics() {}
+    func closeQuestion() {}
+    func replayQuiz() {}
+    func returnToThemes() {}
+}
+
+private final class InlineAIAnalyticsSpy: AnalyticsTracking {
+    private(set) var events: [AnalyticsEvent] = []
+
+    var aiGenerationCancelledCount: Int {
+        events.reduce(into: 0) { count, event in
+            if case .aiGenerationCancelled = event {
+                count += 1
+            }
+        }
+    }
+
+    func track(_ event: AnalyticsEvent) {
+        events.append(event)
+    }
+
+    func reportOperationalError(_ error: Error, context: AnalyticsErrorContext) {}
+}
+
+private final class ControllableRoutingAIQuizThemeService: AIQuizThemeServiceProtocol, @unchecked Sendable {
+    private struct PendingRequest {
+        let continuation: CheckedContinuation<QuizTheme, Error>
+    }
+
+    private let lock = NSLock()
+    private var configurations: [AIQuizGenerationConfiguration] = []
+    private var pendingRequests: [PendingRequest] = []
+
+    var generatedConfigurations: [AIQuizGenerationConfiguration] {
+        withLock { configurations }
+    }
+
+    func generateQuizTheme(
+        configuration: AIQuizGenerationConfiguration
+    ) async throws -> QuizTheme {
+        try await withCheckedThrowingContinuation { continuation in
+            withLock {
+                configurations.append(configuration)
+                pendingRequests.append(PendingRequest(continuation: continuation))
+            }
+        }
+    }
+
+    func resolveNext(with result: Result<QuizTheme, Error>) {
+        let continuation = withLock {
+            pendingRequests.isEmpty ? nil : pendingRequests.removeFirst().continuation
+        }
+        continuation?.resume(with: result)
+    }
+
+    func resolveAll(with result: Result<QuizTheme, Error>) {
+        let continuations = withLock {
+            let continuations = pendingRequests.map(\.continuation)
+            pendingRequests.removeAll()
+            return continuations
+        }
+        continuations.forEach { $0.resume(with: result) }
+    }
+
+    private func withLock<Value>(_ operation: () -> Value) -> Value {
+        lock.lock()
+        defer { lock.unlock() }
+        return operation()
+    }
+}
+
+private extension UIView {
+    var allDescendants: [UIView] {
+        subviews + subviews.flatMap(\.allDescendants)
     }
 }

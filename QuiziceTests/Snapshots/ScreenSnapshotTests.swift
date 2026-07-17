@@ -6,6 +6,7 @@ import SnapshotTesting
 @MainActor
 final class ScreenSnapshotTests: XCTestCase {
     private let portraitSize = CGSize(width: 390, height: 844)
+    private let compactPortraitSize = CGSize(width: 375, height: 667)
     private let landscapeSize = CGSize(width: 844, height: 390)
     private var defaultsSuiteNames: [String] = []
 
@@ -51,6 +52,132 @@ final class ScreenSnapshotTests: XCTestCase {
             makeHomeViewController(),
             named: "radar-home-iphone-se",
             device: .iPhone8
+        )
+    }
+
+    func testClassicExpandedThemeCardFrontSnapshot() throws {
+        SnapshotSupport.setUp(designStyle: .classic)
+
+        SnapshotSupport.assertScreen(
+            try makeExpandedThemeCardViewController(face: .front, size: portraitSize),
+            named: "classic-home-expanded-theme-front",
+            size: portraitSize
+        )
+    }
+
+    func testRadarExpandedThemeCardBackSnapshot() throws {
+        SnapshotSupport.setUp(designStyle: .radar)
+
+        SnapshotSupport.assertScreen(
+            try makeExpandedThemeCardViewController(face: .back, size: portraitSize),
+            named: "radar-home-expanded-theme-back",
+            size: portraitSize
+        )
+    }
+
+    func testCleanLightExpandedThemeCardFrontSnapshot() throws {
+        SnapshotSupport.assertScreen(
+            try makeExpandedThemeCardViewController(face: .front, size: portraitSize),
+            named: "clean-light-home-expanded-theme-front",
+            size: portraitSize
+        )
+    }
+
+    func testCleanDarkExpandedThemeCardBackSnapshot() throws {
+        SnapshotSupport.setUp(designStyle: .clean, cleanColorScheme: .dark)
+
+        SnapshotSupport.assertScreen(
+            try makeExpandedThemeCardViewController(
+                face: .back,
+                size: portraitSize,
+                userInterfaceStyle: .dark
+            ),
+            named: "clean-dark-home-expanded-theme-back",
+            size: portraitSize
+        )
+    }
+
+    func testCleanExpandedThemeCardCompactFrontSnapshot() throws {
+        SnapshotSupport.assertScreen(
+            try makeExpandedThemeCardViewController(face: .front, size: compactPortraitSize),
+            named: "clean-home-expanded-theme-front-iphone-se",
+            device: .iPhone8
+        )
+    }
+
+    func testCleanExpandedThemeCardAccessibilityXXXLBackSnapshot() throws {
+        SnapshotSupport.assertScreen(
+            try makeExpandedThemeCardViewController(
+                face: .back,
+                size: portraitSize,
+                contentSizeCategory: .accessibilityExtraExtraExtraLarge
+            ),
+            named: "clean-home-expanded-theme-back-accessibility-xxxl",
+            size: portraitSize,
+            contentSizeCategory: .accessibilityExtraExtraExtraLarge
+        )
+    }
+
+    func testClassicExpandedAIThemeCardFrontSnapshot() throws {
+        SnapshotSupport.setUp(designStyle: .classic)
+
+        SnapshotSupport.assertScreen(
+            try makeExpandedAIThemeCardViewController(face: .front, size: portraitSize),
+            named: "classic-home-expanded-ai-theme-front",
+            size: portraitSize
+        )
+    }
+
+    func testRadarExpandedAIThemeCardBackSnapshot() throws {
+        SnapshotSupport.setUp(designStyle: .radar)
+
+        SnapshotSupport.assertScreen(
+            try makeExpandedAIThemeCardViewController(face: .back, size: portraitSize),
+            named: "radar-home-expanded-ai-theme-back",
+            size: portraitSize
+        )
+    }
+
+    func testCleanLightExpandedAIThemeCardFrontSnapshot() throws {
+        SnapshotSupport.assertScreen(
+            try makeExpandedAIThemeCardViewController(face: .front, size: portraitSize),
+            named: "clean-light-home-expanded-ai-theme-front",
+            size: portraitSize
+        )
+    }
+
+    func testCleanDarkExpandedAIThemeCardBackSnapshot() throws {
+        SnapshotSupport.setUp(designStyle: .clean, cleanColorScheme: .dark)
+
+        SnapshotSupport.assertScreen(
+            try makeExpandedAIThemeCardViewController(
+                face: .back,
+                size: portraitSize,
+                userInterfaceStyle: .dark
+            ),
+            named: "clean-dark-home-expanded-ai-theme-back",
+            size: portraitSize
+        )
+    }
+
+    func testCleanExpandedAIThemeCardCompactFrontSnapshot() throws {
+        SnapshotSupport.assertScreen(
+            try makeExpandedAIThemeCardViewController(face: .front, size: compactPortraitSize),
+            named: "clean-home-expanded-ai-theme-front-iphone-se",
+            device: .iPhone8
+        )
+    }
+
+    func testCleanExpandedAIThemeCardAccessibilityXXXLBackSnapshot() throws {
+        SnapshotSupport.assertScreen(
+            try makeExpandedAIThemeCardViewController(
+                face: .back,
+                size: portraitSize,
+                contentSizeCategory: .accessibilityExtraExtraExtraLarge
+            ),
+            named: "clean-home-expanded-ai-theme-back-accessibility-xxxl",
+            size: portraitSize,
+            contentSizeCategory: .accessibilityExtraExtraExtraLarge
         )
     }
 
@@ -208,12 +335,15 @@ final class ScreenSnapshotTests: XCTestCase {
         return viewController
     }
 
-    private func makeHomeViewController() -> QuizViewController {
+    private func makeHomeViewController(
+        themes: [QuizTheme]? = nil,
+        cardDeviceParallaxEnabledProvider: @escaping () -> Bool = { true }
+    ) -> QuizViewController {
         let suiteName = "ScreenSnapshotTests.home.\(UUID().uuidString)"
         defaultsSuiteNames.append(suiteName)
         let defaults = UserDefaults(suiteName: suiteName)!
         defaults.removePersistentDomain(forName: suiteName)
-        QuizFactory.shared.themes = [
+        QuizFactory.shared.themes = themes ?? [
             SnapshotSupport.makeTheme(id: "music", name: "Музыка"),
             SnapshotSupport.makeTheme(id: "technology", name: "Технологии"),
             SnapshotSupport.makeTheme(id: "history_culture", name: "История и культура"),
@@ -222,8 +352,146 @@ final class ScreenSnapshotTests: XCTestCase {
         QuizFactory.shared.startup1st = false
         return QuizViewController(
             statisticsStore: StatisticsStore(userDefaults: defaults, key: "attempts"),
-            motivationPromptProvider: { _ in "Время\nпроверить факты" }
+            motivationPromptProvider: { _ in "Время\nпроверить факты" },
+            cardDeviceParallaxEnabledProvider: cardDeviceParallaxEnabledProvider
         )
+    }
+
+    private func makeExpandedThemeCardViewController(
+        face: HomeThemeCardFace,
+        size: CGSize,
+        userInterfaceStyle: UIUserInterfaceStyle = .unspecified,
+        contentSizeCategory: UIContentSizeCategory? = nil
+    ) throws -> QuizViewController {
+        let theme = makeExpandedCardTheme()
+        // Device attitude is intentionally nondeterministic. Snapshot tests
+        // exercise the neutral visual state; lifecycle tests cover live effects.
+        let viewController = makeHomeViewController(
+            themes: [theme],
+            cardDeviceParallaxEnabledProvider: { false }
+        )
+        viewController.overrideUserInterfaceStyle = userInterfaceStyle
+        if let contentSizeCategory {
+            viewController.traitOverrides.preferredContentSizeCategory = contentSizeCategory
+        }
+        viewController.loadViewIfNeeded()
+        viewController.view.frame = CGRect(origin: .zero, size: size)
+        viewController.view.setNeedsLayout()
+        viewController.view.layoutIfNeeded()
+
+        let collectionView = try XCTUnwrap(
+            viewController.view.snapshotDescendant(
+                withAccessibilityIdentifier: "homeThemesCollectionView"
+            ) as? UICollectionView
+        )
+        collectionView.layoutIfNeeded()
+        let themeButton = try XCTUnwrap(
+            viewController.view.snapshotDescendant(
+                withAccessibilityIdentifier: theme.stableID
+            ) as? UIButton
+        )
+        themeButton.sendActions(for: .touchUpInside)
+        drainHomeCardAnimations()
+
+        if face == .back {
+            let infoButton = try XCTUnwrap(
+                viewController.view.snapshotDescendant(
+                    withAccessibilityIdentifier: "expandedThemeCardInfoButton"
+                ) as? UIButton
+            )
+            infoButton.sendActions(for: .touchUpInside)
+            drainHomeCardAnimations()
+        }
+
+        viewController.view.setNeedsLayout()
+        viewController.view.layoutIfNeeded()
+        return viewController
+    }
+
+    private func makeExpandedAIThemeCardViewController(
+        face: HomeThemeCardFace,
+        size: CGSize,
+        userInterfaceStyle: UIUserInterfaceStyle = .unspecified,
+        contentSizeCategory: UIContentSizeCategory? = nil
+    ) throws -> QuizViewController {
+        let viewController = makeHomeViewController(
+            themes: [makeExpandedCardTheme()],
+            cardDeviceParallaxEnabledProvider: { false }
+        )
+        viewController.overrideUserInterfaceStyle = userInterfaceStyle
+        if let contentSizeCategory {
+            viewController.traitOverrides.preferredContentSizeCategory = contentSizeCategory
+        }
+        viewController.loadViewIfNeeded()
+        viewController.view.frame = CGRect(origin: .zero, size: size)
+        viewController.view.setNeedsLayout()
+        viewController.view.layoutIfNeeded()
+
+        let collectionView = try XCTUnwrap(
+            viewController.view.snapshotDescendant(
+                withAccessibilityIdentifier: "homeThemesCollectionView"
+            ) as? UICollectionView
+        )
+        collectionView.layoutIfNeeded()
+        let aiButton = try XCTUnwrap(
+            viewController.view.snapshotDescendant(
+                withAccessibilityIdentifier: "homeCreateWithAIButton"
+            ) as? UIButton
+        )
+        aiButton.sendActions(for: .touchUpInside)
+        drainHomeCardAnimations()
+
+        let promptEditor = try XCTUnwrap(
+            viewController.view.snapshotDescendant(
+                withAccessibilityIdentifier: "aiThemePromptEditor"
+            ) as? UITextView
+        )
+        promptEditor.text = "Космические миссии и открытия"
+        promptEditor.delegate?.textViewDidChange?(promptEditor)
+        promptEditor.resignFirstResponder()
+
+        if face == .back {
+            let playButton = try XCTUnwrap(
+                viewController.view.snapshotDescendant(
+                    withAccessibilityIdentifier: "expandedAIThemeCardPlayButton"
+                ) as? UIButton
+            )
+            playButton.sendActions(for: .touchUpInside)
+            drainHomeCardAnimations()
+        }
+
+        viewController.view.setNeedsLayout()
+        viewController.view.layoutIfNeeded()
+        return viewController
+    }
+
+    private func makeExpandedCardTheme() -> QuizTheme {
+        let questions = (1...15).map { index in
+            QuizQuestion(
+                question: "Какой музыкальный факт верен в вопросе \(index)?",
+                answers: [
+                    "Верный ответ \(index)",
+                    "Альтернатива B \(index)",
+                    "Альтернатива C \(index)",
+                    "Альтернатива D \(index)"
+                ],
+                correctAnswer: "Верный ответ \(index)"
+            )
+        }
+
+        return SnapshotSupport.makeTheme(
+            id: "music",
+            name: "Музыка",
+            description: "Музыка сопровождает нас в дороге, на сцене и в самые важные моменты. "
+                + "Эта тема проверит, насколько хорошо вы знаете историю жанров, знаменитых исполнителей и культовые альбомы. "
+                + "Вспомните рекорды, инструменты и мелодии, которые изменили поп-культуру. "
+                + "Выберите длину квиза и попробуйте услышать правильный ответ ещё до того, как увидите варианты.",
+            questions: questions
+        )
+    }
+
+    private func drainHomeCardAnimations() {
+        RunLoop.main.run(until: Date().addingTimeInterval(0.4))
     }
 
     private func makeQuestionViewController(

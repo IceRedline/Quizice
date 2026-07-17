@@ -4,10 +4,6 @@ import SwiftUI
 #endif
 
 final class QuizDescriptionViewController: BaseQuizViewController, QuizDescriptionViewControllerProtocol, QuizCardSlideTransitionSource {
-    private enum Content {
-        static let backgroundImageName = "backgroundImage"
-    }
-    
     private enum AccessibilityID {
         static let rootView = "descriptionRootView"
         static let contentCardView = "descriptionContentCardView"
@@ -151,7 +147,7 @@ final class QuizDescriptionViewController: BaseQuizViewController, QuizDescripti
     
     override func loadView() {
         let rootView = UIView()
-        rootView.backgroundColor = UIColor(patternImage: UIImage(named: Content.backgroundImageName) ?? UIImage())
+        rootView.backgroundColor = .systemBackground
         rootView.accessibilityIdentifier = AccessibilityID.rootView
         view = rootView
         configureProgrammaticSubviews(in: rootView)
@@ -387,7 +383,7 @@ final class QuizDescriptionViewController: BaseQuizViewController, QuizDescripti
     override func applyAppearance() {
         guard isViewLoaded else { return }
         let appearance = currentAppearance()
-        appearance.applyBackground(to: view)
+        appearance.applyBackground(to: view, motionProfile: .edgeAware)
         overrideUserInterfaceStyle = appearance.resolvedInterfaceStyle
 
         contentCardView?.applySurfaceStyle(appearance.card)
@@ -407,7 +403,10 @@ final class QuizDescriptionViewController: BaseQuizViewController, QuizDescripti
         startButton?.applyActionAppearance(
             QuizThemeAccentStyle.primaryButtonStyle(themeID: presenter?.themeID, appearance: appearance),
             appearance: appearance,
-            textColor: actionTextColor(for: .primary, appearance: appearance)
+            textColor: QuizThemeAccentStyle.primaryButtonTextColor(
+                themeID: presenter?.themeID,
+                appearance: appearance
+            )
         )
         startButton?.titleLabel?.font = appearance.typography.font(size: Typography.buttonFontSize, weight: .semibold)
         backButton?.applyActionAppearance(
@@ -417,17 +416,6 @@ final class QuizDescriptionViewController: BaseQuizViewController, QuizDescripti
         )
     }
 
-    private func actionTextColor(for style: ActionButtonStyle, appearance: AppAppearance) -> UIColor {
-        switch (style, appearance.designStyle) {
-        case (.primary, .clean):
-            return appearance.resolvedInterfaceStyle == .dark ? appearance.screenTextColor : UIColor.black
-        case (.secondary, .clean):
-            return QuizThemeAccentStyle.secondaryButtonTextColor(themeID: presenter?.themeID, appearance: appearance)
-        default:
-            return appearance.screenTextColor
-        }
-    }
-    
     @objc private func startButtonTapped() {
         presenter?.saveNumberOfQuestions(chosenRow: numberOfQuestionsPickerView.selectedRow(inComponent: .zero))
         analytics.track(

@@ -9,6 +9,7 @@ final class ThemesCollectionService: NSObject, UICollectionViewDelegate, UIColle
         static let aiThemeBetaBadgeAccessibilityID = "homeCreateWithAIBetaBadge"
         static let aiThemeGradientBorderAccessibilityID = "homeCreateWithAIGradientBorder"
         static let feelingLuckyAccessibilityID = "homeFeelingLuckyButton"
+        static let feelingLuckyProgressAccessibilityID = "homeFeelingLuckyProgressView"
         static let statisticsAccessibilityID = "homeStatisticsCard"
         static let statisticsTitleAccessibilityID = "homeStatisticsTitleLabel"
         static let statisticsDescriptionAccessibilityID = "homeStatisticsDescriptionLabel"
@@ -42,22 +43,10 @@ final class ThemesCollectionService: NSObject, UICollectionViewDelegate, UIColle
         static let secondaryActionButtonHeight: CGFloat = 54
         static let statisticsCardHeight: CGFloat = 112
         static let lastItemBottomInset: CGFloat = 24
-        static let cardContentHorizontalInset: CGFloat = 24
         static let aiThemeBadgeTrailingInset: CGFloat = 16
         static let aiThemeBadgeHorizontalInset: CGFloat = 10
         static let aiThemeBadgeVerticalInset: CGFloat = 5
         static let aiThemeBadgeMinimumWidth: CGFloat = 48
-        static let statisticsStackSpacing: CGFloat = 6
-        static let statisticsContentSpacing: CGFloat = 12
-        static let statisticsMetricsSpacing: CGFloat = 8
-        static let statisticsMetricSpacing: CGFloat = 6
-        static let themeImageTopInset: CGFloat = 14
-        static let themeImageHorizontalInset: CGFloat = 4
-        static let themeImageToTitleSpacing: CGFloat = 0
-        static let themeTitleHorizontalInset: CGFloat = 8
-        static let themeTitleBottomInset: CGFloat = 6
-        static let themeTitleHeight: CGFloat = 56
-        static let cleanThemeSymbolScale: CGFloat = 0.70
         static let cellShadowOffset = CGSize(width: 0, height: 12)
         static let cellShadowRadius: CGFloat = 22
     }
@@ -66,9 +55,6 @@ final class ThemesCollectionService: NSObject, UICollectionViewDelegate, UIColle
         static let themeCardBackgroundAlpha: CGFloat = 0.20
         static let themeCardBorderAlpha: CGFloat = 0.45
         static let themeCardCornerRadius: CGFloat = 28
-        static let statisticsCardBackgroundAlpha: CGFloat = 0.18
-        static let statisticsCardBorderAlpha: CGFloat = 0.40
-        static let statisticsCardCornerRadius: CGFloat = 30
         static let feelingLuckyButtonBackgroundAlpha: CGFloat = 0.14
         static let feelingLuckyButtonBorderAlpha: CGFloat = 0.36
         static let feelingLuckyButtonCornerRadius: CGFloat = 20
@@ -85,20 +71,44 @@ final class ThemesCollectionService: NSObject, UICollectionViewDelegate, UIColle
         static let cellShadowOpacity: Float = 0.22
         static let titleFontSize: CGFloat = 24
         static let descriptionFontSize: CGFloat = 15
-        static let statisticsMetricValueFontSize: CGFloat = 18
-        static let statisticsMetricTitleFontSize: CGFloat = 14
         static let luckyFontSize: CGFloat = 19
         static let betaBadgeFontSize: CGFloat = 12
-        static let themeTitleFontSize: CGFloat = 18
-        static let themeTitleMinimumScaleFactor: CGFloat = 0.72
-        static let statisticsTitleMinimumScaleFactor: CGFloat = 0.72
     }
 
     weak var delegate: ThemeCollectionDelegate?
 
+    var presentedThemeID: String? {
+        didSet {
+            guard oldValue != presentedThemeID else { return }
+            reconfigureThemeCells(withIDs: [oldValue, presentedThemeID].compactMap { $0 })
+        }
+    }
+
+    var isStatisticsPresented = false {
+        didSet {
+            guard oldValue != isStatisticsPresented else { return }
+            reconfigureStatisticsCell()
+        }
+    }
+
+    var isAIThemePresented = false {
+        didSet {
+            guard oldValue != isAIThemePresented else { return }
+            reconfigureAIThemeCell()
+        }
+    }
+
+    var isFeelingLuckyLoading = false {
+        didSet {
+            guard oldValue != isFeelingLuckyLoading else { return }
+            refreshVisibleFeelingLuckyButton()
+        }
+    }
+
     private let themeRepository: ThemeRepository
     private let statisticsStore: StatisticsStore
     private let appearanceStore = AppAppearanceStore.shared
+    private weak var observedCollectionView: UICollectionView?
 
     private var themeCount: Int { themeRepository.themes?.count ?? 0 }
 
@@ -117,14 +127,52 @@ final class ThemesCollectionService: NSObject, UICollectionViewDelegate, UIColle
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int { themeCount + 3 }
 
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
-        let cell = collectionView.dequeueReusableCell(withReuseIdentifier: Content.themeCellReuseIdentifier, for: indexPath)
+        observedCollectionView = collectionView
         let appearance = appearanceStore.appearance(compatibleWith: collectionView.traitCollection)
-        prepare(cell, appearance: appearance)
 
-        if indexPath.item == statisticsIndex {
-            configureStatisticsCard(in: cell, appearance: appearance)
+        if let theme = themeRepository.themes?[safe: indexPath.item] {
+            guard let cell = collectionView.dequeueReusableCell(
+                withReuseIdentifier: ThemeCardCollectionViewCell.reuseIdentifier,
+                for: indexPath
+            ) as? ThemeCardCollectionViewCell else {
+                preconditionFailure("Expected ThemeCardCollectionViewCell for catalog theme")
+            }
+            cell.configure(
+                theme: theme,
+                appearance: appearance,
+                isSourceHidden: theme.stableID == presentedThemeID
+            )
+            cell.actionButton.removeTarget(self, action: nil, for: .allEvents)
+            cell.actionButton.addTarget(self, action: #selector(buttonTouchedDown(_:)), for: .touchDown)
+            cell.actionButton.addTarget(self, action: #selector(buttonTouchedUpInside(_:)), for: .touchUpInside)
+            cell.actionButton.addTarget(self, action: #selector(buttonTouchedUpOutside(_:)), for: .touchUpOutside)
             return cell
         }
+
+        if indexPath.item == statisticsIndex {
+            guard let cell = collectionView.dequeueReusableCell(
+                withReuseIdentifier: StatisticsCardCollectionViewCell.reuseIdentifier,
+                for: indexPath
+            ) as? StatisticsCardCollectionViewCell else {
+                preconditionFailure("Expected StatisticsCardCollectionViewCell")
+            }
+            cell.configure(
+                summary: statisticsStore.loadSummary(),
+                appearance: appearance,
+                isSourceHidden: isStatisticsPresented
+            )
+            cell.actionButton.removeTarget(self, action: nil, for: .allEvents)
+            cell.actionButton.addTarget(self, action: #selector(buttonTouchedDown(_:)), for: .touchDown)
+            cell.actionButton.addTarget(self, action: #selector(statisticsButtonTouchedUpInside(_:)), for: .touchUpInside)
+            cell.actionButton.addTarget(self, action: #selector(buttonTouchedUpOutside(_:)), for: .touchUpOutside)
+            return cell
+        }
+
+        let cell = collectionView.dequeueReusableCell(
+            withReuseIdentifier: Content.themeCellReuseIdentifier,
+            for: indexPath
+        )
+        prepare(cell, appearance: appearance)
 
         if indexPath.item == feelingLuckyIndex {
             configureFeelingLuckyCard(in: cell, appearance: appearance)
@@ -136,10 +184,6 @@ final class ThemesCollectionService: NSObject, UICollectionViewDelegate, UIColle
             return cell
         }
 
-        guard let theme = themeRepository.themes?[safe: indexPath.item] else {
-            return cell
-        }
-        configureThemeCard(in: cell, theme: theme, appearance: appearance)
         return cell
     }
 
@@ -179,69 +223,9 @@ final class ThemesCollectionService: NSObject, UICollectionViewDelegate, UIColle
         cell.applyShadow(appearance.themeCardShadow)
     }
 
-    private func configureThemeCard(in cell: UICollectionViewCell, theme: QuizTheme, appearance: AppAppearance) {
-        let button = UIButton(type: .custom)
-        let themeID = theme.stableID
-        let themeName = theme.theme
-        let themeTintColor = themeTintColor(for: themeID)
-        let themeBorderColor = appearance.themeCardBorder(baseColor: themeTintColor)
-
-        button.addTarget(self, action: #selector(buttonTouchedDown(_:)), for: .touchDown)
-        button.addTarget(self, action: #selector(buttonTouchedUpInside(_:)), for: .touchUpInside)
-        button.addTarget(self, action: #selector(buttonTouchedUpOutside(_:)), for: .touchUpOutside)
-        button.accessibilityIdentifier = themeID
-        button.accessibilityLabel = L10n.ThemeCard.accessibilityLabel(themeName: themeName)
-        button.accessibilityHint = L10n.ThemeCard.accessibilityHint
-        button.backgroundColor = appearance.themeCardBackground(baseColor: themeTintColor)
-        button.layer.cornerRadius = appearance.themeCardCornerRadius
-        button.layer.borderWidth = appearance.themeCardBorderWidth
-        button.layer.borderColor = themeBorderColor.cgColor
-        button.clipsToBounds = true
-        button.translatesAutoresizingMaskIntoConstraints = false
-
-        let imageView = UIImageView(image: themeLogoImage(for: themeID, appearance: appearance))
-        imageView.accessibilityIdentifier = themeImageAccessibilityIdentifier(themeID: themeID)
-        imageView.contentMode = .scaleAspectFit
-        imageView.tintColor = themeBorderColor
-        imageView.transform = themeLogoTransform(for: appearance)
-        imageView.isUserInteractionEnabled = false
-        imageView.translatesAutoresizingMaskIntoConstraints = false
-
-        let titleLabel = MultilineFittingLabel(
-            baseFont: appearance.typography.font(size: Appearance.themeTitleFontSize, weight: .semibold),
-            minimumScaleFactor: Appearance.themeTitleMinimumScaleFactor
-        )
-        titleLabel.accessibilityIdentifier = themeTitleAccessibilityIdentifier(themeID: themeID)
-        titleLabel.text = themeName
-        titleLabel.textColor = appearance.themeCardTextColor(baseColor: themeTintColor)
-        titleLabel.adjustsFontForContentSizeCategory = true
-        titleLabel.textAlignment = .center
-        titleLabel.numberOfLines = 2
-        titleLabel.lineBreakMode = .byWordWrapping
-        titleLabel.allowsDefaultTighteningForTruncation = true
-        titleLabel.isUserInteractionEnabled = false
-        titleLabel.translatesAutoresizingMaskIntoConstraints = false
-
-        pin(button, to: cell.contentView)
-        button.addSubview(imageView)
-        button.addSubview(titleLabel)
-
-        NSLayoutConstraint.activate([
-            imageView.topAnchor.constraint(equalTo: button.topAnchor, constant: Layout.themeImageTopInset),
-            imageView.leadingAnchor.constraint(equalTo: button.leadingAnchor, constant: Layout.themeImageHorizontalInset),
-            imageView.trailingAnchor.constraint(equalTo: button.trailingAnchor, constant: -Layout.themeImageHorizontalInset),
-
-            titleLabel.topAnchor.constraint(equalTo: imageView.bottomAnchor, constant: Layout.themeImageToTitleSpacing),
-            titleLabel.leadingAnchor.constraint(equalTo: button.leadingAnchor, constant: Layout.themeTitleHorizontalInset),
-            titleLabel.trailingAnchor.constraint(equalTo: button.trailingAnchor, constant: -Layout.themeTitleHorizontalInset),
-            titleLabel.bottomAnchor.constraint(equalTo: button.bottomAnchor, constant: -Layout.themeTitleBottomInset),
-            titleLabel.heightAnchor.constraint(equalToConstant: Layout.themeTitleHeight)
-        ])
-    }
-
     private func configureFeelingLuckyCard(in cell: UICollectionViewCell, appearance: AppAppearance) {
         cell.applyShadow(.none)
-        configureSecondaryActionCard(
+        let button = configureSecondaryActionCard(
             in: cell,
             accessibilityIdentifier: Content.feelingLuckyAccessibilityID,
             accessibilityLabel: L10n.Home.feelingLucky,
@@ -250,6 +234,7 @@ final class ThemesCollectionService: NSObject, UICollectionViewDelegate, UIColle
             action: #selector(feelingLuckyButtonTouchedUpInside(_:)),
             appearance: appearance
         )
+        configureFeelingLuckyContent(in: button, appearance: appearance)
     }
 
     private func configureAIThemeCard(in cell: UICollectionViewCell, appearance: AppAppearance) {
@@ -262,6 +247,10 @@ final class ThemesCollectionService: NSObject, UICollectionViewDelegate, UIColle
             action: #selector(aiThemeButtonTouchedUpInside(_:)),
             appearance: appearance
         )
+        button.isHidden = isAIThemePresented
+        button.isEnabled = !isAIThemePresented
+        button.isAccessibilityElement = !isAIThemePresented
+        button.accessibilityElementsHidden = isAIThemePresented
         button.layer.borderWidth = 0
         button.layer.borderColor = UIColor.clear.cgColor
         applyRadarGreenGlowStyleIfNeeded(to: button, appearance: appearance)
@@ -325,6 +314,7 @@ final class ThemesCollectionService: NSObject, UICollectionViewDelegate, UIColle
         }
     }
 
+    @discardableResult
     private func configureSecondaryActionCard(
         in cell: UICollectionViewCell,
         accessibilityIdentifier: String,
@@ -333,7 +323,7 @@ final class ThemesCollectionService: NSObject, UICollectionViewDelegate, UIColle
         title: String,
         action: Selector,
         appearance: AppAppearance
-    ) {
+    ) -> UIButton {
         let button = makeSecondaryActionButton(
             accessibilityIdentifier: accessibilityIdentifier,
             accessibilityLabel: accessibilityLabel,
@@ -344,6 +334,102 @@ final class ThemesCollectionService: NSObject, UICollectionViewDelegate, UIColle
         )
 
         pin(button, to: cell.contentView)
+        return button
+    }
+
+    private func configureFeelingLuckyContent(in button: UIButton, appearance: AppAppearance) {
+        let activityIndicator = UIActivityIndicatorView(style: .medium)
+        activityIndicator.accessibilityIdentifier = Content.feelingLuckyProgressAccessibilityID
+        activityIndicator.color = appearance.screenTextColor
+        activityIndicator.hidesWhenStopped = true
+        activityIndicator.isUserInteractionEnabled = false
+
+        let titleLabel = UILabel()
+        titleLabel.text = isFeelingLuckyLoading ? L10n.Home.feelingLuckyLoading : L10n.Home.feelingLucky
+        titleLabel.textColor = appearance.screenTextColor
+        titleLabel.font = appearance.typography.font(size: Appearance.luckyFontSize, weight: .semibold)
+        titleLabel.adjustsFontForContentSizeCategory = true
+        titleLabel.minimumScaleFactor = 0.78
+        titleLabel.adjustsFontSizeToFitWidth = true
+        titleLabel.isUserInteractionEnabled = false
+
+        let contentStack = UIStackView(arrangedSubviews: [activityIndicator, titleLabel])
+        contentStack.axis = .horizontal
+        contentStack.alignment = .center
+        contentStack.spacing = 10
+        contentStack.isUserInteractionEnabled = false
+        contentStack.translatesAutoresizingMaskIntoConstraints = false
+        button.addSubview(contentStack)
+        NSLayoutConstraint.activate([
+            contentStack.centerXAnchor.constraint(equalTo: button.centerXAnchor),
+            contentStack.centerYAnchor.constraint(equalTo: button.centerYAnchor),
+            contentStack.leadingAnchor.constraint(greaterThanOrEqualTo: button.leadingAnchor, constant: 20),
+            contentStack.trailingAnchor.constraint(lessThanOrEqualTo: button.trailingAnchor, constant: -20)
+        ])
+
+        applyFeelingLuckyLoadingState(
+            to: button,
+            loadingContentView: contentStack,
+            activityIndicator: activityIndicator,
+            titleLabel: titleLabel
+        )
+    }
+
+    private func applyFeelingLuckyLoadingState(
+        to button: UIButton,
+        loadingContentView: UIStackView,
+        activityIndicator: UIActivityIndicatorView,
+        titleLabel: UILabel
+    ) {
+        button.isEnabled = !isFeelingLuckyLoading
+        button.accessibilityLabel = isFeelingLuckyLoading
+            ? L10n.Home.feelingLuckyLoading
+            : L10n.Home.feelingLucky
+        button.accessibilityHint = isFeelingLuckyLoading
+            ? nil
+            : L10n.Home.feelingLuckyAccessibilityHint
+        if isFeelingLuckyLoading {
+            button.setTitle(nil, for: .normal)
+            titleLabel.text = L10n.Home.feelingLuckyLoading
+            loadingContentView.isHidden = false
+            button.accessibilityTraits.insert(.updatesFrequently)
+            activityIndicator.startAnimating()
+        } else {
+            button.setTitle(L10n.Home.feelingLucky, for: .normal)
+            loadingContentView.isHidden = true
+            button.accessibilityTraits.remove(.updatesFrequently)
+            activityIndicator.stopAnimating()
+        }
+    }
+
+    private func refreshVisibleFeelingLuckyButton() {
+        guard let collectionView = observedCollectionView else { return }
+        let button = collectionView.visibleCells
+            .lazy
+            .flatMap(\.contentView.subviews)
+            .compactMap { $0 as? UIButton }
+            .first(where: { $0.accessibilityIdentifier == Content.feelingLuckyAccessibilityID })
+        guard
+            let button,
+            let activityIndicator = button.subviews
+                .lazy
+                .flatMap(\.subviews)
+                .compactMap({ $0 as? UIActivityIndicatorView })
+                .first(where: { $0.accessibilityIdentifier == Content.feelingLuckyProgressAccessibilityID }),
+            let loadingContentView = activityIndicator.superview as? UIStackView,
+            let titleLabel = button.subviews
+                .lazy
+                .flatMap(\.subviews)
+                .compactMap({ $0 as? UILabel })
+                .first
+        else { return }
+
+        applyFeelingLuckyLoadingState(
+            to: button,
+            loadingContentView: loadingContentView,
+            activityIndicator: activityIndicator,
+            titleLabel: titleLabel
+        )
     }
 
     private func makeSecondaryActionButton(
@@ -374,150 +460,6 @@ final class ThemesCollectionService: NSObject, UICollectionViewDelegate, UIColle
         button.addTarget(self, action: action, for: .touchUpInside)
         button.addTarget(self, action: #selector(buttonTouchedUpOutside(_:)), for: .touchUpOutside)
         return button
-    }
-
-    private func configureStatisticsCard(in cell: UICollectionViewCell, appearance: AppAppearance) {
-        cell.applyShadow(.none)
-        let summary = statisticsStore.loadSummary()
-        let accuracyDisplay = "\(summary.percentage)%"
-
-        let button = UIButton(type: .system)
-        button.accessibilityIdentifier = Content.statisticsAccessibilityID
-        button.accessibilityLabel = L10n.Home.statisticsAccessibilityLabel
-        button.accessibilityHint = L10n.Home.statisticsAccessibilityHint
-        button.accessibilityValue = L10n.Home.statisticsAccessibilityValue(
-            playedQuizzes: summary.playedQuizzes,
-            percentage: summary.percentage
-        )
-        button.applyActionAppearance(appearance.row, appearance: appearance, textColor: appearance.surfaceTextColor)
-        applyCleanOutlineStyleIfNeeded(
-            to: button,
-            appearance: appearance,
-            borderColor: appearance.screenTextColor.withAlphaComponent(0.18)
-        )
-        applyRadarTransparentStyleIfNeeded(to: button, appearance: appearance)
-        button.clipsToBounds = true
-        button.translatesAutoresizingMaskIntoConstraints = false
-        button.addTarget(self, action: #selector(buttonTouchedDown(_:)), for: .touchDown)
-        button.addTarget(self, action: #selector(statisticsButtonTouchedUpInside(_:)), for: .touchUpInside)
-        button.addTarget(self, action: #selector(buttonTouchedUpOutside(_:)), for: .touchUpOutside)
-
-        let titleLabel = UILabel()
-        titleLabel.accessibilityIdentifier = Content.statisticsTitleAccessibilityID
-        titleLabel.text = L10n.Statistics.title
-        titleLabel.textColor = appearance.surfaceTextColor
-        titleLabel.font = appearance.typography.font(size: Appearance.titleFontSize, weight: .bold)
-        titleLabel.adjustsFontForContentSizeCategory = true
-        titleLabel.textAlignment = .left
-        titleLabel.numberOfLines = 1
-        titleLabel.adjustsFontSizeToFitWidth = true
-        titleLabel.minimumScaleFactor = Appearance.statisticsTitleMinimumScaleFactor
-        titleLabel.allowsDefaultTighteningForTruncation = true
-        titleLabel.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
-        titleLabel.translatesAutoresizingMaskIntoConstraints = false
-
-        let descriptionLabel = UILabel()
-        descriptionLabel.accessibilityIdentifier = Content.statisticsDescriptionAccessibilityID
-        descriptionLabel.text = L10n.Home.statisticsDescription
-        descriptionLabel.textColor = appearance.secondarySurfaceTextColor
-        descriptionLabel.font = appearance.typography.font(size: Appearance.descriptionFontSize, weight: .semibold)
-        descriptionLabel.adjustsFontForContentSizeCategory = true
-        descriptionLabel.textAlignment = .left
-        descriptionLabel.numberOfLines = 2
-        descriptionLabel.lineBreakMode = .byWordWrapping
-        descriptionLabel.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
-        descriptionLabel.setContentCompressionResistancePriority(.required, for: .vertical)
-        descriptionLabel.translatesAutoresizingMaskIntoConstraints = false
-        descriptionLabel.heightAnchor.constraint(
-            greaterThanOrEqualToConstant: ceil(descriptionLabel.font.lineHeight * 2)
-        ).isActive = true
-
-        let textStackView = UIStackView(arrangedSubviews: [titleLabel, descriptionLabel])
-        textStackView.axis = .vertical
-        textStackView.alignment = .fill
-        textStackView.spacing = Layout.statisticsStackSpacing
-        textStackView.isUserInteractionEnabled = false
-        textStackView.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
-        textStackView.translatesAutoresizingMaskIntoConstraints = false
-
-        let playedMetricView = makeStatisticsMetricView(
-            title: L10n.Home.statisticsPlayedShort,
-            value: "\(summary.playedQuizzes)",
-            titleAccessibilityIdentifier: Content.statisticsPlayedTitleAccessibilityID,
-            valueAccessibilityIdentifier: Content.statisticsPlayedValueAccessibilityID,
-            appearance: appearance
-        )
-        let accuracyMetricView = makeStatisticsMetricView(
-            title: L10n.Home.statisticsAccuracyShort,
-            value: accuracyDisplay,
-            titleAccessibilityIdentifier: Content.statisticsAccuracyTitleAccessibilityID,
-            valueAccessibilityIdentifier: Content.statisticsAccuracyValueAccessibilityID,
-            appearance: appearance
-        )
-
-        let metricsStackView = UIStackView(arrangedSubviews: [playedMetricView, accuracyMetricView])
-        metricsStackView.axis = .vertical
-        metricsStackView.alignment = .fill
-        metricsStackView.spacing = Layout.statisticsMetricsSpacing
-        metricsStackView.isUserInteractionEnabled = false
-        metricsStackView.setContentCompressionResistancePriority(.required, for: .horizontal)
-        metricsStackView.translatesAutoresizingMaskIntoConstraints = false
-
-        let contentStackView = UIStackView(arrangedSubviews: [textStackView, metricsStackView])
-        contentStackView.axis = .horizontal
-        contentStackView.alignment = .center
-        contentStackView.distribution = .fill
-        contentStackView.spacing = Layout.statisticsContentSpacing
-        contentStackView.isUserInteractionEnabled = false
-        contentStackView.translatesAutoresizingMaskIntoConstraints = false
-
-        pin(button, to: cell.contentView, bottomInset: Layout.lastItemBottomInset)
-        button.addSubview(contentStackView)
-
-        NSLayoutConstraint.activate([
-            contentStackView.leadingAnchor.constraint(equalTo: button.leadingAnchor, constant: Layout.cardContentHorizontalInset),
-            contentStackView.trailingAnchor.constraint(equalTo: button.trailingAnchor, constant: -Layout.cardContentHorizontalInset),
-            contentStackView.centerYAnchor.constraint(equalTo: button.centerYAnchor)
-        ])
-    }
-
-    private func makeStatisticsMetricView(
-        title: String,
-        value: String,
-        titleAccessibilityIdentifier: String,
-        valueAccessibilityIdentifier: String,
-        appearance: AppAppearance
-    ) -> UIStackView {
-        let valueLabel = UILabel()
-        valueLabel.accessibilityIdentifier = valueAccessibilityIdentifier
-        valueLabel.text = value
-        valueLabel.textColor = appearance.surfaceTextColor
-        valueLabel.font = appearance.typography.font(size: Appearance.statisticsMetricValueFontSize, weight: .bold)
-        valueLabel.adjustsFontForContentSizeCategory = true
-        valueLabel.textAlignment = .right
-        valueLabel.numberOfLines = 0
-        valueLabel.setContentCompressionResistancePriority(.required, for: .horizontal)
-        valueLabel.translatesAutoresizingMaskIntoConstraints = false
-
-        let titleLabel = UILabel()
-        titleLabel.accessibilityIdentifier = titleAccessibilityIdentifier
-        titleLabel.text = title
-        titleLabel.textColor = appearance.secondarySurfaceTextColor
-        titleLabel.font = appearance.typography.font(size: Appearance.statisticsMetricTitleFontSize, weight: .semibold)
-        titleLabel.adjustsFontForContentSizeCategory = true
-        titleLabel.textAlignment = .left
-        titleLabel.numberOfLines = 1
-        titleLabel.setContentHuggingPriority(.required, for: .horizontal)
-        titleLabel.setContentCompressionResistancePriority(.required, for: .horizontal)
-        titleLabel.translatesAutoresizingMaskIntoConstraints = false
-
-        let stackView = UIStackView(arrangedSubviews: [titleLabel, valueLabel])
-        stackView.axis = .horizontal
-        stackView.alignment = .center
-        stackView.spacing = Layout.statisticsMetricSpacing
-        stackView.isUserInteractionEnabled = false
-        stackView.translatesAutoresizingMaskIntoConstraints = false
-        return stackView
     }
 
     private func applyCleanOutlineStyleIfNeeded(to button: UIButton, appearance: AppAppearance, borderColor: UIColor) {
@@ -556,28 +498,44 @@ final class ThemesCollectionService: NSObject, UICollectionViewDelegate, UIColle
         ])
     }
 
-    private func themeImageAccessibilityIdentifier(themeID: String) -> String {
-        "\(Content.themeImageAccessibilityIDPrefix)-\(themeID)"
+    private func reconfigureThemeCells(withIDs themeIDs: [String]) {
+        guard
+            let collectionView = observedCollectionView,
+            let themes = themeRepository.themes,
+            !themeIDs.isEmpty
+        else {
+            return
+        }
+
+        let identifiers = Set(themeIDs)
+        let indexPaths = themes.enumerated().compactMap { index, theme in
+            identifiers.contains(theme.stableID) ? IndexPath(item: index, section: 0) : nil
+        }
+        guard !indexPaths.isEmpty else { return }
+
+        UIView.performWithoutAnimation {
+            collectionView.reconfigureItems(at: indexPaths)
+        }
     }
 
-    private func themeTitleAccessibilityIdentifier(themeID: String) -> String {
-        "\(Content.themeTitleAccessibilityIDPrefix)-\(themeID)"
+    private func reconfigureStatisticsCell() {
+        guard let collectionView = observedCollectionView else { return }
+        let indexPath = IndexPath(item: statisticsIndex, section: 0)
+        guard collectionView.numberOfItems(inSection: 0) > indexPath.item else { return }
+
+        UIView.performWithoutAnimation {
+            collectionView.reconfigureItems(at: [indexPath])
+        }
     }
 
-    private func themeLogoImage(for themeID: String, appearance: AppAppearance) -> UIImage? {
-        ThemeVisualCatalog.logoImage(for: themeID, designStyle: appearance.designStyle)
-    }
+    private func reconfigureAIThemeCell() {
+        guard let collectionView = observedCollectionView else { return }
+        let indexPath = IndexPath(item: aiThemeIndex, section: 0)
+        guard collectionView.numberOfItems(inSection: 0) > indexPath.item else { return }
 
-    private func themeLogoTransform(for appearance: AppAppearance) -> CGAffineTransform {
-        guard appearance.designStyle == .clean else { return .identity }
-        return CGAffineTransform(
-            scaleX: Layout.cleanThemeSymbolScale,
-            y: Layout.cleanThemeSymbolScale
-        )
-    }
-
-    private func themeTintColor(for themeID: String) -> UIColor {
-        ThemeVisualCatalog.tintColor(for: themeID)
+        UIView.performWithoutAnimation {
+            collectionView.reconfigureItems(at: [indexPath])
+        }
     }
 
     @objc func buttonTouchedDown(_ sender: UIButton) {
@@ -679,77 +637,6 @@ enum ThemeVisualCatalog {
 private extension Array {
     subscript(safe index: Index) -> Element? {
         indices.contains(index) ? self[index] : nil
-    }
-}
-
-private final class MultilineFittingLabel: UILabel {
-    private enum Fitting {
-        static let iterations = 10
-        static let tolerance: CGFloat = 0.1
-    }
-
-    private let baseFont: UIFont
-    private let fittingMinimumScaleFactor: CGFloat
-
-    init(baseFont: UIFont, minimumScaleFactor: CGFloat) {
-        self.baseFont = baseFont
-        self.fittingMinimumScaleFactor = minimumScaleFactor
-        super.init(frame: .zero)
-        font = baseFont
-    }
-
-    @available(*, unavailable)
-    required init?(coder: NSCoder) {
-        nil
-    }
-
-    override func layoutSubviews() {
-        super.layoutSubviews()
-        fitFontToBounds()
-    }
-
-    private func fitFontToBounds() {
-        guard let text, !text.isEmpty, bounds.width > 0, bounds.height > 0 else { return }
-
-        let minimumPointSize = baseFont.pointSize * fittingMinimumScaleFactor
-        guard !textFits(text, font: baseFont) else {
-            applyFontIfNeeded(baseFont)
-            return
-        }
-
-        var lowerBound = minimumPointSize
-        var upperBound = baseFont.pointSize
-        for _ in 0..<Fitting.iterations {
-            let candidatePointSize = (lowerBound + upperBound) / 2
-            let candidateFont = baseFont.withSize(candidatePointSize)
-            if textFits(text, font: candidateFont) {
-                lowerBound = candidatePointSize
-            } else {
-                upperBound = candidatePointSize
-            }
-        }
-
-        applyFontIfNeeded(baseFont.withSize(lowerBound))
-    }
-
-    private func textFits(_ text: String, font: UIFont) -> Bool {
-        let maximumLineHeight = numberOfLines > 0
-            ? font.lineHeight * CGFloat(numberOfLines)
-            : bounds.height
-        let maximumHeight = min(bounds.height, maximumLineHeight)
-        let requiredBounds = (text as NSString).boundingRect(
-            with: CGSize(width: bounds.width, height: .greatestFiniteMagnitude),
-            options: [.usesLineFragmentOrigin, .usesFontLeading],
-            attributes: [.font: font],
-            context: nil
-        )
-        return ceil(requiredBounds.height) <= ceil(maximumHeight) + Fitting.tolerance
-    }
-
-    private func applyFontIfNeeded(_ fittedFont: UIFont) {
-        guard abs(font.pointSize - fittedFont.pointSize) > Fitting.tolerance else { return }
-        font = fittedFont
-        invalidateIntrinsicContentSize()
     }
 }
 

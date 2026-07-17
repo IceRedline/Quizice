@@ -6,7 +6,6 @@ import SwiftUI
 
 final class QuizQuestionViewController: BaseQuizViewController, QuizQuestionViewControllerProtocol, QuizCardSlideTransitionSource, QuizCardSlideTransitionDestination {
     private enum Content {
-        static let backgroundImageName = "backgroundImage"
         static let correctSoundName = "Quizice Correct"
         static let incorrectSoundName = "Quizice Incorrect"
         static let soundExtension = "m4a"
@@ -216,7 +215,7 @@ final class QuizQuestionViewController: BaseQuizViewController, QuizQuestionView
     
     override func loadView() {
         let rootView = UIView()
-        rootView.backgroundColor = UIColor(patternImage: UIImage(named: Content.backgroundImageName) ?? UIImage())
+        rootView.backgroundColor = .systemBackground
         rootView.accessibilityIdentifier = AccessibilityID.rootView
         view = rootView
         configureProgrammaticSubviews(in: rootView)
@@ -892,7 +891,10 @@ final class QuizQuestionViewController: BaseQuizViewController, QuizQuestionView
         nextButton?.applyActionAppearance(
             QuizThemeAccentStyle.primaryButtonStyle(themeID: presenter?.themeID, appearance: appearance),
             appearance: appearance,
-            textColor: actionTextColor(isPrimary: true, appearance: appearance)
+            textColor: QuizThemeAccentStyle.primaryButtonTextColor(
+                themeID: presenter?.themeID,
+                appearance: appearance
+            )
         )
         nextButton?.titleLabel?.font = appearance.typography.font(size: Typography.actionButtonFontSize, weight: .semibold)
         closeButton?.applyActionAppearance(
@@ -900,16 +902,6 @@ final class QuizQuestionViewController: BaseQuizViewController, QuizQuestionView
             appearance: appearance,
             textColor: appearance.screenTextColor
         )
-    }
-
-    private func actionTextColor(isPrimary: Bool, appearance: AppAppearance) -> UIColor {
-        if isPrimary && appearance.designStyle == .clean {
-            return appearance.resolvedInterfaceStyle == .dark ? appearance.screenTextColor : .black
-        }
-        if !isPrimary && appearance.designStyle == .clean {
-            return QuizThemeAccentStyle.secondaryButtonTextColor(themeID: presenter?.themeID, appearance: appearance)
-        }
-        return appearance.screenTextColor
     }
 
     private func quizThemeAccentColor(for appearance: AppAppearance) -> UIColor {

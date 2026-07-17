@@ -25,12 +25,14 @@ enum SnapshotSupport {
         AppLocalizationStore.shared.languagePreference = language
         UserDefaults.standard.set(designStyle.rawValue, forKey: AppAppearanceStore.Keys.designStyle)
         UserDefaults.standard.set(cleanColorScheme.rawValue, forKey: AppAppearanceStore.Keys.cleanColorScheme)
+        UserDefaults.standard.set(AppBackgroundStyle.defaultStyle.rawValue, forKey: AppAppearanceStore.Keys.backgroundStyle)
     }
 
     static func tearDown() {
         UIView.setAnimationsEnabled(true)
         UserDefaults.standard.removeObject(forKey: AppAppearanceStore.Keys.designStyle)
         UserDefaults.standard.removeObject(forKey: AppAppearanceStore.Keys.cleanColorScheme)
+        UserDefaults.standard.removeObject(forKey: AppAppearanceStore.Keys.backgroundStyle)
         UserDefaults.standard.removeObject(forKey: AppLocalizationStore.Keys.language)
         resetSharedQuizFactoryForTests()
     }
@@ -103,9 +105,14 @@ enum SnapshotSupport {
         )
     }
 
-    static func makeActionButton(title: String, style: AppSurfaceStyle, appearance: AppAppearance) -> UIButton {
+    static func makeActionButton(
+        title: String,
+        style: AppSurfaceStyle,
+        appearance: AppAppearance,
+        textColor: UIColor? = nil
+    ) -> UIButton {
         let button = UIButton(type: .system)
-        button.applyActionAppearance(style, appearance: appearance)
+        button.applyActionAppearance(style, appearance: appearance, textColor: textColor)
         button.setTitle(title, for: .normal)
         button.titleLabel?.font = appearance.typography.button()
         button.heightAnchor.constraint(equalToConstant: 52).isActive = true
@@ -118,7 +125,8 @@ enum SnapshotSupport {
         themes: [QuizTheme],
         designStyle: AppDesignStyle = .clean,
         cleanColorScheme: CleanColorSchemePreference = .light,
-        collectionWidth: CGFloat = 390
+        collectionWidth: CGFloat = 390,
+        feelingLuckyLoading: Bool = false
     ) -> UICollectionViewCell {
         setUp(designStyle: designStyle, cleanColorScheme: cleanColorScheme)
         let repository = SnapshotThemeRepository(themes: themes)
@@ -130,6 +138,7 @@ enum SnapshotSupport {
             themeRepository: repository,
             statisticsStore: StatisticsStore(userDefaults: defaults, key: "attempts")
         )
+        service.isFeelingLuckyLoading = feelingLuckyLoading
         let collectionView = makeCollectionView(width: collectionWidth)
         collectionView.dataSource = service
         collectionView.delegate = service
@@ -187,6 +196,14 @@ enum SnapshotSupport {
             collectionViewLayout: layout
         )
         collectionView.register(UICollectionViewCell.self, forCellWithReuseIdentifier: ThemesCollectionService.Content.themeCellReuseIdentifier)
+        collectionView.register(
+            ThemeCardCollectionViewCell.self,
+            forCellWithReuseIdentifier: ThemeCardCollectionViewCell.reuseIdentifier
+        )
+        collectionView.register(
+            StatisticsCardCollectionViewCell.self,
+            forCellWithReuseIdentifier: StatisticsCardCollectionViewCell.reuseIdentifier
+        )
         return collectionView
     }
 }
