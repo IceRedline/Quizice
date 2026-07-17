@@ -99,9 +99,32 @@ struct AIQuizGenerationAlert: Identifiable, Equatable {
 }
 
 struct QuizAlertAction {
-    enum Emphasis {
+    enum Emphasis: Equatable {
         case primary
         case secondary
+        case destructive
+
+        func surfaceStyle(in appearance: AppAppearance) -> AppSurfaceStyle {
+            switch self {
+            case .primary:
+                return appearance.primaryButton
+            case .secondary:
+                return appearance.secondaryButton
+            case .destructive:
+                let baseStyle = appearance.designStyle == .clean
+                    ? appearance.primaryButton
+                    : appearance.secondaryButton
+                return AppSurfaceStyle(
+                    backgroundColor: appearance.designStyle == .clean
+                        ? tintColor(in: appearance)
+                        : baseStyle.backgroundColor,
+                    borderColor: tintColor(in: appearance),
+                    borderWidth: max(baseStyle.borderWidth, 1),
+                    cornerRadius: baseStyle.cornerRadius,
+                    shadow: baseStyle.shadow
+                )
+            }
+        }
 
         func textColor(in appearance: AppAppearance) -> UIColor {
             switch self {
@@ -115,6 +138,17 @@ struct QuizAlertAction {
                     themeID: nil,
                     appearance: appearance
                 )
+            case .destructive:
+                return appearance.designStyle == .clean ? .black : tintColor(in: appearance)
+            }
+        }
+
+        func tintColor(in appearance: AppAppearance) -> UIColor {
+            switch appearance.designStyle {
+            case .classic:
+                return .systemRed
+            case .clean, .radar:
+                return appearance.destructiveColor
             }
         }
     }
@@ -223,6 +257,22 @@ struct QuizAlertOverlay: View {
         static let dialog = "quizAlertDialog"
         static let title = "quizAlertTitle"
         static let message = "quizAlertMessage"
+    }
+
+    private struct KeyboardShortcutModifier: ViewModifier {
+        let emphasis: QuizAlertAction.Emphasis
+
+        @ViewBuilder
+        func body(content: Content) -> some View {
+            switch emphasis {
+            case .primary:
+                content.keyboardShortcut(.defaultAction)
+            case .secondary:
+                content.keyboardShortcut(.cancelAction)
+            case .destructive:
+                content
+            }
+        }
     }
 
     @Environment(\.appAppearance) private var appearance
@@ -365,10 +415,13 @@ struct QuizAlertOverlay: View {
     }
 
     private func actionButton(_ action: QuizAlertAction) -> some View {
-        let style = action.emphasis == .primary ? appearance.primaryButton : appearance.secondaryButton
+        let style = action.emphasis.surfaceStyle(in: appearance)
         let textColor = action.emphasis.textColor(in: appearance)
 
-        return Button(action: action.action) {
+        return Button(
+            role: action.emphasis == .destructive ? .destructive : nil,
+            action: action.action
+        ) {
             Text(action.title)
                 .font(appearance.typography.swiftUIFont(size: 17, weight: .semibold))
                 .foregroundStyle(Color(uiColor: textColor))
@@ -393,7 +446,7 @@ struct QuizAlertOverlay: View {
                 )
         }
         .buttonStyle(QuizPressButtonStyle())
-        .keyboardShortcut(action.emphasis == .primary ? .defaultAction : .cancelAction)
+        .modifier(KeyboardShortcutModifier(emphasis: action.emphasis))
         .accessibilityIdentifier(action.accessibilityIdentifier)
     }
 }
