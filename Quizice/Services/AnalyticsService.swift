@@ -34,6 +34,11 @@ enum AnalyticsResultAction: String {
     case themes
 }
 
+enum AnalyticsThemeCardFace: String {
+    case front
+    case back
+}
+
 enum AnalyticsSetting: String {
     case design
     case language
@@ -62,6 +67,7 @@ struct AnalyticsQuizProgress: Equatable {
 enum AnalyticsEvent {
     case screenView(screen: AnalyticsScreen, theme: AnalyticsTheme = .unknown)
     case themeSelected(theme: AnalyticsTheme, method: AnalyticsSelectionMethod)
+    case themeCardFlipped(theme: AnalyticsTheme, visibleFace: AnalyticsThemeCardFace)
     case quizSetupCancelled(theme: AnalyticsTheme)
     case quizStarted(theme: AnalyticsTheme, questionCount: Int)
     case quizAnswered(theme: AnalyticsTheme, questionIndex: Int, totalQuestions: Int, outcome: AnalyticsAnswerOutcome)
@@ -82,6 +88,7 @@ enum AnalyticsEvent {
         switch self {
         case .screenView: return "screen_view"
         case .themeSelected: return "theme_selected"
+        case .themeCardFlipped: return "theme_card_flipped"
         case .quizSetupCancelled: return "quiz_setup_cancelled"
         case .quizStarted: return "quiz_started"
         case .quizAnswered: return "quiz_answered"
@@ -106,6 +113,8 @@ enum AnalyticsEvent {
             return ["screen": screen.rawValue].merging(themeParameters(theme)) { current, _ in current }
         case let .themeSelected(theme, method):
             return ["selection_method": method.rawValue].merging(themeParameters(theme)) { current, _ in current }
+        case let .themeCardFlipped(theme, visibleFace):
+            return ["visible_face": visibleFace.rawValue].merging(themeParameters(theme)) { current, _ in current }
         case let .quizSetupCancelled(theme):
             return themeParameters(theme)
         case let .quizStarted(theme, questionCount):
@@ -192,7 +201,6 @@ enum AnalyticsErrorContext {
     case contentLoad
     case themeResolution
     case aiGeneration(code: String)
-    case aiResultHandling
 
     fileprivate var code: Int {
         switch self {
@@ -201,7 +209,6 @@ enum AnalyticsErrorContext {
         case .contentLoad: return 2001
         case .themeResolution: return 2002
         case .aiGeneration: return 3001
-        case .aiResultHandling: return 3002
         }
     }
 
@@ -212,14 +219,12 @@ enum AnalyticsErrorContext {
         case .contentLoad: return "content_load"
         case .themeResolution: return "theme_resolution"
         case let .aiGeneration(code): return "ai_generation.\(code)"
-        case .aiResultHandling: return "ai_result_handling"
         }
     }
 }
 
 enum AnalyticsOperationalIssue: Error {
     case themeResolution
-    case missingAIViewController
 }
 
 final class AppMetricaAnalyticsTracker: AnalyticsTracking {

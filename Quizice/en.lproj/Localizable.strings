@@ -4,6 +4,10 @@
 "common.no" = "No";
 "common.start" = "Start";
 "common.yes" = "Yes";
+"home.background_style.switcher" = "Background style";
+"home.background_style.original" = "Original";
+"home.background_style.grid_4x4" = "4×4 Mesh";
+"home.background_style.grid_5x5" = "5×5 Mesh";
 "description.default_theme_description" = "Theme description unavailable";
 "description.default_theme_name" = "No theme";
 "description.question_count" = "Number of questions";
@@ -44,6 +48,7 @@
 "home.exit_alert.message" = "Are you sure you want to exit?";
 "home.feeling_lucky" = "Feeling lucky";
 "home.feeling_lucky.accessibility_hint" = "Starts a random theme";
+"home.feeling_lucky.loading" = "Picking questions";
 "home.statistics.accessibility_hint" = "Opens overall statistics for completed quizzes";
 "home.statistics.accessibility_label" = "Overall statistics";
 "home.statistics.accessibility_value_format" = "Played: %d. Accuracy: %d%%";
@@ -52,6 +57,9 @@
 "home.statistics.played_short" = "Played";
 "home.themes_collection.accessibility_label" = "Quiz themes";
 "home.unavailable_themes" = "Themes are not available yet";
+"theme.card.close_accessibility_label" = "Close theme card";
+"theme.card.show_description_accessibility_label" = "Show theme description";
+"theme.card.show_front_accessibility_label" = "Return to theme card front";
 "home.welcome" = "Welcome to";
 "home.motivation_prompt.1" = "Pick a topic\nand start";
 "home.motivation_prompt.2" = "See what\nyou remember";
@@ -132,5 +140,5 @@
 "statistics.subtitle.empty" = "Start with your first quiz — statistics will appear automatically";
 "statistics.subtitle.with_stats" = "Your progress across completed quizzes";
 "statistics.title" = "Statistics";
-"theme.card.accessibility_hint" = "Starts a quiz on this theme";
+"theme.card.accessibility_hint" = "Opens this topic card";
 "theme.card.accessibility_label_format" = "%@, quiz theme";

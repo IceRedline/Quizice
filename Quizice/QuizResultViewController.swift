@@ -4,10 +4,6 @@ import SwiftUI
 #endif
 
 final class QuizResultViewController: BaseQuizViewController, QuizResultViewControllerProtocol, QuizCardSlideTransitionDestination {
-    private enum Content {
-        static let backgroundImageName = "backgroundImage"
-    }
-    
     private enum AccessibilityID {
         static let rootView = "resultRootView"
         static let cardView = "resultCardView"
@@ -79,7 +75,7 @@ final class QuizResultViewController: BaseQuizViewController, QuizResultViewCont
     
     override func loadView() {
         let rootView = UIView()
-        rootView.backgroundColor = UIColor(patternImage: UIImage(named: Content.backgroundImageName) ?? UIImage())
+        rootView.backgroundColor = .systemBackground
         rootView.accessibilityIdentifier = AccessibilityID.rootView
         view = rootView
         configureProgrammaticSubviews(in: rootView)
@@ -262,7 +258,10 @@ final class QuizResultViewController: BaseQuizViewController, QuizResultViewCont
         replayButton?.applyActionAppearance(
             QuizThemeAccentStyle.primaryButtonStyle(themeID: presenter?.themeID, appearance: appearance),
             appearance: appearance,
-            textColor: actionTextColor(appearance: appearance)
+            textColor: QuizThemeAccentStyle.primaryButtonTextColor(
+                themeID: presenter?.themeID,
+                appearance: appearance
+            )
         )
         replayButton?.titleLabel?.font = appearance.typography.font(size: Typography.buttonFontSize, weight: .semibold)
         themesButton?.applyActionAppearance(
@@ -271,13 +270,6 @@ final class QuizResultViewController: BaseQuizViewController, QuizResultViewCont
             textColor: QuizThemeAccentStyle.secondaryButtonTextColor(themeID: presenter?.themeID, appearance: appearance)
         )
         themesButton?.titleLabel?.font = appearance.typography.font(size: Typography.buttonFontSize, weight: .semibold)
-    }
-
-    private func actionTextColor(appearance: AppAppearance) -> UIColor {
-        if appearance.designStyle == .clean {
-            return appearance.resolvedInterfaceStyle == .dark ? appearance.screenTextColor : .black
-        }
-        return appearance.screenTextColor
     }
 
     @objc private func replayButtonTapped() {

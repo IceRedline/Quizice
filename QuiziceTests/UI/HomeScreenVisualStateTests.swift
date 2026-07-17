@@ -13,11 +13,16 @@ final class HomeScreenVisualStateTests: XCTestCase {
         // Pin the clean color scheme so shadow/surface assertions are deterministic
         // regardless of the host simulator's system light/dark appearance.
         UserDefaults.standard.set(CleanColorSchemePreference.light.rawValue, forKey: AppAppearanceStore.Keys.cleanColorScheme)
+        UserDefaults.standard.set(AppDesignStyle.classic.rawValue, forKey: AppAppearanceStore.Keys.designStyle)
+        UserDefaults.standard.set(AppBackgroundStyle.defaultStyle.rawValue, forKey: AppAppearanceStore.Keys.backgroundStyle)
     }
 
     override func tearDown() {
         testWindows = []
         resetQuizFactory()
+        UserDefaults.standard.removeObject(forKey: AppAppearanceStore.Keys.designStyle)
+        UserDefaults.standard.removeObject(forKey: AppAppearanceStore.Keys.cleanColorScheme)
+        UserDefaults.standard.removeObject(forKey: AppAppearanceStore.Keys.backgroundStyle)
         UserDefaults.standard.removeObject(forKey: AppLocalizationStore.Keys.language)
         super.tearDown()
     }
@@ -32,6 +37,8 @@ final class HomeScreenVisualStateTests: XCTestCase {
         XCTAssertNotNil(viewController.view.descendant(withAccessibilityIdentifier: "homeMotivationLabel"))
         XCTAssertNotNil(viewController.view.descendant(withAccessibilityIdentifier: "homeThemesCollectionView"))
         XCTAssertNotNil(viewController.view.descendant(withAccessibilityIdentifier: "homeSettingsButton"))
+        XCTAssertNil(viewController.view.descendant(withAccessibilityIdentifier: "homeBackgroundStyleButton"))
+        XCTAssertNil(viewController.view.descendant(withAccessibilityIdentifier: "homeDebugInterfaceButton"))
     }
 
     func testHomeHeaderUsesSingleLeadingMotivationPrompt() throws {
@@ -221,10 +228,103 @@ final class HomeScreenVisualStateTests: XCTestCase {
         let settingsButton = try XCTUnwrap(viewController.view.descendant(withAccessibilityIdentifier: "homeSettingsButton") as? UIButton)
 
         XCTAssertNotNil(settingsButton.image(for: .normal))
+#if DEBUG
+        XCTAssertFalse(settingsButton.showsMenuAsPrimaryAction)
+        XCTAssertNotNil(settingsButton.menu)
+#endif
 
         settingsButton.sendActions(for: .touchUpInside)
 
         XCTAssertEqual(router.showSettingsCallCount, 1)
+    }
+
+    func testHomeSettingsDebugMenuContainsBackgroundPresets() throws {
+        QuizFactory.shared.themes = [makeTheme(name: "Музыка")]
+
+        let viewController = makeHomeViewController(in: CGRect(x: 0, y: 0, width: 390, height: 844))
+        let settingsButton = try XCTUnwrap(
+            viewController.view.descendant(withAccessibilityIdentifier: "homeSettingsButton") as? UIButton
+        )
+
+#if DEBUG
+        let menu = try XCTUnwrap(settingsButton.menu)
+        let interfaceAction = try XCTUnwrap(menu.children.first as? UIAction)
+        let backgroundMenu = try XCTUnwrap(menu.children.last as? UIMenu)
+        let backgroundActions = backgroundMenu.children.compactMap { $0 as? UIAction }
+
+        XCTAssertEqual(interfaceAction.title, "Hide UI")
+        XCTAssertEqual(backgroundMenu.title, L10n.Home.backgroundStyleSwitcher)
+        XCTAssertEqual(backgroundActions.count, AppBackgroundStyle.allCases.count)
+        XCTAssertEqual(backgroundActions.map(\.title), AppBackgroundStyle.allCases.map(\.title))
+        XCTAssertEqual(AppAppearanceStore.shared.backgroundStyle, .slate5x5)
+        XCTAssertEqual(backgroundActions.filter { $0.state == .on }.map(\.title), [AppBackgroundStyle.slate5x5.title])
+        XCTAssertNotNil(viewController.view.descendant(withAccessibilityIdentifier: "appBackgroundView"))
+
+        XCTAssertNotNil(backgroundActions.first { $0.title == AppBackgroundStyle.slate4x4.title })
+        viewController.selectBackgroundStyle(.slate4x4)
+
+        XCTAssertEqual(AppAppearanceStore.shared.backgroundStyle, .slate4x4)
+        let updatedBackgroundMenu = try XCTUnwrap(settingsButton.menu?.children.last as? UIMenu)
+        let updatedBackgroundActions = updatedBackgroundMenu.children.compactMap { $0 as? UIAction }
+        XCTAssertEqual(
+            updatedBackgroundActions.filter { $0.state == .on }.map(\.title),
+            [AppBackgroundStyle.slate4x4.title]
+        )
+#else
+        XCTAssertNil(settingsButton.menu)
+#endif
+    }
+
+    func testHomeSettingsDebugMenuHidesAndRestoresInterface() throws {
+#if DEBUG
+        QuizFactory.shared.themes = [makeTheme(name: "Музыка")]
+
+        let viewController = makeHomeViewController(in: CGRect(x: 0, y: 0, width: 390, height: 844))
+        let router = HomeRouterSpy()
+        viewController.router = router
+        let settingsButton = try XCTUnwrap(
+            viewController.view.descendant(withAccessibilityIdentifier: "homeSettingsButton") as? UIButton
+        )
+        let headerStackView = try XCTUnwrap(
+            viewController.view.descendant(withAccessibilityIdentifier: "homeHeaderStackView")
+        )
+        let screenStackView = try XCTUnwrap(
+            viewController.view.descendant(withAccessibilityIdentifier: "homeScreenStackView")
+        )
+        XCTAssertNotNil(settingsButton.menu?.children.first as? UIAction)
+
+        viewController.toggleDebugInterfaceVisibility()
+
+        XCTAssertTrue(headerStackView.isHidden)
+        XCTAssertTrue(screenStackView.isHidden)
+        XCTAssertFalse(settingsButton.isHidden)
+        XCTAssertTrue(settingsButton.isEnabled)
+        settingsButton.sendActions(for: .touchUpInside)
+        XCTAssertEqual(router.showSettingsCallCount, 1)
+
+        let showAction = try XCTUnwrap(settingsButton.menu?.children.first as? UIAction)
+        XCTAssertEqual(showAction.title, "Show UI")
+        viewController.toggleDebugInterfaceVisibility()
+
+        XCTAssertFalse(headerStackView.isHidden)
+        XCTAssertFalse(screenStackView.isHidden)
+#endif
+    }
+
+    func testHomeHasNoSeparateDebugButtonsOrInactiveBackgroundMenu() throws {
+        useDesignStyle(.clean)
+        QuizFactory.shared.themes = [makeTheme(name: "Музыка")]
+
+        let viewController = makeHomeViewController(in: CGRect(x: 0, y: 0, width: 390, height: 844))
+
+        XCTAssertNil(viewController.view.descendant(withAccessibilityIdentifier: "homeBackgroundStyleButton"))
+        XCTAssertNil(viewController.view.descendant(withAccessibilityIdentifier: "homeDebugInterfaceButton"))
+#if DEBUG
+        let settingsButton = try XCTUnwrap(
+            viewController.view.descendant(withAccessibilityIdentifier: "homeSettingsButton") as? UIButton
+        )
+        XCTAssertTrue(settingsButton.menu?.children.compactMap { $0 as? UIMenu }.isEmpty == true)
+#endif
     }
 
     func testRadarSettingsSurfaceStaysBehindGearArtwork() throws {
@@ -268,19 +368,2562 @@ final class HomeScreenVisualStateTests: XCTestCase {
         XCTAssertEqual(visualSurface.layer.cornerCurve, .circular)
     }
 
-    func testHomeAIThemeButtonPresentsAIThemeCreationScreen() throws {
+    func testAIThemeCardExpandsInlineAboveFullScreenBackdropAndDisablesGrid() throws {
         QuizFactory.shared.themes = [makeTheme(name: "Музыка")]
 
         let viewController = makeHomeViewController(in: CGRect(x: 0, y: 0, width: 390, height: 844))
         let router = HomeRouterSpy()
         viewController.router = router
-        let collectionView = try XCTUnwrap(viewController.view.descendant(withAccessibilityIdentifier: "homeThemesCollectionView") as? UICollectionView)
+        let collectionView = try XCTUnwrap(
+            viewController.view.descendant(
+                withAccessibilityIdentifier: "homeThemesCollectionView"
+            ) as? UICollectionView
+        )
         collectionView.layoutIfNeeded()
-        let createWithAIButton = try XCTUnwrap(viewController.view.descendant(withAccessibilityIdentifier: "homeCreateWithAIButton") as? UIButton)
+        let sourceButton = try XCTUnwrap(
+            viewController.view.descendant(
+                withAccessibilityIdentifier: "homeCreateWithAIButton"
+            ) as? UIButton
+        )
+        let initialScrollEnabled = collectionView.isScrollEnabled
+        let initialContentOffset = collectionView.contentOffset
 
-        createWithAIButton.sendActions(for: .touchUpInside)
+        sourceButton.sendActions(for: .touchUpInside)
+        drainAnimations()
 
-        XCTAssertEqual(router.showAIThemeCreationCallCount, 1)
+        let backdrop = try XCTUnwrap(
+            viewController.view.descendant(
+                withAccessibilityIdentifier: "homeExpandedThemeCardBackdrop"
+            )
+        )
+        let card = try XCTUnwrap(
+            viewController.view.descendant(
+                withAccessibilityIdentifier: "homeExpandedAIThemeCard"
+            )
+        )
+
+        XCTAssertTrue(backdrop.superview === viewController.view)
+        XCTAssertEqual(backdrop.frame, viewController.view.bounds)
+        XCTAssertTrue(backdrop is UIVisualEffectView)
+        XCTAssertNotNil((backdrop as? UIVisualEffectView)?.effect)
+        XCTAssertTrue(card.superview === viewController.view)
+        XCTAssertFalse(card.isDescendant(of: backdrop))
+        XCTAssertGreaterThan(card.layer.zPosition, backdrop.layer.zPosition)
+        XCTAssertTrue(card.accessibilityViewIsModal)
+        let presentedSourceButton = try XCTUnwrap(
+            viewController.view.descendant(
+                withAccessibilityIdentifier: "homeCreateWithAIButton"
+            ) as? UIButton
+        )
+        XCTAssertTrue(presentedSourceButton.isHidden)
+        XCTAssertFalse(presentedSourceButton.isEnabled)
+        XCTAssertFalse(collectionView.isUserInteractionEnabled)
+        XCTAssertFalse(collectionView.isScrollEnabled)
+        XCTAssertNil(
+            viewController.view.descendant(
+                withAccessibilityIdentifier: "homeExpandedAIThemeCardTransition"
+            )
+        )
+        XCTAssertEqual(router.showDescriptionCallCount, 0)
+        XCTAssertEqual(router.showStatisticsCallCount, 0)
+
+        let backdropDismissButton = try XCTUnwrap(
+            viewController.view.descendant(
+                withAccessibilityIdentifier: "homeExpandedThemeCardBackdropDismissButton"
+            ) as? UIButton
+        )
+        backdropDismissButton.sendActions(for: .touchUpInside)
+        drainAnimations()
+
+        XCTAssertNil(
+            viewController.view.descendant(
+                withAccessibilityIdentifier: "homeExpandedAIThemeCard"
+            )
+        )
+        XCTAssertNil(
+            viewController.view.descendant(
+                withAccessibilityIdentifier: "homeExpandedThemeCardBackdrop"
+            )
+        )
+        let restoredSourceButton = try XCTUnwrap(
+            viewController.view.descendant(
+                withAccessibilityIdentifier: "homeCreateWithAIButton"
+            ) as? UIButton
+        )
+        XCTAssertFalse(restoredSourceButton.isHidden)
+        XCTAssertTrue(restoredSourceButton.isEnabled)
+        XCTAssertTrue(restoredSourceButton.isAccessibilityElement)
+        XCTAssertTrue(collectionView.isUserInteractionEnabled)
+        XCTAssertEqual(collectionView.isScrollEnabled, initialScrollEnabled)
+        XCTAssertEqual(collectionView.contentOffset.x, initialContentOffset.x, accuracy: 0.001)
+        XCTAssertEqual(collectionView.contentOffset.y, initialContentOffset.y, accuracy: 0.001)
+        XCTAssertEqual(router.showDescriptionCallCount, 0)
+        XCTAssertEqual(router.showStatisticsCallCount, 0)
+    }
+
+    func testAIThemeCardRequiresTrimmedPromptBeforeFlipAndHasNoParallax() throws {
+        QuizFactory.shared.themes = [makeTheme(name: "Музыка")]
+
+        let motionProvider = HomeThemeCardMotionProviderFake()
+        let viewController = QuizViewController(
+            cardReduceMotionProvider: { false },
+            cardDeviceParallaxEnabledProvider: { true },
+            cardMotionProvider: motionProvider
+        )
+        let window = UIWindow(frame: CGRect(x: 0, y: 0, width: 390, height: 844))
+        window.rootViewController = viewController
+        window.makeKeyAndVisible()
+        window.layoutIfNeeded()
+        testWindows.append(window)
+        let collectionView = try XCTUnwrap(
+            viewController.view.descendant(
+                withAccessibilityIdentifier: "homeThemesCollectionView"
+            ) as? UICollectionView
+        )
+        collectionView.layoutIfNeeded()
+        let sourceButton = try XCTUnwrap(
+            viewController.view.descendant(
+                withAccessibilityIdentifier: "homeCreateWithAIButton"
+            ) as? UIButton
+        )
+
+        sourceButton.sendActions(for: .touchUpInside)
+        drainAnimations()
+
+        let card = try XCTUnwrap(
+            viewController.view.descendant(
+                withAccessibilityIdentifier: "homeExpandedAIThemeCard"
+            )
+        )
+        let promptEditor = try XCTUnwrap(
+            card.descendant(withAccessibilityIdentifier: "aiThemePromptEditor") as? UITextView
+        )
+        let playButton = try XCTUnwrap(
+            card.descendant(
+                withAccessibilityIdentifier: "expandedAIThemeCardPlayButton"
+            ) as? UIButton
+        )
+        let frontView = try XCTUnwrap(
+            card.descendant(withAccessibilityIdentifier: "expandedAIThemeCardFrontView")
+        )
+        let backView = try XCTUnwrap(
+            card.descendant(withAccessibilityIdentifier: "expandedAIThemeCardBackView")
+        )
+
+        XCTAssertFalse(playButton.isEnabled)
+        XCTAssertFalse(frontView.isHidden)
+        XCTAssertTrue(backView.isHidden)
+        XCTAssertFalse(promptEditor.isScrollEnabled)
+
+        promptEditor.text = " \n\t "
+        promptEditor.delegate?.textViewDidChange?(promptEditor)
+
+        XCTAssertFalse(playButton.isEnabled)
+
+        promptEditor.text = "  Космос  \n"
+        promptEditor.delegate?.textViewDidChange?(promptEditor)
+
+        XCTAssertTrue(playButton.isEnabled)
+
+        playButton.sendActions(for: .touchUpInside)
+        drainAnimations()
+
+        XCTAssertTrue(frontView.isHidden)
+        XCTAssertFalse(backView.isHidden)
+        XCTAssertFalse(backView.accessibilityElementsHidden)
+        XCTAssertNil(
+            card.descendant(
+                withAccessibilityIdentifier: "expandedAIThemeCardParallaxCarrier"
+            )
+        )
+        XCTAssertNil(
+            card.descendant(
+                withAccessibilityIdentifier: "expandedThemeCardParallaxCarrier"
+            )
+        )
+        XCTAssertNil(parallaxPanGestureRecognizer(in: card))
+        XCTAssertFalse(
+            (card.gestureRecognizers ?? []).contains { $0 is UIPanGestureRecognizer }
+        )
+        XCTAssertEqual(motionProvider.startCallCount, 0)
+        XCTAssertFalse(motionProvider.isStarted)
+    }
+
+    func testAIThemeCardMovesUpForKeyboardWithoutAccumulatingOffsetAndRestores() throws {
+        QuizFactory.shared.themes = [makeTheme(name: "Музыка")]
+        let viewController = QuizViewController(cardReduceMotionProvider: { false })
+        let window = UIWindow(frame: CGRect(x: 0, y: 0, width: 390, height: 844))
+        window.rootViewController = viewController
+        window.makeKeyAndVisible()
+        window.layoutIfNeeded()
+        testWindows.append(window)
+
+        let sourceButton = try XCTUnwrap(
+            viewController.view.descendant(withAccessibilityIdentifier: "homeCreateWithAIButton") as? UIButton
+        )
+        sourceButton.sendActions(for: .touchUpInside)
+        drainAnimations()
+
+        let card = try XCTUnwrap(
+            viewController.view.descendant(withAccessibilityIdentifier: "homeExpandedAIThemeCard")
+        )
+        let promptEditor = try XCTUnwrap(
+            card.descendant(withAccessibilityIdentifier: "aiThemePromptEditor") as? UITextView
+        )
+        let promptContainer = try XCTUnwrap(promptEditor.superview)
+        let originalFrame = card.frame
+        XCTAssertTrue(promptEditor.becomeFirstResponder())
+
+        let initialPromptFrame = promptContainer.convert(promptContainer.bounds, to: viewController.view)
+        let keyboardTop = initialPromptFrame.maxY - 36
+        let keyboardFrameInWindow = CGRect(
+            x: 0,
+            y: keyboardTop,
+            width: window.bounds.width,
+            height: window.bounds.maxY - keyboardTop
+        )
+        let keyboardFrameInScreen = window.convert(
+            keyboardFrameInWindow,
+            to: window.screen.coordinateSpace
+        )
+        let userInfo: [AnyHashable: Any] = [
+            UIResponder.keyboardFrameEndUserInfoKey: keyboardFrameInScreen,
+            UIResponder.keyboardAnimationDurationUserInfoKey: TimeInterval(0),
+            UIResponder.keyboardAnimationCurveUserInfoKey: UInt(UIView.AnimationCurve.easeInOut.rawValue)
+        ]
+
+        NotificationCenter.default.post(
+            name: UIResponder.keyboardWillChangeFrameNotification,
+            object: nil,
+            userInfo: userInfo
+        )
+        viewController.view.layoutIfNeeded()
+
+        XCTAssertLessThan(card.frame.minY, originalFrame.minY)
+        XCTAssertGreaterThanOrEqual(
+            card.frame.minY,
+            viewController.view.safeAreaLayoutGuide.layoutFrame.minY + 7.5
+        )
+        let visiblePromptFrame = promptContainer.convert(promptContainer.bounds, to: viewController.view)
+        XCTAssertLessThanOrEqual(visiblePromptFrame.maxY, keyboardTop - 11.5)
+
+        let firstLiftedFrame = card.frame
+        NotificationCenter.default.post(
+            name: UIResponder.keyboardWillChangeFrameNotification,
+            object: nil,
+            userInfo: userInfo
+        )
+        XCTAssertEqual(card.frame.minY, firstLiftedFrame.minY, accuracy: 0.01)
+
+        NotificationCenter.default.post(
+            name: UIResponder.keyboardWillHideNotification,
+            object: nil,
+            userInfo: userInfo
+        )
+        XCTAssertEqual(card.frame.minY, originalFrame.minY, accuracy: 0.01)
+        _ = promptEditor.resignFirstResponder()
+    }
+
+    func testAIThemeCollapseStartsFromVisibleFrameDuringKeyboardLift() throws {
+        QuizFactory.shared.themes = [makeTheme(name: "Музыка")]
+        let viewController = QuizViewController(cardReduceMotionProvider: { false })
+        let window = UIWindow(frame: CGRect(x: 0, y: 0, width: 390, height: 844))
+        window.rootViewController = viewController
+        window.makeKeyAndVisible()
+        window.layoutIfNeeded()
+        testWindows.append(window)
+
+        let sourceButton = try XCTUnwrap(
+            viewController.view.descendant(withAccessibilityIdentifier: "homeCreateWithAIButton") as? UIButton
+        )
+        sourceButton.sendActions(for: .touchUpInside)
+        drainAnimations()
+
+        let card = try XCTUnwrap(
+            viewController.view.descendant(withAccessibilityIdentifier: "homeExpandedAIThemeCard")
+                as? ExpandedAIThemeCardView
+        )
+        let closeButton = try XCTUnwrap(
+            card.descendant(withAccessibilityIdentifier: "expandedAIThemeCardCloseButton") as? UIButton
+        )
+        let restingFrame = card.frame
+
+        let keyboardTop = card.frame.minY + card.promptContainerMaxYAtRest - 80
+        let keyboardFrameInWindow = CGRect(
+            x: 0,
+            y: keyboardTop,
+            width: window.bounds.width,
+            height: window.bounds.maxY - keyboardTop
+        )
+        viewController.updateExpandedAIThemeCardFrameForTesting(
+            keyboardFrameInWindow: keyboardFrameInWindow,
+            duration: 0.8,
+            curveRawValue: 7
+        )
+        _ = try XCTUnwrap(viewController.expandedAIKeyboardAnimatorForTesting)
+        XCTAssertEqual(viewController.expandedAIKeyboardAnimationCurveForTesting, .easeInOut)
+        let liftedFrame = card.frame
+        let visibleCardFrame = CGRect(
+            x: restingFrame.minX,
+            y: restingFrame.minY + (liftedFrame.minY - restingFrame.minY) * 0.25,
+            width: restingFrame.width,
+            height: restingFrame.height
+        )
+        viewController.freezeExpandedAIKeyboardAnimationForTesting(
+            visibleFrame: visibleCardFrame
+        )
+        closeButton.sendActions(for: .touchUpInside)
+
+        XCTAssertNil(viewController.expandedAIKeyboardAnimatorForTesting)
+        let collapseStartFrame = try XCTUnwrap(
+            viewController.expandedCardTransitionInitialFrameForTesting
+        )
+
+        XCTAssertEqual(collapseStartFrame.minY, visibleCardFrame.minY, accuracy: 2)
+        XCTAssertEqual(collapseStartFrame.height, visibleCardFrame.height, accuracy: 2)
+
+        drainAnimations()
+    }
+
+    func testAIThemeGradientOutlineRemainsPresentThroughoutExpandAndCollapse() throws {
+        QuizFactory.shared.themes = [makeTheme(name: "Музыка")]
+        let viewController = QuizViewController(cardReduceMotionProvider: { false })
+        let window = UIWindow(frame: CGRect(x: 0, y: 0, width: 390, height: 844))
+        window.rootViewController = viewController
+        window.makeKeyAndVisible()
+        window.layoutIfNeeded()
+        testWindows.append(window)
+
+        let sourceButton = try XCTUnwrap(
+            viewController.view.descendant(withAccessibilityIdentifier: "homeCreateWithAIButton") as? UIButton
+        )
+        let sourceHeight = sourceButton.bounds.height
+        sourceButton.sendActions(for: .touchUpInside)
+        CATransaction.flush()
+
+        var outline = try XCTUnwrap(
+            viewController.view.descendant(
+                withAccessibilityIdentifier: "homeExpandedAIThemeCardTransitionGradientOutline"
+            )
+        )
+        var transition = try XCTUnwrap(
+            viewController.view.descendant(withAccessibilityIdentifier: "homeExpandedAIThemeCardTransition")
+        )
+        let expandedCard = try XCTUnwrap(
+            viewController.view.descendant(withAccessibilityIdentifier: "homeExpandedAIThemeCard")
+        )
+        let targetHeight = expandedCard.bounds.height
+        var animator = try XCTUnwrap(viewController.expandedCardAnimatorForTesting)
+        try assertActualGradientOutlineMorphMidpoint(
+            animator: animator,
+            outline: outline,
+            transition: transition,
+            sourceHeight: sourceHeight,
+            targetHeight: targetHeight
+        )
+
+        animator.stopAnimation(false)
+        animator.finishAnimation(at: .end)
+        XCTAssertNil(
+            viewController.view.descendant(
+                withAccessibilityIdentifier: "homeExpandedAIThemeCardTransitionGradientOutline"
+            )
+        )
+
+        let closeButton = try XCTUnwrap(
+            viewController.view.descendant(
+                withAccessibilityIdentifier: "expandedAIThemeCardCloseButton"
+            ) as? UIButton
+        )
+        closeButton.sendActions(for: .touchUpInside)
+        CATransaction.flush()
+        outline = try XCTUnwrap(
+            viewController.view.descendant(
+                withAccessibilityIdentifier: "homeExpandedAIThemeCardTransitionGradientOutline"
+            )
+        )
+        transition = try XCTUnwrap(
+            viewController.view.descendant(withAccessibilityIdentifier: "homeExpandedAIThemeCardTransition")
+        )
+        animator = try XCTUnwrap(viewController.expandedCardAnimatorForTesting)
+        try assertActualGradientOutlineMorphMidpoint(
+            animator: animator,
+            outline: outline,
+            transition: transition,
+            sourceHeight: sourceHeight,
+            targetHeight: targetHeight
+        )
+
+        animator.stopAnimation(false)
+        animator.finishAnimation(at: .end)
+        XCTAssertNil(
+            viewController.view.descendant(
+                withAccessibilityIdentifier: "homeExpandedAIThemeCardTransitionGradientOutline"
+            )
+        )
+    }
+
+    func testRadarAIThemeTransitionKeepsTheExpandedAccentBorderAtBothHandoffs() throws {
+        useDesignStyle(.radar)
+        QuizFactory.shared.themes = [makeTheme(name: "Музыка")]
+        let appearance = SnapshotSupport.appearance(designStyle: .radar)
+        let viewController = QuizViewController(cardReduceMotionProvider: { false })
+        let window = UIWindow(frame: CGRect(x: 0, y: 0, width: 390, height: 844))
+        window.rootViewController = viewController
+        window.makeKeyAndVisible()
+        window.layoutIfNeeded()
+        testWindows.append(window)
+
+        let sourceButton = try XCTUnwrap(
+            viewController.view.descendant(withAccessibilityIdentifier: "homeCreateWithAIButton") as? UIButton
+        )
+        sourceButton.sendActions(for: .touchUpInside)
+        CATransaction.flush()
+
+        var transition = try XCTUnwrap(
+            viewController.view.descendant(withAccessibilityIdentifier: "homeExpandedAIThemeCardTransition")
+        )
+        try assertRadarAITransitionBorder(
+            transition,
+            appearance: appearance
+        )
+
+        var animator = try XCTUnwrap(viewController.expandedCardAnimatorForTesting)
+        animator.stopAnimation(false)
+        animator.finishAnimation(at: .end)
+
+        let closeButton = try XCTUnwrap(
+            viewController.view.descendant(
+                withAccessibilityIdentifier: "expandedAIThemeCardCloseButton"
+            ) as? UIButton
+        )
+        closeButton.sendActions(for: .touchUpInside)
+        CATransaction.flush()
+
+        transition = try XCTUnwrap(
+            viewController.view.descendant(withAccessibilityIdentifier: "homeExpandedAIThemeCardTransition")
+        )
+        try assertRadarAITransitionBorder(
+            transition,
+            appearance: appearance
+        )
+
+        animator = try XCTUnwrap(viewController.expandedCardAnimatorForTesting)
+        animator.stopAnimation(false)
+        animator.finishAnimation(at: .end)
+    }
+
+    private func assertRadarAITransitionBorder(
+        _ transition: UIView,
+        appearance: AppAppearance,
+        file: StaticString = #filePath,
+        line: UInt = #line
+    ) throws {
+        XCTAssertNil(
+            transition.descendant(
+                withAccessibilityIdentifier: "homeExpandedAIThemeCardTransitionGradientOutline"
+            ),
+            file: file,
+            line: line
+        )
+        let chromeView = try XCTUnwrap(
+            transition.descendant(
+                withAccessibilityIdentifier: "homeExpandedThemeCardTransitionChrome"
+            ),
+            file: file,
+            line: line
+        )
+        let clippingView = try XCTUnwrap(chromeView.superview, file: file, line: line)
+        let borderColor = clippingView.layer.borderColor.map { UIColor(cgColor: $0) }
+        assertColor(borderColor, equals: appearance.accentColor, file: file, line: line)
+        XCTAssertEqual(
+            clippingView.layer.borderWidth,
+            max(appearance.card.borderWidth, 1),
+            accuracy: 0.001,
+            file: file,
+            line: line
+        )
+    }
+
+    private func assertActualGradientOutlineMorphMidpoint(
+        animator: UIViewPropertyAnimator,
+        outline: UIView,
+        transition: UIView,
+        sourceHeight: CGFloat,
+        targetHeight: CGFloat,
+        file: StaticString = #filePath,
+        line: UInt = #line
+    ) throws {
+        animator.pauseAnimation()
+        animator.fractionComplete = 0.5
+        CATransaction.flush()
+
+        XCTAssertEqual(animator.state, .active, file: file, line: line)
+        XCTAssertFalse(animator.isRunning, file: file, line: line)
+        XCTAssertEqual(animator.fractionComplete, 0.5, accuracy: 0.001, file: file, line: line)
+
+        XCTAssertFalse(outline.layer is CAGradientLayer, file: file, line: line)
+        let collapsedRing = try XCTUnwrap(
+            outline.descendant(
+                withAccessibilityIdentifier: "homeExpandedAIThemeCardTransitionCollapsedGradientRing"
+            ) as? UIImageView,
+            file: file,
+            line: line
+        )
+        let expandedRing = try XCTUnwrap(
+            outline.descendant(
+                withAccessibilityIdentifier: "homeExpandedAIThemeCardTransitionExpandedGradientRing"
+            ) as? UIImageView,
+            file: file,
+            line: line
+        )
+        XCTAssertEqual(collapsedRing.image?.resizingMode, .stretch, file: file, line: line)
+        XCTAssertEqual(expandedRing.image?.resizingMode, .stretch, file: file, line: line)
+        for ring in [collapsedRing, expandedRing] {
+            let animationKeys = Set(ring.layer.animationKeys() ?? [])
+            XCTAssertTrue(animationKeys.contains("position"), file: file, line: line)
+            XCTAssertTrue(animationKeys.contains("bounds.size"), file: file, line: line)
+            try assertMatchingFrameAnimations(
+                ring.layer,
+                outline.layer,
+                file: file,
+                line: line
+            )
+            assertFrame(
+                ring.frame,
+                equals: outline.bounds,
+                accuracy: 0.001,
+                file: file,
+                line: line
+            )
+        }
+
+        let clippingView = try XCTUnwrap(
+            outline.superview,
+            file: file,
+            line: line
+        )
+        assertFrame(
+            outline.frame,
+            equals: clippingView.bounds,
+            accuracy: 0.001,
+            file: file,
+            line: line
+        )
+        outline.layoutIfNeeded()
+        let centerAlpha = try renderedAlpha(
+            in: outline,
+            at: CGPoint(x: outline.bounds.midX, y: outline.bounds.midY),
+            file: file,
+            line: line
+        )
+        let topBorderAlpha = try renderedAlpha(
+            in: outline,
+            at: CGPoint(x: outline.bounds.midX, y: 0.8),
+            file: file,
+            line: line
+        )
+        XCTAssertLessThan(centerAlpha, 0.02, file: file, line: line)
+        XCTAssertGreaterThan(topBorderAlpha, 0.2, file: file, line: line)
+
+        let transitionAnimationKeys = Set(transition.layer.animationKeys() ?? [])
+        XCTAssertTrue(transitionAnimationKeys.contains("position"), file: file, line: line)
+        XCTAssertTrue(transitionAnimationKeys.contains("bounds.size"), file: file, line: line)
+
+        let outlineAnimationKeys = Set(outline.layer.animationKeys() ?? [])
+        XCTAssertTrue(outlineAnimationKeys.contains("position"), file: file, line: line)
+        XCTAssertTrue(outlineAnimationKeys.contains("bounds.size"), file: file, line: line)
+
+        XCTAssertTrue(clippingView.layer.masksToBounds, file: file, line: line)
+        XCTAssertGreaterThan(clippingView.layer.cornerRadius, 0, file: file, line: line)
+        let clippingAnimationKeys = Set(clippingView.layer.animationKeys() ?? [])
+        XCTAssertTrue(clippingAnimationKeys.contains("position"), file: file, line: line)
+        XCTAssertTrue(clippingAnimationKeys.contains("bounds.size"), file: file, line: line)
+        XCTAssertTrue(clippingAnimationKeys.contains("cornerRadius"), file: file, line: line)
+
+        let chromeView = try XCTUnwrap(
+            transition.descendant(withAccessibilityIdentifier: "homeExpandedThemeCardTransitionChrome"),
+            file: file,
+            line: line
+        )
+        let chromeAnimationKeys = Set(chromeView.layer.animationKeys() ?? [])
+        XCTAssertTrue(chromeAnimationKeys.contains("position"), file: file, line: line)
+        XCTAssertTrue(chromeAnimationKeys.contains("bounds.size"), file: file, line: line)
+        XCTAssertGreaterThan(chromeView.frame.minX, clippingView.bounds.minX, file: file, line: line)
+        XCTAssertGreaterThan(chromeView.frame.minY, clippingView.bounds.minY, file: file, line: line)
+
+        let transitionAnimation = try XCTUnwrap(
+            transition.layer.animation(forKey: "bounds.size"),
+            file: file,
+            line: line
+        )
+        XCTAssertGreaterThan(transitionAnimation.duration, 0, file: file, line: line)
+
+        let lowerHeight = min(sourceHeight, targetHeight)
+        let upperHeight = max(sourceHeight, targetHeight)
+        XCTAssertGreaterThan(
+            upperHeight,
+            lowerHeight + 1,
+            file: file,
+            line: line
+        )
+    }
+
+    private func renderedAlpha(
+        in view: UIView,
+        at point: CGPoint,
+        file: StaticString = #filePath,
+        line: UInt = #line
+    ) throws -> CGFloat {
+        var pixel = [UInt8](repeating: 0, count: 4)
+        let context = try XCTUnwrap(
+            CGContext(
+                data: &pixel,
+                width: 1,
+                height: 1,
+                bitsPerComponent: 8,
+                bytesPerRow: 4,
+                space: CGColorSpaceCreateDeviceRGB(),
+                bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue
+            ),
+            file: file,
+            line: line
+        )
+        context.translateBy(x: -point.x, y: -point.y)
+        view.layer.render(in: context)
+        return CGFloat(pixel[3]) / 255
+    }
+
+    private func assertFrame(
+        _ actual: CGRect,
+        equals expected: CGRect,
+        accuracy: CGFloat,
+        file: StaticString = #filePath,
+        line: UInt = #line
+    ) {
+        XCTAssertEqual(actual.minX, expected.minX, accuracy: accuracy, file: file, line: line)
+        XCTAssertEqual(actual.minY, expected.minY, accuracy: accuracy, file: file, line: line)
+        XCTAssertEqual(actual.width, expected.width, accuracy: accuracy, file: file, line: line)
+        XCTAssertEqual(actual.height, expected.height, accuracy: accuracy, file: file, line: line)
+    }
+
+    private func assertMatchingFrameAnimations(
+        _ childLayer: CALayer,
+        _ parentLayer: CALayer,
+        file: StaticString = #filePath,
+        line: UInt = #line
+    ) throws {
+        for key in ["position", "bounds.size"] {
+            let childAnimation = try XCTUnwrap(
+                childLayer.animation(forKey: key) as? CABasicAnimation,
+                file: file,
+                line: line
+            )
+            let parentAnimation = try XCTUnwrap(
+                parentLayer.animation(forKey: key) as? CABasicAnimation,
+                file: file,
+                line: line
+            )
+            XCTAssertEqual(childAnimation.keyPath, parentAnimation.keyPath, file: file, line: line)
+            XCTAssertEqual(
+                String(describing: childAnimation.fromValue),
+                String(describing: parentAnimation.fromValue),
+                file: file,
+                line: line
+            )
+            XCTAssertEqual(
+                String(describing: childAnimation.toValue),
+                String(describing: parentAnimation.toValue),
+                file: file,
+                line: line
+            )
+        }
+    }
+
+    func testStatisticsCardExpandsInlineTracksOnceAndRestoresTheGridWithoutQuizCancellation() throws {
+        QuizFactory.shared.themes = [makeTheme(name: "Музыка", questionCount: 15)]
+        let statisticsStore = makeStatisticsStore(attempts: [
+            (correctAnswers: 3, totalQuestions: 5),
+            (correctAnswers: 5, totalQuestions: 5)
+        ])
+        let analytics = HomeAnalyticsTrackingSpy()
+        let motionProvider = HomeThemeCardMotionProviderFake()
+        let viewController = QuizViewController(
+            statisticsStore: statisticsStore,
+            analytics: analytics,
+            cardDeviceParallaxEnabledProvider: { true },
+            cardMotionProvider: motionProvider
+        )
+        let router = HomeRouterSpy()
+        viewController.router = router
+        let window = UIWindow(frame: CGRect(x: 0, y: 0, width: 390, height: 844))
+        window.rootViewController = viewController
+        window.makeKeyAndVisible()
+        window.layoutIfNeeded()
+        testWindows.append(window)
+        drainAnimations(0.01)
+        analytics.reset()
+
+        let collectionView = try XCTUnwrap(
+            viewController.view.descendant(
+                withAccessibilityIdentifier: "homeThemesCollectionView"
+            ) as? UICollectionView
+        )
+        collectionView.layoutIfNeeded()
+        let initialScrollEnabled = collectionView.isScrollEnabled
+        let initialAlwaysBounceVertical = collectionView.alwaysBounceVertical
+        let initialBounces = collectionView.bounces
+        let initialContentOffset = collectionView.contentOffset
+        let sourceButton = try XCTUnwrap(
+            viewController.view.descendant(
+                withAccessibilityIdentifier: "homeStatisticsCard"
+            ) as? UIButton
+        )
+
+        sourceButton.sendActions(for: .touchUpInside)
+        XCTAssertEqual(router.showStatisticsCallCount, 0)
+        drainAnimations()
+
+        let backdrop = try XCTUnwrap(
+            viewController.view.descendant(
+                withAccessibilityIdentifier: "homeExpandedThemeCardBackdrop"
+            )
+        )
+        let expandedCard = try XCTUnwrap(
+            viewController.view.descendant(
+                withAccessibilityIdentifier: "homeExpandedStatisticsCard"
+            )
+        )
+        XCTAssertTrue(backdrop.superview === viewController.view)
+        XCTAssertEqual(backdrop.frame, viewController.view.bounds)
+        XCTAssertTrue(backdrop is UIVisualEffectView)
+        XCTAssertNotNil((backdrop as? UIVisualEffectView)?.effect)
+        XCTAssertTrue(expandedCard.superview === viewController.view)
+        XCTAssertFalse(expandedCard.isDescendant(of: backdrop))
+        XCTAssertGreaterThan(expandedCard.layer.zPosition, backdrop.layer.zPosition)
+        XCTAssertTrue(expandedCard.accessibilityViewIsModal)
+        XCTAssertTrue(sourceButton.isHidden)
+        XCTAssertFalse(collectionView.isUserInteractionEnabled)
+        XCTAssertFalse(collectionView.isScrollEnabled)
+        XCTAssertNil(
+            viewController.view.descendant(
+                withAccessibilityIdentifier: "homeExpandedStatisticsCardTransition"
+            )
+        )
+        XCTAssertFalse(
+            (expandedCard.gestureRecognizers ?? []).contains { $0 is UIPanGestureRecognizer }
+        )
+        XCTAssertNil(parallaxPanGestureRecognizer(in: expandedCard))
+        XCTAssertEqual(motionProvider.startCallCount, 0)
+        XCTAssertFalse(motionProvider.isStarted)
+
+        let expectedMetrics: [(id: String, title: String, value: String)] = [
+            ("playedQuizzes", L10n.Statistics.playedQuizzes, "2"),
+            ("correctAnswers", L10n.Statistics.correctAnswers, "8/10"),
+            ("percentage", L10n.Statistics.percentage, "80%"),
+            ("bestResult", L10n.Statistics.bestResult, "5/5")
+        ]
+        let metricRows = try expectedMetrics.map { expected in
+            let row = try XCTUnwrap(
+                viewController.view.descendant(
+                    withAccessibilityIdentifier: "expandedStatisticsMetric-\(expected.id)"
+                )
+            )
+            XCTAssertEqual(row.accessibilityLabel, expected.title)
+            XCTAssertEqual(row.accessibilityValue, expected.value)
+            return row
+        }
+        XCTAssertEqual(Set(metricRows.map { ObjectIdentifier($0) }).count, 4)
+        XCTAssertTrue(
+            try XCTUnwrap(
+                viewController.view.descendant(
+                    withAccessibilityIdentifier: "expandedStatisticsCardEmptyState"
+                )
+            ).isHidden
+        )
+
+        let inlineStatisticsEvents = analytics.events.filter { event in
+            !(event.name == "screen_view" && event.parameters["screen"] as? String == "home")
+        }
+        XCTAssertEqual(inlineStatisticsEvents.map(\.name), ["screen_view", "statistics_viewed"])
+        let statisticsScreenEvents = analytics.events.filter {
+            $0.name == "screen_view" && $0.parameters["screen"] as? String == "statistics"
+        }
+        let statisticsViewedEvents = analytics.events.filter { $0.name == "statistics_viewed" }
+        XCTAssertEqual(statisticsScreenEvents.count, 1)
+        XCTAssertEqual(statisticsViewedEvents.count, 1)
+        XCTAssertEqual(statisticsViewedEvents.first?.parameters["attempts_count"] as? Int, 2)
+        XCTAssertEqual(statisticsViewedEvents.first?.parameters["total_questions"] as? Int, 10)
+        XCTAssertEqual(statisticsViewedEvents.first?.parameters["accuracy_percent"] as? Int, 80)
+        XCTAssertFalse(analytics.events.contains { $0.name == "quiz_setup_cancelled" })
+
+        let backdropDismissButton = try XCTUnwrap(
+            viewController.view.descendant(
+                withAccessibilityIdentifier: "homeExpandedThemeCardBackdropDismissButton"
+            ) as? UIButton
+        )
+        backdropDismissButton.sendActions(for: .touchUpInside)
+        drainAnimations()
+
+        XCTAssertNil(
+            viewController.view.descendant(
+                withAccessibilityIdentifier: "homeExpandedThemeCardBackdrop"
+            )
+        )
+        XCTAssertNil(
+            viewController.view.descendant(
+                withAccessibilityIdentifier: "homeExpandedStatisticsCard"
+            )
+        )
+        let restoredSourceButton = try XCTUnwrap(
+            viewController.view.descendant(
+                withAccessibilityIdentifier: "homeStatisticsCard"
+            ) as? UIButton
+        )
+        XCTAssertFalse(restoredSourceButton.isHidden)
+        XCTAssertTrue(restoredSourceButton.isUserInteractionEnabled)
+        XCTAssertTrue(collectionView.isUserInteractionEnabled)
+        XCTAssertEqual(collectionView.isScrollEnabled, initialScrollEnabled)
+        XCTAssertEqual(collectionView.alwaysBounceVertical, initialAlwaysBounceVertical)
+        XCTAssertEqual(collectionView.bounces, initialBounces)
+        XCTAssertEqual(collectionView.contentOffset.x, initialContentOffset.x, accuracy: 0.001)
+        XCTAssertEqual(collectionView.contentOffset.y, initialContentOffset.y, accuracy: 0.001)
+        XCTAssertEqual(router.showStatisticsCallCount, 0)
+        let eventsAfterCollapse = analytics.events.filter { event in
+            !(event.name == "screen_view" && event.parameters["screen"] as? String == "home")
+        }
+        XCTAssertEqual(eventsAfterCollapse.map(\.name), ["screen_view", "statistics_viewed"])
+        XCTAssertFalse(analytics.events.contains { $0.name == "quiz_setup_cancelled" })
+    }
+
+    func testCatalogThemeExpandsInlineAboveFullScreenBlurAndClosesBackToGrid() throws {
+        QuizFactory.shared.themes = [makeTheme(name: "Музыка", questionCount: 15)]
+
+        let viewController = makeHomeViewController(in: CGRect(x: 0, y: 0, width: 390, height: 844))
+        let router = HomeRouterSpy()
+        viewController.router = router
+        let collectionView = try XCTUnwrap(
+            viewController.view.descendant(withAccessibilityIdentifier: "homeThemesCollectionView") as? UICollectionView
+        )
+        let sourceButton = try XCTUnwrap(
+            viewController.view.descendant(withAccessibilityIdentifier: "music") as? UIButton
+        )
+        let sourceCell = try XCTUnwrap(
+            collectionView.visibleCells
+                .compactMap { $0 as? ThemeCardCollectionViewCell }
+                .first(where: { $0.actionButton === sourceButton })
+        )
+        let sourceFrame = sourceButton.convert(sourceButton.bounds, to: viewController.view)
+        let expectedSourceShadowPath = UIBezierPath(
+            roundedRect: sourceButton.frame,
+            cornerRadius: sourceButton.layer.cornerRadius
+        ).cgPath
+        XCTAssertEqual(sourceCell.layer.shadowPath, expectedSourceShadowPath)
+
+        sourceButton.sendActions(for: .touchUpInside)
+
+        let backdrop = try XCTUnwrap(
+            viewController.view.descendant(withAccessibilityIdentifier: "homeExpandedThemeCardBackdrop")
+        )
+        let card = try XCTUnwrap(
+            viewController.view.descendant(withAccessibilityIdentifier: "homeExpandedThemeCard")
+        )
+        let transitionView = try XCTUnwrap(
+            viewController.view.descendant(withAccessibilityIdentifier: "homeExpandedThemeCardTransition")
+        )
+        let transitionChrome = try XCTUnwrap(
+            viewController.view.descendant(withAccessibilityIdentifier: "homeExpandedThemeCardTransitionChrome")
+        )
+        let transitionIntensity = try XCTUnwrap(
+            viewController.view.descendant(withAccessibilityIdentifier: "homeExpandedThemeCardTransitionIntensity")
+        )
+        let sourceSnapshot = try XCTUnwrap(
+            viewController.view.descendant(withAccessibilityIdentifier: "homeExpandedThemeCardSourceSnapshot")
+        )
+        let sourceContentHost = try XCTUnwrap(sourceSnapshot.superview)
+        let frontImageView = try XCTUnwrap(
+            viewController.view.descendant(
+                withAccessibilityIdentifier: "expandedThemeCardFrontImageView"
+            ) as? UIImageView
+        )
+        card.layoutIfNeeded()
+        XCTAssertTrue(backdrop.superview === viewController.view)
+        XCTAssertTrue(transitionView.superview === viewController.view)
+        XCTAssertEqual(transitionChrome.alpha, 1, accuracy: 0.001)
+        XCTAssertEqual(transitionIntensity.alpha, 1, accuracy: 0.001)
+        XCTAssertFalse(card.superview === viewController.view)
+        XCTAssertTrue(sourceSnapshot.isDescendant(of: transitionView))
+        XCTAssertEqual(sourceSnapshot.center.x, sourceContentHost.bounds.midX, accuracy: 0.001)
+        XCTAssertEqual(sourceSnapshot.center.y, sourceContentHost.bounds.midY, accuracy: 0.001)
+        XCTAssertEqual(sourceSnapshot.bounds.size, sourceFrame.size)
+        XCTAssertGreaterThan(card.bounds.width, sourceSnapshot.bounds.width)
+        XCTAssertGreaterThan(card.bounds.height, sourceSnapshot.bounds.height)
+        XCTAssertTrue(CGAffineTransformIsIdentity(card.transform))
+        XCTAssertEqual(backdrop.frame, viewController.view.bounds)
+        XCTAssertLessThan(backdrop.layer.zPosition, transitionView.layer.zPosition)
+        XCTAssertTrue(backdrop is UIVisualEffectView)
+        XCTAssertFalse(collectionView.isUserInteractionEnabled)
+        XCTAssertTrue(sourceButton.isHidden)
+        XCTAssertTrue(card.accessibilityViewIsModal)
+        XCTAssertEqual(frontImageView.contentMode, .scaleAspectFit)
+        XCTAssertGreaterThan(frontImageView.image?.size.width ?? 0, 0)
+        XCTAssertTrue(
+            viewController.view.descendant(withAccessibilityIdentifier: "homeHeaderStackView")?.accessibilityElementsHidden == true
+        )
+        XCTAssertTrue(
+            viewController.view.descendant(withAccessibilityIdentifier: "homeScreenStackView")?.accessibilityElementsHidden == true
+        )
+        XCTAssertTrue(
+            viewController.view.descendant(withAccessibilityIdentifier: "homeSettingsButton")?.accessibilityElementsHidden == true
+        )
+        XCTAssertEqual(router.showDescriptionCallCount, 0)
+
+        let targetCardFrame = card.convert(card.bounds, to: viewController.view)
+        drainAnimations(0.08)
+        XCTAssertEqual(sourceSnapshot.bounds.size, sourceFrame.size)
+        XCTAssertEqual(card.bounds.size, targetCardFrame.size)
+        XCTAssertTrue(CGAffineTransformIsIdentity(card.transform))
+
+        drainAnimations()
+        viewController.view.layoutIfNeeded()
+        XCTAssertNil(
+            viewController.view.descendant(withAccessibilityIdentifier: "homeExpandedThemeCardTransition")
+        )
+        XCTAssertTrue(card.superview === viewController.view)
+        XCTAssertEqual(sourceSnapshot.bounds.size, sourceFrame.size)
+        XCTAssertTrue(sourceSnapshot.isHidden)
+        XCTAssertGreaterThan(frontImageView.bounds.width, 100)
+        XCTAssertGreaterThan(frontImageView.bounds.height, 100)
+        XCTAssertNotNil((backdrop as? UIVisualEffectView)?.effect)
+        XCTAssertTrue(viewController.cardSlideTransitionSourceView === card)
+
+        let backdropDismissButton = try XCTUnwrap(
+            viewController.view.descendant(
+                withAccessibilityIdentifier: "homeExpandedThemeCardBackdropDismissButton"
+            ) as? UIButton
+        )
+        backdropDismissButton.sendActions(for: .touchUpInside)
+
+        let collapsingTransition = try XCTUnwrap(
+            viewController.view.descendant(withAccessibilityIdentifier: "homeExpandedThemeCardTransition")
+        )
+        let collapsingChrome = try XCTUnwrap(
+            viewController.view.descendant(withAccessibilityIdentifier: "homeExpandedThemeCardTransitionChrome")
+        )
+        let collapsingIntensity = try XCTUnwrap(
+            viewController.view.descendant(withAccessibilityIdentifier: "homeExpandedThemeCardTransitionIntensity")
+        )
+        XCTAssertTrue(collapsingTransition.superview === viewController.view)
+        XCTAssertEqual(collapsingChrome.alpha, 1, accuracy: 0.001)
+        XCTAssertEqual(collapsingIntensity.alpha, 0, accuracy: 0.001)
+        XCTAssertEqual(collapsingTransition.layer.shadowPath, sourceCell.layer.shadowPath)
+        let collapsingSourceSnapshot = try XCTUnwrap(
+            viewController.view.descendant(
+                withAccessibilityIdentifier: "homeExpandedThemeCardSourceSnapshot"
+            )
+        )
+        XCTAssertEqual(collapsingSourceSnapshot.bounds.size, sourceFrame.size)
+        XCTAssertFalse(collapsingSourceSnapshot.isHidden)
+        XCTAssertFalse(card.superview === viewController.view)
+        drainAnimations()
+
+        XCTAssertNil(
+            viewController.view.descendant(withAccessibilityIdentifier: "homeExpandedThemeCardBackdrop")
+        )
+        XCTAssertNil(
+            viewController.view.descendant(withAccessibilityIdentifier: "homeExpandedThemeCard")
+        )
+        XCTAssertTrue(collectionView.isUserInteractionEnabled)
+        XCTAssertFalse(
+            try XCTUnwrap(viewController.view.descendant(withAccessibilityIdentifier: "music") as? UIButton).isHidden
+        )
+    }
+
+    func testExpandedClassicArtworkPreservesTheSourceImageAspectRatio() throws {
+        useDesignStyle(.classic)
+        QuizFactory.shared.themes = [makeTheme(name: "Технологии", questionCount: 15)]
+
+        let viewController = makeHomeViewController(in: CGRect(x: 0, y: 0, width: 390, height: 844))
+        let sourceButton = try XCTUnwrap(
+            viewController.view.descendant(withAccessibilityIdentifier: "technology") as? UIButton
+        )
+        let sourceImageView = try XCTUnwrap(
+            viewController.view.descendant(
+                withAccessibilityIdentifier: "homeThemeImageView-technology"
+            ) as? UIImageView
+        )
+        let sourceImage = try XCTUnwrap(sourceImageView.image)
+        let sourceAspectRatio = sourceImage.size.width / sourceImage.size.height
+        XCTAssertGreaterThan(abs(sourceAspectRatio - 1), 0.01)
+
+        sourceButton.sendActions(for: .touchUpInside)
+
+        let expandedImageView = try XCTUnwrap(
+            viewController.view.descendant(
+                withAccessibilityIdentifier: "expandedThemeCardFrontImageView"
+            ) as? UIImageView
+        )
+        let expandedImage = try XCTUnwrap(expandedImageView.image)
+        let expandedAspectRatio = expandedImage.size.width / expandedImage.size.height
+
+        XCTAssertEqual(expandedImageView.contentMode, .scaleAspectFit)
+        XCTAssertEqual(expandedAspectRatio, sourceAspectRatio, accuracy: 0.001)
+    }
+
+    func testCollapseRefreshesSourceContentAfterAppearanceChanges() throws {
+        QuizFactory.shared.themes = [makeTheme(name: "Музыка", questionCount: 15)]
+
+        let viewController = makeHomeViewController(in: CGRect(x: 0, y: 0, width: 390, height: 844))
+        let sourceButton = try XCTUnwrap(
+            viewController.view.descendant(withAccessibilityIdentifier: "music") as? UIButton
+        )
+        sourceButton.sendActions(for: .touchUpInside)
+        drainAnimations()
+
+        AppAppearanceStore.shared.designStyle = .radar
+        viewController.view.layoutIfNeeded()
+
+        let backdropDismissButton = try XCTUnwrap(
+            viewController.view.descendant(
+                withAccessibilityIdentifier: "homeExpandedThemeCardBackdropDismissButton"
+            ) as? UIButton
+        )
+        backdropDismissButton.sendActions(for: .touchUpInside)
+
+        let refreshedSourceContent = try XCTUnwrap(
+            viewController.view.descendant(
+                withAccessibilityIdentifier: "homeExpandedThemeCardSourceSnapshot"
+            )
+        )
+        let refreshedImageView = try XCTUnwrap(
+            refreshedSourceContent.subviews.compactMap { $0 as? UIImageView }.first
+        )
+        let expectedRadarImage = try XCTUnwrap(UIImage(named: "theme_logo_music_radar"))
+
+        XCTAssertEqual(refreshedImageView.image?.pngData(), expectedRadarImage.pngData())
+        drainAnimations()
+    }
+
+    func testExpandAndCollapseReverseInFlightUsingTheSameTransitionView() throws {
+        QuizFactory.shared.themes = [makeTheme(name: "Музыка", questionCount: 15)]
+
+        let viewController = makeHomeViewController(in: CGRect(x: 0, y: 0, width: 390, height: 844))
+        let sourceButton = try XCTUnwrap(
+            viewController.view.descendant(withAccessibilityIdentifier: "music") as? UIButton
+        )
+        sourceButton.sendActions(for: .touchUpInside)
+
+        let expandingTransition = try XCTUnwrap(
+            viewController.view.descendant(withAccessibilityIdentifier: "homeExpandedThemeCardTransition")
+        )
+        let expandingSurface = try XCTUnwrap(
+            viewController.view.descendant(
+                withAccessibilityIdentifier: "homeExpandedThemeCardTransitionSurfaceButton"
+            ) as? UIButton
+        )
+        let expandingBackdrop = try XCTUnwrap(
+            viewController.view.descendant(
+                withAccessibilityIdentifier: "homeExpandedThemeCardBackdropDismissButton"
+            ) as? UIButton
+        )
+        XCTAssertFalse(expandingTransition.isUserInteractionEnabled)
+        XCTAssertTrue(expandingSurface.superview === viewController.view)
+
+        expandingBackdrop.sendActions(for: .touchUpInside)
+        XCTAssertTrue(
+            viewController.view.descendant(
+                withAccessibilityIdentifier: "homeExpandedThemeCardTransition"
+            ) === expandingTransition
+        )
+        drainAnimations()
+        XCTAssertNil(
+            viewController.view.descendant(withAccessibilityIdentifier: "homeExpandedThemeCard")
+        )
+        XCTAssertFalse(
+            try XCTUnwrap(
+                viewController.view.descendant(withAccessibilityIdentifier: "music") as? UIButton
+            ).isHidden
+        )
+
+        let refreshedSourceButton = try XCTUnwrap(
+            viewController.view.descendant(withAccessibilityIdentifier: "music") as? UIButton
+        )
+        refreshedSourceButton.sendActions(for: .touchUpInside)
+        drainAnimations()
+
+        let backdropDismissButton = try XCTUnwrap(
+            viewController.view.descendant(
+                withAccessibilityIdentifier: "homeExpandedThemeCardBackdropDismissButton"
+            ) as? UIButton
+        )
+        let expandedCard = try XCTUnwrap(
+            viewController.view.descendant(withAccessibilityIdentifier: "homeExpandedThemeCard")
+        )
+        let expandedCardFrame = expandedCard.convert(expandedCard.bounds, to: viewController.view)
+        backdropDismissButton.sendActions(for: .touchUpInside)
+        let collapsingTransition = try XCTUnwrap(
+            viewController.view.descendant(withAccessibilityIdentifier: "homeExpandedThemeCardTransition")
+        )
+        let collapsingSurface = try XCTUnwrap(
+            viewController.view.descendant(
+                withAccessibilityIdentifier: "homeExpandedThemeCardTransitionSurfaceButton"
+            ) as? UIButton
+        )
+
+        let visibleFrame = collapsingTransition.layer.presentation()?.frame ?? expandedCardFrame
+        let sourceFrame = refreshedSourceButton.convert(refreshedSourceButton.bounds, to: viewController.view)
+        let candidatePoints = [
+            CGPoint(x: visibleFrame.minX + 12, y: visibleFrame.minY + 12),
+            CGPoint(x: visibleFrame.maxX - 12, y: visibleFrame.minY + 12),
+            CGPoint(x: visibleFrame.minX + 12, y: visibleFrame.maxY - 12),
+            CGPoint(x: visibleFrame.maxX - 12, y: visibleFrame.maxY - 12)
+        ]
+        let visiblePointOutsideSource = try XCTUnwrap(
+            candidatePoints.first {
+                viewController.view.bounds.contains($0) && !sourceFrame.contains($0)
+            }
+        )
+        let hitControl = try XCTUnwrap(
+            viewController.view.hitTest(visiblePointOutsideSource, with: nil) as? UIControl
+        )
+        XCTAssertTrue(hitControl === collapsingSurface)
+        hitControl.sendActions(for: .touchUpInside)
+        XCTAssertTrue(
+            viewController.view.descendant(
+                withAccessibilityIdentifier: "homeExpandedThemeCardTransition"
+            ) === collapsingTransition
+        )
+        drainAnimations()
+        XCTAssertNil(
+            viewController.view.descendant(withAccessibilityIdentifier: "homeExpandedThemeCardTransition")
+        )
+        XCTAssertNil(
+            viewController.view.descendant(withAccessibilityIdentifier: "homeExpandedThemeCard")
+        )
+        XCTAssertNil(
+            viewController.view.descendant(withAccessibilityIdentifier: "homeExpandedThemeCardBackdrop")
+        )
+    }
+
+    func testReducedMotionExpansionCanReverseFromVisibleSourceSurface() throws {
+        QuizFactory.shared.themes = [makeTheme(name: "Музыка", questionCount: 15)]
+
+        let viewController = QuizViewController(cardReduceMotionProvider: { true })
+        let window = UIWindow(frame: CGRect(x: 0, y: 0, width: 390, height: 844))
+        window.rootViewController = viewController
+        window.makeKeyAndVisible()
+        window.layoutIfNeeded()
+        testWindows.append(window)
+
+        let sourceButton = try XCTUnwrap(
+            viewController.view.descendant(withAccessibilityIdentifier: "music") as? UIButton
+        )
+        sourceButton.sendActions(for: .touchUpInside)
+
+        let backdropDismissButton = try XCTUnwrap(
+            viewController.view.descendant(
+                withAccessibilityIdentifier: "homeExpandedThemeCardBackdropDismissButton"
+            ) as? UIButton
+        )
+        backdropDismissButton.sendActions(for: .touchUpInside)
+        drainAnimations(0.24)
+
+        XCTAssertNil(
+            viewController.view.descendant(withAccessibilityIdentifier: "homeExpandedThemeCard")
+        )
+        XCTAssertFalse(
+            try XCTUnwrap(
+                viewController.view.descendant(withAccessibilityIdentifier: "music") as? UIButton
+            ).isHidden
+        )
+    }
+
+    func testExpandedThemeCardUsesReducedTransparencyBackdropAndReducedMotionCrossfade() throws {
+        QuizFactory.shared.themes = [makeTheme(name: "Музыка", questionCount: 15)]
+
+        let viewController = QuizViewController(
+            cardReduceMotionProvider: { true },
+            cardReduceTransparencyProvider: { true }
+        )
+        let window = UIWindow(frame: CGRect(x: 0, y: 0, width: 390, height: 844))
+        window.rootViewController = viewController
+        window.makeKeyAndVisible()
+        window.layoutIfNeeded()
+        testWindows.append(window)
+
+        let sourceButton = try XCTUnwrap(
+            viewController.view.descendant(withAccessibilityIdentifier: "music") as? UIButton
+        )
+        sourceButton.sendActions(for: .touchUpInside)
+        drainAnimations(0.22)
+
+        let backdrop = try XCTUnwrap(
+            viewController.view.descendant(withAccessibilityIdentifier: "homeExpandedThemeCardBackdrop")
+        )
+        XCTAssertFalse(backdrop is UIVisualEffectView)
+        XCTAssertEqual(backdrop.alpha, 1, accuracy: 0.001)
+        XCTAssertGreaterThanOrEqual(backdrop.backgroundColor?.cgColor.alpha ?? 0, 0.95)
+
+        let front = try XCTUnwrap(
+            viewController.view.descendant(withAccessibilityIdentifier: "expandedThemeCardFrontView")
+        )
+        let back = try XCTUnwrap(
+            viewController.view.descendant(withAccessibilityIdentifier: "expandedThemeCardBackView")
+        )
+        let rotatingCarrier = try XCTUnwrap(
+            viewController.view.descendant(withAccessibilityIdentifier: "expandedThemeCardRotatingCarrier")
+        )
+        let infoButton = try XCTUnwrap(
+            viewController.view.descendant(withAccessibilityIdentifier: "expandedThemeCardInfoButton") as? UIButton
+        )
+        infoButton.sendActions(for: .touchUpInside)
+
+        XCTAssertTrue(CATransform3DIsIdentity(front.layer.transform))
+        XCTAssertTrue(CATransform3DIsIdentity(back.layer.transform))
+        XCTAssertTrue(CATransform3DIsIdentity(rotatingCarrier.layer.transform))
+        drainAnimations(0.22)
+        XCTAssertTrue(front.isHidden)
+        XCTAssertFalse(back.isHidden)
+        XCTAssertTrue(CATransform3DIsIdentity(front.layer.transform))
+        XCTAssertTrue(CATransform3DIsIdentity(back.layer.transform))
+        XCTAssertFalse(CATransform3DIsIdentity(rotatingCarrier.layer.transform))
+    }
+
+    func testExpandedThemeExpansionUsesIndependentArtworkAndTitleDepth() throws {
+        let card = ExpandedThemeCardView(frame: CGRect(x: 0, y: 0, width: 350, height: 518))
+        card.reduceMotionProvider = { false }
+        card.configure(
+            theme: makeTheme(name: "Музыка", questionCount: 5),
+            appearance: SnapshotSupport.appearance(designStyle: .clean),
+            availableQuestionCounts: [5],
+            selectedQuestionCount: 5
+        )
+        card.layoutIfNeeded()
+
+        let artworkDepth = try XCTUnwrap(
+            card.descendant(withAccessibilityIdentifier: "expandedThemeCardFrontArtworkDepth")
+        )
+        let titleDepth = try XCTUnwrap(
+            card.descendant(withAccessibilityIdentifier: "expandedThemeCardFrontTitleDepth")
+        )
+        let sourceGeometry = HomeThemeCardContentGeometry(
+            containerSize: CGSize(width: 163, height: 163),
+            imageCenter: CGPoint(x: 81.5, y: 54),
+            titleCenter: CGPoint(x: 81.5, y: 132)
+        )
+
+        card.setTransitionContentProgress(0, sourceGeometry: sourceGeometry)
+
+        XCTAssertEqual(artworkDepth.transform.a, 0.94, accuracy: 0.000_001)
+        XCTAssertEqual(artworkDepth.transform.d, 0.94, accuracy: 0.000_001)
+        XCTAssertEqual(titleDepth.transform.a, 0.985, accuracy: 0.000_001)
+        XCTAssertEqual(titleDepth.transform.d, 0.985, accuracy: 0.000_001)
+        XCTAssertNotEqual(artworkDepth.transform.ty, 0)
+        XCTAssertNotEqual(titleDepth.transform.ty, 0)
+
+        card.setTransitionContentProgress(1, sourceGeometry: sourceGeometry)
+
+        XCTAssertTrue(artworkDepth.transform.isIdentity)
+        XCTAssertTrue(titleDepth.transform.isIdentity)
+    }
+
+    func testExpandedThemeInjectedDevicePoseTiltsWholeCardWithoutDetachingFrontContent() throws {
+        QuizFactory.shared.themes = [makeTheme(name: "Музыка", questionCount: 15)]
+
+        let motionProvider = HomeThemeCardMotionProviderFake()
+        let viewController = QuizViewController(
+            cardReduceMotionProvider: { false },
+            cardDeviceParallaxEnabledProvider: { true },
+            cardMotionProvider: motionProvider
+        )
+        let window = UIWindow(frame: CGRect(x: 0, y: 0, width: 390, height: 844))
+        window.rootViewController = viewController
+        window.makeKeyAndVisible()
+        window.layoutIfNeeded()
+        testWindows.append(window)
+
+        let sourceButton = try XCTUnwrap(
+            viewController.view.descendant(withAccessibilityIdentifier: "music") as? UIButton
+        )
+        sourceButton.sendActions(for: .touchUpInside)
+        drainAnimations()
+
+        let card = try XCTUnwrap(
+            viewController.view.descendant(
+                withAccessibilityIdentifier: "homeExpandedThemeCard"
+            ) as? ExpandedThemeCardView
+        )
+        let parallaxCarrier = try XCTUnwrap(
+            viewController.view.descendant(
+                withAccessibilityIdentifier: "expandedThemeCardParallaxCarrier"
+            )
+        )
+        let frontImage = try XCTUnwrap(
+            viewController.view.descendant(
+                withAccessibilityIdentifier: "expandedThemeCardFrontImageView"
+            )
+        )
+        let frontTitle = card.frontFocusView
+        let infoButton = try XCTUnwrap(
+            viewController.view.descendant(
+                withAccessibilityIdentifier: "expandedThemeCardInfoButton"
+            ) as? UIButton
+        )
+        let closeButton = try XCTUnwrap(
+            viewController.view.descendant(
+                withAccessibilityIdentifier: "expandedThemeCardCloseButton"
+            ) as? UIButton
+        )
+        let rotatingCarrier = try XCTUnwrap(
+            viewController.view.descendant(
+                withAccessibilityIdentifier: "expandedThemeCardRotatingCarrier"
+            )
+        )
+
+        XCTAssertGreaterThanOrEqual(motionProvider.startCallCount, 1)
+        XCTAssertTrue(motionProvider.isStarted)
+        XCTAssertTrue(CATransform3DIsIdentity(parallaxCarrier.layer.transform))
+        XCTAssertTrue(frontImage.transform.isIdentity)
+        XCTAssertTrue(frontTitle.transform.isIdentity)
+        XCTAssertTrue(CATransform3DIsIdentity(rotatingCarrier.layer.transform))
+
+        motionProvider.send(HomeThemeCardParallaxInput(x: 0.5, y: -0.25))
+
+        XCTAssertFalse(CATransform3DIsIdentity(parallaxCarrier.layer.transform))
+        XCTAssertTrue(frontImage.transform.isIdentity)
+        XCTAssertTrue(frontTitle.transform.isIdentity)
+        XCTAssertTrue(infoButton.transform.isIdentity)
+        XCTAssertTrue(closeButton.transform.isIdentity)
+        XCTAssertTrue(CATransform3DIsIdentity(rotatingCarrier.layer.transform))
+
+        motionProvider.send(.zero)
+
+        XCTAssertTrue(CATransform3DIsIdentity(parallaxCarrier.layer.transform))
+        XCTAssertTrue(frontImage.transform.isIdentity)
+        XCTAssertTrue(frontTitle.transform.isIdentity)
+        XCTAssertTrue(infoButton.transform.isIdentity)
+        XCTAssertTrue(closeButton.transform.isIdentity)
+        XCTAssertTrue(CATransform3DIsIdentity(rotatingCarrier.layer.transform))
+    }
+
+    func testExpandedThemeMotionProviderStaysActiveAcrossFlipAndBackThenStopsOnRemoval() throws {
+        let motionProvider = HomeThemeCardMotionProviderFake()
+        let card = makeHostedExpandedThemeCard(motionProvider: motionProvider)
+        let parallaxCarrier = try XCTUnwrap(
+            card.descendant(withAccessibilityIdentifier: "expandedThemeCardParallaxCarrier")
+        )
+        let rotatingCarrier = try XCTUnwrap(
+            card.descendant(withAccessibilityIdentifier: "expandedThemeCardRotatingCarrier")
+        )
+        let frontImage = try XCTUnwrap(
+            card.descendant(withAccessibilityIdentifier: "expandedThemeCardFrontImageView")
+        )
+        let frontTitle = card.frontFocusView
+
+        card.setParallaxPresentationPhase(.front)
+        XCTAssertEqual(motionProvider.startCallCount, 1)
+        XCTAssertTrue(motionProvider.isStarted)
+
+        motionProvider.send(HomeThemeCardParallaxInput(x: -0.75, y: 0.5))
+        XCTAssertFalse(CATransform3DIsIdentity(parallaxCarrier.layer.transform))
+        XCTAssertTrue(frontImage.transform.isIdentity)
+        XCTAssertTrue(frontTitle.transform.isIdentity)
+        let frontPoseTransform = parallaxCarrier.layer.transform
+
+        card.setParallaxPresentationPhase(.flipping)
+        XCTAssertEqual(motionProvider.stopCallCount, 0)
+        XCTAssertTrue(motionProvider.isStarted)
+        XCTAssertTrue(
+            CATransform3DEqualToTransform(
+                parallaxCarrier.layer.transform,
+                frontPoseTransform
+            )
+        )
+
+        var completedFace: HomeThemeCardFace?
+        card.setFace(.back, animated: true) { face in
+            completedFace = face
+            card.setParallaxPresentationPhase(.back)
+        }
+        let flippingCarrierTransform = rotatingCarrier.layer.transform
+
+        motionProvider.send(HomeThemeCardParallaxInput(x: 0.4, y: 0.3))
+
+        XCTAssertFalse(CATransform3DIsIdentity(parallaxCarrier.layer.transform))
+        XCTAssertFalse(
+            CATransform3DEqualToTransform(
+                parallaxCarrier.layer.transform,
+                frontPoseTransform
+            )
+        )
+        XCTAssertTrue(
+            CATransform3DEqualToTransform(
+                rotatingCarrier.layer.transform,
+                flippingCarrierTransform
+            )
+        )
+        XCTAssertEqual(motionProvider.startCallCount, 1)
+        XCTAssertEqual(motionProvider.stopCallCount, 0)
+        XCTAssertTrue(motionProvider.isStarted)
+        XCTAssertNil(completedFace)
+
+        drainAnimations(0.34)
+
+        XCTAssertEqual(completedFace, .back)
+        XCTAssertEqual(motionProvider.startCallCount, 1)
+        XCTAssertEqual(motionProvider.stopCallCount, 0)
+        XCTAssertTrue(motionProvider.isStarted)
+        let backFlipTransform = rotatingCarrier.layer.transform
+
+        motionProvider.send(HomeThemeCardParallaxInput(x: -0.2, y: -0.6))
+        XCTAssertFalse(CATransform3DIsIdentity(parallaxCarrier.layer.transform))
+        XCTAssertTrue(frontImage.transform.isIdentity)
+        XCTAssertTrue(frontTitle.transform.isIdentity)
+        XCTAssertTrue(
+            CATransform3DEqualToTransform(
+                rotatingCarrier.layer.transform,
+                backFlipTransform
+            )
+        )
+
+        card.removeFromSuperview()
+        XCTAssertEqual(motionProvider.stopCallCount, 1)
+        XCTAssertFalse(motionProvider.isStarted)
+        XCTAssertTrue(CATransform3DIsIdentity(parallaxCarrier.layer.transform))
+    }
+
+    func testExpandedThemeFrontPanTiltsRigidCardAndSpringsBackToIdentity() throws {
+        let motionProvider = HomeThemeCardMotionProviderFake(isAvailable: false)
+        let card = makeHostedExpandedThemeCard(motionProvider: motionProvider)
+        let parallaxCarrier = try XCTUnwrap(
+            card.descendant(withAccessibilityIdentifier: "expandedThemeCardParallaxCarrier")
+        )
+        let rotatingCarrier = try XCTUnwrap(
+            card.descendant(withAccessibilityIdentifier: "expandedThemeCardRotatingCarrier")
+        )
+        let frontImage = try XCTUnwrap(
+            card.descendant(withAccessibilityIdentifier: "expandedThemeCardFrontImageView")
+        )
+        let frontTitle = card.frontFocusView
+        let infoButton = try XCTUnwrap(
+            card.descendant(withAccessibilityIdentifier: "expandedThemeCardInfoButton") as? UIButton
+        )
+
+        card.setParallaxPresentationPhase(.front)
+        card.handleFrontParallaxPan(state: .began, translation: .zero, velocity: .zero)
+        card.handleFrontParallaxPan(
+            state: .changed,
+            translation: CGPoint(x: 72, y: -84),
+            velocity: .zero
+        )
+
+        XCTAssertFalse(CATransform3DIsIdentity(parallaxCarrier.layer.transform))
+        XCTAssertTrue(frontImage.transform.isIdentity)
+        XCTAssertTrue(frontTitle.transform.isIdentity)
+        XCTAssertTrue(infoButton.transform.isIdentity)
+        XCTAssertTrue(CATransform3DIsIdentity(rotatingCarrier.layer.transform))
+
+        card.handleFrontParallaxPan(
+            state: .ended,
+            translation: CGPoint(x: 72, y: -84),
+            velocity: CGPoint(x: 180, y: -120)
+        )
+        drainAnimations(0.45)
+
+        XCTAssertTrue(CATransform3DIsIdentity(parallaxCarrier.layer.transform))
+        XCTAssertTrue(frontImage.transform.isIdentity)
+        XCTAssertTrue(frontTitle.transform.isIdentity)
+        XCTAssertTrue(infoButton.transform.isIdentity)
+        XCTAssertTrue(CATransform3DIsIdentity(rotatingCarrier.layer.transform))
+    }
+
+    func testExpandedThemeBackDeviceMotionAndPanBothTiltWholeCard() throws {
+        let motionProvider = HomeThemeCardMotionProviderFake()
+        let card = makeHostedExpandedThemeCard(motionProvider: motionProvider)
+        let parallaxCarrier = try XCTUnwrap(
+            card.descendant(withAccessibilityIdentifier: "expandedThemeCardParallaxCarrier")
+        )
+        let rotatingCarrier = try XCTUnwrap(
+            card.descendant(withAccessibilityIdentifier: "expandedThemeCardRotatingCarrier")
+        )
+        let frontImage = try XCTUnwrap(
+            card.descendant(withAccessibilityIdentifier: "expandedThemeCardFrontImageView")
+        )
+        let frontTitle = card.frontFocusView
+
+        card.setParallaxPresentationPhase(.front)
+        XCTAssertEqual(motionProvider.startCallCount, 1)
+        card.setParallaxPresentationPhase(.flipping)
+        card.setFace(.back, animated: false)
+        card.setParallaxPresentationPhase(.back)
+        let backFlipTransform = rotatingCarrier.layer.transform
+
+        motionProvider.send(HomeThemeCardParallaxInput(x: -0.5, y: 0.25))
+        XCTAssertFalse(CATransform3DIsIdentity(parallaxCarrier.layer.transform))
+        XCTAssertTrue(frontImage.transform.isIdentity)
+        XCTAssertTrue(frontTitle.transform.isIdentity)
+        XCTAssertTrue(
+            CATransform3DEqualToTransform(
+                rotatingCarrier.layer.transform,
+                backFlipTransform
+            )
+        )
+
+        card.handleFrontParallaxPan(state: .began, translation: .zero, velocity: .zero)
+        XCTAssertEqual(motionProvider.stopCallCount, 1)
+        XCTAssertFalse(motionProvider.isStarted)
+
+        card.handleFrontParallaxPan(
+            state: .changed,
+            translation: CGPoint(x: 112, y: -40),
+            velocity: .zero
+        )
+        XCTAssertFalse(CATransform3DIsIdentity(parallaxCarrier.layer.transform))
+        XCTAssertTrue(frontImage.transform.isIdentity)
+        XCTAssertTrue(frontTitle.transform.isIdentity)
+        XCTAssertTrue(
+            CATransform3DEqualToTransform(
+                rotatingCarrier.layer.transform,
+                backFlipTransform
+            )
+        )
+
+        card.handleFrontParallaxPan(
+            state: .ended,
+            translation: CGPoint(x: 112, y: -40),
+            velocity: CGPoint(x: 150, y: -80)
+        )
+        drainAnimations(0.45)
+
+        XCTAssertEqual(motionProvider.startCallCount, 2)
+        XCTAssertTrue(motionProvider.isStarted)
+        XCTAssertTrue(CATransform3DIsIdentity(parallaxCarrier.layer.transform))
+        XCTAssertTrue(frontImage.transform.isIdentity)
+        XCTAssertTrue(frontTitle.transform.isIdentity)
+    }
+
+    func testExpandedThemeParallaxPanLeavesBackScrollAndControlsInteractive() throws {
+        let card = makeHostedExpandedThemeCard(
+            motionProvider: HomeThemeCardMotionProviderFake(isAvailable: false)
+        )
+        card.setParallaxPresentationPhase(.front)
+
+        let parallaxPan = try XCTUnwrap(
+            parallaxPanGestureRecognizer(in: card)
+        )
+        let infoButton = try XCTUnwrap(
+            card.descendant(withAccessibilityIdentifier: "expandedThemeCardInfoButton") as? UIButton
+        )
+        let closeButton = try XCTUnwrap(
+            card.descendant(withAccessibilityIdentifier: "expandedThemeCardCloseButton") as? UIButton
+        )
+        let descriptionScrollView = try XCTUnwrap(
+            card.descendant(withAccessibilityIdentifier: "descriptionScrollView") as? UIScrollView
+        )
+        let descriptionLabel = try XCTUnwrap(
+            card.descendant(withAccessibilityIdentifier: "descriptionTextLabel") as? UILabel
+        )
+        let backTitleLabel = try XCTUnwrap(
+            card.descendant(withAccessibilityIdentifier: "descriptionThemeNameLabel") as? UILabel
+        )
+        let backSurfaceButton = try XCTUnwrap(
+            card.descendant(
+                withAccessibilityIdentifier: "expandedThemeCardBackSurfaceButton"
+            ) as? UIButton
+        )
+        let backFaceView = try XCTUnwrap(
+            card.descendant(withAccessibilityIdentifier: "expandedThemeCardBackView")
+        )
+        let backTap = try XCTUnwrap(
+            backFaceView.gestureRecognizers?.compactMap { $0 as? UITapGestureRecognizer }.first
+        )
+        let questionCountControl = try XCTUnwrap(
+            card.descendant(withAccessibilityIdentifier: "descriptionQuestionCountPicker") as? UISegmentedControl
+        )
+        let startButton = try XCTUnwrap(
+            card.descendant(withAccessibilityIdentifier: "descriptionStartButton") as? UIButton
+        )
+        let backButton = try XCTUnwrap(
+            card.descendant(withAccessibilityIdentifier: "descriptionBackButton") as? UIButton
+        )
+
+        XCTAssertTrue(parallaxPan.cancelsTouchesInView)
+        XCTAssertFalse(parallaxPan.delaysTouchesBegan)
+        XCTAssertEqual(parallaxPan.maximumNumberOfTouches, 1)
+        XCTAssertTrue(parallaxPan.isEnabled)
+        XCTAssertTrue(hitView(in: card, for: infoButton)?.isDescendant(of: infoButton) == true)
+        XCTAssertTrue(hitView(in: card, for: closeButton)?.isDescendant(of: closeButton) == true)
+        XCTAssertTrue(descriptionScrollView.isScrollEnabled)
+        XCTAssertTrue(descriptionScrollView.panGestureRecognizer.isEnabled)
+
+        card.setFace(.back, animated: false)
+        card.setParallaxPresentationPhase(.back)
+        card.layoutIfNeeded()
+
+        var selectedQuestionCount: Int?
+        var startCallCount = 0
+        var backCallCount = 0
+        card.onQuestionCountChanged = { selectedQuestionCount = $0 }
+        card.onStart = { startCallCount += 1 }
+        card.onBack = { backCallCount += 1 }
+
+        XCTAssertTrue(parallaxPan.isEnabled)
+        XCTAssertTrue(descriptionScrollView.isScrollEnabled)
+        XCTAssertTrue(descriptionScrollView.panGestureRecognizer.isEnabled)
+        XCTAssertTrue(descriptionScrollView.isDirectionalLockEnabled)
+        XCTAssertFalse(parallaxPan === descriptionScrollView.panGestureRecognizer)
+        XCTAssertTrue(
+            card.gestureRecognizer(
+                parallaxPan,
+                shouldRecognizeSimultaneouslyWith: descriptionScrollView.panGestureRecognizer
+            )
+        )
+        XCTAssertTrue(
+            card.gestureRecognizer(
+                descriptionScrollView.panGestureRecognizer,
+                shouldRecognizeSimultaneouslyWith: parallaxPan
+            )
+        )
+        XCTAssertFalse(
+            card.gestureRecognizer(
+                backTap,
+                shouldRecognizeSimultaneouslyWith: parallaxPan
+            )
+        )
+        XCTAssertFalse(
+            card.gestureRecognizer(
+                parallaxPan,
+                shouldRecognizeSimultaneouslyWith: backTap
+            )
+        )
+        XCTAssertTrue(questionCountControl.isEnabled)
+        XCTAssertTrue(startButton.isEnabled)
+        XCTAssertTrue(backButton.isEnabled)
+        XCTAssertTrue(card.gestureRecognizerShouldBegin(parallaxPan))
+        XCTAssertTrue(card.allowsParallaxPan(startingAt: descriptionScrollView))
+        XCTAssertTrue(card.allowsParallaxPan(startingAt: descriptionLabel))
+        XCTAssertTrue(card.allowsParallaxPan(startingAt: questionCountControl))
+        XCTAssertTrue(card.allowsParallaxPan(startingAt: startButton))
+        XCTAssertTrue(card.allowsParallaxPan(startingAt: backButton))
+        XCTAssertTrue(card.allowsParallaxPan(startingAt: backTitleLabel))
+        XCTAssertTrue(card.allowsParallaxPan(startingAt: backSurfaceButton))
+        let questionCountHitView = try XCTUnwrap(hitView(in: card, for: questionCountControl))
+        let startHitView = try XCTUnwrap(hitView(in: card, for: startButton))
+        let backHitView = try XCTUnwrap(hitView(in: card, for: backButton))
+        XCTAssertTrue(questionCountHitView.isDescendant(of: questionCountControl))
+        XCTAssertTrue(startHitView.isDescendant(of: startButton))
+        XCTAssertTrue(backHitView.isDescendant(of: backButton))
+        XCTAssertTrue(card.allowsParallaxPan(startingAt: questionCountHitView))
+        XCTAssertTrue(card.allowsParallaxPan(startingAt: startHitView))
+        XCTAssertTrue(card.allowsParallaxPan(startingAt: backHitView))
+
+        questionCountControl.selectedSegmentIndex = 0
+        questionCountControl.sendActions(for: .valueChanged)
+        startButton.sendActions(for: .touchUpInside)
+        backButton.sendActions(for: .touchUpInside)
+
+        XCTAssertEqual(selectedQuestionCount, 5)
+        XCTAssertEqual(startCallCount, 1)
+        XCTAssertEqual(backCallCount, 1)
+    }
+
+    func testExpandedThemeBackCenterSupportsVerticalTiltAndDescriptionScrollTogether() throws {
+        let card = makeHostedExpandedThemeCard(
+            motionProvider: HomeThemeCardMotionProviderFake(isAvailable: false)
+        )
+        let longDescription = Array(
+            repeating: "A deliberately long theme description that must scroll vertically.",
+            count: 24
+        ).joined(separator: " ")
+        card.configure(
+            theme: makeTheme(
+                name: "Музыка",
+                questionCount: 5,
+                description: longDescription
+            ),
+            appearance: SnapshotSupport.appearance(designStyle: .clean),
+            availableQuestionCounts: [5],
+            selectedQuestionCount: 5
+        )
+        card.setFace(.back, animated: false)
+        card.setParallaxPresentationPhase(.back)
+        card.layoutIfNeeded()
+
+        let parallaxCarrier = try XCTUnwrap(
+            card.descendant(withAccessibilityIdentifier: "expandedThemeCardParallaxCarrier")
+        )
+        let parallaxPan = try XCTUnwrap(parallaxPanGestureRecognizer(in: card))
+        let descriptionScrollView = try XCTUnwrap(
+            card.descendant(withAccessibilityIdentifier: "descriptionScrollView") as? UIScrollView
+        )
+        let centerInCard = descriptionScrollView.convert(
+            CGPoint(
+                x: descriptionScrollView.bounds.midX,
+                y: descriptionScrollView.bounds.midY
+            ),
+            to: card
+        )
+        let centerHitView = try XCTUnwrap(card.hitTest(centerInCard, with: nil))
+
+        XCTAssertGreaterThan(
+            descriptionScrollView.contentSize.height,
+            descriptionScrollView.bounds.height
+        )
+        XCTAssertTrue(
+            centerHitView === descriptionScrollView ||
+                centerHitView.isDescendant(of: descriptionScrollView)
+        )
+        XCTAssertTrue(card.allowsParallaxPan(startingAt: centerHitView))
+        XCTAssertTrue(
+            card.gestureRecognizer(
+                parallaxPan,
+                shouldRecognizeSimultaneouslyWith: descriptionScrollView.panGestureRecognizer
+            )
+        )
+
+        card.handleFrontParallaxPan(state: .began, translation: .zero, velocity: .zero)
+        card.handleFrontParallaxPan(
+            state: .changed,
+            translation: CGPoint(x: 0, y: 72),
+            velocity: CGPoint(x: 0, y: 180)
+        )
+
+        XCTAssertFalse(CATransform3DIsIdentity(parallaxCarrier.layer.transform))
+        XCTAssertTrue(descriptionScrollView.isScrollEnabled)
+        XCTAssertTrue(descriptionScrollView.panGestureRecognizer.isEnabled)
+
+        card.handleFrontParallaxPan(
+            state: .cancelled,
+            translation: CGPoint(x: 0, y: 72),
+            velocity: .zero
+        )
+        drainAnimations(0.45)
+        XCTAssertTrue(CATransform3DIsIdentity(parallaxCarrier.layer.transform))
+    }
+
+    func testExpandedThemeStartStopsBackMotionBeforeRoutingAndIgnoresRepeatedStart() throws {
+        QuizFactory.shared.themes = [makeTheme(name: "Музыка", questionCount: 15)]
+        let motionProvider = HomeThemeCardMotionProviderFake()
+        let viewController = QuizViewController(
+            cardReduceMotionProvider: { false },
+            cardDeviceParallaxEnabledProvider: { true },
+            cardMotionProvider: motionProvider
+        )
+        let router = HomeRouterSpy()
+        viewController.router = router
+        let window = UIWindow(frame: CGRect(x: 0, y: 0, width: 390, height: 844))
+        window.rootViewController = viewController
+        window.makeKeyAndVisible()
+        window.layoutIfNeeded()
+        testWindows.append(window)
+
+        let sourceButton = try XCTUnwrap(
+            viewController.view.descendant(withAccessibilityIdentifier: "music") as? UIButton
+        )
+        sourceButton.sendActions(for: .touchUpInside)
+        drainAnimations()
+
+        let infoButton = try XCTUnwrap(
+            viewController.view.descendant(
+                withAccessibilityIdentifier: "expandedThemeCardInfoButton"
+            ) as? UIButton
+        )
+        infoButton.sendActions(for: .touchUpInside)
+        drainAnimations(0.34)
+
+        let card = try XCTUnwrap(
+            viewController.view.descendant(
+                withAccessibilityIdentifier: "homeExpandedThemeCard"
+            ) as? ExpandedThemeCardView
+        )
+        let parallaxCarrier = try XCTUnwrap(
+            card.descendant(withAccessibilityIdentifier: "expandedThemeCardParallaxCarrier")
+        )
+        let parallaxPan = try XCTUnwrap(parallaxPanGestureRecognizer(in: card))
+        let startButton = try XCTUnwrap(
+            card.descendant(withAccessibilityIdentifier: "descriptionStartButton") as? UIButton
+        )
+
+        XCTAssertTrue(motionProvider.isStarted)
+        XCTAssertTrue(parallaxPan.isEnabled)
+        motionProvider.send(HomeThemeCardParallaxInput(x: 0.6, y: -0.4))
+        XCTAssertFalse(CATransform3DIsIdentity(parallaxCarrier.layer.transform))
+
+        var providerWasStoppedBeforeRouting: Bool?
+        var panWasDisabledBeforeRouting: Bool?
+        router.onShowQuestion = {
+            providerWasStoppedBeforeRouting = !motionProvider.isStarted &&
+                motionProvider.stopCallCount > 0
+            panWasDisabledBeforeRouting = !parallaxPan.isEnabled
+        }
+
+        startButton.sendActions(for: .touchUpInside)
+
+        XCTAssertEqual(providerWasStoppedBeforeRouting, true)
+        XCTAssertEqual(panWasDisabledBeforeRouting, true)
+        XCTAssertEqual(router.showQuestionCallCount, 1)
+        XCTAssertFalse(card.isUserInteractionEnabled)
+        XCTAssertTrue(CATransform3DIsIdentity(parallaxCarrier.layer.transform))
+
+        startButton.sendActions(for: .touchUpInside)
+
+        XCTAssertEqual(router.showQuestionCallCount, 1)
+        XCTAssertFalse(motionProvider.isStarted)
+    }
+
+    func testExpandedThemeReduceMotionBlocksProviderAndDragThenRuntimeToggleNeutralizesPose() throws {
+        var reduceMotion = true
+        let motionProvider = HomeThemeCardMotionProviderFake()
+        let card = makeHostedExpandedThemeCard(
+            motionProvider: motionProvider,
+            reduceMotionProvider: { reduceMotion }
+        )
+        let parallaxCarrier = try XCTUnwrap(
+            card.descendant(withAccessibilityIdentifier: "expandedThemeCardParallaxCarrier")
+        )
+        let frontImage = try XCTUnwrap(
+            card.descendant(withAccessibilityIdentifier: "expandedThemeCardFrontImageView")
+        )
+        let parallaxPan = try XCTUnwrap(
+            parallaxPanGestureRecognizer(in: card)
+        )
+
+        card.setParallaxPresentationPhase(.front)
+
+        XCTAssertEqual(motionProvider.startCallCount, 0)
+        XCTAssertFalse(parallaxPan.isEnabled)
+        card.handleFrontParallaxPan(state: .began, translation: .zero, velocity: .zero)
+        card.handleFrontParallaxPan(
+            state: .changed,
+            translation: CGPoint(x: 100, y: 100),
+            velocity: .zero
+        )
+        XCTAssertTrue(CATransform3DIsIdentity(parallaxCarrier.layer.transform))
+        XCTAssertTrue(frontImage.transform.isIdentity)
+
+        reduceMotion = false
+        NotificationCenter.default.post(
+            name: UIAccessibility.reduceMotionStatusDidChangeNotification,
+            object: nil
+        )
+        XCTAssertEqual(motionProvider.startCallCount, 1)
+        XCTAssertTrue(parallaxPan.isEnabled)
+
+        motionProvider.send(HomeThemeCardParallaxInput(x: 0.8, y: -0.6))
+        XCTAssertFalse(CATransform3DIsIdentity(parallaxCarrier.layer.transform))
+        XCTAssertTrue(frontImage.transform.isIdentity)
+
+        reduceMotion = true
+        NotificationCenter.default.post(
+            name: UIAccessibility.reduceMotionStatusDidChangeNotification,
+            object: nil
+        )
+        XCTAssertEqual(motionProvider.stopCallCount, 1)
+        XCTAssertFalse(parallaxPan.isEnabled)
+        XCTAssertTrue(CATransform3DIsIdentity(parallaxCarrier.layer.transform))
+        XCTAssertTrue(frontImage.transform.isIdentity)
+
+        card.handleFrontParallaxPan(state: .began, translation: .zero, velocity: .zero)
+        card.handleFrontParallaxPan(
+            state: .changed,
+            translation: CGPoint(x: -100, y: -100),
+            velocity: .zero
+        )
+        XCTAssertTrue(CATransform3DIsIdentity(parallaxCarrier.layer.transform))
+        XCTAssertTrue(frontImage.transform.isIdentity)
+    }
+
+    func testExpandedThemeFlipUsesOneTransformCarrierForBothPlanes() throws {
+        QuizFactory.shared.themes = [makeTheme(name: "Музыка", questionCount: 15)]
+
+        let viewController = makeHomeViewController(in: CGRect(x: 0, y: 0, width: 390, height: 844))
+        let sourceButton = try XCTUnwrap(
+            viewController.view.descendant(withAccessibilityIdentifier: "music") as? UIButton
+        )
+        sourceButton.sendActions(for: .touchUpInside)
+        drainAnimations()
+
+        let card = try XCTUnwrap(
+            viewController.view.descendant(withAccessibilityIdentifier: "homeExpandedThemeCard")
+        )
+        let rotatingCarrier = try XCTUnwrap(
+            viewController.view.descendant(withAccessibilityIdentifier: "expandedThemeCardRotatingCarrier")
+        )
+        let shadowProxy = try XCTUnwrap(
+            viewController.view.descendant(withAccessibilityIdentifier: "expandedThemeCardShadowProxy")
+        )
+        let frontPlane = try XCTUnwrap(
+            viewController.view.descendant(withAccessibilityIdentifier: "expandedThemeCardFrontPlane")
+        )
+        let backPlane = try XCTUnwrap(
+            viewController.view.descendant(withAccessibilityIdentifier: "expandedThemeCardBackPlane")
+        )
+        let perspectiveStage = try XCTUnwrap(rotatingCarrier.superview)
+        let front = try XCTUnwrap(
+            viewController.view.descendant(withAccessibilityIdentifier: "expandedThemeCardFrontView")
+        )
+        let back = try XCTUnwrap(
+            viewController.view.descendant(withAccessibilityIdentifier: "expandedThemeCardBackView")
+        )
+        let infoButton = try XCTUnwrap(
+            viewController.view.descendant(withAccessibilityIdentifier: "expandedThemeCardInfoButton") as? UIButton
+        )
+
+        XCTAssertTrue(frontPlane.superview === rotatingCarrier)
+        XCTAssertTrue(backPlane.superview === rotatingCarrier)
+        XCTAssertTrue(frontPlane.isDescendant(of: rotatingCarrier))
+        XCTAssertTrue(backPlane.isDescendant(of: rotatingCarrier))
+        XCTAssertTrue(rotatingCarrier.layer is CATransformLayer)
+        XCTAssertTrue(shadowProxy.superview === perspectiveStage)
+        XCTAssertNotNil(shadowProxy.layer.shadowPath)
+        XCTAssertFalse(frontPlane.layer.isDoubleSided)
+        XCTAssertFalse(backPlane.layer.isDoubleSided)
+        XCTAssertTrue(CATransform3DIsIdentity(rotatingCarrier.layer.transform))
+        XCTAssertTrue(CATransform3DIsIdentity(frontPlane.layer.transform))
+        XCTAssertFalse(CATransform3DIsIdentity(backPlane.layer.transform))
+        XCTAssertFalse(front.accessibilityElementsHidden)
+        XCTAssertTrue(back.accessibilityElementsHidden)
+
+        infoButton.sendActions(for: .touchUpInside)
+
+        XCTAssertTrue(CATransform3DIsIdentity(card.layer.transform))
+        XCTAssertFalse(CATransform3DIsIdentity(rotatingCarrier.layer.transform))
+        XCTAssertFalse(CATransform3DIsIdentity(shadowProxy.layer.transform))
+        XCTAssertTrue(CATransform3DIsIdentity(frontPlane.layer.transform))
+        XCTAssertFalse(CATransform3DIsIdentity(backPlane.layer.transform))
+        XCTAssertLessThan(perspectiveStage.layer.sublayerTransform.m34, 0)
+        XCTAssertTrue(CATransform3DIsIdentity(front.layer.transform))
+        XCTAssertTrue(CATransform3DIsIdentity(back.layer.transform))
+        XCTAssertFalse(front.accessibilityElementsHidden)
+        XCTAssertTrue(back.accessibilityElementsHidden)
+
+        drainAnimations(0.34)
+        XCTAssertTrue(CATransform3DIsIdentity(card.layer.transform))
+        XCTAssertFalse(CATransform3DIsIdentity(rotatingCarrier.layer.transform))
+        XCTAssertTrue(CATransform3DIsIdentity(frontPlane.layer.transform))
+        XCTAssertFalse(CATransform3DIsIdentity(backPlane.layer.transform))
+        XCTAssertTrue(frontPlane.isHidden)
+        XCTAssertFalse(backPlane.isHidden)
+        XCTAssertTrue(front.isHidden)
+        XCTAssertFalse(back.isHidden)
+        XCTAssertTrue(front.accessibilityElementsHidden)
+        XCTAssertFalse(back.accessibilityElementsHidden)
+
+        let backButton = try XCTUnwrap(
+            viewController.view.descendant(withAccessibilityIdentifier: "descriptionBackButton") as? UIButton
+        )
+        backButton.sendActions(for: .touchUpInside)
+
+        XCTAssertTrue(CATransform3DIsIdentity(card.layer.transform))
+        XCTAssertTrue(CATransform3DIsIdentity(rotatingCarrier.layer.transform))
+        XCTAssertTrue(CATransform3DIsIdentity(frontPlane.layer.transform))
+        XCTAssertFalse(CATransform3DIsIdentity(backPlane.layer.transform))
+        XCTAssertLessThan(perspectiveStage.layer.sublayerTransform.m34, 0)
+        XCTAssertTrue(CATransform3DIsIdentity(front.layer.transform))
+        XCTAssertTrue(CATransform3DIsIdentity(back.layer.transform))
+        XCTAssertTrue(front.accessibilityElementsHidden)
+        XCTAssertFalse(back.accessibilityElementsHidden)
+
+        drainAnimations(0.34)
+        XCTAssertTrue(CATransform3DIsIdentity(card.layer.transform))
+        XCTAssertTrue(CATransform3DIsIdentity(rotatingCarrier.layer.transform))
+        XCTAssertTrue(CATransform3DIsIdentity(frontPlane.layer.transform))
+        XCTAssertFalse(CATransform3DIsIdentity(backPlane.layer.transform))
+        XCTAssertFalse(frontPlane.isHidden)
+        XCTAssertTrue(backPlane.isHidden)
+        XCTAssertFalse(front.isHidden)
+        XCTAssertTrue(back.isHidden)
+        XCTAssertFalse(front.accessibilityElementsHidden)
+        XCTAssertTrue(back.accessibilityElementsHidden)
+    }
+
+    func testExpandedThemeFlipReversesInFlightWithoutIgnoringRapidTaps() throws {
+        QuizFactory.shared.themes = [makeTheme(name: "Музыка", questionCount: 15)]
+
+        let viewController = makeHomeViewController(in: CGRect(x: 0, y: 0, width: 390, height: 844))
+        let sourceButton = try XCTUnwrap(
+            viewController.view.descendant(withAccessibilityIdentifier: "music") as? UIButton
+        )
+        sourceButton.sendActions(for: .touchUpInside)
+        drainAnimations()
+
+        let front = try XCTUnwrap(
+            viewController.view.descendant(withAccessibilityIdentifier: "expandedThemeCardFrontView")
+        )
+        let back = try XCTUnwrap(
+            viewController.view.descendant(withAccessibilityIdentifier: "expandedThemeCardBackView")
+        )
+        let infoButton = try XCTUnwrap(
+            viewController.view.descendant(withAccessibilityIdentifier: "expandedThemeCardInfoButton") as? UIButton
+        )
+        let interactionOverlay = try XCTUnwrap(
+            viewController.view.descendant(withAccessibilityIdentifier: "expandedThemeCardFlipInteractionOverlay") as? UIButton
+        )
+
+        infoButton.sendActions(for: .touchUpInside)
+        XCTAssertFalse(interactionOverlay.isHidden)
+        interactionOverlay.sendActions(for: .touchUpInside)
+        drainAnimations(0.34)
+        XCTAssertFalse(front.isHidden)
+        XCTAssertTrue(back.isHidden)
+
+        infoButton.sendActions(for: .touchUpInside)
+        interactionOverlay.sendActions(for: .touchUpInside)
+        interactionOverlay.sendActions(for: .touchUpInside)
+        drainAnimations(0.34)
+        XCTAssertTrue(front.isHidden)
+        XCTAssertFalse(back.isHidden)
+    }
+
+    func testExpandedThemeSurfaceTapsUseFaceActionsWithoutStealingControls() throws {
+        QuizFactory.shared.themes = [makeTheme(name: "Музыка", questionCount: 15)]
+
+        let viewController = makeHomeViewController(in: CGRect(x: 0, y: 0, width: 390, height: 844))
+        let sourceButton = try XCTUnwrap(
+            viewController.view.descendant(withAccessibilityIdentifier: "music") as? UIButton
+        )
+        sourceButton.sendActions(for: .touchUpInside)
+        drainAnimations()
+
+        let card = try XCTUnwrap(
+            viewController.view.descendant(withAccessibilityIdentifier: "homeExpandedThemeCard")
+        )
+        let frontSurfaceButton = try XCTUnwrap(
+            viewController.view.descendant(withAccessibilityIdentifier: "expandedThemeCardFrontSurfaceButton") as? UIButton
+        )
+        let infoButton = try XCTUnwrap(
+            viewController.view.descendant(withAccessibilityIdentifier: "expandedThemeCardInfoButton") as? UIButton
+        )
+        let closeButton = try XCTUnwrap(
+            viewController.view.descendant(withAccessibilityIdentifier: "expandedThemeCardCloseButton") as? UIButton
+        )
+        let titleDepthView = try XCTUnwrap(
+            viewController.view.descendant(
+                withAccessibilityIdentifier: "expandedThemeCardFrontTitleDepth"
+            )
+        )
+
+        XCTAssertTrue(card.hitTest(CGPoint(x: card.bounds.midX, y: card.bounds.midY), with: nil) === frontSurfaceButton)
+        let titleCenter = titleDepthView.convert(
+            CGPoint(x: titleDepthView.bounds.midX, y: titleDepthView.bounds.midY),
+            to: card
+        )
+        XCTAssertTrue(card.hitTest(titleCenter, with: nil) === frontSurfaceButton)
+        XCTAssertTrue(hitView(in: card, for: infoButton)?.isDescendant(of: infoButton) == true)
+        XCTAssertTrue(hitView(in: card, for: closeButton)?.isDescendant(of: closeButton) == true)
+
+        infoButton.sendActions(for: .touchUpInside)
+        drainAnimations(0.34)
+
+        let backSurfaceButton = try XCTUnwrap(
+            viewController.view.descendant(withAccessibilityIdentifier: "expandedThemeCardBackSurfaceButton") as? UIButton
+        )
+        let backButton = try XCTUnwrap(
+            viewController.view.descendant(withAccessibilityIdentifier: "descriptionBackButton") as? UIButton
+        )
+        let questionCountControl = try XCTUnwrap(
+            viewController.view.descendant(withAccessibilityIdentifier: "descriptionQuestionCountPicker") as? UISegmentedControl
+        )
+        let startButton = try XCTUnwrap(
+            viewController.view.descendant(withAccessibilityIdentifier: "descriptionStartButton") as? UIButton
+        )
+        let descriptionScrollView = try XCTUnwrap(
+            viewController.view.descendant(withAccessibilityIdentifier: "descriptionScrollView") as? UIScrollView
+        )
+        let backFaceView = try XCTUnwrap(
+            viewController.view.descendant(withAccessibilityIdentifier: "expandedThemeCardBackView")
+        )
+        let backTapGestureRecognizer = try XCTUnwrap(
+            backFaceView.gestureRecognizers?.compactMap { $0 as? UITapGestureRecognizer }.first
+        )
+
+        XCTAssertTrue(
+            card.hitTest(CGPoint(x: card.bounds.maxX - 8, y: card.bounds.midY), with: nil) === backSurfaceButton
+        )
+        XCTAssertTrue(hitView(in: card, for: backButton)?.isDescendant(of: backButton) == true)
+        XCTAssertTrue(hitView(in: card, for: questionCountControl)?.isDescendant(of: questionCountControl) == true)
+        XCTAssertTrue(hitView(in: card, for: startButton)?.isDescendant(of: startButton) == true)
+        XCTAssertFalse(
+            try XCTUnwrap(card as? ExpandedThemeCardView).gestureRecognizer(
+                backTapGestureRecognizer,
+                shouldRecognizeSimultaneouslyWith: descriptionScrollView.panGestureRecognizer
+            )
+        )
+
+        backSurfaceButton.sendActions(for: .touchUpInside)
+        drainAnimations(0.34)
+        XCTAssertFalse(
+            try XCTUnwrap(
+                viewController.view.descendant(withAccessibilityIdentifier: "expandedThemeCardFrontView")
+            ).isHidden
+        )
+
+        frontSurfaceButton.sendActions(for: .touchUpInside)
+        drainAnimations(0.34)
+        XCTAssertFalse(
+            try XCTUnwrap(
+                viewController.view.descendant(withAccessibilityIdentifier: "expandedThemeCardBackView")
+            ).isHidden
+        )
+
+        let backdropDismissButton = try XCTUnwrap(
+            viewController.view.descendant(
+                withAccessibilityIdentifier: "homeExpandedThemeCardBackdropDismissButton"
+            ) as? UIButton
+        )
+        let outsidePoint = CGPoint(x: 4, y: 4)
+        let outsideHitView = try XCTUnwrap(viewController.view.hitTest(outsidePoint, with: nil))
+        XCTAssertTrue(
+            outsideHitView === backdropDismissButton || outsideHitView.isDescendant(of: backdropDismissButton),
+            "Expected the backdrop dismiss button, hit \(type(of: outsideHitView)) " +
+                "with id \(outsideHitView.accessibilityIdentifier ?? "nil")"
+        )
+        backdropDismissButton.sendActions(for: .touchUpInside)
+        drainAnimations()
+        XCTAssertNil(
+            viewController.view.descendant(withAccessibilityIdentifier: "homeExpandedThemeCardBackdrop")
+        )
+    }
+
+    func testExpandedThemeBackSelectsCountAndStartsOnlyOnce() throws {
+        QuizFactory.shared.themes = [makeTheme(name: "Музыка", questionCount: 15)]
+
+        let viewController = makeHomeViewController(in: CGRect(x: 0, y: 0, width: 390, height: 844))
+        let router = HomeRouterSpy()
+        viewController.router = router
+        let sourceButton = try XCTUnwrap(
+            viewController.view.descendant(withAccessibilityIdentifier: "music") as? UIButton
+        )
+        sourceButton.sendActions(for: .touchUpInside)
+        drainAnimations()
+
+        let infoButton = try XCTUnwrap(
+            viewController.view.descendant(withAccessibilityIdentifier: "expandedThemeCardInfoButton") as? UIButton
+        )
+        infoButton.sendActions(for: .touchUpInside)
+        drainAnimations(0.34)
+
+        let questionCountControl = try XCTUnwrap(
+            viewController.view.descendant(withAccessibilityIdentifier: "descriptionQuestionCountPicker") as? UISegmentedControl
+        )
+        questionCountControl.selectedSegmentIndex = 1
+        questionCountControl.sendActions(for: .valueChanged)
+        let startButton = try XCTUnwrap(
+            viewController.view.descendant(withAccessibilityIdentifier: "descriptionStartButton") as? UIButton
+        )
+
+        startButton.sendActions(for: .touchUpInside)
+        startButton.sendActions(for: .touchUpInside)
+
+        XCTAssertEqual(QuizFactory.shared.questionsCount, 10)
+        XCTAssertEqual(router.showQuestionCallCount, 1)
+        XCTAssertEqual(router.showDescriptionCallCount, 0)
+
+        viewController.viewWillAppear(false)
+        XCTAssertNil(
+            viewController.view.descendant(withAccessibilityIdentifier: "homeExpandedThemeCardBackdrop")
+        )
+        XCTAssertNil(
+            viewController.view.descendant(withAccessibilityIdentifier: "homeExpandedThemeCard")
+        )
+        XCTAssertFalse(
+            try XCTUnwrap(viewController.view.descendant(withAccessibilityIdentifier: "music") as? UIButton).isHidden
+        )
+    }
+
+    func testExpandedThemeAnalyticsTracksCancellationAndSelectedCountStart() throws {
+        QuizFactory.shared.themes = [makeTheme(name: "Музыка", questionCount: 15)]
+        let analytics = HomeAnalyticsTrackingSpy()
+        let viewController = QuizViewController(
+            analytics: analytics,
+            cardReduceMotionProvider: { true }
+        )
+        let router = HomeRouterSpy()
+        viewController.router = router
+        let window = UIWindow(frame: CGRect(x: 0, y: 0, width: 390, height: 844))
+        window.rootViewController = viewController
+        window.makeKeyAndVisible()
+        window.layoutIfNeeded()
+        testWindows.append(window)
+        drainAnimations(0.01)
+        analytics.reset()
+
+        var sourceButton = try XCTUnwrap(
+            viewController.view.descendant(withAccessibilityIdentifier: "music") as? UIButton
+        )
+        sourceButton.sendActions(for: .touchUpInside)
+        drainAnimations(0.22)
+        let closeButton = try XCTUnwrap(
+            viewController.view.descendant(withAccessibilityIdentifier: "expandedThemeCardCloseButton") as? UIButton
+        )
+        closeButton.sendActions(for: .touchUpInside)
+        let eventsBeforeCollapseCompletion = analytics.events.filter { event in
+            !(event.name == "screen_view" && event.parameters["screen"] as? String == "home")
+        }
+        XCTAssertEqual(eventsBeforeCollapseCompletion.map(\.name), ["theme_selected"])
+        drainAnimations(0.22)
+
+        let cancellationEvents = analytics.events.filter { event in
+            !(event.name == "screen_view" && event.parameters["screen"] as? String == "home")
+        }
+        XCTAssertEqual(
+            cancellationEvents.map(\.name),
+            ["theme_selected", "quiz_setup_cancelled"]
+        )
+        guard cancellationEvents.count == 2 else { return }
+        XCTAssertEqual(cancellationEvents[0].parameters["selection_method"] as? String, "manual")
+        XCTAssertEqual(cancellationEvents[0].parameters["theme_id"] as? String, "music")
+        XCTAssertEqual(cancellationEvents[1].parameters["theme_id"] as? String, "music")
+        XCTAssertFalse(
+            cancellationEvents.contains {
+                $0.name == "screen_view" && $0.parameters["screen"] as? String == "quiz_description"
+            }
+        )
+
+        analytics.reset()
+        sourceButton = try XCTUnwrap(
+            viewController.view.descendant(withAccessibilityIdentifier: "music") as? UIButton
+        )
+        sourceButton.sendActions(for: .touchUpInside)
+        drainAnimations(0.22)
+        let infoButton = try XCTUnwrap(
+            viewController.view.descendant(withAccessibilityIdentifier: "expandedThemeCardInfoButton") as? UIButton
+        )
+        infoButton.sendActions(for: .touchUpInside)
+        drainAnimations(0.22)
+        let questionCountControl = try XCTUnwrap(
+            viewController.view.descendant(withAccessibilityIdentifier: "descriptionQuestionCountPicker") as? UISegmentedControl
+        )
+        questionCountControl.selectedSegmentIndex = 1
+        questionCountControl.sendActions(for: .valueChanged)
+        let startButton = try XCTUnwrap(
+            viewController.view.descendant(withAccessibilityIdentifier: "descriptionStartButton") as? UIButton
+        )
+        startButton.sendActions(for: .touchUpInside)
+
+        let startEvents = analytics.events.filter { event in
+            !(event.name == "screen_view" && event.parameters["screen"] as? String == "home")
+        }
+        XCTAssertEqual(
+            startEvents.map(\.name),
+            ["theme_selected", "theme_card_flipped", "screen_view", "quiz_started"]
+        )
+        guard startEvents.count == 4 else { return }
+        XCTAssertEqual(startEvents[0].parameters["selection_method"] as? String, "manual")
+        XCTAssertEqual(startEvents[1].parameters["visible_face"] as? String, "back")
+        XCTAssertEqual(startEvents[1].parameters["theme_id"] as? String, "music")
+        XCTAssertEqual(startEvents[2].parameters["screen"] as? String, "quiz_description")
+        XCTAssertEqual(startEvents[3].parameters["theme_id"] as? String, "music")
+        XCTAssertEqual(startEvents[3].parameters["question_count"] as? Int, 10)
+        XCTAssertEqual(router.showQuestionCallCount, 1)
+    }
+
+    func testFeelingLuckyStartsFiveQuestionsWithoutDescription() throws {
+        QuizFactory.shared.themes = [makeTheme(name: "Музыка", questionCount: 15)]
+        QuizFactory.shared.questionsCount = 15
+
+        let viewController = QuizViewController(
+            randomThemeIDProvider: { _ in "music" },
+            feelingLuckyMinimumFeedbackDelay: {}
+        )
+        let router = HomeRouterSpy()
+        viewController.router = router
+        let window = UIWindow(frame: CGRect(x: 0, y: 0, width: 390, height: 844))
+        window.rootViewController = viewController
+        window.makeKeyAndVisible()
+        window.layoutIfNeeded()
+        testWindows.append(window)
+        let luckyButton = try XCTUnwrap(
+            viewController.view.descendant(withAccessibilityIdentifier: "homeFeelingLuckyButton") as? UIButton
+        )
+
+        luckyButton.sendActions(for: .touchUpInside)
+        luckyButton.sendActions(for: .touchUpInside)
+        drainAnimations(0.01)
+
+        XCTAssertEqual(QuizFactory.shared.questionsCount, 5)
+        XCTAssertEqual(router.showQuestionCallCount, 1)
+        XCTAssertEqual(router.showDescriptionCallCount, 0)
+    }
+
+    func testFeelingLuckyAnalyticsTracksRandomFiveQuestionStart() throws {
+        QuizFactory.shared.themes = [makeTheme(name: "Музыка", questionCount: 15)]
+        let analytics = HomeAnalyticsTrackingSpy()
+        let viewController = QuizViewController(
+            analytics: analytics,
+            randomThemeIDProvider: { _ in "music" },
+            feelingLuckyMinimumFeedbackDelay: {}
+        )
+        let router = HomeRouterSpy()
+        viewController.router = router
+        let window = UIWindow(frame: CGRect(x: 0, y: 0, width: 390, height: 844))
+        window.rootViewController = viewController
+        window.makeKeyAndVisible()
+        window.layoutIfNeeded()
+        testWindows.append(window)
+        drainAnimations(0.01)
+        analytics.reset()
+
+        let luckyButton = try XCTUnwrap(
+            viewController.view.descendant(withAccessibilityIdentifier: "homeFeelingLuckyButton") as? UIButton
+        )
+        luckyButton.sendActions(for: .touchUpInside)
+        drainAnimations(0.01)
+
+        XCTAssertEqual(analytics.events.map(\.name), ["theme_selected", "quiz_started"])
+        guard analytics.events.count == 2 else { return }
+        XCTAssertEqual(analytics.events[0].parameters["selection_method"] as? String, "random")
+        XCTAssertEqual(analytics.events[0].parameters["theme_id"] as? String, "music")
+        XCTAssertEqual(analytics.events[1].parameters["theme_id"] as? String, "music")
+        XCTAssertEqual(analytics.events[1].parameters["question_count"] as? Int, 5)
+        XCTAssertEqual(router.showQuestionCallCount, 1)
+    }
+
+    func testFeelingLuckyOffersOnlyThemesThatCanSupplyFiveQuestions() throws {
+        QuizFactory.shared.themes = [
+            makeTheme(name: "Музыка", questionCount: 4),
+            makeTheme(name: "Технологии", questionCount: 5)
+        ]
+        var offeredThemeIDs: [String] = []
+        let viewController = QuizViewController(
+            randomThemeIDProvider: { themes in
+                offeredThemeIDs = themes.map(\.stableID)
+                return themes.first?.stableID
+            },
+            feelingLuckyMinimumFeedbackDelay: {}
+        )
+        let router = HomeRouterSpy()
+        viewController.router = router
+        let window = UIWindow(frame: CGRect(x: 0, y: 0, width: 390, height: 844))
+        window.rootViewController = viewController
+        window.makeKeyAndVisible()
+        window.layoutIfNeeded()
+        testWindows.append(window)
+        let luckyButton = try XCTUnwrap(
+            viewController.view.descendant(withAccessibilityIdentifier: "homeFeelingLuckyButton") as? UIButton
+        )
+
+        luckyButton.sendActions(for: .touchUpInside)
+        drainAnimations(0.01)
+
+        XCTAssertEqual(offeredThemeIDs, ["technology"])
+        XCTAssertEqual(QuizFactory.shared.chosenTheme?.themeID, "technology")
+        XCTAssertEqual(QuizFactory.shared.questionsCount, 5)
+        XCTAssertEqual(router.showQuestionCallCount, 1)
+    }
+
+    func testFeelingLuckyShowsProgressUntilMinimumFeedbackDelayCompletes() throws {
+        QuizFactory.shared.themes = [makeTheme(name: "Музыка", questionCount: 15)]
+        var releaseDelay: (() -> Void)?
+        let viewController = QuizViewController(
+            randomThemeIDProvider: { _ in "music" },
+            feelingLuckyMinimumFeedbackDelay: {
+                await withCheckedContinuation { continuation in
+                    releaseDelay = { continuation.resume() }
+                }
+            }
+        )
+        let router = HomeRouterSpy()
+        viewController.router = router
+        let window = UIWindow(frame: CGRect(x: 0, y: 0, width: 390, height: 844))
+        window.rootViewController = viewController
+        window.makeKeyAndVisible()
+        window.layoutIfNeeded()
+        testWindows.append(window)
+        drainAnimations(0.01)
+
+        let luckyButton = try XCTUnwrap(
+            viewController.view.descendant(withAccessibilityIdentifier: "homeFeelingLuckyButton") as? UIButton
+        )
+        let collectionView = try XCTUnwrap(
+            viewController.view.descendant(withAccessibilityIdentifier: "homeThemesCollectionView") as? UICollectionView
+        )
+        let progressView = try XCTUnwrap(
+            luckyButton.descendant(withAccessibilityIdentifier: "homeFeelingLuckyProgressView")
+                as? UIActivityIndicatorView
+        )
+
+        luckyButton.sendActions(for: .touchUpInside)
+        luckyButton.sendActions(for: .touchUpInside)
+        drainAnimations(0.01)
+
+        XCTAssertFalse(luckyButton.isEnabled)
+        XCTAssertTrue(progressView.isAnimating)
+        XCTAssertEqual(luckyButton.accessibilityLabel, L10n.Home.feelingLuckyLoading)
+        XCTAssertFalse(collectionView.isUserInteractionEnabled)
+        XCTAssertEqual(router.showQuestionCallCount, 0)
+        XCTAssertTrue(viewController.cardSlideTransitionSourceView === luckyButton)
+        XCTAssertNotNil(releaseDelay)
+
+        QuizFactory.shared.questionsCount = 10
+        releaseDelay?()
+        drainAnimations(0.01)
+
+        XCTAssertEqual(router.showQuestionCallCount, 1)
+        XCTAssertTrue(progressView.isAnimating)
+        XCTAssertEqual(QuizFactory.shared.questionsCount, 5)
+    }
+
+    func testFeelingLuckyCancellationRestoresHomeAndIgnoresStaleDelayCompletion() throws {
+        QuizFactory.shared.themes = [makeTheme(name: "Музыка", questionCount: 15)]
+        var releaseDelay: (() -> Void)?
+        let viewController = QuizViewController(
+            randomThemeIDProvider: { _ in "music" },
+            feelingLuckyMinimumFeedbackDelay: {
+                await withCheckedContinuation { continuation in
+                    releaseDelay = { continuation.resume() }
+                }
+            }
+        )
+        let router = HomeRouterSpy()
+        viewController.router = router
+        let window = UIWindow(frame: CGRect(x: 0, y: 0, width: 390, height: 844))
+        window.rootViewController = viewController
+        window.makeKeyAndVisible()
+        window.layoutIfNeeded()
+        testWindows.append(window)
+        drainAnimations(0.01)
+
+        let luckyButton = try XCTUnwrap(
+            viewController.view.descendant(withAccessibilityIdentifier: "homeFeelingLuckyButton") as? UIButton
+        )
+        let progressView = try XCTUnwrap(
+            luckyButton.descendant(withAccessibilityIdentifier: "homeFeelingLuckyProgressView")
+                as? UIActivityIndicatorView
+        )
+        let collectionView = try XCTUnwrap(
+            viewController.view.descendant(withAccessibilityIdentifier: "homeThemesCollectionView")
+                as? UICollectionView
+        )
+        let settingsButton = try XCTUnwrap(
+            viewController.view.descendant(withAccessibilityIdentifier: "homeSettingsButton") as? UIButton
+        )
+
+        luckyButton.sendActions(for: .touchUpInside)
+        drainAnimations(0.01)
+        XCTAssertNotNil(releaseDelay)
+        XCTAssertTrue(progressView.isAnimating)
+
+        viewController.quizFlowWillReturnToThemes()
+
+        XCTAssertTrue(luckyButton.isEnabled)
+        XCTAssertFalse(progressView.isAnimating)
+        XCTAssertEqual(luckyButton.accessibilityLabel, L10n.Home.feelingLucky)
+        XCTAssertTrue(collectionView.isUserInteractionEnabled)
+        XCTAssertTrue(settingsButton.isEnabled)
+        XCTAssertEqual(router.showQuestionCallCount, 0)
+
+        releaseDelay?()
+        drainAnimations(0.01)
+
+        XCTAssertEqual(router.showQuestionCallCount, 0)
+        XCTAssertTrue(luckyButton.isEnabled)
+        XCTAssertFalse(progressView.isAnimating)
+    }
+
+    func testFeelingLuckyRejectsProviderResultOutsideEligibleThemes() throws {
+        QuizFactory.shared.themes = [
+            makeTheme(name: "Музыка", questionCount: 4),
+            makeTheme(name: "Технологии", questionCount: 5)
+        ]
+        let viewController = QuizViewController(randomThemeIDProvider: { _ in "music" })
+        let router = HomeRouterSpy()
+        viewController.router = router
+        let window = UIWindow(frame: CGRect(x: 0, y: 0, width: 390, height: 844))
+        window.rootViewController = viewController
+        window.makeKeyAndVisible()
+        window.layoutIfNeeded()
+        testWindows.append(window)
+        let luckyButton = try XCTUnwrap(
+            viewController.view.descendant(withAccessibilityIdentifier: "homeFeelingLuckyButton") as? UIButton
+        )
+
+        luckyButton.sendActions(for: .touchUpInside)
+
+        XCTAssertNil(QuizFactory.shared.chosenTheme)
+        XCTAssertEqual(router.showQuestionCallCount, 0)
+        let motivationLabel = try XCTUnwrap(
+            viewController.view.descendant(withAccessibilityIdentifier: "homeMotivationLabel") as? UILabel
+        )
+        XCTAssertEqual(motivationLabel.text, L10n.Question.unavailableMessage)
+    }
+
+    func testAppearanceRefreshDuringFlipCompletesReducerAndAllowsClose() throws {
+        QuizFactory.shared.themes = [makeTheme(name: "Музыка", questionCount: 15)]
+
+        let viewController = makeHomeViewController(in: CGRect(x: 0, y: 0, width: 390, height: 844))
+        let sourceButton = try XCTUnwrap(
+            viewController.view.descendant(withAccessibilityIdentifier: "music") as? UIButton
+        )
+        sourceButton.sendActions(for: .touchUpInside)
+        drainAnimations()
+        let infoButton = try XCTUnwrap(
+            viewController.view.descendant(withAccessibilityIdentifier: "expandedThemeCardInfoButton") as? UIButton
+        )
+
+        infoButton.sendActions(for: .touchUpInside)
+        viewController.applyLocalizedStrings()
+        drainAnimations(0.34)
+
+        let backButton = try XCTUnwrap(
+            viewController.view.descendant(withAccessibilityIdentifier: "descriptionBackButton") as? UIButton
+        )
+        backButton.sendActions(for: .touchUpInside)
+        drainAnimations(0.34)
+        let closeButton = try XCTUnwrap(
+            viewController.view.descendant(withAccessibilityIdentifier: "expandedThemeCardCloseButton") as? UIButton
+        )
+        closeButton.sendActions(for: .touchUpInside)
+        drainAnimations()
+
+        XCTAssertNil(
+            viewController.view.descendant(withAccessibilityIdentifier: "homeExpandedThemeCardBackdrop")
+        )
+    }
+
+    func testExpandedThemeBackDisablesStartWhenNoSupportedCountIsAvailable() throws {
+        QuizFactory.shared.themes = [makeTheme(name: "Музыка", questionCount: 4)]
+
+        let viewController = makeHomeViewController(in: CGRect(x: 0, y: 0, width: 390, height: 844))
+        let sourceButton = try XCTUnwrap(
+            viewController.view.descendant(withAccessibilityIdentifier: "music") as? UIButton
+        )
+        sourceButton.sendActions(for: .touchUpInside)
+        drainAnimations()
+        let infoButton = try XCTUnwrap(
+            viewController.view.descendant(withAccessibilityIdentifier: "expandedThemeCardInfoButton") as? UIButton
+        )
+        infoButton.sendActions(for: .touchUpInside)
+        drainAnimations(0.34)
+
+        let unavailableLabel = try XCTUnwrap(
+            viewController.view.descendant(withAccessibilityIdentifier: "expandedThemeCardUnavailableLabel") as? UILabel
+        )
+        let startButton = try XCTUnwrap(
+            viewController.view.descendant(withAccessibilityIdentifier: "descriptionStartButton") as? UIButton
+        )
+        XCTAssertFalse(unavailableLabel.isHidden)
+        XCTAssertEqual(unavailableLabel.text, L10n.Question.unavailableMessage)
+        XCTAssertFalse(startButton.isEnabled)
+    }
+
+    func testThemeCardPrepareForReuseRestoresVisibleInteractiveState() {
+        let cell = ThemeCardCollectionViewCell(frame: CGRect(x: 0, y: 0, width: 160, height: 160))
+        let theme = makeTheme(name: "Музыка", questionCount: 5)
+        let appearance = AppAppearanceStore.shared.appearance(compatibleWith: .current)
+        cell.configure(theme: theme, appearance: appearance, isSourceHidden: true)
+
+        XCTAssertTrue(cell.actionButton.isHidden)
+        XCTAssertFalse(cell.actionButton.isUserInteractionEnabled)
+        XCTAssertEqual(cell.layer.shadowOpacity, 0)
+
+        cell.prepareForReuse()
+
+        XCTAssertFalse(cell.actionButton.isHidden)
+        XCTAssertTrue(cell.actionButton.isUserInteractionEnabled)
+        XCTAssertNil(cell.actionButton.accessibilityIdentifier)
+        XCTAssertEqual(cell.actionButton.transform, .identity)
+        XCTAssertEqual(cell.actionButton.alpha, 1)
     }
 
     func testHomeScreenShowsUnavailableCopyWhenThemesAreEmpty() {
@@ -718,6 +3361,14 @@ final class HomeScreenVisualStateTests: XCTestCase {
             collectionViewLayout: layout
         )
         collectionView.register(UICollectionViewCell.self, forCellWithReuseIdentifier: "themeCell")
+        collectionView.register(
+            ThemeCardCollectionViewCell.self,
+            forCellWithReuseIdentifier: ThemeCardCollectionViewCell.reuseIdentifier
+        )
+        collectionView.register(
+            StatisticsCardCollectionViewCell.self,
+            forCellWithReuseIdentifier: StatisticsCardCollectionViewCell.reuseIdentifier
+        )
         return collectionView
     }
 
@@ -729,6 +3380,33 @@ final class HomeScreenVisualStateTests: XCTestCase {
         window.layoutIfNeeded()
         testWindows.append(window)
         return viewController
+    }
+
+    private func makeHostedExpandedThemeCard(
+        motionProvider: HomeThemeCardMotionProviding,
+        reduceMotionProvider: @escaping () -> Bool = { false }
+    ) -> ExpandedThemeCardView {
+        let card = ExpandedThemeCardView(
+            frame: CGRect(x: 20, y: 126, width: 350, height: 518)
+        )
+        card.reduceMotionProvider = reduceMotionProvider
+        card.deviceParallaxEnabledProvider = { true }
+        card.deviceMotionProvider = motionProvider
+        card.configure(
+            theme: makeTheme(name: "Музыка", questionCount: 5),
+            appearance: SnapshotSupport.appearance(designStyle: .clean),
+            availableQuestionCounts: [5],
+            selectedQuestionCount: 5
+        )
+
+        let host = UIViewController()
+        host.view.addSubview(card)
+        let window = UIWindow(frame: CGRect(x: 0, y: 0, width: 390, height: 844))
+        window.rootViewController = host
+        window.makeKeyAndVisible()
+        window.layoutIfNeeded()
+        testWindows.append(window)
+        return card
     }
 
     private func makeStatisticsStore(
@@ -748,7 +3426,11 @@ final class HomeScreenVisualStateTests: XCTestCase {
         return store
     }
 
-    private func makeTheme(name: String) -> QuizTheme {
+    private func makeTheme(
+        name: String,
+        questionCount: Int = 0,
+        description: String = "Synthetic home-screen test theme"
+    ) -> QuizTheme {
         let id: String
         switch name {
         case "Музыка":
@@ -762,7 +3444,40 @@ final class HomeScreenVisualStateTests: XCTestCase {
         default:
             id = name
         }
-        return QuizTheme(id: id, theme: name, themeDescription: "Synthetic home-screen test theme", questions: [])
+        let questions = (0..<questionCount).map { index in
+            QuizQuestion(
+                question: "Synthetic question \(index)?",
+                answers: ["A", "B", "C", "D"],
+                correctAnswer: "A"
+            )
+        }
+        return QuizTheme(
+            id: id,
+            theme: name,
+            themeDescription: description,
+            questions: questions
+        )
+    }
+
+    private func hitView(in rootView: UIView, for control: UIControl) -> UIView? {
+        let center = CGPoint(x: control.bounds.midX, y: control.bounds.midY)
+        return rootView.hitTest(control.convert(center, to: rootView), with: nil)
+    }
+
+    private func parallaxPanGestureRecognizer(in view: UIView) -> UIPanGestureRecognizer? {
+        if let recognizer = view.gestureRecognizers?
+            .compactMap({ $0 as? UIPanGestureRecognizer })
+            .first(where: { $0.name?.contains("ParallaxPan") == true }) {
+            return recognizer
+        }
+
+        return view.subviews.lazy.compactMap {
+            self.parallaxPanGestureRecognizer(in: $0)
+        }.first
+    }
+
+    private func drainAnimations(_ duration: TimeInterval = 0.4) {
+        RunLoop.main.run(until: Date().addingTimeInterval(duration))
     }
 
     private func useDesignStyle(_ designStyle: AppDesignStyle) {
@@ -776,6 +3491,7 @@ final class HomeScreenVisualStateTests: XCTestCase {
         QuizFactory.shared.startup1st = false
         UserDefaults.standard.removeObject(forKey: AppAppearanceStore.Keys.designStyle)
         UserDefaults.standard.removeObject(forKey: AppAppearanceStore.Keys.cleanColorScheme)
+        UserDefaults.standard.removeObject(forKey: AppAppearanceStore.Keys.backgroundStyle)
     }
 
     private func assertColor(_ actual: UIColor?, equals expected: UIColor, file: StaticString = #filePath, line: UInt = #line) {
@@ -809,6 +3525,35 @@ final class HomeScreenVisualStateTests: XCTestCase {
     }
 }
 
+private final class HomeThemeCardMotionProviderFake: HomeThemeCardMotionProviding {
+    let isAvailable: Bool
+    private(set) var startCallCount = 0
+    private(set) var stopCallCount = 0
+    private(set) var isStarted = false
+
+    private var receive: ((HomeThemeCardParallaxInput) -> Void)?
+
+    init(isAvailable: Bool = true) {
+        self.isAvailable = isAvailable
+    }
+
+    func start(receive: @escaping (HomeThemeCardParallaxInput) -> Void) {
+        startCallCount += 1
+        isStarted = true
+        self.receive = receive
+    }
+
+    func stop() {
+        stopCallCount += 1
+        isStarted = false
+        receive = nil
+    }
+
+    func send(_ input: HomeThemeCardParallaxInput) {
+        receive?(input)
+    }
+}
+
 private final class ThemeCollectionDelegateSpy: ThemeCollectionDelegate {
     private(set) var selectedThemeIDs: [String] = []
     private(set) var aiThemeTapCount = 0
@@ -839,12 +3584,27 @@ private final class ThemeCollectionDelegateSpy: ThemeCollectionDelegate {
 
 }
 
+private final class HomeAnalyticsTrackingSpy: AnalyticsTracking {
+    private(set) var events: [AnalyticsEvent] = []
+
+    func track(_ event: AnalyticsEvent) {
+        events.append(event)
+    }
+
+    func reportOperationalError(_ error: Error, context: AnalyticsErrorContext) {}
+
+    func reset() {
+        events.removeAll()
+    }
+}
+
 private final class HomeRouterSpy: QuizRouting {
+    var onShowQuestion: (() -> Void)?
+
     private(set) var showDescriptionCallCount = 0
     private(set) var showQuestionCallCount = 0
     private(set) var showResultCallCount = 0
     private(set) var showStatisticsCallCount = 0
-    private(set) var showAIThemeCreationCallCount = 0
     private(set) var showSettingsCallCount = 0
     private(set) var closeDescriptionCallCount = 0
     private(set) var closeStatisticsCallCount = 0
@@ -853,10 +3613,12 @@ private final class HomeRouterSpy: QuizRouting {
     private(set) var returnToThemesCallCount = 0
 
     func showDescription() { showDescriptionCallCount += 1 }
-    func showQuestion() { showQuestionCallCount += 1 }
+    func showQuestion() {
+        onShowQuestion?()
+        showQuestionCallCount += 1
+    }
     func showResult(_ result: QuizResultState) { showResultCallCount += 1 }
     func showStatistics() { showStatisticsCallCount += 1 }
-    func showAIThemeCreation() { showAIThemeCreationCallCount += 1 }
     func showSettings() { showSettingsCallCount += 1 }
     func closeDescription() { closeDescriptionCallCount += 1 }
     func closeStatistics() { closeStatisticsCallCount += 1 }

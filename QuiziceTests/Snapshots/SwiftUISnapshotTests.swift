@@ -33,44 +33,85 @@ final class SwiftUISnapshotTests: XCTestCase {
         )
     }
 
-    func testAIThemeCreationViewSnapshot() {
+    func testFakeLaunchScreenSnapshot() {
+        SnapshotSupport.setUp(designStyle: .classic)
         let viewController = makeHostingController(
-            rootView: QuizAIThemeCreationView(service: MockAIQuizThemeService())
-        )
-
-        SnapshotSupport.assertScreen(viewController, named: "clean-ai-theme-creation")
-    }
-
-    func testAIThemeCreationCompactSnapshot() {
-        let viewController = makeHostingController(
-            rootView: QuizAIThemeCreationView(service: MockAIQuizThemeService())
+            rootView: FakeLaunchScreenView(
+                appearance: SnapshotSupport.appearance(designStyle: .classic),
+                holdDuration: 60
+            )
         )
 
         SnapshotSupport.assertScreen(
             viewController,
-            named: "clean-ai-theme-creation-iphone-se",
-            device: .iPhone8
+            named: "fake-launch-screen",
+            device: SnapshotSupport.iPhone17Pro
         )
     }
 
-    func testAIThemeCreationAccessibilitySnapshot() {
+    func testRadarFakeLaunchScreenSnapshot() {
+        SnapshotSupport.setUp(designStyle: .radar, cleanColorScheme: .dark)
         let viewController = makeHostingController(
-            rootView: QuizAIThemeCreationView(service: MockAIQuizThemeService())
+            rootView: FakeLaunchScreenView(
+                appearance: SnapshotSupport.appearance(
+                    designStyle: .radar,
+                    cleanColorScheme: .dark
+                ),
+                holdDuration: 60
+            )
         )
 
         SnapshotSupport.assertScreen(
             viewController,
-            named: "clean-ai-theme-creation-accessibility-xxxl",
-            contentSizeCategory: .accessibilityExtraExtraExtraLarge
+            named: "radar-fake-launch-screen",
+            device: SnapshotSupport.iPhone17Pro
+        )
+    }
+
+    func testCleanLightFakeLaunchScreenSnapshot() {
+        SnapshotSupport.setUp(designStyle: .clean, cleanColorScheme: .light)
+        let viewController = makeHostingController(
+            rootView: FakeLaunchScreenView(
+                appearance: SnapshotSupport.appearance(
+                    designStyle: .clean,
+                    cleanColorScheme: .light
+                ),
+                holdDuration: 60
+            )
+        )
+
+        SnapshotSupport.assertScreen(
+            viewController,
+            named: "clean-light-fake-launch-screen",
+            device: SnapshotSupport.iPhone17Pro
+        )
+    }
+
+    func testCleanDarkFakeLaunchScreenSnapshot() {
+        SnapshotSupport.setUp(designStyle: .clean, cleanColorScheme: .dark)
+        let viewController = makeHostingController(
+            rootView: FakeLaunchScreenView(
+                appearance: SnapshotSupport.appearance(
+                    designStyle: .clean,
+                    cleanColorScheme: .dark
+                ),
+                holdDuration: 60
+            )
+        )
+
+        SnapshotSupport.assertScreen(
+            viewController,
+            named: "clean-dark-fake-launch-screen",
+            device: SnapshotSupport.iPhone17Pro
         )
     }
 
     private func makeHostingController<Content: View>(rootView: Content) -> UIHostingController<Content> {
         let viewController = UIHostingController(rootView: rootView)
         viewController.loadViewIfNeeded()
-        AppAppearanceStore.shared
+        viewController.view.overrideUserInterfaceStyle = AppAppearanceStore.shared
             .appearance(compatibleWith: viewController.traitCollection)
-            .applyBackground(to: viewController.view)
+            .resolvedInterfaceStyle
         return viewController
     }
 }

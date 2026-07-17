@@ -4,6 +4,10 @@
 "common.no" = "Nein";
 "common.start" = "Starten";
 "common.yes" = "Ja";
+"home.background_style.switcher" = "Hintergrundstil";
+"home.background_style.original" = "Original";
+"home.background_style.grid_4x4" = "4×4-Netz";
+"home.background_style.grid_5x5" = "5×5-Netz";
 "description.default_theme_description" = "Themenbeschreibung nicht verfügbar";
 "description.default_theme_name" = "Kein Thema";
 "description.question_count" = "Anzahl der Fragen";
@@ -44,6 +48,7 @@
 "home.exit_alert.message" = "Möchtest du wirklich beenden?";
 "home.feeling_lucky" = "Auf gut Glück";
 "home.feeling_lucky.accessibility_hint" = "Startet ein zufälliges Thema";
+"home.feeling_lucky.loading" = "Fragen werden ausgewählt";
 "home.statistics.accessibility_hint" = "Öffnet die Gesamtstatistik abgeschlossener Quizze";
 "home.statistics.accessibility_label" = "Gesamtstatistik";
 "home.statistics.accessibility_value_format" = "Gespielt: %d. Genauigkeit: %d%%";
@@ -52,6 +57,9 @@
 "home.statistics.played_short" = "Gespielt";
 "home.themes_collection.accessibility_label" = "Quizthemen";
 "home.unavailable_themes" = "Noch keine Themen verfügbar";
+"theme.card.close_accessibility_label" = "Themenkarte schließen";
+"theme.card.show_description_accessibility_label" = "Themenbeschreibung anzeigen";
+"theme.card.show_front_accessibility_label" = "Zur Vorderseite der Themenkarte zurückkehren";
 "home.welcome" = "Willkommen bei";
 "home.motivation_prompt.1" = "Wähle ein Thema\nund leg los";
 "home.motivation_prompt.2" = "Mal sehen,\nwas du noch weißt";
@@ -132,5 +140,5 @@
 "statistics.subtitle.empty" = "Starte mit deinem ersten Quiz — die Statistik erscheint automatisch";
 "statistics.subtitle.with_stats" = "Dein Fortschritt in abgeschlossenen Quizzen";
 "statistics.title" = "Statistik";
-"theme.card.accessibility_hint" = "Startet ein Quiz zu diesem Thema";
+"theme.card.accessibility_hint" = "Öffnet die Karte zu diesem Thema";
 "theme.card.accessibility_label_format" = "%@, Quizthema";
