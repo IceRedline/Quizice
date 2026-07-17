@@ -493,16 +493,59 @@ final class QuizFlowCoordinatorAdditionalTests: XCTestCase {
             with: .failure(YandexAIQuizThemeServiceError.network(.timedOut))
         )
 
-        try await waitUntil { harness.viewController.presentedViewController is UIAlertController }
-        let alert = try XCTUnwrap(
-            harness.viewController.presentedViewController as? UIAlertController
-        )
+        try await waitUntil {
+            harness.viewController.presentedViewController?.modalPresentationStyle == .overFullScreen
+        }
+        let alert = try XCTUnwrap(harness.viewController.presentedViewController)
+        alert.view.layoutIfNeeded()
         XCTAssertEqual(controls.promptEditor.text, prompt)
         XCTAssertTrue(controls.submitButton.isEnabled)
-        XCTAssertEqual(
-            Set(alert.actions.compactMap(\.title)),
-            Set([L10n.AITheme.retry, L10n.AITheme.editTheme])
+        XCTAssertTrue(alert.isModalInPresentation)
+        XCTAssertTrue(alert.view.accessibilityViewIsModal)
+        XCTAssertEqual(harness.router.showDescriptionCallCount, 0)
+        XCTAssertNil(harness.session.chosenTheme)
+    }
+
+    func testReturningToThemesDismissesPresentedInlineAIAlert() async throws {
+        let service = ControllableRoutingAIQuizThemeService()
+        let harness = try makeInlineAIHarness(service: service)
+        defer { harness.dispose() }
+        let controls = try revealInlineAIBack(
+            in: harness.viewController,
+            prompt: "Архитектура"
         )
+
+        controls.submitButton.sendActions(for: .touchUpInside)
+        try await waitUntil { service.generatedConfigurations.count == 1 }
+        service.resolveNext(
+            with: .failure(YandexAIQuizThemeServiceError.network(.timedOut))
+        )
+        try await waitUntil {
+            harness.viewController.presentedViewController?.modalPresentationStyle == .overFullScreen
+        }
+
+        harness.viewController.quizFlowWillReturnToThemes()
+
+        try await waitUntil { harness.viewController.presentedViewController == nil }
+        XCTAssertNil(
+            descendant(
+                in: harness.viewController.view,
+                accessibilityIdentifier: "homeExpandedAIThemeCard"
+            )
+        )
+        XCTAssertNil(
+            descendant(
+                in: harness.viewController.view,
+                accessibilityIdentifier: "homeExpandedThemeCardBackdrop"
+            )
+        )
+        let collectionView = try XCTUnwrap(
+            descendant(
+                in: harness.viewController.view,
+                accessibilityIdentifier: "homeThemesCollectionView"
+            ) as? UICollectionView
+        )
+        XCTAssertTrue(collectionView.isUserInteractionEnabled)
         XCTAssertEqual(harness.router.showDescriptionCallCount, 0)
         XCTAssertNil(harness.session.chosenTheme)
     }

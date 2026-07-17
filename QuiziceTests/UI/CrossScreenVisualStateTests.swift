@@ -871,40 +871,75 @@ final class CrossScreenVisualStateTests: XCTestCase {
         XCTAssertTrue(nextButton.isEnabled)
     }
 
-    func testQuestionExitCancellationKeepsQuizAndResumesTimer() throws {
-        let (viewController, presenter, router, window) = makeExitConfirmationHarness()
+    func testQuestionExitCancellationKeepsQuizAndResumesTimer() async throws {
+        let (viewController, presenter, router, analytics, window) = makeExitConfirmationHarness()
         defer { window.isHidden = true }
 
         let closeButton = try XCTUnwrap(viewController.view.descendant(withAccessibilityIdentifier: "questionCloseButton") as? UIButton)
         closeButton.sendActions(for: .touchUpInside)
+        closeButton.sendActions(for: .touchUpInside)
+        let overlay = viewController.makeExitConfirmationAlertOverlay()
 
-        let alert = try XCTUnwrap(viewController.presentedViewController as? UIAlertController)
-        XCTAssertEqual(alert.title, L10n.Question.exitAlertTitle)
-        XCTAssertEqual(alert.message, L10n.Question.exitAlertMessage)
-        XCTAssertEqual(alert.actions.map(\.title), [L10n.Common.no, L10n.Common.exit])
+        let alert = try XCTUnwrap(viewController.presentedViewController)
+        XCTAssertFalse(alert is UIAlertController)
+        XCTAssertEqual(alert.modalPresentationStyle, .overFullScreen)
+        XCTAssertTrue(alert.isModalInPresentation)
+        XCTAssertTrue(alert.view.accessibilityViewIsModal)
+        XCTAssertEqual(overlay.title, L10n.Question.exitAlertTitle)
+        XCTAssertEqual(overlay.message, L10n.Question.exitAlertMessage)
+        XCTAssertEqual(overlay.primaryAction.title, L10n.Common.exit)
+        XCTAssertEqual(overlay.primaryAction.emphasis, .destructive)
+        XCTAssertEqual(overlay.secondaryAction?.title, L10n.Common.no)
+        XCTAssertEqual(overlay.secondaryAction?.emphasis, .secondary)
         XCTAssertEqual(presenter.pauseTimerCallCount, 1)
 
-        viewController.cancelExitConfirmation()
+        try XCTUnwrap(overlay.secondaryAction).action()
 
+        try await waitUntil { viewController.presentedViewController == nil }
+        XCTAssertNil(viewController.presentedViewController)
         XCTAssertEqual(presenter.resumeTimerCallCount, 1)
         XCTAssertEqual(presenter.resetGameProgressCallCount, 0)
         XCTAssertEqual(router.closeQuestionCallCount, 0)
+        XCTAssertEqual(analytics.exitEventNames, ["quiz_exit_requested", "quiz_exit_cancelled"])
     }
 
-    func testQuestionExitConfirmationResetsProgressAndReturnsHome() throws {
-        let (viewController, presenter, router, window) = makeExitConfirmationHarness()
+    func testQuestionExitConfirmationResetsProgressAndReturnsHome() async throws {
+        let (viewController, presenter, router, analytics, window) = makeExitConfirmationHarness()
         defer { window.isHidden = true }
 
         let closeButton = try XCTUnwrap(viewController.view.descendant(withAccessibilityIdentifier: "questionCloseButton") as? UIButton)
         closeButton.sendActions(for: .touchUpInside)
-        XCTAssertNotNil(viewController.presentedViewController as? UIAlertController)
+        let overlay = viewController.makeExitConfirmationAlertOverlay()
+        XCTAssertNotNil(viewController.presentedViewController)
 
-        viewController.confirmExitAndReturnToThemes()
+        overlay.primaryAction.action()
+        overlay.primaryAction.action()
 
+        try await waitUntil { viewController.presentedViewController == nil }
+        XCTAssertNil(viewController.presentedViewController)
         XCTAssertEqual(presenter.pauseTimerCallCount, 1)
         XCTAssertEqual(presenter.resumeTimerCallCount, 0)
         XCTAssertEqual(presenter.resetGameProgressCallCount, 1)
         XCTAssertEqual(router.closeQuestionCallCount, 1)
+        XCTAssertEqual(analytics.exitEventNames, ["quiz_exit_requested", "quiz_abandoned"])
+    }
+
+    func testQuestionExitAccessibilityEscapeCancelsInsteadOfAbandoning() async throws {
+        let (viewController, presenter, router, analytics, window) = makeExitConfirmationHarness()
+        defer { window.isHidden = true }
+
+        let closeButton = try XCTUnwrap(viewController.view.descendant(withAccessibilityIdentifier: "questionCloseButton") as? UIButton)
+        closeButton.sendActions(for: .touchUpInside)
+        let overlay = viewController.makeExitConfirmationAlertOverlay()
+
+        overlay.onEscape()
+
+        try await waitUntil { viewController.presentedViewController == nil }
+        XCTAssertNil(viewController.presentedViewController)
+        XCTAssertEqual(presenter.resumeTimerCallCount, 1)
+        XCTAssertEqual(presenter.resetGameProgressCallCount, 0)
+        XCTAssertEqual(router.closeQuestionCallCount, 0)
+        XCTAssertEqual(analytics.exitEventNames, ["quiz_exit_requested", "quiz_exit_cancelled"])
     }
 
     func testRadarQuestionFeedbackKeepsCorrectAnswerBrightAndDimsOtherAnswers() throws {
@@ -1278,6 +1313,7 @@ final class CrossScreenVisualStateTests: XCTestCase {
         viewController: QuizQuestionViewController,
         presenter: ExitConfirmationPresenterSpy,
         router: CrossScreenRouterSpy,
+        analytics: ExitConfirmationAnalyticsSpy,
         window: UIWindow
     ) {
         QuizFactory.shared.chosenTheme = makeQuestionTheme()
@@ -1285,7 +1321,9 @@ final class CrossScreenVisualStateTests: XCTestCase {
 
         let viewController = QuizQuestionViewController()
         let router = CrossScreenRouterSpy()
+        let analytics = ExitConfirmationAnalyticsSpy()
         viewController.router = router
+        viewController.analytics = analytics
         viewController.loadViewIfNeeded()
         viewController.presenter?.stopTimer()
 
@@ -1298,7 +1336,21 @@ final class CrossScreenVisualStateTests: XCTestCase {
         window.makeKeyAndVisible()
         viewController.view.frame = window.bounds
         viewController.view.layoutIfNeeded()
-        return (viewController, presenter, router, window)
+        return (viewController, presenter, router, analytics, window)
+    }
+
+    private func waitUntil(
+        timeout: TimeInterval = 2,
+        condition: @escaping @MainActor () -> Bool
+    ) async throws {
+        let deadline = Date().addingTimeInterval(timeout)
+        while !condition() {
+            guard Date() < deadline else {
+                XCTFail("Timed out waiting for cross-screen state")
+                return
+            }
+            try await Task.sleep(nanoseconds: 10_000_000)
+        }
     }
 
     private func assertColor(_ actual: UIColor?, equals expected: UIColor, file: StaticString = #filePath, line: UInt = #line) {
@@ -1623,6 +1675,22 @@ private final class ExitConfirmationPresenterSpy: QuizQuestionPresenterProtocol 
     func checkAnswer(optionID: String) {}
     func updateQuizState(isCorrect: Bool) {}
     func resetGameProgress() { resetGameProgressCallCount += 1 }
+}
+
+private final class ExitConfirmationAnalyticsSpy: AnalyticsTracking {
+    private(set) var events: [AnalyticsEvent] = []
+
+    var exitEventNames: [String] {
+        events.map(\.name).filter {
+            $0 == "quiz_exit_requested" || $0 == "quiz_exit_cancelled" || $0 == "quiz_abandoned"
+        }
+    }
+
+    func track(_ event: AnalyticsEvent) {
+        events.append(event)
+    }
+
+    func reportOperationalError(_ error: Error, context: AnalyticsErrorContext) {}
 }
 
 private extension UIView {
