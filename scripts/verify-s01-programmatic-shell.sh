@@ -13,12 +13,9 @@ readonly INFO_PLIST="Quizice/Info.plist"
 readonly PROJECT_FILE="Quizice.xcodeproj/project.pbxproj"
 readonly MAIN_STORYBOARD="Quizice/Base.lproj/Main.storyboard"
 readonly LAUNCH_SCREEN_STORYBOARD="Quizice/Base.lproj/LaunchScreen.storyboard"
-readonly RUNTIME_SWIFT_FILES=(
-  "Quizice/SceneDelegate.swift"
-  "Quizice/QuizViewController.swift"
-  "Quizice/QuizDescriptionViewController.swift"
-  "Quizice/QuizQuestionViewController.swift"
-  "Quizice/QuizResultViewController.swift"
+readonly RUNTIME_SWIFT_ROOTS=(
+  "Quizice/App"
+  "Quizice/Features"
 )
 readonly STORYBOARD_PATTERNS=(
   'UIStoryboard('
@@ -63,20 +60,25 @@ if ! grep -Fq 'INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen;' "$PROJECT_F
   fail "$PROJECT_FILE no longer configures LaunchScreen as the launch storyboard."
 fi
 
-for source_file in "${RUNTIME_SWIFT_FILES[@]}"; do
-  require_file "$source_file"
+for source_root in "${RUNTIME_SWIFT_ROOTS[@]}"; do
+  [[ -d "$source_root" ]] || fail "Required runtime source directory is missing: $source_root"
+done
+
+while IFS= read -r -d '' source_file; do
   for pattern in "${STORYBOARD_PATTERNS[@]}"; do
     if grep -Fq "$pattern" "$source_file"; then
       fail "$source_file still contains storyboard runtime dependency: $pattern"
     fi
   done
-done
+done < <(find "${RUNTIME_SWIFT_ROOTS[@]}" -type f -name '*.swift' -print0)
 
 printf 'Static storyboard dependency checks passed. Running integration build...\n'
 xcodebuild \
+  -quiet \
   -project Quizice.xcodeproj \
   -scheme Quizice \
   -destination 'generic/platform=iOS Simulator' \
+  CODE_SIGNING_ALLOWED=NO \
   build
 
 printf '✅ S01 programmatic UIKit shell verification passed.\n'

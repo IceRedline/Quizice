@@ -15,16 +15,18 @@ cd "$PROJECT_ROOT"
 
 readonly S02_VERIFIER="./scripts/verify-s02-quiz-flow-contracts.sh"
 readonly PROJECT_FILE="Quizice.xcodeproj/project.pbxproj"
-readonly STATISTICS_VIEW_CONTROLLER="Quizice/StatisticsViewController.swift"
-readonly STATISTICS_STORE="Quizice/Services/StatisticsStore.swift"
-readonly STATISTICS_SUMMARY="Quizice/Models/StatisticsSummary.swift"
-readonly THEMES_SERVICE="Quizice/Services/ThemesCollectionService.swift"
-readonly STATISTICS_CARD_CELL="Quizice/StatisticsCardCollectionViewCell.swift"
-readonly EXPANDED_STATISTICS_CARD="Quizice/ExpandedStatisticsCardView.swift"
-readonly THEME_DELEGATE="Quizice/Services/ThemeCollectionDelegate.swift"
-readonly QUIZ_VIEW_CONTROLLER="Quizice/QuizViewController.swift"
-readonly RESULT_VIEW_CONTROLLER="Quizice/QuizResultViewController.swift"
-readonly SCENE_DELEGATE="Quizice/SceneDelegate.swift"
+readonly STATISTICS_VIEW_CONTROLLER="Quizice/Features/Statistics/UI/StatisticsViewController.swift"
+readonly STATISTICS_STORE="Quizice/Core/Persistence/StatisticsStore.swift"
+readonly STATISTICS_SUMMARY="Quizice/Domain/Statistics/StatisticsSummary.swift"
+readonly THEMES_SERVICE="Quizice/Features/Home/Collection/ThemesCollectionService.swift"
+readonly STATISTICS_CARD_CELL="Quizice/Features/Home/Cards/StatisticsCardCollectionViewCell.swift"
+readonly EXPANDED_STATISTICS_CARD="Quizice/Features/Home/Cards/ExpandedStatisticsCardView.swift"
+readonly THEME_DELEGATE="Quizice/Features/Home/Contracts/ThemeCollectionDelegate.swift"
+readonly QUIZ_VIEW_LAYOUT="Quizice/Features/Home/Presentation/QuizViewController+Layout.swift"
+readonly QUIZ_VIEW_ACTIONS="Quizice/Features/Home/Presentation/QuizViewController+Actions.swift"
+readonly QUIZ_VIEW_PRESENTATION_ROOT="Quizice/Features/Home/Presentation"
+readonly RESULT_VIEW_CONTROLLER="Quizice/Features/QuizResult/UI/QuizResultViewController.swift"
+readonly QUIZ_FLOW_COORDINATOR="Quizice/App/Navigation/QuizFlowCoordinator.swift"
 
 fail() {
   printf '❌ S03 statistics screen contract failed: %s\n' "$*" >&2
@@ -49,6 +51,17 @@ require_fixed_string() {
   require_file "$path"
   if ! grep -Fq "$pattern" "$path"; then
     fail "$message ($path must contain: $pattern)"
+  fi
+}
+
+reject_fixed_string_in_directory() {
+  local directory="$1"
+  local pattern="$2"
+  local message="$3"
+
+  [[ -d "$directory" ]] || fail "Required source directory is missing: $directory"
+  if grep -RFq --include='*.swift' "$pattern" "$directory"; then
+    fail "$message ($directory contains: $pattern)"
   fi
 }
 
@@ -91,7 +104,13 @@ require_executable "$S02_VERIFIER"
 "$S02_VERIFIER"
 
 printf 'Checking S03 iOS build contract...\n'
-xcodebuild -project Quizice.xcodeproj -scheme Quizice -destination 'generic/platform=iOS Simulator' build
+xcodebuild \
+  -quiet \
+  -project Quizice.xcodeproj \
+  -scheme Quizice \
+  -destination 'generic/platform=iOS Simulator' \
+  CODE_SIGNING_ALLOWED=NO \
+  build
 
 printf 'Checking statistics source files and project membership...\n'
 require_file "$STATISTICS_VIEW_CONTROLLER"
@@ -114,7 +133,7 @@ require_extended_regex "$PROJECT_FILE" 'ExpandedStatisticsCardView\.swift in Sou
 printf 'Checking statistics store safety markers...\n'
 require_fixed_string "$STATISTICS_STORE" 'guard totalQuestions > 0 else { return nil }' 'Statistics store must reject zero-question attempts before persistence'
 require_fixed_string "$STATISTICS_STORE" 'min(max(correctAnswers, 0), sanitizedTotal)' 'Statistics store must clamp malformed correct-answer counts'
-require_fixed_string "$STATISTICS_STORE" 'userDefaults.removeObject(forKey: key)' 'Statistics store must recover from malformed stored attempt data'
+require_fixed_string "$STATISTICS_STORE" 'userDefaults.removeObject(forKey: storageKey)' 'Statistics store must recover from malformed stored attempt data'
 require_fixed_string "$STATISTICS_SUMMARY" 'guard totalQuestions > 0 else { return 0 }' 'Statistics summary percentage must guard empty totals'
 require_fixed_string "$STATISTICS_SUMMARY" 'static let empty' 'Statistics summary must expose an empty-state value'
 
@@ -126,15 +145,15 @@ require_fixed_string "$THEMES_SERVICE" 'static let lastItemBottomInset: CGFloat 
 require_fixed_string "$THEMES_SERVICE" 'height: Layout.statisticsCardHeight + Layout.lastItemBottomInset' 'Final collection item must include its own bottom spacing in its height'
 require_fixed_string "$STATISTICS_CARD_CELL" 'actionButton.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -Layout.bottomInset)' 'Statistics card must leave bottom spacing inside the final item'
 require_fixed_string "$THEMES_SERVICE" 'let twoColumnWidth = floor((availableWidth - Layout.itemSpacing) / 2)' 'Theme cards must use a two-column vertical grid width calculation'
-require_fixed_string "$QUIZ_VIEW_CONTROLLER" 'layout.scrollDirection = .vertical' 'Home collection must scroll vertically'
-require_fixed_string "$QUIZ_VIEW_CONTROLLER" 'private func updateCollectionScrollAvailability()' 'Home collection must update scroll behavior from rendered content size'
-require_fixed_string "$QUIZ_VIEW_CONTROLLER" 'themesCollectionView.alwaysBounceVertical = shouldScroll' 'Home collection must bounce vertically only when content does not fit'
-require_fixed_string "$QUIZ_VIEW_CONTROLLER" 'screenStackView = UIStackView(arrangedSubviews: [themesCollectionView])' 'Home collection must own the main vertical screen stack'
-require_fixed_string "$QUIZ_VIEW_CONTROLLER" 'rootView.addSubview(headerStackView)' 'Home motivation header must be present as an overlay above the root background'
-require_fixed_string "$QUIZ_VIEW_CONTROLLER" 'rootView.addSubview(screenStackView)' 'Home collection stack must be installed as a root-level scroll surface'
-require_fixed_string "$QUIZ_VIEW_CONTROLLER" 'screenStackView.bottomAnchor.constraint(equalTo: rootView.bottomAnchor)' 'Home collection stack must extend to the screen edge below the overlay header'
-require_fixed_string "$QUIZ_VIEW_CONTROLLER" 'screenStackView.layer.zPosition = Appearance.collectionLayerZPosition' 'Home collection must render above the motivation header while scrolling'
-require_fixed_string "$QUIZ_VIEW_CONTROLLER" 'headerStackView.layer.zPosition = Appearance.headerLayerZPosition' 'Home motivation header must keep an explicit lower layer order'
+require_fixed_string "$QUIZ_VIEW_LAYOUT" 'layout.scrollDirection = .vertical' 'Home collection must scroll vertically'
+require_fixed_string "$QUIZ_VIEW_LAYOUT" 'func updateCollectionScrollAvailability()' 'Home collection must update scroll behavior from rendered content size'
+require_fixed_string "$QUIZ_VIEW_LAYOUT" 'themesCollectionView.alwaysBounceVertical = shouldScroll' 'Home collection must bounce vertically only when content does not fit'
+require_fixed_string "$QUIZ_VIEW_LAYOUT" 'screenStackView = UIStackView(arrangedSubviews: [themesCollectionView])' 'Home collection must own the main vertical screen stack'
+require_fixed_string "$QUIZ_VIEW_LAYOUT" 'rootView.addSubview(headerStackView)' 'Home motivation header must be present as an overlay above the root background'
+require_fixed_string "$QUIZ_VIEW_LAYOUT" 'rootView.addSubview(screenStackView)' 'Home collection stack must be installed as a root-level scroll surface'
+require_fixed_string "$QUIZ_VIEW_LAYOUT" 'screenStackView.bottomAnchor.constraint(equalTo: rootView.bottomAnchor)' 'Home collection stack must extend to the screen edge below the overlay header'
+require_fixed_string "$QUIZ_VIEW_LAYOUT" 'screenStackView.layer.zPosition = Appearance.collectionLayerZPosition' 'Home collection must render above the motivation header while scrolling'
+require_fixed_string "$QUIZ_VIEW_LAYOUT" 'headerStackView.layer.zPosition = Appearance.headerLayerZPosition' 'Home motivation header must keep an explicit lower layer order'
 require_fixed_string "$THEMES_SERVICE" 'StatisticsCardCollectionViewCell.reuseIdentifier' 'Home collection must dequeue a dedicated reusable statistics card'
 require_fixed_string "$THEMES_SERVICE" 'isSourceHidden: isStatisticsPresented' 'Home collection must hide only the source statistics card while expanded'
 require_fixed_string "$STATISTICS_CARD_CELL" 'actionButton.accessibilityIdentifier = ThemesCollectionService.Content.statisticsAccessibilityID' 'Statistics card must expose a stable accessibility identifier'
@@ -142,14 +161,14 @@ require_fixed_string "$STATISTICS_CARD_CELL" 'actionButton.accessibilityLabel = 
 require_fixed_string "$STATISTICS_CARD_CELL" 'actionButton.accessibilityHint = L10n.Home.statisticsAccessibilityHint' 'Statistics card must explain its inline expansion action'
 require_fixed_string "$THEMES_SERVICE" 'delegate?.statisticsButtonTouchedUpInside(sender)' 'Statistics card tap must call the delegate callback'
 require_fixed_string "$THEME_DELEGATE" 'func statisticsButtonTouchedUpInside(_ sender: UIButton)' 'Theme collection delegate must expose the statistics callback'
-require_fixed_string "$QUIZ_VIEW_CONTROLLER" 'func statisticsButtonTouchedUpInside(_ sender: UIButton)' 'Home view controller must implement the statistics callback'
-require_fixed_string "$QUIZ_VIEW_CONTROLLER" 'action: .presentStatistics' 'Home statistics callback must present the statistics card inline'
-require_fixed_string "$QUIZ_VIEW_CONTROLLER" 'expandStatisticsCard(' 'Home must expand statistics over the shared full-screen backdrop'
-reject_fixed_string "$QUIZ_VIEW_CONTROLLER" 'router?.showStatistics()' 'Home statistics callback must not push the standalone statistics screen'
-require_fixed_string "$SCENE_DELEGATE" 'func showStatistics()' 'Coordinator routing protocol must expose statistics navigation'
-require_extended_regex "$SCENE_DELEGATE" 'let viewController = StatisticsViewController\(' 'Coordinator must instantiate the statistics screen'
-require_fixed_string "$SCENE_DELEGATE" 'viewController.router = self' 'Coordinator must inject routing into the statistics screen'
-require_fixed_string "$SCENE_DELEGATE" 'navigationController.pushViewController(viewController, animated: true)' 'Coordinator must push the statistics screen'
+require_fixed_string "$QUIZ_VIEW_ACTIONS" 'func statisticsButtonTouchedUpInside(_ sender: UIButton)' 'Home view controller must implement the statistics callback'
+require_fixed_string "$QUIZ_VIEW_ACTIONS" 'homeStore.send(.presentStatistics)' 'Home statistics callback must present the statistics card inline'
+require_fixed_string "$QUIZ_VIEW_ACTIONS" 'expandStatisticsCard(' 'Home must expand statistics over the shared full-screen backdrop'
+reject_fixed_string_in_directory "$QUIZ_VIEW_PRESENTATION_ROOT" 'router?.showStatistics()' 'Home statistics callback must not push the standalone statistics screen'
+require_fixed_string "$QUIZ_FLOW_COORDINATOR" 'func showStatistics()' 'Coordinator routing protocol must expose statistics navigation'
+require_extended_regex "$QUIZ_FLOW_COORDINATOR" 'let viewController = StatisticsViewController\(' 'Coordinator must instantiate the statistics screen'
+require_fixed_string "$QUIZ_FLOW_COORDINATOR" 'viewController.router = self' 'Coordinator must inject routing into the statistics screen'
+require_fixed_string "$QUIZ_FLOW_COORDINATOR" 'navigationController.pushViewController(viewController, animated: true)' 'Coordinator must push the statistics screen'
 require_fixed_string "$EXPANDED_STATISTICS_CARD" 'accessibilityViewIsModal = true' 'Expanded statistics card must be accessibility-modal'
 require_fixed_string "$EXPANDED_STATISTICS_CARD" 'StatisticsPresentation.MetricID.playedQuizzes' 'Expanded statistics card must render all shared aggregate metrics'
 require_fixed_string "$EXPANDED_STATISTICS_CARD" 'override func accessibilityPerformEscape() -> Bool' 'Expanded statistics card must support accessibility escape'
@@ -161,7 +180,7 @@ require_fixed_string "$STATISTICS_VIEW_CONTROLLER" 'rootView.accessibilityLabel 
 require_fixed_string "$STATISTICS_VIEW_CONTROLLER" 'static let backButton = "statisticsBackButton"' 'Statistics screen must define a stable back-button accessibility identifier'
 require_fixed_string "$STATISTICS_VIEW_CONTROLLER" 'backButton.accessibilityIdentifier = AccessibilityID.backButton' 'Statistics screen must expose an explicit back button when the navigation bar is hidden'
 require_fixed_string "$STATISTICS_VIEW_CONTROLLER" 'router?.closeStatistics()' 'Statistics back button must return through coordinator routing'
-require_fixed_string "$SCENE_DELEGATE" 'func closeStatistics()' 'Coordinator routing protocol must expose statistics close navigation'
+require_fixed_string "$QUIZ_FLOW_COORDINATOR" 'func closeStatistics()' 'Coordinator routing protocol must expose statistics close navigation'
 require_fixed_string "$STATISTICS_VIEW_CONTROLLER" 'titleLabel.accessibilityIdentifier = AccessibilityID.titleLabel' 'Statistics screen title must expose a stable accessibility identifier'
 require_fixed_string "$STATISTICS_VIEW_CONTROLLER" 'emptyStateLabel.accessibilityIdentifier = AccessibilityID.emptyStateLabel' 'Statistics empty state must expose a stable accessibility identifier'
 require_fixed_string "$STATISTICS_VIEW_CONTROLLER" 'rowAccessibilityIdentifier: AccessibilityID.playedQuizzesRow' 'Played-quizzes statistic row must expose a stable accessibility identifier'

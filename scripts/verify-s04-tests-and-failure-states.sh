@@ -36,16 +36,106 @@ readonly COMPONENT_SNAPSHOT_TESTS="QuiziceTests/Snapshots/ComponentSnapshotTests
 readonly HOME_CARD_SNAPSHOT_TESTS="QuiziceTests/Snapshots/HomeCardSnapshotTests.swift"
 readonly SCREEN_SNAPSHOT_TESTS="QuiziceTests/Snapshots/ScreenSnapshotTests.swift"
 readonly SWIFTUI_SNAPSHOT_TESTS="QuiziceTests/Snapshots/SwiftUISnapshotTests.swift"
-readonly HOME_VISUAL_TESTS="QuiziceTests/UI/HomeScreenVisualStateTests.swift"
-readonly CROSS_SCREEN_VISUAL_TESTS="QuiziceTests/UI/CrossScreenVisualStateTests.swift"
 readonly APP_APPEARANCE_TESTS="QuiziceTests/Unit/AppAppearanceTests.swift"
 readonly QUIZ_PRESENTER_TESTS="QuiziceTests/Unit/QuizPresenterTests.swift"
 readonly QUESTION_PRESENTER_TESTS="QuiziceTests/Unit/QuizQuestionPresenterTests.swift"
 readonly QUIZ_FACTORY_TESTS="QuiziceTests/Unit/QuizFactoryTests.swift"
-readonly QUIZ_COORDINATOR_TESTS="QuiziceTests/Unit/QuizFlowCoordinatorAdditionalTests.swift"
 readonly SNAPSHOT_RUNTIME_IDENTIFIER="com.apple.CoreSimulator.SimRuntime.iOS-26-2"
 readonly SNAPSHOT_HOST_DEVICE_TYPE_SUFFIX=".iPhone-16e"
 readonly MIN_LINE_COVERAGE_PERCENT=80
+readonly MAX_SWIFT_FILE_LINES=700
+
+readonly -a LEGACY_SPLIT_TEST_FILES=(
+  "QuiziceTests/UI/HomeScreenVisualStateTests.swift"
+  "QuiziceTests/UI/CrossScreenVisualStateTests.swift"
+  "QuiziceTests/Unit/HomeThemeCardFeatureTests.swift"
+  "QuiziceTests/Unit/QuizFlowCoordinatorAdditionalTests.swift"
+  "QuiziceTests/Unit/YandexAIQuizThemeServiceTests.swift"
+)
+
+readonly -a SPLIT_TEST_SOURCE_FILES=(
+  "QuiziceTests/Features/AIQuiz/Unit/YandexAIQuizContractValidationTests.swift"
+  "QuiziceTests/Features/AIQuiz/Unit/YandexAIQuizThemeErrorTests.swift"
+  "QuiziceTests/Features/AIQuiz/Unit/YandexAIQuizThemeRequestTests.swift"
+  "QuiziceTests/Features/AIQuiz/Unit/YandexAIQuizThemeResponseTests.swift"
+  "QuiziceTests/Features/AIQuiz/Unit/YandexAIQuizThemeTransportTests.swift"
+  "QuiziceTests/Features/AppFlow/UIContracts/CrossScreenAccessibilityContractTests.swift"
+  "QuiziceTests/Features/AppFlow/Unit/QuizFlowCoordinatorAIThemeTests.swift"
+  "QuiziceTests/Features/AppFlow/Unit/QuizFlowCoordinatorLaunchTests.swift"
+  "QuiziceTests/Features/AppFlow/Unit/QuizFlowCoordinatorNavigationTests.swift"
+  "QuiziceTests/Features/Home/Tests/HomeAIThemeCardInteractionTests.swift"
+  "QuiziceTests/Features/Home/Tests/HomeAIThemeCardTransitionTests.swift"
+  "QuiziceTests/Features/Home/Tests/HomeCollectionServiceTests.swift"
+  "QuiziceTests/Features/Home/Tests/HomeExpandedCardTransitionTests.swift"
+  "QuiziceTests/Features/Home/Tests/HomeExpandedThemeCardInteractionTests.swift"
+  "QuiziceTests/Features/Home/Tests/HomeExpandedThemeCardMotionTests.swift"
+  "QuiziceTests/Features/Home/Tests/HomeFeelingLuckyTests.swift"
+  "QuiziceTests/Features/Home/Tests/HomeScreenLayoutTests.swift"
+  "QuiziceTests/Features/Home/Tests/HomeScreenVisualStateTestSupport.swift"
+  "QuiziceTests/Features/Home/Tests/HomeSettingsVisualStateTests.swift"
+  "QuiziceTests/Features/Home/Tests/HomeThemeCardStateTests.swift"
+  "QuiziceTests/Features/Home/Tests/MockAIQuizThemeServiceHomeTests.swift"
+  "QuiziceTests/Features/Home/Unit/HomeAIThemeCardReducerTests.swift"
+  "QuiziceTests/Features/Home/Unit/HomeThemeCardParallaxTests.swift"
+  "QuiziceTests/Features/Home/Unit/HomeThemeCardReducerTests.swift"
+  "QuiziceTests/Features/Home/Unit/HomeThemeCardTransitionTests.swift"
+  "QuiziceTests/Features/Home/Unit/QuizQuestionCountPolicyTests.swift"
+  "QuiziceTests/Features/QuizDescription/UIContracts/QuizDescriptionViewContractTests.swift"
+  "QuiziceTests/Features/QuizPlay/UIContracts/QuizQuestionStateContractTests.swift"
+  "QuiziceTests/Features/QuizPlay/UIContracts/QuizQuestionTypographyContractTests.swift"
+  "QuiziceTests/Features/QuizResult/UIContracts/QuizResultViewContractTests.swift"
+  "QuiziceTests/Features/Statistics/UIContracts/StatisticsCardCollectionViewCellTests.swift"
+  "QuiziceTests/Features/Statistics/UIContracts/StatisticsViewContractTests.swift"
+  "QuiziceTests/Support/CrossScreenVisualTestCase.swift"
+  "QuiziceTests/Support/QuizFlowCoordinatorTestCase.swift"
+  "QuiziceTests/Support/UIView+TestDescendant.swift"
+  "QuiziceTests/Support/YandexAIQuizThemeServiceTestCase.swift"
+)
+
+readonly -a SPLIT_TEST_SUITE_LAYOUT=(
+  "QuiziceTests/Features/AIQuiz/Unit/YandexAIQuizContractValidationTests.swift|YandexAIQuizContractValidationTests"
+  "QuiziceTests/Features/AIQuiz/Unit/YandexAIQuizThemeErrorTests.swift|YandexAIQuizThemeErrorTests"
+  "QuiziceTests/Features/AIQuiz/Unit/YandexAIQuizThemeRequestTests.swift|YandexAIQuizThemeRequestTests"
+  "QuiziceTests/Features/AIQuiz/Unit/YandexAIQuizThemeResponseTests.swift|YandexAIQuizThemeResponseTests"
+  "QuiziceTests/Features/AIQuiz/Unit/YandexAIQuizThemeTransportTests.swift|YandexAIQuizThemeTransportTests"
+  "QuiziceTests/Features/AppFlow/UIContracts/CrossScreenAccessibilityContractTests.swift|CrossScreenAccessibilityContractTests"
+  "QuiziceTests/Features/AppFlow/Unit/QuizFlowCoordinatorAIThemeTests.swift|QuizFlowCoordinatorAIThemeTests"
+  "QuiziceTests/Features/AppFlow/Unit/QuizFlowCoordinatorLaunchTests.swift|QuizFlowCoordinatorLaunchTests"
+  "QuiziceTests/Features/AppFlow/Unit/QuizFlowCoordinatorNavigationTests.swift|QuizFlowCoordinatorNavigationTests"
+  "QuiziceTests/Features/Home/Tests/HomeAIThemeCardInteractionTests.swift|HomeAIThemeCardInteractionTests"
+  "QuiziceTests/Features/Home/Tests/HomeAIThemeCardTransitionTests.swift|HomeAIThemeCardTransitionTests"
+  "QuiziceTests/Features/Home/Tests/HomeCollectionServiceTests.swift|HomeCollectionServiceTests"
+  "QuiziceTests/Features/Home/Tests/HomeExpandedCardTransitionTests.swift|HomeExpandedCardTransitionTests"
+  "QuiziceTests/Features/Home/Tests/HomeExpandedThemeCardInteractionTests.swift|HomeExpandedThemeCardInteractionTests"
+  "QuiziceTests/Features/Home/Tests/HomeExpandedThemeCardMotionTests.swift|HomeExpandedThemeCardMotionTests"
+  "QuiziceTests/Features/Home/Tests/HomeFeelingLuckyTests.swift|HomeFeelingLuckyTests"
+  "QuiziceTests/Features/Home/Tests/HomeScreenLayoutTests.swift|HomeScreenLayoutTests"
+  "QuiziceTests/Features/Home/Tests/HomeScreenVisualStateTestSupport.swift|HomeScreenVisualStateTestCase"
+  "QuiziceTests/Features/Home/Tests/HomeSettingsVisualStateTests.swift|HomeSettingsVisualStateTests"
+  "QuiziceTests/Features/Home/Tests/HomeThemeCardStateTests.swift|HomeThemeCardStateTests"
+  "QuiziceTests/Features/Home/Tests/MockAIQuizThemeServiceHomeTests.swift|MockAIQuizThemeServiceHomeTests"
+  "QuiziceTests/Features/Home/Unit/HomeAIThemeCardReducerTests.swift|HomeAIThemeCardReducerTests"
+  "QuiziceTests/Features/Home/Unit/HomeThemeCardParallaxTests.swift|HomeThemeCardExpansionParallaxStateTests"
+  "QuiziceTests/Features/Home/Unit/HomeThemeCardParallaxTests.swift|HomeThemeCardParallaxPresentationPhaseTests"
+  "QuiziceTests/Features/Home/Unit/HomeThemeCardParallaxTests.swift|HomeThemeCardParallaxInputTests"
+  "QuiziceTests/Features/Home/Unit/HomeThemeCardParallaxTests.swift|HomeThemeCardPanParallaxMapperTests"
+  "QuiziceTests/Features/Home/Unit/HomeThemeCardParallaxTests.swift|HomeThemeCardParallaxGesturePolicyTests"
+  "QuiziceTests/Features/Home/Unit/HomeThemeCardParallaxTests.swift|HomeThemeCardParallaxRenderStateTests"
+  "QuiziceTests/Features/Home/Unit/HomeThemeCardParallaxTests.swift|HomeThemeCardMotionInputMapperTests"
+  "QuiziceTests/Features/Home/Unit/HomeThemeCardReducerTests.swift|HomeThemeCardReducerTests"
+  "QuiziceTests/Features/Home/Unit/HomeThemeCardTransitionTests.swift|HomeThemeCardTransitionGeometryTests"
+  "QuiziceTests/Features/Home/Unit/HomeThemeCardTransitionTests.swift|HomeThemeCardTransitionVisualStateTests"
+  "QuiziceTests/Features/Home/Unit/QuizQuestionCountPolicyTests.swift|QuizQuestionCountPolicyTests"
+  "QuiziceTests/Features/QuizDescription/UIContracts/QuizDescriptionViewContractTests.swift|QuizDescriptionViewContractTests"
+  "QuiziceTests/Features/QuizPlay/UIContracts/QuizQuestionStateContractTests.swift|QuizQuestionStateContractTests"
+  "QuiziceTests/Features/QuizPlay/UIContracts/QuizQuestionTypographyContractTests.swift|QuizQuestionTypographyContractTests"
+  "QuiziceTests/Features/QuizResult/UIContracts/QuizResultViewContractTests.swift|QuizResultViewContractTests"
+  "QuiziceTests/Features/Statistics/UIContracts/StatisticsCardCollectionViewCellTests.swift|StatisticsCardCollectionViewCellTests"
+  "QuiziceTests/Features/Statistics/UIContracts/StatisticsViewContractTests.swift|StatisticsViewContractTests"
+  "QuiziceTests/Support/CrossScreenVisualTestCase.swift|CrossScreenVisualTestCase"
+  "QuiziceTests/Support/QuizFlowCoordinatorTestCase.swift|QuizFlowCoordinatorTestCase"
+  "QuiziceTests/Support/YandexAIQuizThemeServiceTestCase.swift|YandexAIQuizThemeServiceTestCase"
+)
 
 TEMP_FILES=()
 TEMP_PATHS=()
@@ -214,6 +304,189 @@ require_extended_regex() {
   fi
 }
 
+require_suite_declaration() {
+  local path="$1"
+  local suite_name="$2"
+
+  require_extended_regex \
+    "$path" \
+    "^(final[[:space:]]+)?class[[:space:]]+${suite_name}[[:space:]]*:" \
+    "missing expected XCTest suite declaration: $suite_name"
+}
+
+require_test_method() {
+  local path="$1"
+  local test_name="$2"
+  local message="$3"
+
+  require_extended_regex \
+    "$path" \
+    "^[[:space:]]*func[[:space:]]+${test_name}[[:space:]]*\\(" \
+    "$message"
+}
+
+check_swift_file_size_limit() {
+  log_section "Swift source-file size guard"
+
+  local report
+  report="$(mktemp -t quizice-s04-swift-loc.XXXXXX.log)"
+  remember_temp_file "$report"
+
+  local swift_file
+  local line_count
+  while IFS= read -r -d '' swift_file; do
+    line_count="$(awk 'END { print NR }' "$swift_file")"
+    if (( line_count > MAX_SWIFT_FILE_LINES )); then
+      printf '%s\t%s\n' "$line_count" "$swift_file" >> "$report"
+    fi
+  done < <(
+    find Quizice QuiziceTests \
+      -type d -name DerivedData -prune -o \
+      -type f -name '*.swift' -print0
+  )
+
+  if [[ -s "$report" ]]; then
+    printf 'Swift files exceeding %s lines:\n' "$MAX_SWIFT_FILE_LINES" >&2
+    LC_ALL=C sort -k1,1nr -k2,2 "$report" >&2
+    fail "Swift source files must not exceed $MAX_SWIFT_FILE_LINES lines"
+  fi
+
+  printf 'All Swift files in Quizice/ and QuiziceTests/ are at most %s lines: PASS\n' "$MAX_SWIFT_FILE_LINES"
+}
+
+check_split_test_layout_and_markers() {
+  log_section "Split XCTest layout and marker checks"
+
+  local test_source
+  for test_source in "${SPLIT_TEST_SOURCE_FILES[@]}"; do
+    require_file "$test_source"
+  done
+
+  local legacy_test_file
+  for legacy_test_file in "${LEGACY_SPLIT_TEST_FILES[@]}"; do
+    if [[ -e "$legacy_test_file" ]]; then
+      fail "legacy monolithic test file must remain removed: $legacy_test_file"
+    fi
+  done
+
+  local suite_entry
+  local suite_file
+  local suite_name
+  for suite_entry in "${SPLIT_TEST_SUITE_LAYOUT[@]}"; do
+    IFS='|' read -r suite_file suite_name <<< "$suite_entry"
+    require_suite_declaration "$suite_file" "$suite_name"
+  done
+
+  require_extended_regex \
+    "QuiziceTests/Support/UIView+TestDescendant.swift" \
+    '^[[:space:]]*func[[:space:]]+descendant\(withAccessibilityIdentifier[[:space:]]+identifier:[[:space:]]+String\)' \
+    'split cross-screen support must keep the accessibility descendant helper'
+
+  require_test_method \
+    "QuiziceTests/Features/AIQuiz/Unit/YandexAIQuizContractValidationTests.swift" \
+    'testResponseMustContainTheRequestedQuestionCount' \
+    'AI quiz contract tests must preserve requested-count validation'
+  require_test_method \
+    "QuiziceTests/Features/AIQuiz/Unit/YandexAIQuizThemeErrorTests.swift" \
+    'testURLCancellationIsPropagatedAsCancellationError' \
+    'AI quiz error tests must preserve cancellation coverage'
+  require_test_method \
+    "QuiziceTests/Features/AIQuiz/Unit/YandexAIQuizThemeRequestTests.swift" \
+    'testRequestUsesResponsesAPIHeadersPromptAndJSONEncodedInput' \
+    'AI quiz request tests must preserve the wire-request contract'
+  require_test_method \
+    "QuiziceTests/Features/AIQuiz/Unit/YandexAIQuizThemeResponseTests.swift" \
+    'testOutputTextFragmentsAreJoinedInWireOrder' \
+    'AI quiz response tests must preserve ordered output-fragment coverage'
+  require_test_method \
+    "QuiziceTests/Features/AIQuiz/Unit/YandexAIQuizThemeTransportTests.swift" \
+    'testMissingAPIKeyFailsBeforeStartingNetworkRequest' \
+    'AI quiz transport tests must preserve missing-key coverage'
+
+  require_test_method \
+    "QuiziceTests/Features/AppFlow/Unit/QuizFlowCoordinatorLaunchTests.swift" \
+    'testStartInstallsHomeControllerAsNavigationRoot' \
+    'coordinator launch tests must preserve root installation coverage'
+  require_test_method \
+    "QuiziceTests/Features/AppFlow/Unit/QuizFlowCoordinatorNavigationTests.swift" \
+    'testDescriptionAndStatisticsRoutesPushExpectedControllers' \
+    'coordinator navigation tests must preserve route coverage'
+  require_test_method \
+    "QuiziceTests/Features/AppFlow/Unit/QuizFlowCoordinatorAIThemeTests.swift" \
+    'testInlineAIThemeSubmitIsSingleFlight' \
+    'coordinator AI-theme tests must preserve single-flight coverage'
+
+  require_test_method \
+    "QuiziceTests/Features/Home/Unit/HomeThemeCardReducerTests.swift" \
+    'testFrontBackSelectionAndStartLifecycleLaunchesOnlyOnce' \
+    'home theme-card reducer tests must preserve launch lifecycle coverage'
+  require_test_method \
+    "QuiziceTests/Features/Home/Unit/HomeAIThemeCardReducerTests.swift" \
+    'testSubmissionIsSingleFlightAndDraftCannotMutateWhileRequestIsActive' \
+    'home AI reducer tests must preserve single-flight state coverage'
+  require_test_method \
+    "QuiziceTests/Features/Home/Tests/HomeSettingsVisualStateTests.swift" \
+    'testCleanSettingsSurfaceIsCircular' \
+    'home settings tests must keep the Clean settings surface circular'
+  require_test_method \
+    "QuiziceTests/Features/Home/Tests/HomeCollectionServiceTests.swift" \
+    'testCollectionServiceAppliesPolishedCardStylingWithoutChangingIdentifiers' \
+    'home collection tests must preserve polished card styling coverage'
+  require_test_method \
+    "QuiziceTests/Features/Home/Tests/HomeCollectionServiceTests.swift" \
+    'testCompactStatisticsTitleShrinksAndLastItemOwnsBottomSpacing' \
+    'home collection tests must preserve compact statistics spacing coverage'
+
+  require_test_method \
+    "QuiziceTests/Features/QuizPlay/UIContracts/QuizQuestionTypographyContractTests.swift" \
+    'testLongAnswersShrinkWithoutClippingAcrossSelectableStylesAndPhoneSizes' \
+    'question typography tests must cover long-answer fitting across styles and phone sizes'
+  require_test_method \
+    "QuiziceTests/Features/QuizPlay/UIContracts/QuizQuestionTypographyContractTests.swift" \
+    'testInitialLongAnswersFitBeforeSelectionAndStayStableAfterFeedback' \
+    'question typography tests must cover the initial frame before selection'
+  require_test_method \
+    "QuiziceTests/Features/QuizPlay/UIContracts/QuizQuestionTypographyContractTests.swift" \
+    'testLongAnswersRespectAccessibilityContentSizeWhileFitting' \
+    'question typography tests must preserve Dynamic Type coverage'
+  require_test_method \
+    "QuiziceTests/Features/QuizPlay/UIContracts/QuizQuestionTypographyContractTests.swift" \
+    'testLongQuestionsShrinkWithinReadableFloorAcrossSelectableStylesAndPhoneSizes' \
+    'question typography tests must bound long-question typography'
+  require_test_method \
+    "QuiziceTests/Features/QuizPlay/UIContracts/QuizQuestionTypographyContractTests.swift" \
+    'testExtremeQuestionStopsAtReadableFloorAndUsesScrollableFallback' \
+    'question typography tests must preserve the extreme-question fallback'
+  require_test_method \
+    "QuiziceTests/Features/QuizPlay/UIContracts/QuizQuestionTypographyContractTests.swift" \
+    'testQuestionFontRestoresForShortQuestionAndRefitsAfterWidthChange' \
+    'question typography tests must preserve refitting coverage'
+  require_test_method \
+    "QuiziceTests/Features/QuizPlay/UIContracts/QuizQuestionStateContractTests.swift" \
+    'testQuestionNextButtonStaysPinnedWhenExtremeAnswerGrowsCard' \
+    'question state tests must preserve the pinned next-button fallback'
+  require_test_method \
+    "QuiziceTests/Features/QuizPlay/UIContracts/QuizQuestionStateContractTests.swift" \
+    'testQuestionAdvanceResetsScrolledLongAnswerCardToTop' \
+    'question state tests must reset long-answer scroll position when advancing'
+  require_test_method \
+    "QuiziceTests/Features/Statistics/UIContracts/StatisticsViewContractTests.swift" \
+    'testStatisticsCorrectAnswersValueStaysFullyVisibleForLargeHistory' \
+    'statistics UI-contract tests must preserve large-history coverage'
+
+  local split_test_count=0
+  local source_test_count
+  for test_source in "${SPLIT_TEST_SOURCE_FILES[@]}"; do
+    source_test_count="$(grep -Ec '^[[:space:]]*func[[:space:]]+test' "$test_source" || true)"
+    split_test_count=$((split_test_count + source_test_count))
+  done
+  if (( split_test_count < 203 )); then
+    fail "split feature/support test files expose only $split_test_count test methods; expected at least 203"
+  fi
+
+  printf 'Split test files, suites, and at least 203 preserved test methods: PASS\n'
+}
+
 file_sha256() {
   local path="$1"
   require_file "$path"
@@ -308,13 +581,25 @@ check_project_and_test_wiring() {
   require_file "$HOME_CARD_SNAPSHOT_TESTS"
   require_file "$SCREEN_SNAPSHOT_TESTS"
   require_file "$SWIFTUI_SNAPSHOT_TESTS"
-  require_file "$HOME_VISUAL_TESTS"
-  require_file "$CROSS_SCREEN_VISUAL_TESTS"
   require_file "$APP_APPEARANCE_TESTS"
   require_file "$QUIZ_PRESENTER_TESTS"
   require_file "$QUESTION_PRESENTER_TESTS"
   require_file "$QUIZ_FACTORY_TESTS"
-  require_file "$QUIZ_COORDINATOR_TESTS"
+
+  local test_source
+  for test_source in "${SPLIT_TEST_SOURCE_FILES[@]}"; do
+    require_file "$test_source"
+  done
+
+  local legacy_test_file
+  local legacy_file_name
+  for legacy_test_file in "${LEGACY_SPLIT_TEST_FILES[@]}"; do
+    [[ ! -e "$legacy_test_file" ]] || fail "legacy monolithic test file must remain removed: $legacy_test_file"
+    legacy_file_name="$(basename "$legacy_test_file")"
+    if grep -Fq "$legacy_file_name" "$PROJECT_FILE"; then
+      fail "Xcode project still references removed monolithic test file: $legacy_file_name"
+    fi
+  done
 
   local xcodebuild_list_log
   xcodebuild_list_log="$(mktemp -t quizice-s04-xcodebuild-list.XXXXXX.log)"
@@ -339,27 +624,33 @@ check_project_and_test_wiring() {
   require_extended_regex "$PROJECT_FILE" 'SwiftUISnapshotTests\.swift in Sources' 'SwiftUI snapshot tests must be in the test Sources build phase'
   require_extended_regex "$PROJECT_FILE" 'AppAppearanceTests\.swift in Sources' 'App appearance tests must be in the test Sources build phase'
   require_extended_regex "$PROJECT_FILE" 'QuizQuestionPresenterTests\.swift in Sources' 'Expanded question presenter tests must be in the test Sources build phase'
+
+  local test_file_name
+  for test_source in "${SPLIT_TEST_SOURCE_FILES[@]}"; do
+    test_file_name="$(basename "$test_source")"
+    require_fixed_string \
+      "$PROJECT_FILE" \
+      "$test_file_name in Sources" \
+      "$test_source must remain in the QuiziceTests Sources build phase"
+  done
+
   require_fixed_string "$SMOKE_TESTS" '@testable import Quizice' 'Smoke tests must import the Quizice app module'
   require_fixed_string "$xcodebuild_list_log" 'Quizice' 'Quizice scheme must be visible to xcodebuild'
 
-  printf 'Project contains app-hosted QuiziceTests target and required XCTest files: PASS\n'
+  printf 'Project contains the app-hosted QuiziceTests target and every split XCTest source: PASS\n'
 }
 
 check_statistics_coverage_markers() {
   log_section "R007 statistics coverage-marker checks"
 
-  require_fixed_string "$SUMMARY_TESTS" 'testEmptySummaryHasZeroTotalsAndDisplayValues' 'Statistics tests must cover the empty summary baseline'
-  require_fixed_string "$SUMMARY_TESTS" 'testSummaryAggregatesPlayedQuizzesCorrectAnswersAndTotalQuestions' 'Statistics tests must cover played quiz, correct-answer, and total-question aggregation'
-  require_fixed_string "$SUMMARY_TESTS" 'XCTAssertEqual(summary.correctAnswers, 12)' 'Statistics tests must assert aggregate correct answers'
-  require_fixed_string "$SUMMARY_TESTS" 'XCTAssertEqual(summary.totalQuestions, 17)' 'Statistics tests must assert aggregate total questions'
-  require_fixed_string "$SUMMARY_TESTS" 'testPercentageIsRoundedToNearestWholeNumber' 'Statistics tests must cover percentage rounding'
-  require_fixed_string "$SUMMARY_TESTS" 'XCTAssertEqual(summary.percentage, 67)' 'Statistics tests must assert rounded percentage'
-  require_fixed_string "$SUMMARY_TESTS" 'testBestResultDisplayUsesBestAttempt' 'Statistics tests must cover best-result display'
-  require_fixed_string "$SUMMARY_TESTS" 'testBestResultSelectsHigherPercentageOverMoreCorrectAnswers' 'Statistics tests must cover best-result percentage precedence'
-  require_fixed_string "$SUMMARY_TESTS" 'testBestResultTieUsesMoreCorrectAnswers' 'Statistics tests must cover best-result tie handling'
-  require_fixed_string "$SUMMARY_TESTS" 'testExactTieKeepsSmallerTotalQuestionAttempt' 'Statistics tests must cover exact tie behavior'
-  require_fixed_string "$STORE_TESTS" 'testRecordAttemptPersistsValidAttempts' 'Statistics store tests must cover valid attempt persistence'
-  require_fixed_string "$STORE_TESTS" 'XCTAssertNotNil(harness.defaults.data(forKey: harness.key))' 'Statistics store tests must assert persistence for valid attempts'
+  require_test_method "$SUMMARY_TESTS" 'testEmptySummaryHasZeroTotalsAndDisplayValues' 'Statistics tests must cover the empty summary baseline'
+  require_test_method "$SUMMARY_TESTS" 'testSummaryAggregatesPlayedQuizzesCorrectAnswersAndTotalQuestions' 'Statistics tests must cover played quiz, correct-answer, and total-question aggregation'
+  require_test_method "$SUMMARY_TESTS" 'testPercentageIsRoundedToNearestWholeNumber' 'Statistics tests must cover percentage rounding'
+  require_test_method "$SUMMARY_TESTS" 'testBestResultDisplayUsesBestAttempt' 'Statistics tests must cover best-result display'
+  require_test_method "$SUMMARY_TESTS" 'testBestResultSelectsHigherPercentageOverMoreCorrectAnswers' 'Statistics tests must cover best-result percentage precedence'
+  require_test_method "$SUMMARY_TESTS" 'testBestResultTieUsesMoreCorrectAnswers' 'Statistics tests must cover best-result tie handling'
+  require_test_method "$SUMMARY_TESTS" 'testExactTieKeepsSmallerTotalQuestionAttempt' 'Statistics tests must cover exact tie behavior'
+  require_test_method "$STORE_TESTS" 'testRecordAttemptPersistsValidAttempts' 'Statistics store tests must cover valid attempt persistence'
 
   printf 'R007 statistics marker checks: PASS\n'
 }
@@ -367,28 +658,19 @@ check_statistics_coverage_markers() {
 check_failure_state_coverage_markers() {
   log_section "R008 local failure-state coverage-marker checks"
 
-  require_fixed_string "$STORE_TESTS" 'testFirstRunLoadSummaryReturnsEmpty' 'Statistics store tests must cover first-run empty state'
-  require_fixed_string "$STORE_TESTS" 'XCTAssertEqual(harness.store.loadSummary(), .empty)' 'Statistics store tests must assert empty fallback behavior'
-  require_fixed_string "$STORE_TESTS" 'testLoadSummaryReturnsEmptyForCorruptPersistedBytesAndRemovesKey' 'Statistics store tests must cover corrupt persisted bytes'
-  require_fixed_string "$STORE_TESTS" 'Data("not-json".utf8)' 'Statistics store tests must inject corrupt persisted bytes without app fixtures'
-  require_fixed_string "$STORE_TESTS" 'testLoadSummaryReturnsEmptyAndRemovesKeyForMalformedAttemptPayload' 'Statistics store tests must cover malformed persisted attempt payloads'
-  require_fixed_string "$STORE_TESTS" 'XCTAssertNil(harness.defaults.data(forKey: harness.key))' 'Statistics store tests must assert corrupt/malformed persistence is removed'
-  require_fixed_string "$STORE_TESTS" 'testRecordAttemptIgnoresNonPositiveTotals' 'Statistics store tests must cover invalid non-positive totals'
-  require_fixed_string "$STORE_TESTS" 'testRecordAttemptSanitizesCorrectAnswersOutsideValidRange' 'Statistics store tests must cover out-of-range correct-answer sanitization'
+  require_test_method "$STORE_TESTS" 'testFirstRunLoadSummaryReturnsEmpty' 'Statistics store tests must cover first-run empty state'
+  require_test_method "$STORE_TESTS" 'testLoadSummaryReturnsEmptyForCorruptPersistedBytesAndRemovesKey' 'Statistics store tests must cover corrupt persisted bytes'
+  require_test_method "$STORE_TESTS" 'testLoadSummaryReturnsEmptyAndRemovesKeyForMalformedAttemptPayload' 'Statistics store tests must cover malformed persisted attempt payloads'
+  require_test_method "$STORE_TESTS" 'testRecordAttemptIgnoresNonPositiveTotals' 'Statistics store tests must cover invalid non-positive totals'
+  require_test_method "$STORE_TESTS" 'testRecordAttemptSanitizesCorrectAnswersOutsideValidRange' 'Statistics store tests must cover out-of-range correct-answer sanitization'
 
-  require_fixed_string "$PRESENTER_FAILURE_TESTS" 'testNilChosenThemeShowsUnavailableQuestionState' 'Presenter failure-state tests must cover nil chosen theme'
-  require_fixed_string "$PRESENTER_FAILURE_TESTS" 'testChosenThemeWithNoQuestionsShowsUnavailableQuestionState' 'Presenter failure-state tests must cover empty local question arrays'
-  require_fixed_string "$PRESENTER_FAILURE_TESTS" 'testQuestionWithEmptyTextShowsUnavailableQuestionState' 'Presenter failure-state tests must cover malformed blank question text'
-  require_fixed_string "$PRESENTER_FAILURE_TESTS" 'testQuestionWithFewerThanFourAnswersShowsUnavailableQuestionState' 'Presenter failure-state tests must cover malformed answer counts'
-  require_fixed_string "$PRESENTER_FAILURE_TESTS" 'testQuestionWithEmptyCorrectAnswerShowsUnavailableQuestionState' 'Presenter failure-state tests must cover malformed blank correct answer'
-  require_fixed_string "$PRESENTER_FAILURE_TESTS" 'assertMalformedQuestionShowsUnavailable' 'Presenter failure-state tests must share malformed-question unavailable-state assertions'
-  require_fixed_string "$PRESENTER_FAILURE_TESTS" 'assertUnavailableState' 'Presenter failure-state tests must assert the unavailable-question contract'
-  require_fixed_string "$PRESENTER_FAILURE_TESTS" 'XCTAssertEqual(view.unavailableCalls.count, 1' 'Unavailable-question assertions must verify exactly one unavailable state'
-  require_fixed_string "$PRESENTER_FAILURE_TESTS" 'XCTAssertTrue(view.loadedQuestions.isEmpty' 'Unavailable-question assertions must verify malformed questions are not loaded'
-  require_fixed_string "$PRESENTER_FAILURE_TESTS" 'XCTAssertEqual(view.resultsCallCount, 0' 'Unavailable-question assertions must verify no result navigation fires'
-  require_fixed_string "$PRESENTER_FAILURE_TESTS" 'QuizQuestionPresenter(session: session)' 'Presenter tests must use injected session state instead of QuizFactory.shared'
-  require_fixed_string "$PRESENTER_FAILURE_TESTS" 'testQuestionWithDuplicatedCorrectAnswerShowsUnavailableQuestionState' 'Presenter failure-state tests must cover ambiguous duplicate correct-answer titles'
-  require_fixed_string "$PRESENTER_FAILURE_TESTS" 'testAnswerSelectionUsesOptionID' 'Presenter tests must cover answer selection by option id'
+  require_test_method "$PRESENTER_FAILURE_TESTS" 'testNilChosenThemeShowsUnavailableQuestionState' 'Presenter failure-state tests must cover nil chosen theme'
+  require_test_method "$PRESENTER_FAILURE_TESTS" 'testChosenThemeWithNoQuestionsShowsUnavailableQuestionState' 'Presenter failure-state tests must cover empty local question arrays'
+  require_test_method "$PRESENTER_FAILURE_TESTS" 'testQuestionWithEmptyTextShowsUnavailableQuestionState' 'Presenter failure-state tests must cover malformed blank question text'
+  require_test_method "$PRESENTER_FAILURE_TESTS" 'testQuestionWithFewerThanFourAnswersShowsUnavailableQuestionState' 'Presenter failure-state tests must cover malformed answer counts'
+  require_test_method "$PRESENTER_FAILURE_TESTS" 'testQuestionWithEmptyCorrectAnswerShowsUnavailableQuestionState' 'Presenter failure-state tests must cover malformed blank correct answer'
+  require_test_method "$PRESENTER_FAILURE_TESTS" 'testQuestionWithDuplicatedCorrectAnswerShowsUnavailableQuestionState' 'Presenter failure-state tests must cover ambiguous duplicate correct-answer titles'
+  require_test_method "$PRESENTER_FAILURE_TESTS" 'testAnswerSelectionUsesOptionID' 'Presenter tests must cover answer selection by option id'
 
   if grep -Fq "$DATA_JSON" "$SUMMARY_TESTS" "$STORE_TESTS" "$PRESENTER_FAILURE_TESTS"; then
     fail "S04 tests must use synthetic fixtures and isolated UserDefaults, not mutable $DATA_JSON"
@@ -401,40 +683,30 @@ check_snapshot_coverage_markers() {
   log_section "Snapshot and expanded unit coverage-marker checks"
 
   require_fixed_string "$SNAPSHOT_SUPPORT_TESTS" 'import SnapshotTesting' 'Snapshot support must import Point-Free SnapshotTesting'
-  require_fixed_string "$SNAPSHOT_SUPPORT_TESTS" 'AppLocalizationStore.shared.languagePreference = language' 'Snapshot support must pin language'
-  require_fixed_string "$SNAPSHOT_SUPPORT_TESTS" 'UIView.setAnimationsEnabled(false)' 'Snapshot support must disable animations'
-  require_fixed_string "$COMPONENT_SNAPSHOT_TESTS" 'testPrimaryButtonsAcrossDesignStyles' 'Component snapshots must cover primary buttons across styles'
-  require_fixed_string "$COMPONENT_SNAPSHOT_TESTS" 'testSecondaryButtonsAcrossDesignStyles' 'Component snapshots must cover secondary buttons across styles'
-  require_fixed_string "$HOME_CARD_SNAPSHOT_TESTS" 'testThemeCardSnapshot' 'Home card snapshots must cover theme cards'
-  require_fixed_string "$HOME_CARD_SNAPSHOT_TESTS" 'testRadarLongThemeCompactCardSnapshot' 'Home card snapshots must cover long Radar titles on compact phones'
-  require_fixed_string "$HOME_CARD_SNAPSHOT_TESTS" 'testCompactStatisticsCardSnapshot' 'Home card snapshots must cover compact statistics layout'
-  require_fixed_string "$SCREEN_SNAPSHOT_TESTS" 'testHomeScreenSnapshot' 'Screen snapshots must cover home'
-  require_fixed_string "$SCREEN_SNAPSHOT_TESTS" 'testRadarStatisticsLargeHistorySnapshot' 'Screen snapshots must keep large Radar statistics values fully visible'
-  require_fixed_string "$SCREEN_SNAPSHOT_TESTS" 'testHomeCompactPortraitSnapshot' 'Screen snapshots must cover the home screen on iPhone SE geometry'
-  require_fixed_string "$SCREEN_SNAPSHOT_TESTS" 'testHomeCompactPortraitBottomSnapshot' 'Screen snapshots must cover the final home item and its internal bottom spacing'
-  require_fixed_string "$SCREEN_SNAPSHOT_TESTS" 'testClassicLongAnswerModernPortraitSnapshot' 'Screen snapshots must reproduce long answers on iPhone 17 Pro Classic layout'
-  require_fixed_string "$SCREEN_SNAPSHOT_TESTS" 'testClassicLongAnswerCompactPortraitSnapshot' 'Screen snapshots must reproduce long answers on compact Classic layout'
-  require_fixed_string "$SCREEN_SNAPSHOT_TESTS" 'testRadarLongAnswerModernPortraitSnapshot' 'Screen snapshots must cover long answers on iPhone 17 Pro Radar layout'
-  require_fixed_string "$SCREEN_SNAPSHOT_TESTS" 'testRadarLongAnswerCompactPortraitSnapshot' 'Screen snapshots must cover long answers on compact Radar layout'
-  require_fixed_string "$SCREEN_SNAPSHOT_TESTS" 'testRadarJapanQuestionInitialModernPortraitSnapshot' 'Screen snapshots must cover the reported initial Radar layout on iPhone 17 Pro'
-  require_fixed_string "$SCREEN_SNAPSHOT_TESTS" 'testRadarJapanQuestionInitialCompactPortraitSnapshot' 'Screen snapshots must cover the reported long question on compact Radar layout'
-  require_fixed_string "$SCREEN_SNAPSHOT_TESTS" 'testCleanLongAnswerCompactPortraitSnapshot' 'Screen snapshots must cover long answers on compact Clean layout'
+  require_test_method "$COMPONENT_SNAPSHOT_TESTS" 'testPrimaryButtonsAcrossDesignStyles' 'Component snapshots must cover primary buttons across styles'
+  require_test_method "$COMPONENT_SNAPSHOT_TESTS" 'testSecondaryButtonsAcrossDesignStyles' 'Component snapshots must cover secondary buttons across styles'
+  require_test_method "$HOME_CARD_SNAPSHOT_TESTS" 'testThemeCardSnapshot' 'Home card snapshots must cover theme cards'
+  require_test_method "$HOME_CARD_SNAPSHOT_TESTS" 'testRadarLongThemeCompactCardSnapshot' 'Home card snapshots must cover long Radar titles on compact phones'
+  require_test_method "$HOME_CARD_SNAPSHOT_TESTS" 'testCompactStatisticsCardSnapshot' 'Home card snapshots must cover compact statistics layout'
+  require_test_method "$SCREEN_SNAPSHOT_TESTS" 'testHomeScreenSnapshot' 'Screen snapshots must cover home'
+  require_test_method "$SCREEN_SNAPSHOT_TESTS" 'testRadarStatisticsLargeHistorySnapshot' 'Screen snapshots must keep large Radar statistics values fully visible'
+  require_test_method "$SCREEN_SNAPSHOT_TESTS" 'testHomeCompactPortraitSnapshot' 'Screen snapshots must cover the home screen on iPhone SE geometry'
+  require_test_method "$SCREEN_SNAPSHOT_TESTS" 'testHomeCompactPortraitBottomSnapshot' 'Screen snapshots must cover the final home item and its internal bottom spacing'
+  require_test_method "$SCREEN_SNAPSHOT_TESTS" 'testClassicLongAnswerModernPortraitSnapshot' 'Screen snapshots must reproduce long answers on iPhone 17 Pro Classic layout'
+  require_test_method "$SCREEN_SNAPSHOT_TESTS" 'testClassicLongAnswerCompactPortraitSnapshot' 'Screen snapshots must reproduce long answers on compact Classic layout'
+  require_test_method "$SCREEN_SNAPSHOT_TESTS" 'testRadarLongAnswerModernPortraitSnapshot' 'Screen snapshots must cover long answers on iPhone 17 Pro Radar layout'
+  require_test_method "$SCREEN_SNAPSHOT_TESTS" 'testRadarLongAnswerCompactPortraitSnapshot' 'Screen snapshots must cover long answers on compact Radar layout'
+  require_test_method "$SCREEN_SNAPSHOT_TESTS" 'testRadarJapanQuestionInitialModernPortraitSnapshot' 'Screen snapshots must cover the reported initial Radar layout on iPhone 17 Pro'
+  require_test_method "$SCREEN_SNAPSHOT_TESTS" 'testRadarJapanQuestionInitialCompactPortraitSnapshot' 'Screen snapshots must cover the reported long question on compact Radar layout'
+  require_test_method "$SCREEN_SNAPSHOT_TESTS" 'testCleanLongAnswerCompactPortraitSnapshot' 'Screen snapshots must cover long answers on compact Clean layout'
   require_fixed_string "$SCREEN_SNAPSHOT_TESTS" '«Поступай так, чтобы максима твоей воли могла бы быть всеобщим законом»' 'Screen snapshots must reproduce the reported long-answer fixture'
   require_fixed_string "$SCREEN_SNAPSHOT_TESTS" 'Какое событие положило конец периоду феодальной раздробленности' 'Screen snapshots must reproduce the reported long-question fixture'
-  require_fixed_string "$SWIFTUI_SNAPSHOT_TESTS" 'testSettingsViewSnapshot' 'SwiftUI snapshots must cover settings'
-  require_fixed_string "$SWIFTUI_SNAPSHOT_TESTS" 'testClassicSettingsCompactPortraitSnapshot' 'SwiftUI snapshots must cover Classic settings on iPhone SE geometry'
-  require_fixed_string "$HOME_VISUAL_TESTS" 'testCleanSettingsSurfaceIsCircular' 'Home visual tests must keep the Clean settings surface circular'
-  require_fixed_string "$HOME_VISUAL_TESTS" 'XCTAssertEqual(themeCell.layer.shadowOpacity, 0)' 'Home visual tests must keep Clean light theme cards shadowless'
-  require_fixed_string "$HOME_VISUAL_TESTS" 'testCompactStatisticsTitleShrinksAndLastItemOwnsBottomSpacing' 'Home visual tests must cover compact statistics text and last-item-owned spacing'
-  require_fixed_string "$CROSS_SCREEN_VISUAL_TESTS" 'testLongAnswersShrinkWithoutClippingAcrossSelectableStylesAndPhoneSizes' 'Cross-screen visual tests must cover long-answer fitting across selectable styles and phone sizes'
-  require_fixed_string "$CROSS_SCREEN_VISUAL_TESTS" 'testInitialLongAnswersFitBeforeSelectionAndStayStableAfterFeedback' 'Cross-screen visual tests must cover long answers on the initial frame before selection'
-  require_fixed_string "$CROSS_SCREEN_VISUAL_TESTS" 'testLongAnswersRespectAccessibilityContentSizeWhileFitting' 'Cross-screen visual tests must preserve Dynamic Type while fitting long answers'
-  require_fixed_string "$CROSS_SCREEN_VISUAL_TESTS" 'testLongQuestionsShrinkWithinReadableFloorAcrossSelectableStylesAndPhoneSizes' 'Cross-screen visual tests must bound long-question typography across styles and phone sizes'
-  require_fixed_string "$CROSS_SCREEN_VISUAL_TESTS" 'testExtremeQuestionStopsAtReadableFloorAndUsesScrollableFallback' 'Cross-screen visual tests must keep extreme questions readable and scrollable'
-  require_fixed_string "$CROSS_SCREEN_VISUAL_TESTS" 'testQuestionFontRestoresForShortQuestionAndRefitsAfterWidthChange' 'Cross-screen visual tests must refit questions after width and content changes'
-  require_fixed_string "$CROSS_SCREEN_VISUAL_TESTS" 'testStatisticsCorrectAnswersValueStaysFullyVisibleForLargeHistory' 'Cross-screen visual tests must keep large correct-answer totals fully visible'
-  require_fixed_string "$CROSS_SCREEN_VISUAL_TESTS" 'testQuestionNextButtonStaysPinnedWhenExtremeAnswerGrowsCard' 'Cross-screen visual tests must cover the readable-font fallback for extreme answers'
-  require_fixed_string "$CROSS_SCREEN_VISUAL_TESTS" 'testQuestionAdvanceResetsScrolledLongAnswerCardToTop' 'Cross-screen visual tests must reset long-answer scroll position when advancing'
+  require_test_method "$SWIFTUI_SNAPSHOT_TESTS" 'testSettingsViewSnapshot' 'SwiftUI snapshots must cover settings'
+  require_test_method "$SWIFTUI_SNAPSHOT_TESTS" 'testClassicSettingsCompactPortraitSnapshot' 'SwiftUI snapshots must cover Classic settings on iPhone SE geometry'
+  require_fixed_string \
+    "QuiziceTests/Features/Home/Tests/HomeCollectionServiceTests.swift" \
+    'XCTAssertEqual(themeCell.layer.shadowOpacity, 0)' \
+    'Home collection tests must keep Clean light theme cards shadowless'
   require_fixed_string "$APP_APPEARANCE_TESTS" 'testAllDesignStylesResolveExpectedSurfaceFamilies' 'Appearance tests must cover all design styles'
   require_fixed_string "$QUESTION_PRESENTER_TESTS" 'testCorrectAnswerRecordsSingleCompletedAttemptAndEmitsResult' 'Question presenter tests must cover result emission and statistics recording'
   require_fixed_string "$QUIZ_FACTORY_TESTS" 'testSwiftDataThemeStoreReplacesFetchesAndClearsThemes' 'Factory tests must cover in-memory SwiftData theme store behavior'
@@ -445,6 +717,7 @@ check_snapshot_coverage_markers() {
 run_app_build() {
   log_section "App build"
   xcodebuild \
+    -quiet \
     -project "$PROJECT" \
     -scheme "$SCHEME" \
     -configuration "$CONFIGURATION" \
@@ -505,10 +778,10 @@ run_unit_tests() {
   local test_log
   test_log="$(mktemp -t quizice-s04-xctest.XXXXXX.log)"
   remember_temp_file "$test_log"
-  local result_bundle
-  result_bundle="$(mktemp -d "${TMPDIR:-/tmp}/quizice-s04-result.XXXXXX.xcresult")"
-  rm -rf "$result_bundle"
-  remember_temp_path "$result_bundle"
+  local result_directory
+  result_directory="$(mktemp -d "${TMPDIR:-/tmp}/quizice-s04-result.XXXXXX")"
+  remember_temp_path "$result_directory"
+  local result_bundle="$result_directory/QuiziceTests.xcresult"
 
   if ! xcodebuild \
     -project "$PROJECT" \
@@ -519,7 +792,7 @@ run_unit_tests() {
     -parallel-testing-enabled NO \
     -enableCodeCoverage YES \
     -resultBundlePath "$result_bundle" \
-    test | tee "$test_log"; then
+    test | tee "$test_log" >/dev/null; then
     print_xctest_failure_summary "$result_bundle" "$test_log"
     printf 'XCTest log retained at: %s\n' "$test_log" >&2
     fail "xcodebuild test failed"
@@ -541,10 +814,10 @@ run_unit_tests() {
     'HomeCardSnapshotTests did not appear to execute'
   require_extended_regex "$test_log" "Test Suite 'SwiftUISnapshotTests' passed|Test case 'SwiftUISnapshotTests\\." \
     'SwiftUISnapshotTests did not appear to execute'
-  require_extended_regex "$test_log" "Test Suite 'HomeScreenVisualStateTests' passed|Test case 'HomeScreenVisualStateTests\\." \
-    'HomeScreenVisualStateTests did not appear to execute'
-  require_extended_regex "$test_log" "Test Suite 'CrossScreenVisualStateTests' passed|Test case 'CrossScreenVisualStateTests\\." \
-    'CrossScreenVisualStateTests did not appear to execute'
+  require_extended_regex "$test_log" "Test Suite 'HomeCollectionServiceTests' passed|Test case 'HomeCollectionServiceTests\\." \
+    'HomeCollectionServiceTests did not appear to execute'
+  require_extended_regex "$test_log" "Test Suite 'QuizQuestionTypographyContractTests' passed|Test case 'QuizQuestionTypographyContractTests\\." \
+    'QuizQuestionTypographyContractTests did not appear to execute'
   require_extended_regex "$test_log" "Test Suite 'AppAppearanceTests' passed|Test case 'AppAppearanceTests\\." \
     'AppAppearanceTests did not appear to execute'
 
@@ -564,6 +837,8 @@ printf 'S03 delegated verifier: PASS\n'
 assert_data_json_unchanged
 
 check_project_and_test_wiring
+check_swift_file_size_limit
+check_split_test_layout_and_markers
 check_statistics_coverage_markers
 check_failure_state_coverage_markers
 check_snapshot_coverage_markers

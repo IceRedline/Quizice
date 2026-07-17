@@ -1,16 +1,19 @@
 # Project structure
 
-The project is being migrated incrementally to feature-first ownership. New files should follow this layout:
+Quizice uses feature-first ownership. Production files follow this layout:
 
 ```text
 Quizice/
   App/                         application and scene composition
   Core/
     Analytics/
+    Authentication/
     DesignSystem/
+    Logging/
     Localization/
     Persistence/
-  Domain/                      shared quiz models and rules
+    Session/
+  Domain/                      framework-independent models, rules, and ports
   Features/
     Home/
     QuizDescription/
@@ -22,6 +25,21 @@ Quizice/
   Resources/
 ```
 
-Dependency direction is `App -> Features -> Domain/Core`. Feature code must not reach through `QuizFactory.shared` when a dependency can be passed through an initializer. `QuizFactory` owns catalog loading and persistence; `QuizSessionStore` owns transient quiz selection and progress configuration. The compatibility forwarding properties on `QuizFactory` exist only while older tests and previews are migrated.
+Tests mirror feature ownership under `QuiziceTests/Features`; shared harnesses live
+in `QuiziceTests/Support`, and cross-feature rendered artifacts stay in
+`QuiziceTests/Snapshots`.
 
-Files should move physically only together with their Xcode project references. Avoid large cosmetic moves in the same change as behavior changes; move one feature at a time so history and snapshot regressions remain reviewable.
+Dependency direction is `App -> Features -> Domain/Core`. `Domain` has no UIKit,
+SwiftUI, SwiftData, GameKit, analytics-SDK, or networking imports. Persistent
+SwiftData records are mapped to domain models inside `Core/Persistence`.
+
+Feature code should receive repository, session, analytics, and routing ports from
+the application composition boundary. Default live dependencies remain available
+for UIKit previews and source compatibility, but state ownership is split:
+`ThemeCatalogRepository` owns the durable catalog and `QuizSessionStore` owns the
+transient quiz selection and configuration. `QuizFactory` is now only a temporary
+compatibility alias/forwarder.
+
+Every physical move must be reflected in the Xcode project. Swift files are capped
+at 700 lines by the S04 verifier; the limit is a guardrail, and files should split
+earlier whenever they gain multiple reasons to change.

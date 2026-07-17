@@ -14,7 +14,20 @@ The quiz includes themes:
 
 ![Quizice Preview](https://github.com/user-attachments/assets/e84484ae-8833-4286-9b77-0fbf0b3b68fa)
 
-> Swift, UIKit, MVP, SwiftData
+> Swift, UIKit + SwiftUI, Coordinator-led MVP, unidirectional state, SwiftData
+
+## Architecture
+
+The source tree is organized by feature, with application composition in `App`,
+shared infrastructure in `Core`, framework-independent models and contracts in
+`Domain`, and screen ownership in `Features`. UIKit remains the navigation and
+interaction shell; SwiftUI is used where declarative content has a clear size and
+maintenance benefit.
+
+- [Project structure](docs/project-structure.md)
+- [Architecture review](docs/architecture-review.md)
+- [Refactor report](docs/refactor-report.md)
+- [SwiftUI migration assessment](docs/swiftui-migration-assessment.md)
 
 ## Yandex AppMetrica
 
