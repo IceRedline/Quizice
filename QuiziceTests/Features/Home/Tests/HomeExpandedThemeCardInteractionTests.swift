@@ -350,7 +350,6 @@ final class HomeExpandedThemeCardInteractionTests: HomeScreenVisualStateTestCase
 
         XCTAssertEqual(QuizFactory.shared.questionsCount, 10)
         XCTAssertEqual(router.showQuestionCallCount, 1)
-        XCTAssertEqual(router.showDescriptionCallCount, 0)
 
         viewController.viewWillAppear(false)
         XCTAssertNil(

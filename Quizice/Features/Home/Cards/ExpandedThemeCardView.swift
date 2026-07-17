@@ -254,7 +254,7 @@ final class ExpandedThemeCardView: UIView, UIGestureRecognizerDelegate {
         frontTitleLabel.text = theme.theme
         backTitleLabel.text = theme.theme
         backDescriptionLabel.text = theme.themeDescription.isEmpty
-            ? L10n.Description.defaultThemeDescription
+            ? L10n.ThemeCard.defaultThemeDescription
             : theme.themeDescription
         infoButton.accessibilityValue = theme.theme
         infoButton.accessibilityHint = nil

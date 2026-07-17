@@ -272,12 +272,12 @@ extension ExpandedThemeCardView {
         backDescriptionLabel.translatesAutoresizingMaskIntoConstraints = false
 
         questionCountLabel.accessibilityIdentifier = AccessibilityID.questionCountLabel
-        questionCountLabel.text = L10n.Description.questionCount
+        questionCountLabel.text = L10n.ThemeCard.questionCount
         questionCountLabel.adjustsFontForContentSizeCategory = true
         questionCountLabel.numberOfLines = 0
 
         questionCountControl.accessibilityIdentifier = AccessibilityID.questionCountControl
-        questionCountControl.accessibilityLabel = L10n.Description.questionCount
+        questionCountControl.accessibilityLabel = L10n.ThemeCard.questionCount
         questionCountControl.translatesAutoresizingMaskIntoConstraints = false
 
         unavailableLabel.accessibilityIdentifier = AccessibilityID.unavailableLabel

@@ -19,13 +19,6 @@ enum L10n {
         static var yes: String { L10n.localized("common.yes", comment: "Positive alert action title") }
     }
 
-    enum Description {
-        static var aiQuestionCountFixed: String { L10n.localized("description.ai_question_count_fixed", comment: "Fixed AI question count picker hint") }
-        static var defaultThemeDescription: String { L10n.localized("description.default_theme_description", comment: "Default theme description fallback") }
-        static var defaultThemeName: String { L10n.localized("description.default_theme_name", comment: "Default theme name fallback") }
-        static var questionCount: String { L10n.localized("description.question_count", comment: "Question count picker caption") }
-    }
-
     enum Home {
         static var backgroundStyleSwitcher: String { L10n.localized("home.background_style.switcher", comment: "Experimental home background style switcher label") }
         static var chooseTheme: String { L10n.localized("home.choose_theme", comment: "Home screen theme selection title") }
@@ -231,21 +224,22 @@ enum L10n {
     }
 
     enum Statistics {
-        static var accessibilityLabel: String { L10n.localized("statistics.accessibility_label", comment: "Statistics screen accessibility label") }
+        static var accessibilityLabel: String { L10n.localized("statistics.accessibility_label", comment: "Expanded statistics card accessibility label") }
         static var bestResult: String { L10n.localized("statistics.best_result", comment: "Best result row title") }
         static var correctAnswers: String { L10n.localized("statistics.correct_answers", comment: "Correct answers row title") }
-        static var emptyStateAccessibilityLabel: String { L10n.localized("statistics.empty_state.accessibility_label", comment: "Statistics empty state accessibility label") }
         static var emptyStateText: String { L10n.localized("statistics.empty_state.text", comment: "Statistics empty state text") }
         static var percentage: String { L10n.localized("statistics.percentage", comment: "Correct answers percentage row title") }
         static var playedQuizzes: String { L10n.localized("statistics.played_quizzes", comment: "Played quizzes row title") }
         static var subtitleEmpty: String { L10n.localized("statistics.subtitle.empty", comment: "Statistics subtitle when there are no attempts") }
         static var subtitleWithStats: String { L10n.localized("statistics.subtitle.with_stats", comment: "Statistics subtitle when attempts exist") }
-        static var title: String { L10n.localized("statistics.title", comment: "Statistics screen title") }
+        static var title: String { L10n.localized("statistics.title", comment: "Statistics card title") }
     }
 
     enum ThemeCard {
         static var accessibilityHint: String { L10n.localized("theme.card.accessibility_hint", comment: "Theme card accessibility hint") }
         static var closeAccessibilityLabel: String { L10n.localized("theme.card.close_accessibility_label", comment: "Expanded theme card close button accessibility label") }
+        static var defaultThemeDescription: String { L10n.localized("description.default_theme_description", comment: "Default theme description fallback") }
+        static var questionCount: String { L10n.localized("description.question_count", comment: "Question count picker caption") }
         static var showDescriptionAccessibilityLabel: String { L10n.localized("theme.card.show_description_accessibility_label", comment: "Expanded theme card show-description accessibility label") }
         static var showFrontAccessibilityLabel: String { L10n.localized("theme.card.show_front_accessibility_label", comment: "Expanded theme card return-to-front accessibility label") }
 

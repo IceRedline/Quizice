@@ -16,10 +16,8 @@ Quizice/
   Domain/                      framework-independent models, rules, and ports
   Features/
     Home/
-    QuizDescription/
     QuizPlay/
     QuizResult/
-    Statistics/
     AIQuiz/
     Settings/
   Resources/
@@ -39,6 +37,13 @@ for UIKit previews and source compatibility, but state ownership is split:
 `ThemeCatalogRepository` owns the durable catalog and `QuizSessionStore` owns the
 transient quiz selection and configuration. `QuizFactory` is now only a temporary
 compatibility alias/forwarder.
+
+Quiz setup and aggregate statistics are inline Home surfaces, not standalone
+navigation destinations. Catalog themes reveal description and question-count
+controls inside the expanded theme card; a successful AI generation writes the
+generated theme into the session and routes directly to Quiz Play. Statistics
+expand from the Home collection card and use the shared models in
+`Domain/Statistics` plus persistence in `Core/Persistence`.
 
 Every physical move must be reflected in the Xcode project. Swift files are capped
 at 700 lines by the S04 verifier; the limit is a guardrail, and files should split

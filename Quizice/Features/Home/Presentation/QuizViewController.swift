@@ -1,6 +1,6 @@
 import UIKit
 
-final class QuizViewController: BaseQuizViewController, QuizViewControllerProtocol, ThemeCollectionDelegate, QuizCardSlideTransitionSource, QuizHomeReturnHandling {
+final class QuizViewController: BaseQuizViewController, ThemeCollectionDelegate, QuizCardSlideTransitionSource, QuizHomeReturnHandling {
     enum Content {
 #if DEBUG
         static let backgroundStyleIconName = "circle.grid.3x3.fill"
@@ -203,7 +203,6 @@ final class QuizViewController: BaseQuizViewController, QuizViewControllerProtoc
     var expandedCardLastTrackedFace: HomeThemeCardFace?
     var expandedAIKeyboardLift: CGFloat = 0
     weak var router: HomeRouting?
-    var presenter: QuizPresenterProtocol?
 
     var cardSlideTransitionSourceView: UIView {
         quizTransitionSourceView
@@ -293,10 +292,6 @@ final class QuizViewController: BaseQuizViewController, QuizViewControllerProtoc
             themeRepository.loadData(forceReload: false)
         }
 
-        if presenter == nil {
-            configurePresenter(QuizPresenter(session: session))
-        }
-
         configureThemesCollectionService()
         installLocalizationObserver()
         updateThemeAvailabilityMessage()
@@ -337,11 +332,6 @@ final class QuizViewController: BaseQuizViewController, QuizViewControllerProtoc
             animateStartupViews()
             session.startup1st = false
         }
-    }
-
-    func configurePresenter(_ presenter: any QuizPresenterProtocol) {
-        self.presenter = presenter
-        self.presenter?.view = self
     }
 
     override func applyAppearance() {

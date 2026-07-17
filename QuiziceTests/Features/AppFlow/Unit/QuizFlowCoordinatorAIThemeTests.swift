@@ -27,7 +27,7 @@ final class QuizFlowCoordinatorAIThemeTests: QuizFlowCoordinatorTestCase {
         service.resolveNext(with: .failure(CancellationError()))
     }
 
-    func testInlineAIThemeSuccessUpdatesSessionAndRoutesToDescriptionExactlyOnce() async throws {
+    func testInlineAIThemeSuccessUpdatesSessionAndRoutesToQuestionExactlyOnce() async throws {
         let service = ControllableRoutingAIQuizThemeService()
         let harness = try makeInlineAIHarness(service: service)
         defer { harness.dispose() }
@@ -46,6 +46,32 @@ final class QuizFlowCoordinatorAIThemeTests: QuizFlowCoordinatorTestCase {
                 $0.title(for: .normal) == "10"
             }
         )
+        let collectionView = try XCTUnwrap(
+            descendant(
+                in: harness.viewController.view,
+                accessibilityIdentifier: "homeThemesCollectionView"
+            ) as? UICollectionView
+        )
+        var routeSnapshot: InlineAIRouteSnapshot?
+        harness.router.onShowQuestion = {
+            [weak self,
+             weak viewController = harness.viewController,
+             weak expandedCard = controls.card,
+             weak collectionView] in
+            guard let self, let viewController, let expandedCard, let collectionView else { return }
+            routeSnapshot = InlineAIRouteSnapshot(
+                cardWasAttached: expandedCard.isDescendant(of: viewController.view),
+                backdropWasAttached: self.descendant(
+                    in: viewController.view,
+                    accessibilityIdentifier: "homeExpandedThemeCardBackdrop"
+                ) != nil,
+                cardWasInteractive: expandedCard.isUserInteractionEnabled,
+                collectionWasInteractive: collectionView.isUserInteractionEnabled,
+                sourceWasCard: viewController.cardSlideTransitionSourceView === expandedCard,
+                isLaunchPending: viewController.isQuizLaunchPending,
+                hasLaunchStarted: viewController.hasQuizLaunchStarted
+            )
+        }
         tenQuestionButton.sendActions(for: .touchUpInside)
 
         controls.submitButton.sendActions(for: .touchUpInside)
@@ -56,11 +82,28 @@ final class QuizFlowCoordinatorAIThemeTests: QuizFlowCoordinatorTestCase {
         let generatedTheme = makeGeneratedAITheme(questionCount: 10)
         service.resolveNext(with: .success(generatedTheme))
 
-        try await waitUntil { harness.router.showDescriptionCallCount == 1 }
-        XCTAssertEqual(harness.router.showDescriptionCallCount, 1)
+        try await waitUntil { harness.router.showQuestionCallCount == 1 }
+        XCTAssertEqual(harness.router.showQuestionCallCount, 1)
+        XCTAssertEqual(harness.analytics.quizStartedCount, 1)
         XCTAssertEqual(harness.session.chosenTheme?.themeID, generatedTheme.stableID)
         XCTAssertTrue(harness.session.chosenTheme?.isAIGenerated == true)
         XCTAssertEqual(harness.session.questionsCount, 10)
+        XCTAssertEqual(controls.card.accessibilityIdentifier, "homeExpandedAIThemeCard")
+        let snapshot = try XCTUnwrap(routeSnapshot)
+        XCTAssertTrue(snapshot.cardWasAttached)
+        XCTAssertTrue(snapshot.backdropWasAttached)
+        XCTAssertFalse(snapshot.cardWasInteractive)
+        XCTAssertFalse(snapshot.collectionWasInteractive)
+        XCTAssertTrue(snapshot.sourceWasCard)
+        XCTAssertTrue(snapshot.isLaunchPending)
+        XCTAssertTrue(snapshot.hasLaunchStarted)
+
+        await Task.yield()
+        XCTAssertEqual(harness.router.showQuestionCallCount, 1)
+        XCTAssertEqual(harness.analytics.quizStartedCount, 1)
+
+        harness.viewController.quizFlowWillReturnToThemes()
+
         XCTAssertNil(
             descendant(
                 in: harness.viewController.view,
@@ -73,16 +116,10 @@ final class QuizFlowCoordinatorAIThemeTests: QuizFlowCoordinatorTestCase {
                 accessibilityIdentifier: "homeExpandedThemeCardBackdrop"
             )
         )
-        let collectionView = try XCTUnwrap(
-            descendant(
-                in: harness.viewController.view,
-                accessibilityIdentifier: "homeThemesCollectionView"
-            ) as? UICollectionView
-        )
         XCTAssertTrue(collectionView.isUserInteractionEnabled)
-
-        await Task.yield()
-        XCTAssertEqual(harness.router.showDescriptionCallCount, 1)
+        XCTAssertNil(harness.viewController.quizTransitionSourceView)
+        XCTAssertFalse(harness.viewController.isQuizLaunchPending)
+        XCTAssertFalse(harness.viewController.hasQuizLaunchStarted)
     }
 
     func testInlineAIThemeFailurePreservesDraftAndOffersRetryAndEdit() async throws {
@@ -110,7 +147,7 @@ final class QuizFlowCoordinatorAIThemeTests: QuizFlowCoordinatorTestCase {
         XCTAssertTrue(controls.submitButton.isEnabled)
         XCTAssertTrue(alert.isModalInPresentation)
         XCTAssertTrue(alert.view.accessibilityViewIsModal)
-        XCTAssertEqual(harness.router.showDescriptionCallCount, 0)
+        XCTAssertEqual(harness.router.showQuestionCallCount, 0)
         XCTAssertNil(harness.session.chosenTheme)
     }
 
@@ -154,7 +191,7 @@ final class QuizFlowCoordinatorAIThemeTests: QuizFlowCoordinatorTestCase {
             ) as? UICollectionView
         )
         XCTAssertTrue(collectionView.isUserInteractionEnabled)
-        XCTAssertEqual(harness.router.showDescriptionCallCount, 0)
+        XCTAssertEqual(harness.router.showQuestionCallCount, 0)
         XCTAssertNil(harness.session.chosenTheme)
     }
 
@@ -173,7 +210,7 @@ final class QuizFlowCoordinatorAIThemeTests: QuizFlowCoordinatorTestCase {
         try closeInlineAICard(in: harness.viewController)
         try await waitUntil { harness.analytics.aiGenerationCancelledCount == 1 }
         XCTAssertEqual(harness.analytics.aiGenerationCancelledCount, 1)
-        XCTAssertEqual(harness.router.showDescriptionCallCount, 0)
+        XCTAssertEqual(harness.router.showQuestionCallCount, 0)
         XCTAssertNil(harness.session.chosenTheme)
 
         service.resolveNext(
@@ -182,7 +219,7 @@ final class QuizFlowCoordinatorAIThemeTests: QuizFlowCoordinatorTestCase {
         try await Task.sleep(nanoseconds: 50_000_000)
 
         XCTAssertEqual(harness.analytics.aiGenerationCancelledCount, 1)
-        XCTAssertEqual(harness.router.showDescriptionCallCount, 0)
+        XCTAssertEqual(harness.router.showQuestionCallCount, 0)
         XCTAssertNil(harness.session.chosenTheme)
         XCTAssertNil(
             descendant(
@@ -191,4 +228,14 @@ final class QuizFlowCoordinatorAIThemeTests: QuizFlowCoordinatorTestCase {
             )
         )
     }
+}
+
+private struct InlineAIRouteSnapshot {
+    let cardWasAttached: Bool
+    let backdropWasAttached: Bool
+    let cardWasInteractive: Bool
+    let collectionWasInteractive: Bool
+    let sourceWasCard: Bool
+    let isLaunchPending: Bool
+    let hasLaunchStarted: Bool
 }

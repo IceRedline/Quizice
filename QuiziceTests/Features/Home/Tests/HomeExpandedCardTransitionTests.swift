@@ -4,6 +4,54 @@ import XCTest
 
 @MainActor
 final class HomeExpandedCardTransitionTests: HomeScreenVisualStateTestCase {
+    func testExpandedStatisticsCardKeepsLargeHistoryValueVisibleAtNarrowWidths() throws {
+        let summary = StatisticsSummary(
+            playedQuizzes: 53,
+            correctAnswers: 74,
+            totalQuestions: 265,
+            bestCorrectAnswers: 5,
+            bestTotalQuestions: 5
+        )
+        let appearance = SnapshotSupport.appearance(designStyle: .radar)
+
+        for screenWidth in [CGFloat(402), CGFloat(320)] {
+            let card = ExpandedStatisticsCardView(
+                frame: CGRect(x: 20, y: 126, width: screenWidth - 40, height: 600)
+            )
+            card.configure(summary: summary, appearance: appearance)
+
+            let host = UIViewController()
+            host.view.addSubview(card)
+            let window = UIWindow(frame: CGRect(x: 0, y: 0, width: screenWidth, height: 874))
+            window.rootViewController = host
+            window.makeKeyAndVisible()
+            window.layoutIfNeeded()
+            card.layoutIfNeeded()
+            testWindows.append(window)
+
+            let correctRow = try XCTUnwrap(
+                card.descendant(withAccessibilityIdentifier: "expandedStatisticsMetric-correctAnswers")
+            )
+            let labels = correctRow.subviews.compactMap { $0 as? UILabel }
+            let correctValueLabel = try XCTUnwrap(labels.first { $0.text == "74/265" })
+            let titleLabel = try XCTUnwrap(labels.first { $0 !== correctValueLabel })
+            let requiredValueWidth = ceil(
+                ("74/265" as NSString).size(withAttributes: [.font: correctValueLabel.font!]).width
+            )
+            let valueFrame = correctValueLabel.convert(correctValueLabel.bounds, to: correctRow)
+
+            XCTAssertEqual(correctRow.accessibilityValue, "74/265")
+            XCTAssertTrue(correctValueLabel.adjustsFontSizeToFitWidth)
+            XCTAssertEqual(correctValueLabel.minimumScaleFactor, 0.75, accuracy: 0.001)
+            XCTAssertGreaterThanOrEqual(correctValueLabel.bounds.width + 0.5, requiredValueWidth)
+            XCTAssertGreaterThan(
+                correctValueLabel.contentCompressionResistancePriority(for: .horizontal).rawValue,
+                titleLabel.contentCompressionResistancePriority(for: .horizontal).rawValue
+            )
+            XCTAssertTrue(correctRow.bounds.insetBy(dx: -0.5, dy: -0.5).contains(valueFrame))
+        }
+    }
+
     func testStatisticsCardExpandsInlineTracksOnceAndRestoresTheGridWithoutQuizCancellation() throws {
         QuizFactory.shared.themes = [makeTheme(name: "Музыка", questionCount: 15)]
         let statisticsStore = makeStatisticsStore(attempts: [
@@ -45,7 +93,6 @@ final class HomeExpandedCardTransitionTests: HomeScreenVisualStateTestCase {
         )
 
         sourceButton.sendActions(for: .touchUpInside)
-        XCTAssertEqual(router.showStatisticsCallCount, 0)
         drainAnimations()
 
         let backdrop = try XCTUnwrap(
@@ -152,7 +199,6 @@ final class HomeExpandedCardTransitionTests: HomeScreenVisualStateTestCase {
         XCTAssertEqual(collectionView.bounces, initialBounces)
         XCTAssertEqual(collectionView.contentOffset.x, initialContentOffset.x, accuracy: 0.001)
         XCTAssertEqual(collectionView.contentOffset.y, initialContentOffset.y, accuracy: 0.001)
-        XCTAssertEqual(router.showStatisticsCallCount, 0)
         let eventsAfterCollapse = analytics.events.filter { event in
             !(event.name == "screen_view" && event.parameters["screen"] as? String == "home")
         }
@@ -240,7 +286,6 @@ final class HomeExpandedCardTransitionTests: HomeScreenVisualStateTestCase {
         XCTAssertTrue(
             viewController.view.descendant(withAccessibilityIdentifier: "homeSettingsButton")?.accessibilityElementsHidden == true
         )
-        XCTAssertEqual(router.showDescriptionCallCount, 0)
 
         let targetCardFrame = card.convert(card.bounds, to: viewController.view)
         drainAnimations(0.08)

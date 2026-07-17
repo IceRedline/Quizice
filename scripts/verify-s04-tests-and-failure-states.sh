@@ -37,20 +37,29 @@ readonly HOME_CARD_SNAPSHOT_TESTS="QuiziceTests/Snapshots/HomeCardSnapshotTests.
 readonly SCREEN_SNAPSHOT_TESTS="QuiziceTests/Snapshots/ScreenSnapshotTests.swift"
 readonly SWIFTUI_SNAPSHOT_TESTS="QuiziceTests/Snapshots/SwiftUISnapshotTests.swift"
 readonly APP_APPEARANCE_TESTS="QuiziceTests/Unit/AppAppearanceTests.swift"
-readonly QUIZ_PRESENTER_TESTS="QuiziceTests/Unit/QuizPresenterTests.swift"
 readonly QUESTION_PRESENTER_TESTS="QuiziceTests/Unit/QuizQuestionPresenterTests.swift"
 readonly QUIZ_FACTORY_TESTS="QuiziceTests/Unit/QuizFactoryTests.swift"
+readonly AI_WORKFLOW="Quizice/Features/Home/Presentation/QuizViewController+AIWorkflow.swift"
+readonly QUIZ_FLOW_COORDINATOR="Quizice/App/Navigation/QuizFlowCoordinator.swift"
+readonly RETIRED_DESCRIPTION_VIEW_CONTROLLER="Quizice/Features/QuizDescription/UI/QuizDescriptionViewController.swift"
 readonly SNAPSHOT_RUNTIME_IDENTIFIER="com.apple.CoreSimulator.SimRuntime.iOS-26-2"
 readonly SNAPSHOT_HOST_DEVICE_TYPE_SUFFIX=".iPhone-16e"
 readonly MIN_LINE_COVERAGE_PERCENT=80
 readonly MAX_SWIFT_FILE_LINES=700
+# The previous split set exposed 203 methods. Retiring nine standalone
+# Description/Statistics controller tests leave 194 preserved split tests; the
+# inline large-history layout regression raises the retained floor to 195.
+readonly MIN_SPLIT_TEST_METHODS=195
 
-readonly -a LEGACY_SPLIT_TEST_FILES=(
+readonly -a REMOVED_TEST_FILES=(
   "QuiziceTests/UI/HomeScreenVisualStateTests.swift"
   "QuiziceTests/UI/CrossScreenVisualStateTests.swift"
   "QuiziceTests/Unit/HomeThemeCardFeatureTests.swift"
   "QuiziceTests/Unit/QuizFlowCoordinatorAdditionalTests.swift"
   "QuiziceTests/Unit/YandexAIQuizThemeServiceTests.swift"
+  "QuiziceTests/Unit/QuizPresenterTests.swift"
+  "QuiziceTests/Features/QuizDescription/UIContracts/QuizDescriptionViewContractTests.swift"
+  "QuiziceTests/Features/Statistics/UIContracts/StatisticsViewContractTests.swift"
 )
 
 readonly -a SPLIT_TEST_SOURCE_FILES=(
@@ -80,12 +89,10 @@ readonly -a SPLIT_TEST_SOURCE_FILES=(
   "QuiziceTests/Features/Home/Unit/HomeThemeCardReducerTests.swift"
   "QuiziceTests/Features/Home/Unit/HomeThemeCardTransitionTests.swift"
   "QuiziceTests/Features/Home/Unit/QuizQuestionCountPolicyTests.swift"
-  "QuiziceTests/Features/QuizDescription/UIContracts/QuizDescriptionViewContractTests.swift"
   "QuiziceTests/Features/QuizPlay/UIContracts/QuizQuestionStateContractTests.swift"
   "QuiziceTests/Features/QuizPlay/UIContracts/QuizQuestionTypographyContractTests.swift"
   "QuiziceTests/Features/QuizResult/UIContracts/QuizResultViewContractTests.swift"
   "QuiziceTests/Features/Statistics/UIContracts/StatisticsCardCollectionViewCellTests.swift"
-  "QuiziceTests/Features/Statistics/UIContracts/StatisticsViewContractTests.swift"
   "QuiziceTests/Support/CrossScreenVisualTestCase.swift"
   "QuiziceTests/Support/QuizFlowCoordinatorTestCase.swift"
   "QuiziceTests/Support/UIView+TestDescendant.swift"
@@ -126,12 +133,10 @@ readonly -a SPLIT_TEST_SUITE_LAYOUT=(
   "QuiziceTests/Features/Home/Unit/HomeThemeCardTransitionTests.swift|HomeThemeCardTransitionGeometryTests"
   "QuiziceTests/Features/Home/Unit/HomeThemeCardTransitionTests.swift|HomeThemeCardTransitionVisualStateTests"
   "QuiziceTests/Features/Home/Unit/QuizQuestionCountPolicyTests.swift|QuizQuestionCountPolicyTests"
-  "QuiziceTests/Features/QuizDescription/UIContracts/QuizDescriptionViewContractTests.swift|QuizDescriptionViewContractTests"
   "QuiziceTests/Features/QuizPlay/UIContracts/QuizQuestionStateContractTests.swift|QuizQuestionStateContractTests"
   "QuiziceTests/Features/QuizPlay/UIContracts/QuizQuestionTypographyContractTests.swift|QuizQuestionTypographyContractTests"
   "QuiziceTests/Features/QuizResult/UIContracts/QuizResultViewContractTests.swift|QuizResultViewContractTests"
   "QuiziceTests/Features/Statistics/UIContracts/StatisticsCardCollectionViewCellTests.swift|StatisticsCardCollectionViewCellTests"
-  "QuiziceTests/Features/Statistics/UIContracts/StatisticsViewContractTests.swift|StatisticsViewContractTests"
   "QuiziceTests/Support/CrossScreenVisualTestCase.swift|CrossScreenVisualTestCase"
   "QuiziceTests/Support/QuizFlowCoordinatorTestCase.swift|QuizFlowCoordinatorTestCase"
   "QuiziceTests/Support/YandexAIQuizThemeServiceTestCase.swift|YandexAIQuizThemeServiceTestCase"
@@ -362,10 +367,10 @@ check_split_test_layout_and_markers() {
     require_file "$test_source"
   done
 
-  local legacy_test_file
-  for legacy_test_file in "${LEGACY_SPLIT_TEST_FILES[@]}"; do
-    if [[ -e "$legacy_test_file" ]]; then
-      fail "legacy monolithic test file must remain removed: $legacy_test_file"
+  local removed_test_file
+  for removed_test_file in "${REMOVED_TEST_FILES[@]}"; do
+    if [[ -e "$removed_test_file" ]]; then
+      fail "retired test file must remain removed: $removed_test_file"
     fi
   done
 
@@ -409,12 +414,16 @@ check_split_test_layout_and_markers() {
     'coordinator launch tests must preserve root installation coverage'
   require_test_method \
     "QuiziceTests/Features/AppFlow/Unit/QuizFlowCoordinatorNavigationTests.swift" \
-    'testDescriptionAndStatisticsRoutesPushExpectedControllers' \
-    'coordinator navigation tests must preserve route coverage'
+    'testModalRoutesPresentQuestionResultAndSettings' \
+    'coordinator navigation tests must preserve the active modal routes'
   require_test_method \
     "QuiziceTests/Features/AppFlow/Unit/QuizFlowCoordinatorAIThemeTests.swift" \
     'testInlineAIThemeSubmitIsSingleFlight' \
     'coordinator AI-theme tests must preserve single-flight coverage'
+  require_test_method \
+    "QuiziceTests/Features/AppFlow/Unit/QuizFlowCoordinatorAIThemeTests.swift" \
+    'testInlineAIThemeSuccessUpdatesSessionAndRoutesToQuestionExactlyOnce' \
+    'AI success tests must preserve the direct handoff from generation to Quiz Play'
 
   require_test_method \
     "QuiziceTests/Features/Home/Unit/HomeThemeCardReducerTests.swift" \
@@ -436,6 +445,14 @@ check_split_test_layout_and_markers() {
     "QuiziceTests/Features/Home/Tests/HomeCollectionServiceTests.swift" \
     'testCompactStatisticsTitleShrinksAndLastItemOwnsBottomSpacing' \
     'home collection tests must preserve compact statistics spacing coverage'
+  require_test_method \
+    "QuiziceTests/Features/Home/Tests/HomeExpandedCardTransitionTests.swift" \
+    'testStatisticsCardExpandsInlineTracksOnceAndRestoresTheGridWithoutQuizCancellation' \
+    'inline statistics tests must preserve expansion, analytics, and grid restoration coverage'
+  require_test_method \
+    "QuiziceTests/Features/Home/Tests/HomeExpandedCardTransitionTests.swift" \
+    'testExpandedStatisticsCardKeepsLargeHistoryValueVisibleAtNarrowWidths' \
+    'inline statistics tests must keep large accumulated values visible on narrow phones'
 
   require_test_method \
     "QuiziceTests/Features/QuizPlay/UIContracts/QuizQuestionTypographyContractTests.swift" \
@@ -469,22 +486,45 @@ check_split_test_layout_and_markers() {
     "QuiziceTests/Features/QuizPlay/UIContracts/QuizQuestionStateContractTests.swift" \
     'testQuestionAdvanceResetsScrolledLongAnswerCardToTop' \
     'question state tests must reset long-answer scroll position when advancing'
-  require_test_method \
-    "QuiziceTests/Features/Statistics/UIContracts/StatisticsViewContractTests.swift" \
-    'testStatisticsCorrectAnswersValueStaysFullyVisibleForLargeHistory' \
-    'statistics UI-contract tests must preserve large-history coverage'
-
   local split_test_count=0
   local source_test_count
   for test_source in "${SPLIT_TEST_SOURCE_FILES[@]}"; do
     source_test_count="$(grep -Ec '^[[:space:]]*func[[:space:]]+test' "$test_source" || true)"
     split_test_count=$((split_test_count + source_test_count))
   done
-  if (( split_test_count < 203 )); then
-    fail "split feature/support test files expose only $split_test_count test methods; expected at least 203"
+  if (( split_test_count < MIN_SPLIT_TEST_METHODS )); then
+    fail "split feature/support test files expose only $split_test_count test methods; expected at least $MIN_SPLIT_TEST_METHODS"
   fi
 
-  printf 'Split test files, suites, and at least 203 preserved test methods: PASS\n'
+  printf 'Split test files, suites, and at least %s preserved test methods: PASS\n' "$MIN_SPLIT_TEST_METHODS"
+}
+
+check_direct_ai_route_and_retired_description() {
+  log_section "Direct AI route and retired Description contract"
+
+  require_file "$AI_WORKFLOW"
+  require_file "$QUIZ_FLOW_COORDINATOR"
+  [[ ! -e "$RETIRED_DESCRIPTION_VIEW_CONTROLLER" ]] || \
+    fail "standalone Description controller must remain removed: $RETIRED_DESCRIPTION_VIEW_CONTROLLER"
+  if grep -Fq 'QuizDescriptionViewController.swift' "$PROJECT_FILE"; then
+    fail "Xcode project still references the retired standalone Description controller"
+  fi
+
+  require_fixed_string "$AI_WORKFLOW" 'analytics.track(.themeSelected(theme: .ai, method: .ai))' 'AI success must retain typed theme-selection analytics'
+  require_fixed_string "$AI_WORKFLOW" '.quizStarted(' 'AI success must emit quiz-start analytics before handoff'
+  require_fixed_string "$AI_WORKFLOW" 'quizTransitionSourceView = expandedAIThemeCardView' 'AI success must preserve the expanded card as the Question transition source'
+  require_fixed_string "$AI_WORKFLOW" 'router.showQuestion()' 'AI success must route directly to Quiz Play'
+  if grep -Fq 'router.showDescription()' "$AI_WORKFLOW"; then
+    fail "AI success must not route through the retired Description screen"
+  fi
+  if grep -Eq 'func[[:space:]]+(showDescription|closeDescription)\(' "$QUIZ_FLOW_COORDINATOR"; then
+    fail "coordinator must not expose retired Description routes"
+  fi
+  if grep -Fq 'QuizDescriptionRouting' "$QUIZ_FLOW_COORDINATOR"; then
+    fail "coordinator must not retain the retired Description routing protocol"
+  fi
+
+  printf 'Direct AI-to-Question handoff and retired Description route: PASS\n'
 }
 
 file_sha256() {
@@ -582,7 +622,6 @@ check_project_and_test_wiring() {
   require_file "$SCREEN_SNAPSHOT_TESTS"
   require_file "$SWIFTUI_SNAPSHOT_TESTS"
   require_file "$APP_APPEARANCE_TESTS"
-  require_file "$QUIZ_PRESENTER_TESTS"
   require_file "$QUESTION_PRESENTER_TESTS"
   require_file "$QUIZ_FACTORY_TESTS"
 
@@ -591,13 +630,13 @@ check_project_and_test_wiring() {
     require_file "$test_source"
   done
 
-  local legacy_test_file
-  local legacy_file_name
-  for legacy_test_file in "${LEGACY_SPLIT_TEST_FILES[@]}"; do
-    [[ ! -e "$legacy_test_file" ]] || fail "legacy monolithic test file must remain removed: $legacy_test_file"
-    legacy_file_name="$(basename "$legacy_test_file")"
-    if grep -Fq "$legacy_file_name" "$PROJECT_FILE"; then
-      fail "Xcode project still references removed monolithic test file: $legacy_file_name"
+  local removed_test_file
+  local removed_file_name
+  for removed_test_file in "${REMOVED_TEST_FILES[@]}"; do
+    [[ ! -e "$removed_test_file" ]] || fail "retired test file must remain removed: $removed_test_file"
+    removed_file_name="$(basename "$removed_test_file")"
+    if grep -Fq "$removed_file_name" "$PROJECT_FILE"; then
+      fail "Xcode project still references retired test file: $removed_file_name"
     fi
   done
 
@@ -689,9 +728,9 @@ check_snapshot_coverage_markers() {
   require_test_method "$HOME_CARD_SNAPSHOT_TESTS" 'testRadarLongThemeCompactCardSnapshot' 'Home card snapshots must cover long Radar titles on compact phones'
   require_test_method "$HOME_CARD_SNAPSHOT_TESTS" 'testCompactStatisticsCardSnapshot' 'Home card snapshots must cover compact statistics layout'
   require_test_method "$SCREEN_SNAPSHOT_TESTS" 'testHomeScreenSnapshot' 'Screen snapshots must cover home'
-  require_test_method "$SCREEN_SNAPSHOT_TESTS" 'testRadarStatisticsLargeHistorySnapshot' 'Screen snapshots must keep large Radar statistics values fully visible'
   require_test_method "$SCREEN_SNAPSHOT_TESTS" 'testHomeCompactPortraitSnapshot' 'Screen snapshots must cover the home screen on iPhone SE geometry'
   require_test_method "$SCREEN_SNAPSHOT_TESTS" 'testHomeCompactPortraitBottomSnapshot' 'Screen snapshots must cover the final home item and its internal bottom spacing'
+  require_test_method "$SCREEN_SNAPSHOT_TESTS" 'testRadarExpandedStatisticsLargeHistorySnapshot' 'Screen snapshots must cover inline Radar statistics with a large history'
   require_test_method "$SCREEN_SNAPSHOT_TESTS" 'testClassicLongAnswerModernPortraitSnapshot' 'Screen snapshots must reproduce long answers on iPhone 17 Pro Classic layout'
   require_test_method "$SCREEN_SNAPSHOT_TESTS" 'testClassicLongAnswerCompactPortraitSnapshot' 'Screen snapshots must reproduce long answers on compact Classic layout'
   require_test_method "$SCREEN_SNAPSHOT_TESTS" 'testRadarLongAnswerModernPortraitSnapshot' 'Screen snapshots must cover long answers on iPhone 17 Pro Radar layout'
@@ -839,6 +878,7 @@ assert_data_json_unchanged
 check_project_and_test_wiring
 check_swift_file_size_limit
 check_split_test_layout_and_markers
+check_direct_ai_route_and_retired_description
 check_statistics_coverage_markers
 check_failure_state_coverage_markers
 check_snapshot_coverage_markers

@@ -29,7 +29,6 @@ final class HomeFeelingLuckyTests: HomeScreenVisualStateTestCase {
 
         XCTAssertEqual(QuizFactory.shared.questionsCount, 5)
         XCTAssertEqual(router.showQuestionCallCount, 1)
-        XCTAssertEqual(router.showDescriptionCallCount, 0)
     }
 
     func testFeelingLuckyAnalyticsTracksRandomFiveQuestionStart() throws {

@@ -22,18 +22,6 @@ class CrossScreenVisualTestCase: XCTestCase {
         super.tearDown()
     }
 
-    func descriptionCardHeight(themeName: String, themeDescription: String) throws -> CGFloat {
-        let viewController = QuizDescriptionViewController()
-        viewController.loadViewIfNeeded()
-        viewController.view.frame = CGRect(x: 0, y: 0, width: 390, height: 844)
-        viewController.updateLabels(themeName: themeName, themeDescription: themeDescription)
-        viewController.view.setNeedsLayout()
-        viewController.view.layoutIfNeeded()
-
-        let cardView = try XCTUnwrap(viewController.view.descendant(withAccessibilityIdentifier: "descriptionContentCardView"))
-        return cardView.frame.height
-    }
-
     func questionAnswerButtons(in viewController: QuizQuestionViewController) -> [UIButton] {
         (1...4).compactMap { index in
             viewController.view.descendant(withAccessibilityIdentifier: "questionAnswerButton\(index)") as? UIButton
@@ -233,12 +221,6 @@ class CrossScreenVisualTestCase: XCTestCase {
         )
     }
 
-    func makeStatisticsHarness() -> (store: StatisticsStore, defaults: UserDefaults, suiteName: String) {
-        let suiteName = "CrossScreenVisualStateTests.\(UUID().uuidString)"
-        let defaults = UserDefaults(suiteName: suiteName)!
-        defaults.removePersistentDomain(forName: suiteName)
-        return (StatisticsStore(userDefaults: defaults), defaults, suiteName)
-    }
 }
 
 final class StatisticsCellTargetSpy: NSObject {
@@ -252,13 +234,9 @@ final class CrossScreenRouterSpy: QuizRouting {
     private(set) var replayQuizCallCount = 0
     private(set) var returnToThemesCallCount = 0
 
-    func showDescription() {}
     func showQuestion() { showQuestionCallCount += 1 }
     func showResult(_ result: QuizResultState) { results.append(result) }
-    func showStatistics() {}
     func showSettings() {}
-    func closeDescription() {}
-    func closeStatistics() {}
     func closeQuestion() { closeQuestionCallCount += 1 }
     func replayQuiz() { replayQuizCallCount += 1 }
     func returnToThemes() { returnToThemesCallCount += 1 }

@@ -5,8 +5,29 @@ import XCTest
 
 @MainActor
 class QuizFlowCoordinatorTestCase: XCTestCase {
+    private var animationsWereEnabled = true
+
+    override func setUp() {
+        super.setUp()
+        animationsWereEnabled = UIView.areAnimationsEnabled
+        UIView.setAnimationsEnabled(true)
+        AppLocalizationStore.shared.languagePreference = .russian
+        UserDefaults.standard.set(
+            AppDesignStyle.clean.rawValue,
+            forKey: AppAppearanceStore.Keys.designStyle
+        )
+        UserDefaults.standard.set(
+            CleanColorSchemePreference.dark.rawValue,
+            forKey: AppAppearanceStore.Keys.cleanColorScheme
+        )
+    }
+
     override func tearDown() {
         resetSharedQuizFactoryForTests()
+        UserDefaults.standard.removeObject(forKey: AppLocalizationStore.Keys.language)
+        UserDefaults.standard.removeObject(forKey: AppAppearanceStore.Keys.designStyle)
+        UserDefaults.standard.removeObject(forKey: AppAppearanceStore.Keys.cleanColorScheme)
+        UIView.setAnimationsEnabled(animationsWereEnabled)
         super.tearDown()
     }
 
@@ -51,6 +72,7 @@ class QuizFlowCoordinatorTestCase: XCTestCase {
         viewController.loadViewIfNeeded()
         viewController.view.frame = window.bounds
         viewController.view.layoutIfNeeded()
+
         let collectionView = try XCTUnwrap(
             descendant(
                 in: viewController.view,
@@ -352,15 +374,15 @@ struct InlineAIControls {
 }
 
 final class InlineAIRouterSpy: QuizRouting {
-    private(set) var showDescriptionCallCount = 0
+    private(set) var showQuestionCallCount = 0
+    var onShowQuestion: (() -> Void)?
 
-    func showDescription() { showDescriptionCallCount += 1 }
-    func showQuestion() {}
+    func showQuestion() {
+        onShowQuestion?()
+        showQuestionCallCount += 1
+    }
     func showResult(_ result: QuizResultState) {}
-    func showStatistics() {}
     func showSettings() {}
-    func closeDescription() {}
-    func closeStatistics() {}
     func closeQuestion() {}
     func replayQuiz() {}
     func returnToThemes() {}
@@ -372,6 +394,14 @@ final class InlineAIAnalyticsSpy: AnalyticsTracking {
     var aiGenerationCancelledCount: Int {
         events.reduce(into: 0) { count, event in
             if case .aiGenerationCancelled = event {
+                count += 1
+            }
+        }
+    }
+
+    var quizStartedCount: Int {
+        events.reduce(into: 0) { count, event in
+            if case .quizStarted = event {
                 count += 1
             }
         }

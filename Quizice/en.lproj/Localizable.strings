@@ -9,9 +9,7 @@
 "home.background_style.grid_4x4" = "4×4 Mesh";
 "home.background_style.grid_5x5" = "5×5 Mesh";
 "description.default_theme_description" = "Theme description unavailable";
-"description.default_theme_name" = "No theme";
 "description.question_count" = "Number of questions";
-"description.ai_question_count_fixed" = "The number was set when the quiz was created and cannot be changed";
 "ai_theme.difficulty" = "Difficulty";
 "ai_theme.difficulty.easy" = "Easy";
 "ai_theme.difficulty.medium" = "Medium";
@@ -133,10 +131,9 @@
 "settings.section.developer" = "Developer";
 "settings.backend.localhost" = "Local backend";
 "settings.backend.localhost.subtitle" = "Simulator: localhost:8000 · restart required";
-"statistics.accessibility_label" = "Overall statistics screen";
+"statistics.accessibility_label" = "Overall statistics";
 "statistics.best_result" = "Best result";
 "statistics.correct_answers" = "Correct answers";
-"statistics.empty_state.accessibility_label" = "No completed quizzes yet. Finish your first quiz to see overall statistics.";
 "statistics.empty_state.text" = "Finish your first quiz to see overall statistics. Played quizzes, accuracy, and best result will appear here.";
 "statistics.percentage" = "Correct percentage";
 "statistics.played_quizzes" = "Quizzes played";
