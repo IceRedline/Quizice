@@ -54,6 +54,7 @@ final class LocalizationTests: XCTestCase {
             "home.background_style.original",
             "home.background_style.grid_4x4",
             "home.background_style.grid_5x5",
+            "home.feeling_lucky.loading",
             "question.exit_alert.title",
             "question.exit_alert.message",
             "question.time_remaining",

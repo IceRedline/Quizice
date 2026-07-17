@@ -48,6 +48,7 @@
 "home.exit_alert.message" = "Вы уверены что хотите выйти?";
 "home.feeling_lucky" = "Мне повезет";
 "home.feeling_lucky.accessibility_hint" = "Запускает случайную тему";
+"home.feeling_lucky.loading" = "Подбираем вопросы";
 "home.statistics.accessibility_hint" = "Открывает экран общей статистики по завершённым викторинам";
 "home.statistics.accessibility_label" = "Общая статистика";
 "home.statistics.accessibility_value_format" = "Пройдено: %d. Точность: %d%%";

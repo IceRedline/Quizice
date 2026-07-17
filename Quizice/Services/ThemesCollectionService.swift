@@ -9,6 +9,7 @@ final class ThemesCollectionService: NSObject, UICollectionViewDelegate, UIColle
         static let aiThemeBetaBadgeAccessibilityID = "homeCreateWithAIBetaBadge"
         static let aiThemeGradientBorderAccessibilityID = "homeCreateWithAIGradientBorder"
         static let feelingLuckyAccessibilityID = "homeFeelingLuckyButton"
+        static let feelingLuckyProgressAccessibilityID = "homeFeelingLuckyProgressView"
         static let statisticsAccessibilityID = "homeStatisticsCard"
         static let statisticsTitleAccessibilityID = "homeStatisticsTitleLabel"
         static let statisticsDescriptionAccessibilityID = "homeStatisticsDescriptionLabel"
@@ -94,6 +95,13 @@ final class ThemesCollectionService: NSObject, UICollectionViewDelegate, UIColle
         didSet {
             guard oldValue != isAIThemePresented else { return }
             reconfigureAIThemeCell()
+        }
+    }
+
+    var isFeelingLuckyLoading = false {
+        didSet {
+            guard oldValue != isFeelingLuckyLoading else { return }
+            refreshVisibleFeelingLuckyButton()
         }
     }
 
@@ -217,7 +225,7 @@ final class ThemesCollectionService: NSObject, UICollectionViewDelegate, UIColle
 
     private func configureFeelingLuckyCard(in cell: UICollectionViewCell, appearance: AppAppearance) {
         cell.applyShadow(.none)
-        configureSecondaryActionCard(
+        let button = configureSecondaryActionCard(
             in: cell,
             accessibilityIdentifier: Content.feelingLuckyAccessibilityID,
             accessibilityLabel: L10n.Home.feelingLucky,
@@ -226,6 +234,7 @@ final class ThemesCollectionService: NSObject, UICollectionViewDelegate, UIColle
             action: #selector(feelingLuckyButtonTouchedUpInside(_:)),
             appearance: appearance
         )
+        configureFeelingLuckyContent(in: button, appearance: appearance)
     }
 
     private func configureAIThemeCard(in cell: UICollectionViewCell, appearance: AppAppearance) {
@@ -305,6 +314,7 @@ final class ThemesCollectionService: NSObject, UICollectionViewDelegate, UIColle
         }
     }
 
+    @discardableResult
     private func configureSecondaryActionCard(
         in cell: UICollectionViewCell,
         accessibilityIdentifier: String,
@@ -313,7 +323,7 @@ final class ThemesCollectionService: NSObject, UICollectionViewDelegate, UIColle
         title: String,
         action: Selector,
         appearance: AppAppearance
-    ) {
+    ) -> UIButton {
         let button = makeSecondaryActionButton(
             accessibilityIdentifier: accessibilityIdentifier,
             accessibilityLabel: accessibilityLabel,
@@ -324,6 +334,102 @@ final class ThemesCollectionService: NSObject, UICollectionViewDelegate, UIColle
         )
 
         pin(button, to: cell.contentView)
+        return button
+    }
+
+    private func configureFeelingLuckyContent(in button: UIButton, appearance: AppAppearance) {
+        let activityIndicator = UIActivityIndicatorView(style: .medium)
+        activityIndicator.accessibilityIdentifier = Content.feelingLuckyProgressAccessibilityID
+        activityIndicator.color = appearance.screenTextColor
+        activityIndicator.hidesWhenStopped = true
+        activityIndicator.isUserInteractionEnabled = false
+
+        let titleLabel = UILabel()
+        titleLabel.text = isFeelingLuckyLoading ? L10n.Home.feelingLuckyLoading : L10n.Home.feelingLucky
+        titleLabel.textColor = appearance.screenTextColor
+        titleLabel.font = appearance.typography.font(size: Appearance.luckyFontSize, weight: .semibold)
+        titleLabel.adjustsFontForContentSizeCategory = true
+        titleLabel.minimumScaleFactor = 0.78
+        titleLabel.adjustsFontSizeToFitWidth = true
+        titleLabel.isUserInteractionEnabled = false
+
+        let contentStack = UIStackView(arrangedSubviews: [activityIndicator, titleLabel])
+        contentStack.axis = .horizontal
+        contentStack.alignment = .center
+        contentStack.spacing = 10
+        contentStack.isUserInteractionEnabled = false
+        contentStack.translatesAutoresizingMaskIntoConstraints = false
+        button.addSubview(contentStack)
+        NSLayoutConstraint.activate([
+            contentStack.centerXAnchor.constraint(equalTo: button.centerXAnchor),
+            contentStack.centerYAnchor.constraint(equalTo: button.centerYAnchor),
+            contentStack.leadingAnchor.constraint(greaterThanOrEqualTo: button.leadingAnchor, constant: 20),
+            contentStack.trailingAnchor.constraint(lessThanOrEqualTo: button.trailingAnchor, constant: -20)
+        ])
+
+        applyFeelingLuckyLoadingState(
+            to: button,
+            loadingContentView: contentStack,
+            activityIndicator: activityIndicator,
+            titleLabel: titleLabel
+        )
+    }
+
+    private func applyFeelingLuckyLoadingState(
+        to button: UIButton,
+        loadingContentView: UIStackView,
+        activityIndicator: UIActivityIndicatorView,
+        titleLabel: UILabel
+    ) {
+        button.isEnabled = !isFeelingLuckyLoading
+        button.accessibilityLabel = isFeelingLuckyLoading
+            ? L10n.Home.feelingLuckyLoading
+            : L10n.Home.feelingLucky
+        button.accessibilityHint = isFeelingLuckyLoading
+            ? nil
+            : L10n.Home.feelingLuckyAccessibilityHint
+        if isFeelingLuckyLoading {
+            button.setTitle(nil, for: .normal)
+            titleLabel.text = L10n.Home.feelingLuckyLoading
+            loadingContentView.isHidden = false
+            button.accessibilityTraits.insert(.updatesFrequently)
+            activityIndicator.startAnimating()
+        } else {
+            button.setTitle(L10n.Home.feelingLucky, for: .normal)
+            loadingContentView.isHidden = true
+            button.accessibilityTraits.remove(.updatesFrequently)
+            activityIndicator.stopAnimating()
+        }
+    }
+
+    private func refreshVisibleFeelingLuckyButton() {
+        guard let collectionView = observedCollectionView else { return }
+        let button = collectionView.visibleCells
+            .lazy
+            .flatMap(\.contentView.subviews)
+            .compactMap { $0 as? UIButton }
+            .first(where: { $0.accessibilityIdentifier == Content.feelingLuckyAccessibilityID })
+        guard
+            let button,
+            let activityIndicator = button.subviews
+                .lazy
+                .flatMap(\.subviews)
+                .compactMap({ $0 as? UIActivityIndicatorView })
+                .first(where: { $0.accessibilityIdentifier == Content.feelingLuckyProgressAccessibilityID }),
+            let loadingContentView = activityIndicator.superview as? UIStackView,
+            let titleLabel = button.subviews
+                .lazy
+                .flatMap(\.subviews)
+                .compactMap({ $0 as? UILabel })
+                .first
+        else { return }
+
+        applyFeelingLuckyLoadingState(
+            to: button,
+            loadingContentView: loadingContentView,
+            activityIndicator: activityIndicator,
+            titleLabel: titleLabel
+        )
     }
 
     private func makeSecondaryActionButton(

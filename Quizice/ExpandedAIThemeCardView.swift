@@ -128,6 +128,14 @@ final class ExpandedAIThemeCardView: UIView, UITextViewDelegate {
     private static let supportedQuestionCounts = AIQuizGenerationConfiguration.supportedQuestionCounts
     private static let supportedDifficulties = AIQuizDifficulty.allCases
 
+    static var gradientOutlineColors: [UIColor] {
+        [Outline.gradientPink, Outline.gradientBlue]
+    }
+
+    static var gradientOutlineLineWidth: CGFloat {
+        Outline.gradientLineWidth
+    }
+
     var onClose: (() -> Void)?
     var onFlip: (() -> Void)?
     var onBack: (() -> Void)?
@@ -136,11 +144,17 @@ final class ExpandedAIThemeCardView: UIView, UITextViewDelegate {
     var onDifficultyChanged: ((AIQuizDifficulty) -> Void)?
     var onSubmit: (() -> Void)?
     var onAccessibilityEscape: (() -> Void)?
+    var onKeyboardFrameChange: ((CGRect?, TimeInterval, UIView.AnimationOptions) -> Void)?
     var reduceMotionProvider: () -> Bool = { UIAccessibility.isReduceMotionEnabled }
 
     var frontFocusView: UIView { promptTextView }
     var backFocusView: UIView { backTitleLabel }
     var transitionSourceView: UIView { self }
+
+    var promptContainerMaxYAtRest: CGFloat {
+        layoutIfNeeded()
+        return frontContentStack.frame.minY + promptContainerView.frame.maxY
+    }
 
     private(set) var face: HomeThemeCardFace = .front
 
@@ -942,9 +956,23 @@ final class ExpandedAIThemeCardView: UIView, UITextViewDelegate {
     private func scrollPromptCaretIntoView() {
         guard
             face == .front,
-            promptTextView.isFirstResponder,
-            let selectedRange = promptTextView.selectedTextRange
+            promptTextView.isFirstResponder
         else { return }
+
+        let promptRect = promptContainerView.convert(promptContainerView.bounds, to: frontScrollView)
+            .insetBy(dx: -Layout.promptTextInset, dy: -Layout.promptTextInset)
+        let visibleHeight = max(
+            frontScrollView.bounds.height
+                - frontScrollView.adjustedContentInset.top
+                - frontScrollView.adjustedContentInset.bottom,
+            0
+        )
+        if promptRect.height <= visibleHeight {
+            frontScrollView.scrollRectToVisible(promptRect, animated: false)
+            return
+        }
+
+        guard let selectedRange = promptTextView.selectedTextRange else { return }
         var caretRect = promptTextView.caretRect(for: selectedRange.end)
         caretRect = promptTextView.convert(caretRect, to: frontScrollView)
         caretRect = caretRect.insetBy(dx: -Layout.promptTextInset, dy: -Layout.promptTextInset)
@@ -1332,7 +1360,6 @@ final class ExpandedAIThemeCardView: UIView, UITextViewDelegate {
     }
 
     @objc private func closeTapped() {
-        resignPrompt()
         onClose?()
     }
 
@@ -1381,19 +1408,22 @@ final class ExpandedAIThemeCardView: UIView, UITextViewDelegate {
 
     @objc private func keyboardWillChangeFrame(_ notification: Notification) {
         guard
+            face == .front,
+            promptTextView.isFirstResponder,
             let window,
             let userInfo = notification.userInfo,
             let keyboardFrame = userInfo[UIResponder.keyboardFrameEndUserInfoKey] as? CGRect
         else { return }
 
         let frameInWindow = window.convert(keyboardFrame, from: window.screen.coordinateSpace)
-        let frameInCard = convert(frameInWindow, from: window)
-        let overlap = bounds.intersection(frameInCard).height
         let duration = userInfo[UIResponder.keyboardAnimationDurationUserInfoKey]
             as? TimeInterval ?? 0.25
         let curveRawValue = userInfo[UIResponder.keyboardAnimationCurveUserInfoKey]
             as? UInt ?? UInt(UIView.AnimationCurve.easeInOut.rawValue)
         let options = UIView.AnimationOptions(rawValue: curveRawValue << 16)
+        onKeyboardFrameChange?(frameInWindow, duration, options)
+        let frameInCard = convert(frameInWindow, from: window)
+        let overlap = bounds.intersection(frameInCard).height
         updateKeyboardInsets(overlap: overlap, duration: duration, options: options)
     }
 
@@ -1404,6 +1434,7 @@ final class ExpandedAIThemeCardView: UIView, UITextViewDelegate {
         let curveRawValue = userInfo?[UIResponder.keyboardAnimationCurveUserInfoKey]
             as? UInt ?? UInt(UIView.AnimationCurve.easeInOut.rawValue)
         let options = UIView.AnimationOptions(rawValue: curveRawValue << 16)
+        onKeyboardFrameChange?(nil, duration, options)
         updateKeyboardInsets(overlap: 0, duration: duration, options: options)
     }
 }

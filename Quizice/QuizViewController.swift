@@ -131,6 +131,8 @@ final class QuizViewController: BaseQuizViewController, QuizViewControllerProtoc
         static let maximumWidth: CGFloat = 430
         static let minimumHeight: CGFloat = 430
         static let heightToWidthRatio: CGFloat = 1.48
+        static let keyboardSpacing: CGFloat = 12
+        static let keyboardMinimumTopInset: CGFloat = 8
     }
 
     private var motivationContainerView: UIView!
@@ -160,6 +162,7 @@ final class QuizViewController: BaseQuizViewController, QuizViewControllerProtoc
     private let cardMotionProvider: HomeThemeCardMotionProviding
     private let aiNow: () -> Date
     private let aiRequestIDProvider: () -> UUID
+    private let feelingLuckyMinimumFeedbackDelay: () async -> Void
     private let animationsEngine = Animations()
     private let motivationBlurContext = CIContext(options: nil)
     private var motivationBlurSnapshotSignature: String?
@@ -177,17 +180,22 @@ final class QuizViewController: BaseQuizViewController, QuizViewControllerProtoc
     private var expandedCardTransitionView: ThemeCardExpansionTransitionView?
     private var expandedCardInteractionButton: ThemeCardTransitionInteractionButton?
     private var expandedCardAnimator: UIViewPropertyAnimator?
+    private var expandedAIKeyboardAnimator: UIViewPropertyAnimator?
     private var expandedTheme: QuizTheme?
     private var expandedStatisticsSummary: StatisticsSummary?
     private var aiSubmissionTask: Task<Void, Never>?
     private var aiProgressTask: Task<Void, Never>?
+    private var feelingLuckyTask: Task<Void, Never>?
+    private var feelingLuckyRequestID: UUID?
     private weak var quizTransitionSourceView: UIView?
     private var isQuizLaunchPending = false
+    private var hasQuizLaunchStarted = false
     private var closeAfterFlipToFront = false
     private var focusAIThemePromptAfterFlip = false
     private var expandedCardNeedsRefresh = false
     private var expandedCardScreenViewTracked = false
     private var expandedCardLastTrackedFace: HomeThemeCardFace?
+    private var expandedAIKeyboardLift: CGFloat = 0
     weak var router: QuizRouting?
     var presenter: QuizPresenterProtocol?
 
@@ -223,7 +231,10 @@ final class QuizViewController: BaseQuizViewController, QuizViewControllerProtoc
         cardDeviceParallaxEnabledProvider: @escaping () -> Bool = { true },
         cardMotionProvider: HomeThemeCardMotionProviding = CoreMotionHomeThemeCardMotionProvider(),
         aiNow: @escaping () -> Date = Date.init,
-        aiRequestIDProvider: @escaping () -> UUID = UUID.init
+        aiRequestIDProvider: @escaping () -> UUID = UUID.init,
+        feelingLuckyMinimumFeedbackDelay: @escaping () async -> Void = {
+            try? await Task.sleep(nanoseconds: 500_000_000)
+        }
     ) {
         self.themeRepository = themeRepository
         self.session = session
@@ -242,12 +253,14 @@ final class QuizViewController: BaseQuizViewController, QuizViewControllerProtoc
         self.cardMotionProvider = cardMotionProvider
         self.aiNow = aiNow
         self.aiRequestIDProvider = aiRequestIDProvider
+        self.feelingLuckyMinimumFeedbackDelay = feelingLuckyMinimumFeedbackDelay
         super.init(nibName: nil, bundle: nil)
     }
 
     deinit {
         aiSubmissionTask?.cancel()
         aiProgressTask?.cancel()
+        feelingLuckyTask?.cancel()
     }
 
     @available(*, unavailable)
@@ -295,7 +308,7 @@ final class QuizViewController: BaseQuizViewController, QuizViewControllerProtoc
            homeCardState.phase == .expandedFront || homeCardState.phase == .expandedBack {
             expandedThemeCardView?.frame = expandedThemeCardFrame()
             expandedStatisticsCardView?.frame = expandedThemeCardFrame()
-            expandedAIThemeCardView?.frame = expandedThemeCardFrame()
+            expandedAIThemeCardView?.frame = expandedAIThemeCardFrame()
         }
         if !session.startup1st {
             updateMotivationHeaderVisibility(for: themesCollectionView)
@@ -831,15 +844,58 @@ final class QuizViewController: BaseQuizViewController, QuizViewControllerProtoc
 
         session.questionsCount = QuizQuestionCountPolicy.supportedCounts[0]
         analytics.track(.themeSelected(theme: session.chosenTheme?.analyticsTheme ?? .unknown, method: .random))
-        analytics.track(
-            .quizStarted(
-                theme: session.chosenTheme?.analyticsTheme ?? .unknown,
-                questionCount: session.questionsCount
-            )
-        )
         quizTransitionSourceView = sourceView
         isQuizLaunchPending = true
-        router.showQuestion()
+        hasQuizLaunchStarted = false
+        themesCollectionService.isFeelingLuckyLoading = true
+        themesCollectionView.isUserInteractionEnabled = false
+        settingsButton.isEnabled = false
+        updateCollectionScrollAvailability()
+
+        let requestID = UUID()
+        feelingLuckyRequestID = requestID
+        feelingLuckyTask?.cancel()
+        let minimumFeedbackDelay = feelingLuckyMinimumFeedbackDelay
+        feelingLuckyTask = Task { @MainActor [weak self, router] in
+            await minimumFeedbackDelay()
+            guard !Task.isCancelled, let self else { return }
+            guard
+                self.feelingLuckyRequestID == requestID,
+                self.isQuizLaunchPending,
+                self.session.chosenTheme?.themeID == themeID
+            else {
+                self.cancelFeelingLuckyLaunch()
+                return
+            }
+
+            self.feelingLuckyTask = nil
+            self.session.questionsCount = QuizQuestionCountPolicy.supportedCounts[0]
+            self.analytics.track(
+                .quizStarted(
+                    theme: self.session.chosenTheme?.analyticsTheme ?? .unknown,
+                    questionCount: self.session.questionsCount
+                )
+            )
+            self.hasQuizLaunchStarted = true
+            router.showQuestion()
+        }
+    }
+
+    private func cancelFeelingLuckyLaunch() {
+        let wasWaitingToLaunch = isQuizLaunchPending
+            && !hasQuizLaunchStarted
+            && feelingLuckyRequestID != nil
+        feelingLuckyTask?.cancel()
+        feelingLuckyTask = nil
+        feelingLuckyRequestID = nil
+        themesCollectionService.isFeelingLuckyLoading = false
+        settingsButton?.isEnabled = true
+        if wasWaitingToLaunch, isViewLoaded {
+            isQuizLaunchPending = false
+            quizTransitionSourceView = nil
+            themesCollectionView.isUserInteractionEnabled = true
+            updateCollectionScrollAvailability()
+        }
     }
 
     private func handleHomeCardEffect(
@@ -1249,6 +1305,9 @@ final class QuizViewController: BaseQuizViewController, QuizViewControllerProtoc
                 ),
                 borderWidth: sourceView.layer.borderWidth,
                 initialCornerRadius: sourceView.layer.cornerRadius,
+                collapsedCornerRadius: sourceView.layer.cornerRadius,
+                expandedCornerRadius: appearance.card.cornerRadius,
+                gradientReferenceWidth: max(sourceFrame.width, targetFrame.width),
                 initialVisualState: HomeThemeCardTransitionVisualState(progress: 0),
                 initialShadow: .none
             )
@@ -1387,6 +1446,15 @@ final class QuizViewController: BaseQuizViewController, QuizViewControllerProtoc
         }
         cardView.onAccessibilityEscape = { [weak self] in
             self?.handleExpandedCardAccessibilityEscape()
+        }
+        cardView.onKeyboardFrameChange = { [weak self, weak cardView] frame, duration, options in
+            guard let self, let cardView else { return }
+            self.updateExpandedAIThemeCardFrame(
+                cardView,
+                keyboardFrameInWindow: frame,
+                duration: duration,
+                options: options
+            )
         }
     }
 
@@ -2046,6 +2114,7 @@ final class QuizViewController: BaseQuizViewController, QuizViewControllerProtoc
             return
         }
 
+        freezeExpandedAIKeyboardAnimation(on: cardView)
         _ = cardView.resignPrompt()
         let reduceMotion = cardReduceMotionProvider()
         let currentSourceButton = sourceAIThemeButton()
@@ -2085,6 +2154,10 @@ final class QuizViewController: BaseQuizViewController, QuizViewControllerProtoc
                 borderColor: appearance.card.borderColor,
                 borderWidth: appearance.card.borderWidth,
                 initialCornerRadius: appearance.card.cornerRadius,
+                collapsedCornerRadius: currentSourceButton?.layer.cornerRadius
+                    ?? appearance.row.cornerRadius,
+                expandedCornerRadius: appearance.card.cornerRadius,
+                gradientReferenceWidth: max(sourceFrame?.width ?? 0, targetFrame.width),
                 initialVisualState: HomeThemeCardTransitionVisualState(progress: 1),
                 initialShadow: appearance.card.shadow
             )
@@ -2302,11 +2375,14 @@ final class QuizViewController: BaseQuizViewController, QuizViewControllerProtoc
         initialVisualState: HomeThemeCardTransitionVisualState,
         initialShadow: AppShadowStyle
     ) -> ThemeCardExpansionTransitionView {
+        let appearance = currentAppearance()
         let transitionView = ThemeCardExpansionTransitionView(
             frame: frame,
             targetFrameInRoot: targetFrame,
             surfaceColor: surfaceColor,
-            borderColor: borderColor,
+            borderColor: appearance.designStyle == .radar
+                ? appearance.accentColor
+                : borderColor,
             borderWidth: borderWidth,
             cornerRadius: initialCornerRadius,
             visualState: initialVisualState,
@@ -2324,19 +2400,37 @@ final class QuizViewController: BaseQuizViewController, QuizViewControllerProtoc
         borderColor: UIColor,
         borderWidth: CGFloat,
         initialCornerRadius: CGFloat,
+        collapsedCornerRadius: CGFloat,
+        expandedCornerRadius: CGFloat,
+        gradientReferenceWidth: CGFloat,
         initialVisualState: HomeThemeCardTransitionVisualState,
         initialShadow: AppShadowStyle
     ) -> ThemeCardExpansionTransitionView {
+        let appearance = currentAppearance()
         let transitionView = ThemeCardExpansionTransitionView(
             frame: frame,
             targetFrameInRoot: targetFrame,
             surfaceColor: surfaceColor,
-            borderColor: borderColor,
+            borderColor: appearance.designStyle == .radar
+                ? appearance.accentColor
+                : borderColor,
             borderWidth: borderWidth,
             cornerRadius: initialCornerRadius,
             visualState: initialVisualState,
             shadow: initialShadow,
-            usesIntensityLayer: false
+            usesIntensityLayer: false,
+            gradientOutlineConfiguration: appearance.designStyle == .radar
+                ? nil
+                : ThemeCardTransitionGradientOutlineConfiguration(
+                    colors: ExpandedAIThemeCardView.gradientOutlineColors,
+                    lineWidth: ExpandedAIThemeCardView.gradientOutlineLineWidth,
+                    collapsedCornerRadius: collapsedCornerRadius,
+                    expandedCornerRadius: expandedCornerRadius,
+                    referenceWidth: gradientReferenceWidth
+                ),
+            solidBorderColorOverride: appearance.designStyle == .radar
+                ? appearance.accentColor
+                : nil
         )
         transitionView.accessibilityIdentifier = AccessibilityID.expandedAIThemeCardTransition
         return transitionView
@@ -2390,6 +2484,7 @@ final class QuizViewController: BaseQuizViewController, QuizViewControllerProtoc
         )
         quizTransitionSourceView = cardView.transitionSourceView
         isQuizLaunchPending = true
+        hasQuizLaunchStarted = true
         cardView.isUserInteractionEnabled = false
         router.showQuestion()
     }
@@ -2478,6 +2573,95 @@ final class QuizViewController: BaseQuizViewController, QuizViewControllerProtoc
         ).integral
     }
 
+    private func expandedAIThemeCardFrame() -> CGRect {
+        expandedThemeCardFrame().offsetBy(dx: 0, dy: -expandedAIKeyboardLift)
+    }
+
+    private func updateExpandedAIThemeCardFrame(
+        _ cardView: ExpandedAIThemeCardView,
+        keyboardFrameInWindow: CGRect?,
+        duration: TimeInterval,
+        options: UIView.AnimationOptions
+    ) {
+        guard
+            cardView === expandedAIThemeCardView,
+            cardView.window != nil,
+            homeCardState.phase != .collapsing
+        else { return }
+
+        freezeExpandedAIKeyboardAnimation(on: cardView)
+        let baseFrame = expandedThemeCardFrame()
+        let requestedLift: CGFloat
+        if let keyboardFrameInWindow, let window = cardView.window {
+            let keyboardFrame = view.convert(keyboardFrameInWindow, from: window)
+            let desiredPromptBottom = keyboardFrame.minY - ExpandedCardLayout.keyboardSpacing
+            requestedLift = max(
+                baseFrame.minY + cardView.promptContainerMaxYAtRest - desiredPromptBottom,
+                0
+            )
+        } else {
+            requestedLift = 0
+        }
+
+        let safeTop = view.safeAreaLayoutGuide.layoutFrame.minY
+            + ExpandedCardLayout.keyboardMinimumTopInset
+        let maximumLift = max(baseFrame.minY - safeTop, 0)
+        expandedAIKeyboardLift = min(requestedLift, maximumLift)
+        let targetFrame = expandedAIThemeCardFrame()
+
+        guard duration > 0 else {
+            cardView.frame = targetFrame
+            self.expandedCardInteractionButton?.frame = self.view.bounds
+            return
+        }
+
+        let curveRawValue = Int(options.rawValue >> 16)
+        let curve: UIView.AnimationCurve
+        switch curveRawValue {
+        case UIView.AnimationCurve.easeInOut.rawValue:
+            curve = .easeInOut
+        case UIView.AnimationCurve.easeIn.rawValue:
+            curve = .easeIn
+        case UIView.AnimationCurve.easeOut.rawValue:
+            curve = .easeOut
+        case UIView.AnimationCurve.linear.rawValue:
+            curve = .linear
+        default:
+            // UIKit commonly reports the private keyboard curve value 7.
+            // Keep the card synchronized with the keyboard using a supported
+            // moving/morphing curve instead of constructing an unknown enum.
+            curve = .easeInOut
+        }
+        let animator = UIViewPropertyAnimator(duration: duration, curve: curve)
+        animator.addAnimations { [weak self, weak cardView] in
+            guard let self, let cardView else { return }
+            cardView.frame = targetFrame
+            self.expandedCardInteractionButton?.frame = self.view.bounds
+        }
+        animator.addCompletion { [weak self, weak animator] _ in
+            guard let self, let animator, self.expandedAIKeyboardAnimator === animator else { return }
+            self.expandedAIKeyboardAnimator = nil
+        }
+        expandedAIKeyboardAnimator = animator
+        animator.startAnimation()
+    }
+
+    private func freezeExpandedAIKeyboardAnimation(
+        on cardView: ExpandedAIThemeCardView,
+        visibleFrameOverride: CGRect? = nil
+    ) {
+        guard let animator = expandedAIKeyboardAnimator else { return }
+
+        let visibleFrame = visibleFrameOverride ?? cardView.layer.presentation()?.frame
+        animator.stopAnimation(true)
+        expandedAIKeyboardAnimator = nil
+        cardView.layer.removeAllAnimations()
+
+        guard let visibleFrame else { return }
+        cardView.frame = visibleFrame
+        expandedAIKeyboardLift = max(expandedThemeCardFrame().minY - visibleFrame.minY, 0)
+    }
+
     private func makeSnapshotFallback(from sourceView: UIView) -> UIView {
         let fallbackView = UIView()
         fallbackView.backgroundColor = sourceView.backgroundColor
@@ -2557,15 +2741,41 @@ final class QuizViewController: BaseQuizViewController, QuizViewControllerProtoc
 
     private func makeAIThemeCardSourceContent(from sourceView: UIView) -> UIView {
         let wasHidden = sourceView.isHidden
+        let sourceControl = sourceView as? UIControl
+        let wasEnabled = sourceControl?.isEnabled
         sourceView.isHidden = false
+        sourceControl?.isEnabled = true
         sourceView.layoutIfNeeded()
-        defer { sourceView.isHidden = wasHidden }
+        defer {
+            sourceView.isHidden = wasHidden
+            if let wasEnabled {
+                sourceControl?.isEnabled = wasEnabled
+            }
+        }
 
         let containerView = UIView(frame: sourceView.bounds)
         containerView.backgroundColor = .clear
         containerView.isUserInteractionEnabled = false
         containerView.accessibilityElementsHidden = true
-        if let snapshotView = sourceView.snapshotView(afterScreenUpdates: false) {
+
+        var didCopyContent = false
+        if let button = sourceView as? UIButton,
+           let titleLabel = button.titleLabel,
+           let titleSnapshot = titleLabel.snapshotView(afterScreenUpdates: false) {
+            titleSnapshot.frame = titleLabel.convert(titleLabel.bounds, to: sourceView)
+            containerView.addSubview(titleSnapshot)
+            didCopyContent = true
+        }
+        if let betaBadge = sourceView.subviews.first(where: {
+            $0.accessibilityIdentifier == ThemesCollectionService.Content.aiThemeBetaBadgeAccessibilityID
+        }), let badgeSnapshot = betaBadge.snapshotView(afterScreenUpdates: false) {
+            badgeSnapshot.frame = betaBadge.convert(betaBadge.bounds, to: sourceView)
+            containerView.addSubview(badgeSnapshot)
+            didCopyContent = true
+        }
+
+        if !didCopyContent,
+           let snapshotView = sourceView.snapshotView(afterScreenUpdates: false) {
             snapshotView.frame = sourceView.bounds
             containerView.addSubview(snapshotView)
         }
@@ -2689,13 +2899,17 @@ final class QuizViewController: BaseQuizViewController, QuizViewControllerProtoc
     }
 
     private func restoreHomeAfterQuizIfNeeded(force: Bool = false) {
-        guard force || isQuizLaunchPending else { return }
+        guard force || (isQuizLaunchPending && hasQuizLaunchStarted) else { return }
+        cancelFeelingLuckyLaunch()
         quizTransitionSourceView?.isHidden = false
         isQuizLaunchPending = false
+        hasQuizLaunchStarted = false
         resetExpandedThemeCard()
     }
 
     private func removeExpandedThemeCardViews() {
+        expandedAIKeyboardAnimator?.stopAnimation(true)
+        expandedAIKeyboardAnimator = nil
         expandedThemeCardView?.setParallaxPresentationPhase(.inactive)
         expandedThemeCardView?.removeFromSuperview()
         expandedStatisticsCardView?.removeFromSuperview()
@@ -2729,6 +2943,7 @@ final class QuizViewController: BaseQuizViewController, QuizViewControllerProtoc
         expandedCardNeedsRefresh = false
         expandedCardScreenViewTracked = false
         expandedCardLastTrackedFace = nil
+        expandedAIKeyboardLift = 0
     }
 
     private func updateExpandedThemeCardParallaxPhase() {
@@ -2764,6 +2979,46 @@ final class QuizViewController: BaseQuizViewController, QuizViewControllerProtoc
     }
 
 #if DEBUG
+    var expandedCardAnimatorForTesting: UIViewPropertyAnimator? {
+        expandedCardAnimator
+    }
+
+    var expandedAIKeyboardAnimatorForTesting: UIViewPropertyAnimator? {
+        expandedAIKeyboardAnimator
+    }
+
+    var expandedAIKeyboardAnimationCurveForTesting: UIView.AnimationCurve? {
+        (expandedAIKeyboardAnimator?.timingParameters as? UICubicTimingParameters)?.animationCurve
+    }
+
+    var expandedCardTransitionInitialFrameForTesting: CGRect? {
+        expandedCardTransitionView?.targetFrameInRoot
+    }
+
+    func updateExpandedAIThemeCardFrameForTesting(
+        keyboardFrameInWindow: CGRect?,
+        duration: TimeInterval,
+        curveRawValue: UInt = UInt(UIView.AnimationCurve.easeInOut.rawValue)
+    ) {
+        guard let cardView = expandedAIThemeCardView else { return }
+        updateExpandedAIThemeCardFrame(
+            cardView,
+            keyboardFrameInWindow: keyboardFrameInWindow,
+            duration: duration,
+            options: UIView.AnimationOptions(
+                rawValue: curveRawValue << 16
+            )
+        )
+    }
+
+    func freezeExpandedAIKeyboardAnimationForTesting(visibleFrame: CGRect) {
+        guard let cardView = expandedAIThemeCardView else { return }
+        freezeExpandedAIKeyboardAnimation(
+            on: cardView,
+            visibleFrameOverride: visibleFrame
+        )
+    }
+
     private func updateSettingsDebugMenu(appearance: AppAppearance) {
         guard let settingsButton else { return }
 
@@ -2812,6 +3067,7 @@ final class QuizViewController: BaseQuizViewController, QuizViewControllerProtoc
 #endif
 
     @objc private func settingsButtonTapped() {
+        guard !isQuizLaunchPending else { return }
         router?.showSettings()
     }
 
@@ -2881,6 +3137,159 @@ private final class ThemeCardTransitionInteractionButton: UIButton {
     }
 }
 
+private struct ThemeCardTransitionGradientOutlineConfiguration {
+    let colors: [UIColor]
+    let lineWidth: CGFloat
+    let collapsedCornerRadius: CGFloat
+    let expandedCornerRadius: CGFloat
+    let referenceWidth: CGFloat
+}
+
+private final class ThemeCardTransitionGradientOutlineView: UIView {
+    private enum AccessibilityID {
+        static let collapsedRing = "homeExpandedAIThemeCardTransitionCollapsedGradientRing"
+        static let expandedRing = "homeExpandedAIThemeCardTransitionExpandedGradientRing"
+    }
+
+    private let collapsedRingImageView = UIImageView()
+    private let expandedRingImageView = UIImageView()
+
+    init(configuration: ThemeCardTransitionGradientOutlineConfiguration) {
+        super.init(frame: .zero)
+        backgroundColor = .clear
+        isOpaque = false
+        isUserInteractionEnabled = false
+        accessibilityElementsHidden = true
+        accessibilityIdentifier = "homeExpandedAIThemeCardTransitionGradientOutline"
+
+        configure(
+            collapsedRingImageView,
+            accessibilityIdentifier: AccessibilityID.collapsedRing,
+            image: Self.makeResizableRingImage(
+                colors: configuration.colors,
+                lineWidth: configuration.lineWidth,
+                cornerRadius: configuration.collapsedCornerRadius,
+                referenceWidth: configuration.referenceWidth
+            )
+        )
+        configure(
+            expandedRingImageView,
+            accessibilityIdentifier: AccessibilityID.expandedRing,
+            image: Self.makeResizableRingImage(
+                colors: configuration.colors,
+                lineWidth: configuration.lineWidth,
+                cornerRadius: configuration.expandedCornerRadius,
+                referenceWidth: configuration.referenceWidth
+            )
+        )
+        addSubview(collapsedRingImageView)
+        addSubview(expandedRingImageView)
+        apply(progress: 0)
+    }
+
+    @available(*, unavailable)
+    required init?(coder: NSCoder) {
+        nil
+    }
+
+    override func layoutSubviews() {
+        super.layoutSubviews()
+        layoutRingFrames()
+    }
+
+    func updateGeometry(frame: CGRect) {
+        self.frame = frame
+        layoutRingFrames()
+    }
+
+    private func layoutRingFrames() {
+        collapsedRingImageView.frame = bounds
+        expandedRingImageView.frame = bounds
+    }
+
+    func apply(progress: CGFloat) {
+        let progress = min(max(progress, 0), 1)
+        collapsedRingImageView.alpha = 1 - progress
+        expandedRingImageView.alpha = progress
+    }
+
+    private func configure(
+        _ imageView: UIImageView,
+        accessibilityIdentifier: String,
+        image: UIImage
+    ) {
+        imageView.backgroundColor = .clear
+        imageView.isOpaque = false
+        imageView.isUserInteractionEnabled = false
+        imageView.accessibilityElementsHidden = true
+        imageView.accessibilityIdentifier = accessibilityIdentifier
+        imageView.contentMode = .scaleToFill
+        imageView.image = image
+    }
+
+    private static func makeResizableRingImage(
+        colors: [UIColor],
+        lineWidth: CGFloat,
+        cornerRadius: CGFloat,
+        referenceWidth: CGFloat
+    ) -> UIImage {
+        let verticalCap = max(ceil(cornerRadius), ceil(lineWidth))
+        let size = CGSize(
+            width: max(ceil(referenceWidth), verticalCap * 2 + 1),
+            height: verticalCap * 2 + 1
+        )
+        let format = UIGraphicsImageRendererFormat()
+        format.opaque = false
+        format.scale = UIScreen.main.scale
+        let image = UIGraphicsImageRenderer(size: size, format: format).image { context in
+            let bounds = CGRect(origin: .zero, size: size)
+            let ringPath = UIBezierPath(
+                roundedRect: bounds,
+                cornerRadius: cornerRadius
+            )
+            let innerBounds = bounds.insetBy(dx: lineWidth, dy: lineWidth)
+            ringPath.append(
+                UIBezierPath(
+                    roundedRect: innerBounds,
+                    cornerRadius: max(cornerRadius - lineWidth, 0)
+                )
+            )
+            ringPath.usesEvenOddFillRule = true
+
+            let graphicsContext = context.cgContext
+            graphicsContext.saveGState()
+            graphicsContext.addPath(ringPath.cgPath)
+            graphicsContext.clip(using: .evenOdd)
+            if let gradient = CGGradient(
+                colorsSpace: nil,
+                colors: colors.map(\.cgColor) as CFArray,
+                locations: nil
+            ) {
+                graphicsContext.drawLinearGradient(
+                    gradient,
+                    start: CGPoint(x: bounds.minX, y: bounds.midY),
+                    end: CGPoint(x: bounds.maxX, y: bounds.midY),
+                    options: []
+                )
+            } else {
+                graphicsContext.setFillColor((colors.first ?? .clear).cgColor)
+                graphicsContext.fill(bounds)
+            }
+            graphicsContext.restoreGState()
+        }
+
+        return image.resizableImage(
+            withCapInsets: UIEdgeInsets(
+                top: verticalCap,
+                left: 0,
+                bottom: verticalCap,
+                right: 0
+            ),
+            resizingMode: .stretch
+        )
+    }
+}
+
 private final class ThemeCardExpansionTransitionView: UIView {
     private let clippingView = UIView()
     private let baseSurfaceView = UIView()
@@ -2889,8 +3298,11 @@ private final class ThemeCardExpansionTransitionView: UIView {
     private weak var sourceContentView: UIView?
     private var sourceContentSize = CGSize.zero
     private var destinationProgressHandler: ((CGFloat) -> Void)?
-    private let targetFrameInRoot: CGRect
+    fileprivate let targetFrameInRoot: CGRect
     private let usesIntensityLayer: Bool
+    private let gradientOutlineView: ThemeCardTransitionGradientOutlineView?
+    private let gradientBorderWidth: CGFloat
+    private let solidBorderColorOverride: UIColor?
 
     init(
         frame: CGRect,
@@ -2901,10 +3313,22 @@ private final class ThemeCardExpansionTransitionView: UIView {
         cornerRadius: CGFloat,
         visualState: HomeThemeCardTransitionVisualState,
         shadow: AppShadowStyle,
-        usesIntensityLayer: Bool = true
+        usesIntensityLayer: Bool = true,
+        gradientOutlineConfiguration: ThemeCardTransitionGradientOutlineConfiguration? = nil,
+        solidBorderColorOverride: UIColor? = nil
     ) {
         self.targetFrameInRoot = targetFrameInRoot
         self.usesIntensityLayer = usesIntensityLayer
+        self.solidBorderColorOverride = solidBorderColorOverride
+        if let gradientOutlineConfiguration, gradientOutlineConfiguration.lineWidth > 0 {
+            self.gradientOutlineView = ThemeCardTransitionGradientOutlineView(
+                configuration: gradientOutlineConfiguration
+            )
+            self.gradientBorderWidth = gradientOutlineConfiguration.lineWidth
+        } else {
+            self.gradientOutlineView = nil
+            self.gradientBorderWidth = 0
+        }
         super.init(frame: frame)
 
         backgroundColor = .clear
@@ -2919,22 +3343,28 @@ private final class ThemeCardExpansionTransitionView: UIView {
         clippingView.layer.cornerRadius = cornerRadius
         clippingView.layer.cornerCurve = .continuous
         clippingView.layer.masksToBounds = true
-        clippingView.layer.borderColor = borderColor.cgColor
-        clippingView.layer.borderWidth = borderWidth
+        clippingView.layer.borderColor = (solidBorderColorOverride ?? borderColor).cgColor
+        clippingView.layer.borderWidth = gradientOutlineView == nil ? borderWidth : 0
         addSubview(clippingView)
 
-        baseSurfaceView.frame = clippingView.bounds
+        if let gradientOutlineView {
+            gradientOutlineView.updateGeometry(frame: clippingView.bounds)
+            gradientOutlineView.apply(progress: visualState.progress)
+            clippingView.addSubview(gradientOutlineView)
+        }
+
+        baseSurfaceView.frame = transitionSurfaceFrame(in: clippingView.bounds)
         baseSurfaceView.backgroundColor = surfaceColor
-        baseSurfaceView.layer.cornerRadius = cornerRadius
+        baseSurfaceView.layer.cornerRadius = transitionSurfaceCornerRadius(from: cornerRadius)
         baseSurfaceView.layer.cornerCurve = .continuous
         baseSurfaceView.accessibilityIdentifier = "homeExpandedThemeCardTransitionChrome"
         baseSurfaceView.isAccessibilityElement = false
         baseSurfaceView.isUserInteractionEnabled = false
         clippingView.addSubview(baseSurfaceView)
 
-        expandedSurfaceView.frame = clippingView.bounds
+        expandedSurfaceView.frame = transitionSurfaceFrame(in: clippingView.bounds)
         expandedSurfaceView.backgroundColor = surfaceColor
-        expandedSurfaceView.layer.cornerRadius = cornerRadius
+        expandedSurfaceView.layer.cornerRadius = transitionSurfaceCornerRadius(from: cornerRadius)
         expandedSurfaceView.layer.cornerCurve = .continuous
         expandedSurfaceView.alpha = visualState.expandedSurfaceLayerAlpha
         expandedSurfaceView.isHidden = !usesIntensityLayer
@@ -2983,20 +3413,21 @@ private final class ThemeCardExpansionTransitionView: UIView {
         frame = containerFrame
         clippingView.frame = bounds
         clippingView.layer.cornerRadius = cornerRadius
-        if let borderColor {
-            clippingView.layer.borderColor = borderColor.cgColor
+        if let borderColor, gradientOutlineView == nil {
+            clippingView.layer.borderColor = (solidBorderColorOverride ?? borderColor).cgColor
         }
-        if let borderWidth {
+        if let borderWidth, gradientOutlineView == nil {
             clippingView.layer.borderWidth = borderWidth
         }
-        baseSurfaceView.frame = clippingView.bounds
-        baseSurfaceView.layer.cornerRadius = cornerRadius
+        gradientOutlineView?.updateGeometry(frame: clippingView.bounds)
+        baseSurfaceView.frame = transitionSurfaceFrame(in: clippingView.bounds)
+        baseSurfaceView.layer.cornerRadius = transitionSurfaceCornerRadius(from: cornerRadius)
         if let surfaceColor {
             baseSurfaceView.backgroundColor = surfaceColor
             expandedSurfaceView.backgroundColor = surfaceColor
         }
-        expandedSurfaceView.frame = clippingView.bounds
-        expandedSurfaceView.layer.cornerRadius = cornerRadius
+        expandedSurfaceView.frame = transitionSurfaceFrame(in: clippingView.bounds)
+        expandedSurfaceView.layer.cornerRadius = transitionSurfaceCornerRadius(from: cornerRadius)
         updateContentFrames(containerFrame: containerFrame)
         apply(visualState: visualState)
         applyShadow(shadow)
@@ -3007,6 +3438,7 @@ private final class ThemeCardExpansionTransitionView: UIView {
         sourceContentView?.alpha = visualState.sourceContentAlpha
         destinationView?.alpha = visualState.expandedContentAlpha
         destinationProgressHandler?(visualState.progress)
+        gradientOutlineView?.apply(progress: visualState.progress)
         expandedSurfaceView.alpha = usesIntensityLayer
             ? visualState.expandedSurfaceLayerAlpha
             : 0
@@ -3027,6 +3459,18 @@ private final class ThemeCardExpansionTransitionView: UIView {
             roundedRect: bounds,
             cornerRadius: cornerRadius
         ).cgPath
+    }
+
+    private func transitionSurfaceFrame(in bounds: CGRect) -> CGRect {
+        gradientOutlineView == nil
+            ? bounds
+            : bounds.insetBy(dx: gradientBorderWidth, dy: gradientBorderWidth)
+    }
+
+    private func transitionSurfaceCornerRadius(from outerCornerRadius: CGFloat) -> CGFloat {
+        gradientOutlineView == nil
+            ? outerCornerRadius
+            : max(outerCornerRadius - gradientBorderWidth, 0)
     }
 
 }
