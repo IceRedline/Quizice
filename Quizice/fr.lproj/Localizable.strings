@@ -48,6 +48,7 @@
 "home.exit_alert.message" = "Voulez-vous vraiment quitter ?";
 "home.feeling_lucky" = "J’ai de la chance";
 "home.feeling_lucky.accessibility_hint" = "Lance un thème aléatoire";
+"home.feeling_lucky.loading" = "Sélection des questions";
 "home.statistics.accessibility_hint" = "Ouvre les statistiques globales des quiz terminés";
 "home.statistics.accessibility_label" = "Statistiques globales";
 "home.statistics.accessibility_value_format" = "Joués : %d. Précision : %d%%";

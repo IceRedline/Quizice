@@ -48,6 +48,7 @@
 "home.exit_alert.message" = "Möchtest du wirklich beenden?";
 "home.feeling_lucky" = "Auf gut Glück";
 "home.feeling_lucky.accessibility_hint" = "Startet ein zufälliges Thema";
+"home.feeling_lucky.loading" = "Fragen werden ausgewählt";
 "home.statistics.accessibility_hint" = "Öffnet die Gesamtstatistik abgeschlossener Quizze";
 "home.statistics.accessibility_label" = "Gesamtstatistik";
 "home.statistics.accessibility_value_format" = "Gespielt: %d. Genauigkeit: %d%%";

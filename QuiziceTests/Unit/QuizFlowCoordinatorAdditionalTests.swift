@@ -284,7 +284,7 @@ final class QuizFlowCoordinatorAdditionalTests: XCTestCase {
         XCTAssertEqual(harness.navigationController.dismissAnimationFlags, [true])
     }
 
-    func testImmediateQuestionReturnExplicitlyRestoresLuckyHomeInteraction() throws {
+    func testImmediateQuestionReturnExplicitlyRestoresLuckyHomeInteraction() async throws {
         let question = QuizQuestion(
             question: "Question?",
             answers: ["A", "B", "C", "D"],
@@ -322,6 +322,9 @@ final class QuizFlowCoordinatorAdditionalTests: XCTestCase {
         )
 
         luckyButton.sendActions(for: .touchUpInside)
+        try await waitUntil(timeout: 1.5) {
+            navigationController.presentedControllers.count == 1
+        }
         XCTAssertEqual(navigationController.presentedControllers.count, 1)
 
         luckyButton.isHidden = true

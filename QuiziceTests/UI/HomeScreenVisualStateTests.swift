@@ -549,6 +549,497 @@ final class HomeScreenVisualStateTests: XCTestCase {
         XCTAssertFalse(motionProvider.isStarted)
     }
 
+    func testAIThemeCardMovesUpForKeyboardWithoutAccumulatingOffsetAndRestores() throws {
+        QuizFactory.shared.themes = [makeTheme(name: "Музыка")]
+        let viewController = QuizViewController(cardReduceMotionProvider: { false })
+        let window = UIWindow(frame: CGRect(x: 0, y: 0, width: 390, height: 844))
+        window.rootViewController = viewController
+        window.makeKeyAndVisible()
+        window.layoutIfNeeded()
+        testWindows.append(window)
+
+        let sourceButton = try XCTUnwrap(
+            viewController.view.descendant(withAccessibilityIdentifier: "homeCreateWithAIButton") as? UIButton
+        )
+        sourceButton.sendActions(for: .touchUpInside)
+        drainAnimations()
+
+        let card = try XCTUnwrap(
+            viewController.view.descendant(withAccessibilityIdentifier: "homeExpandedAIThemeCard")
+        )
+        let promptEditor = try XCTUnwrap(
+            card.descendant(withAccessibilityIdentifier: "aiThemePromptEditor") as? UITextView
+        )
+        let promptContainer = try XCTUnwrap(promptEditor.superview)
+        let originalFrame = card.frame
+        XCTAssertTrue(promptEditor.becomeFirstResponder())
+
+        let initialPromptFrame = promptContainer.convert(promptContainer.bounds, to: viewController.view)
+        let keyboardTop = initialPromptFrame.maxY - 36
+        let keyboardFrameInWindow = CGRect(
+            x: 0,
+            y: keyboardTop,
+            width: window.bounds.width,
+            height: window.bounds.maxY - keyboardTop
+        )
+        let keyboardFrameInScreen = window.convert(
+            keyboardFrameInWindow,
+            to: window.screen.coordinateSpace
+        )
+        let userInfo: [AnyHashable: Any] = [
+            UIResponder.keyboardFrameEndUserInfoKey: keyboardFrameInScreen,
+            UIResponder.keyboardAnimationDurationUserInfoKey: TimeInterval(0),
+            UIResponder.keyboardAnimationCurveUserInfoKey: UInt(UIView.AnimationCurve.easeInOut.rawValue)
+        ]
+
+        NotificationCenter.default.post(
+            name: UIResponder.keyboardWillChangeFrameNotification,
+            object: nil,
+            userInfo: userInfo
+        )
+        viewController.view.layoutIfNeeded()
+
+        XCTAssertLessThan(card.frame.minY, originalFrame.minY)
+        XCTAssertGreaterThanOrEqual(
+            card.frame.minY,
+            viewController.view.safeAreaLayoutGuide.layoutFrame.minY + 7.5
+        )
+        let visiblePromptFrame = promptContainer.convert(promptContainer.bounds, to: viewController.view)
+        XCTAssertLessThanOrEqual(visiblePromptFrame.maxY, keyboardTop - 11.5)
+
+        let firstLiftedFrame = card.frame
+        NotificationCenter.default.post(
+            name: UIResponder.keyboardWillChangeFrameNotification,
+            object: nil,
+            userInfo: userInfo
+        )
+        XCTAssertEqual(card.frame.minY, firstLiftedFrame.minY, accuracy: 0.01)
+
+        NotificationCenter.default.post(
+            name: UIResponder.keyboardWillHideNotification,
+            object: nil,
+            userInfo: userInfo
+        )
+        XCTAssertEqual(card.frame.minY, originalFrame.minY, accuracy: 0.01)
+        _ = promptEditor.resignFirstResponder()
+    }
+
+    func testAIThemeCollapseStartsFromVisibleFrameDuringKeyboardLift() throws {
+        QuizFactory.shared.themes = [makeTheme(name: "Музыка")]
+        let viewController = QuizViewController(cardReduceMotionProvider: { false })
+        let window = UIWindow(frame: CGRect(x: 0, y: 0, width: 390, height: 844))
+        window.rootViewController = viewController
+        window.makeKeyAndVisible()
+        window.layoutIfNeeded()
+        testWindows.append(window)
+
+        let sourceButton = try XCTUnwrap(
+            viewController.view.descendant(withAccessibilityIdentifier: "homeCreateWithAIButton") as? UIButton
+        )
+        sourceButton.sendActions(for: .touchUpInside)
+        drainAnimations()
+
+        let card = try XCTUnwrap(
+            viewController.view.descendant(withAccessibilityIdentifier: "homeExpandedAIThemeCard")
+                as? ExpandedAIThemeCardView
+        )
+        let closeButton = try XCTUnwrap(
+            card.descendant(withAccessibilityIdentifier: "expandedAIThemeCardCloseButton") as? UIButton
+        )
+        let restingFrame = card.frame
+
+        let keyboardTop = card.frame.minY + card.promptContainerMaxYAtRest - 80
+        let keyboardFrameInWindow = CGRect(
+            x: 0,
+            y: keyboardTop,
+            width: window.bounds.width,
+            height: window.bounds.maxY - keyboardTop
+        )
+        viewController.updateExpandedAIThemeCardFrameForTesting(
+            keyboardFrameInWindow: keyboardFrameInWindow,
+            duration: 0.8,
+            curveRawValue: 7
+        )
+        _ = try XCTUnwrap(viewController.expandedAIKeyboardAnimatorForTesting)
+        XCTAssertEqual(viewController.expandedAIKeyboardAnimationCurveForTesting, .easeInOut)
+        let liftedFrame = card.frame
+        let visibleCardFrame = CGRect(
+            x: restingFrame.minX,
+            y: restingFrame.minY + (liftedFrame.minY - restingFrame.minY) * 0.25,
+            width: restingFrame.width,
+            height: restingFrame.height
+        )
+        viewController.freezeExpandedAIKeyboardAnimationForTesting(
+            visibleFrame: visibleCardFrame
+        )
+        closeButton.sendActions(for: .touchUpInside)
+
+        XCTAssertNil(viewController.expandedAIKeyboardAnimatorForTesting)
+        let collapseStartFrame = try XCTUnwrap(
+            viewController.expandedCardTransitionInitialFrameForTesting
+        )
+
+        XCTAssertEqual(collapseStartFrame.minY, visibleCardFrame.minY, accuracy: 2)
+        XCTAssertEqual(collapseStartFrame.height, visibleCardFrame.height, accuracy: 2)
+
+        drainAnimations()
+    }
+
+    func testAIThemeGradientOutlineRemainsPresentThroughoutExpandAndCollapse() throws {
+        QuizFactory.shared.themes = [makeTheme(name: "Музыка")]
+        let viewController = QuizViewController(cardReduceMotionProvider: { false })
+        let window = UIWindow(frame: CGRect(x: 0, y: 0, width: 390, height: 844))
+        window.rootViewController = viewController
+        window.makeKeyAndVisible()
+        window.layoutIfNeeded()
+        testWindows.append(window)
+
+        let sourceButton = try XCTUnwrap(
+            viewController.view.descendant(withAccessibilityIdentifier: "homeCreateWithAIButton") as? UIButton
+        )
+        let sourceHeight = sourceButton.bounds.height
+        sourceButton.sendActions(for: .touchUpInside)
+        CATransaction.flush()
+
+        var outline = try XCTUnwrap(
+            viewController.view.descendant(
+                withAccessibilityIdentifier: "homeExpandedAIThemeCardTransitionGradientOutline"
+            )
+        )
+        var transition = try XCTUnwrap(
+            viewController.view.descendant(withAccessibilityIdentifier: "homeExpandedAIThemeCardTransition")
+        )
+        let expandedCard = try XCTUnwrap(
+            viewController.view.descendant(withAccessibilityIdentifier: "homeExpandedAIThemeCard")
+        )
+        let targetHeight = expandedCard.bounds.height
+        var animator = try XCTUnwrap(viewController.expandedCardAnimatorForTesting)
+        try assertActualGradientOutlineMorphMidpoint(
+            animator: animator,
+            outline: outline,
+            transition: transition,
+            sourceHeight: sourceHeight,
+            targetHeight: targetHeight
+        )
+
+        animator.stopAnimation(false)
+        animator.finishAnimation(at: .end)
+        XCTAssertNil(
+            viewController.view.descendant(
+                withAccessibilityIdentifier: "homeExpandedAIThemeCardTransitionGradientOutline"
+            )
+        )
+
+        let closeButton = try XCTUnwrap(
+            viewController.view.descendant(
+                withAccessibilityIdentifier: "expandedAIThemeCardCloseButton"
+            ) as? UIButton
+        )
+        closeButton.sendActions(for: .touchUpInside)
+        CATransaction.flush()
+        outline = try XCTUnwrap(
+            viewController.view.descendant(
+                withAccessibilityIdentifier: "homeExpandedAIThemeCardTransitionGradientOutline"
+            )
+        )
+        transition = try XCTUnwrap(
+            viewController.view.descendant(withAccessibilityIdentifier: "homeExpandedAIThemeCardTransition")
+        )
+        animator = try XCTUnwrap(viewController.expandedCardAnimatorForTesting)
+        try assertActualGradientOutlineMorphMidpoint(
+            animator: animator,
+            outline: outline,
+            transition: transition,
+            sourceHeight: sourceHeight,
+            targetHeight: targetHeight
+        )
+
+        animator.stopAnimation(false)
+        animator.finishAnimation(at: .end)
+        XCTAssertNil(
+            viewController.view.descendant(
+                withAccessibilityIdentifier: "homeExpandedAIThemeCardTransitionGradientOutline"
+            )
+        )
+    }
+
+    func testRadarAIThemeTransitionKeepsTheExpandedAccentBorderAtBothHandoffs() throws {
+        useDesignStyle(.radar)
+        QuizFactory.shared.themes = [makeTheme(name: "Музыка")]
+        let appearance = SnapshotSupport.appearance(designStyle: .radar)
+        let viewController = QuizViewController(cardReduceMotionProvider: { false })
+        let window = UIWindow(frame: CGRect(x: 0, y: 0, width: 390, height: 844))
+        window.rootViewController = viewController
+        window.makeKeyAndVisible()
+        window.layoutIfNeeded()
+        testWindows.append(window)
+
+        let sourceButton = try XCTUnwrap(
+            viewController.view.descendant(withAccessibilityIdentifier: "homeCreateWithAIButton") as? UIButton
+        )
+        sourceButton.sendActions(for: .touchUpInside)
+        CATransaction.flush()
+
+        var transition = try XCTUnwrap(
+            viewController.view.descendant(withAccessibilityIdentifier: "homeExpandedAIThemeCardTransition")
+        )
+        try assertRadarAITransitionBorder(
+            transition,
+            appearance: appearance
+        )
+
+        var animator = try XCTUnwrap(viewController.expandedCardAnimatorForTesting)
+        animator.stopAnimation(false)
+        animator.finishAnimation(at: .end)
+
+        let closeButton = try XCTUnwrap(
+            viewController.view.descendant(
+                withAccessibilityIdentifier: "expandedAIThemeCardCloseButton"
+            ) as? UIButton
+        )
+        closeButton.sendActions(for: .touchUpInside)
+        CATransaction.flush()
+
+        transition = try XCTUnwrap(
+            viewController.view.descendant(withAccessibilityIdentifier: "homeExpandedAIThemeCardTransition")
+        )
+        try assertRadarAITransitionBorder(
+            transition,
+            appearance: appearance
+        )
+
+        animator = try XCTUnwrap(viewController.expandedCardAnimatorForTesting)
+        animator.stopAnimation(false)
+        animator.finishAnimation(at: .end)
+    }
+
+    private func assertRadarAITransitionBorder(
+        _ transition: UIView,
+        appearance: AppAppearance,
+        file: StaticString = #filePath,
+        line: UInt = #line
+    ) throws {
+        XCTAssertNil(
+            transition.descendant(
+                withAccessibilityIdentifier: "homeExpandedAIThemeCardTransitionGradientOutline"
+            ),
+            file: file,
+            line: line
+        )
+        let chromeView = try XCTUnwrap(
+            transition.descendant(
+                withAccessibilityIdentifier: "homeExpandedThemeCardTransitionChrome"
+            ),
+            file: file,
+            line: line
+        )
+        let clippingView = try XCTUnwrap(chromeView.superview, file: file, line: line)
+        let borderColor = clippingView.layer.borderColor.map { UIColor(cgColor: $0) }
+        assertColor(borderColor, equals: appearance.accentColor, file: file, line: line)
+        XCTAssertEqual(
+            clippingView.layer.borderWidth,
+            max(appearance.card.borderWidth, 1),
+            accuracy: 0.001,
+            file: file,
+            line: line
+        )
+    }
+
+    private func assertActualGradientOutlineMorphMidpoint(
+        animator: UIViewPropertyAnimator,
+        outline: UIView,
+        transition: UIView,
+        sourceHeight: CGFloat,
+        targetHeight: CGFloat,
+        file: StaticString = #filePath,
+        line: UInt = #line
+    ) throws {
+        animator.pauseAnimation()
+        animator.fractionComplete = 0.5
+        CATransaction.flush()
+
+        XCTAssertEqual(animator.state, .active, file: file, line: line)
+        XCTAssertFalse(animator.isRunning, file: file, line: line)
+        XCTAssertEqual(animator.fractionComplete, 0.5, accuracy: 0.001, file: file, line: line)
+
+        XCTAssertFalse(outline.layer is CAGradientLayer, file: file, line: line)
+        let collapsedRing = try XCTUnwrap(
+            outline.descendant(
+                withAccessibilityIdentifier: "homeExpandedAIThemeCardTransitionCollapsedGradientRing"
+            ) as? UIImageView,
+            file: file,
+            line: line
+        )
+        let expandedRing = try XCTUnwrap(
+            outline.descendant(
+                withAccessibilityIdentifier: "homeExpandedAIThemeCardTransitionExpandedGradientRing"
+            ) as? UIImageView,
+            file: file,
+            line: line
+        )
+        XCTAssertEqual(collapsedRing.image?.resizingMode, .stretch, file: file, line: line)
+        XCTAssertEqual(expandedRing.image?.resizingMode, .stretch, file: file, line: line)
+        for ring in [collapsedRing, expandedRing] {
+            let animationKeys = Set(ring.layer.animationKeys() ?? [])
+            XCTAssertTrue(animationKeys.contains("position"), file: file, line: line)
+            XCTAssertTrue(animationKeys.contains("bounds.size"), file: file, line: line)
+            try assertMatchingFrameAnimations(
+                ring.layer,
+                outline.layer,
+                file: file,
+                line: line
+            )
+            assertFrame(
+                ring.frame,
+                equals: outline.bounds,
+                accuracy: 0.001,
+                file: file,
+                line: line
+            )
+        }
+
+        let clippingView = try XCTUnwrap(
+            outline.superview,
+            file: file,
+            line: line
+        )
+        assertFrame(
+            outline.frame,
+            equals: clippingView.bounds,
+            accuracy: 0.001,
+            file: file,
+            line: line
+        )
+        outline.layoutIfNeeded()
+        let centerAlpha = try renderedAlpha(
+            in: outline,
+            at: CGPoint(x: outline.bounds.midX, y: outline.bounds.midY),
+            file: file,
+            line: line
+        )
+        let topBorderAlpha = try renderedAlpha(
+            in: outline,
+            at: CGPoint(x: outline.bounds.midX, y: 0.8),
+            file: file,
+            line: line
+        )
+        XCTAssertLessThan(centerAlpha, 0.02, file: file, line: line)
+        XCTAssertGreaterThan(topBorderAlpha, 0.2, file: file, line: line)
+
+        let transitionAnimationKeys = Set(transition.layer.animationKeys() ?? [])
+        XCTAssertTrue(transitionAnimationKeys.contains("position"), file: file, line: line)
+        XCTAssertTrue(transitionAnimationKeys.contains("bounds.size"), file: file, line: line)
+
+        let outlineAnimationKeys = Set(outline.layer.animationKeys() ?? [])
+        XCTAssertTrue(outlineAnimationKeys.contains("position"), file: file, line: line)
+        XCTAssertTrue(outlineAnimationKeys.contains("bounds.size"), file: file, line: line)
+
+        XCTAssertTrue(clippingView.layer.masksToBounds, file: file, line: line)
+        XCTAssertGreaterThan(clippingView.layer.cornerRadius, 0, file: file, line: line)
+        let clippingAnimationKeys = Set(clippingView.layer.animationKeys() ?? [])
+        XCTAssertTrue(clippingAnimationKeys.contains("position"), file: file, line: line)
+        XCTAssertTrue(clippingAnimationKeys.contains("bounds.size"), file: file, line: line)
+        XCTAssertTrue(clippingAnimationKeys.contains("cornerRadius"), file: file, line: line)
+
+        let chromeView = try XCTUnwrap(
+            transition.descendant(withAccessibilityIdentifier: "homeExpandedThemeCardTransitionChrome"),
+            file: file,
+            line: line
+        )
+        let chromeAnimationKeys = Set(chromeView.layer.animationKeys() ?? [])
+        XCTAssertTrue(chromeAnimationKeys.contains("position"), file: file, line: line)
+        XCTAssertTrue(chromeAnimationKeys.contains("bounds.size"), file: file, line: line)
+        XCTAssertGreaterThan(chromeView.frame.minX, clippingView.bounds.minX, file: file, line: line)
+        XCTAssertGreaterThan(chromeView.frame.minY, clippingView.bounds.minY, file: file, line: line)
+
+        let transitionAnimation = try XCTUnwrap(
+            transition.layer.animation(forKey: "bounds.size"),
+            file: file,
+            line: line
+        )
+        XCTAssertGreaterThan(transitionAnimation.duration, 0, file: file, line: line)
+
+        let lowerHeight = min(sourceHeight, targetHeight)
+        let upperHeight = max(sourceHeight, targetHeight)
+        XCTAssertGreaterThan(
+            upperHeight,
+            lowerHeight + 1,
+            file: file,
+            line: line
+        )
+    }
+
+    private func renderedAlpha(
+        in view: UIView,
+        at point: CGPoint,
+        file: StaticString = #filePath,
+        line: UInt = #line
+    ) throws -> CGFloat {
+        var pixel = [UInt8](repeating: 0, count: 4)
+        let context = try XCTUnwrap(
+            CGContext(
+                data: &pixel,
+                width: 1,
+                height: 1,
+                bitsPerComponent: 8,
+                bytesPerRow: 4,
+                space: CGColorSpaceCreateDeviceRGB(),
+                bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue
+            ),
+            file: file,
+            line: line
+        )
+        context.translateBy(x: -point.x, y: -point.y)
+        view.layer.render(in: context)
+        return CGFloat(pixel[3]) / 255
+    }
+
+    private func assertFrame(
+        _ actual: CGRect,
+        equals expected: CGRect,
+        accuracy: CGFloat,
+        file: StaticString = #filePath,
+        line: UInt = #line
+    ) {
+        XCTAssertEqual(actual.minX, expected.minX, accuracy: accuracy, file: file, line: line)
+        XCTAssertEqual(actual.minY, expected.minY, accuracy: accuracy, file: file, line: line)
+        XCTAssertEqual(actual.width, expected.width, accuracy: accuracy, file: file, line: line)
+        XCTAssertEqual(actual.height, expected.height, accuracy: accuracy, file: file, line: line)
+    }
+
+    private func assertMatchingFrameAnimations(
+        _ childLayer: CALayer,
+        _ parentLayer: CALayer,
+        file: StaticString = #filePath,
+        line: UInt = #line
+    ) throws {
+        for key in ["position", "bounds.size"] {
+            let childAnimation = try XCTUnwrap(
+                childLayer.animation(forKey: key) as? CABasicAnimation,
+                file: file,
+                line: line
+            )
+            let parentAnimation = try XCTUnwrap(
+                parentLayer.animation(forKey: key) as? CABasicAnimation,
+                file: file,
+                line: line
+            )
+            XCTAssertEqual(childAnimation.keyPath, parentAnimation.keyPath, file: file, line: line)
+            XCTAssertEqual(
+                String(describing: childAnimation.fromValue),
+                String(describing: parentAnimation.fromValue),
+                file: file,
+                line: line
+            )
+            XCTAssertEqual(
+                String(describing: childAnimation.toValue),
+                String(describing: parentAnimation.toValue),
+                file: file,
+                line: line
+            )
+        }
+    }
+
     func testStatisticsCardExpandsInlineTracksOnceAndRestoresTheGridWithoutQuizCancellation() throws {
         QuizFactory.shared.themes = [makeTheme(name: "Музыка", questionCount: 15)]
         let statisticsStore = makeStatisticsStore(attempts: [
@@ -2131,7 +2622,10 @@ final class HomeScreenVisualStateTests: XCTestCase {
         QuizFactory.shared.themes = [makeTheme(name: "Музыка", questionCount: 15)]
         QuizFactory.shared.questionsCount = 15
 
-        let viewController = QuizViewController(randomThemeIDProvider: { _ in "music" })
+        let viewController = QuizViewController(
+            randomThemeIDProvider: { _ in "music" },
+            feelingLuckyMinimumFeedbackDelay: {}
+        )
         let router = HomeRouterSpy()
         viewController.router = router
         let window = UIWindow(frame: CGRect(x: 0, y: 0, width: 390, height: 844))
@@ -2145,6 +2639,7 @@ final class HomeScreenVisualStateTests: XCTestCase {
 
         luckyButton.sendActions(for: .touchUpInside)
         luckyButton.sendActions(for: .touchUpInside)
+        drainAnimations(0.01)
 
         XCTAssertEqual(QuizFactory.shared.questionsCount, 5)
         XCTAssertEqual(router.showQuestionCallCount, 1)
@@ -2156,7 +2651,8 @@ final class HomeScreenVisualStateTests: XCTestCase {
         let analytics = HomeAnalyticsTrackingSpy()
         let viewController = QuizViewController(
             analytics: analytics,
-            randomThemeIDProvider: { _ in "music" }
+            randomThemeIDProvider: { _ in "music" },
+            feelingLuckyMinimumFeedbackDelay: {}
         )
         let router = HomeRouterSpy()
         viewController.router = router
@@ -2172,6 +2668,7 @@ final class HomeScreenVisualStateTests: XCTestCase {
             viewController.view.descendant(withAccessibilityIdentifier: "homeFeelingLuckyButton") as? UIButton
         )
         luckyButton.sendActions(for: .touchUpInside)
+        drainAnimations(0.01)
 
         XCTAssertEqual(analytics.events.map(\.name), ["theme_selected", "quiz_started"])
         guard analytics.events.count == 2 else { return }
@@ -2188,10 +2685,13 @@ final class HomeScreenVisualStateTests: XCTestCase {
             makeTheme(name: "Технологии", questionCount: 5)
         ]
         var offeredThemeIDs: [String] = []
-        let viewController = QuizViewController(randomThemeIDProvider: { themes in
-            offeredThemeIDs = themes.map(\.stableID)
-            return themes.first?.stableID
-        })
+        let viewController = QuizViewController(
+            randomThemeIDProvider: { themes in
+                offeredThemeIDs = themes.map(\.stableID)
+                return themes.first?.stableID
+            },
+            feelingLuckyMinimumFeedbackDelay: {}
+        )
         let router = HomeRouterSpy()
         viewController.router = router
         let window = UIWindow(frame: CGRect(x: 0, y: 0, width: 390, height: 844))
@@ -2204,11 +2704,121 @@ final class HomeScreenVisualStateTests: XCTestCase {
         )
 
         luckyButton.sendActions(for: .touchUpInside)
+        drainAnimations(0.01)
 
         XCTAssertEqual(offeredThemeIDs, ["technology"])
         XCTAssertEqual(QuizFactory.shared.chosenTheme?.themeID, "technology")
         XCTAssertEqual(QuizFactory.shared.questionsCount, 5)
         XCTAssertEqual(router.showQuestionCallCount, 1)
+    }
+
+    func testFeelingLuckyShowsProgressUntilMinimumFeedbackDelayCompletes() throws {
+        QuizFactory.shared.themes = [makeTheme(name: "Музыка", questionCount: 15)]
+        var releaseDelay: (() -> Void)?
+        let viewController = QuizViewController(
+            randomThemeIDProvider: { _ in "music" },
+            feelingLuckyMinimumFeedbackDelay: {
+                await withCheckedContinuation { continuation in
+                    releaseDelay = { continuation.resume() }
+                }
+            }
+        )
+        let router = HomeRouterSpy()
+        viewController.router = router
+        let window = UIWindow(frame: CGRect(x: 0, y: 0, width: 390, height: 844))
+        window.rootViewController = viewController
+        window.makeKeyAndVisible()
+        window.layoutIfNeeded()
+        testWindows.append(window)
+        drainAnimations(0.01)
+
+        let luckyButton = try XCTUnwrap(
+            viewController.view.descendant(withAccessibilityIdentifier: "homeFeelingLuckyButton") as? UIButton
+        )
+        let collectionView = try XCTUnwrap(
+            viewController.view.descendant(withAccessibilityIdentifier: "homeThemesCollectionView") as? UICollectionView
+        )
+        let progressView = try XCTUnwrap(
+            luckyButton.descendant(withAccessibilityIdentifier: "homeFeelingLuckyProgressView")
+                as? UIActivityIndicatorView
+        )
+
+        luckyButton.sendActions(for: .touchUpInside)
+        luckyButton.sendActions(for: .touchUpInside)
+        drainAnimations(0.01)
+
+        XCTAssertFalse(luckyButton.isEnabled)
+        XCTAssertTrue(progressView.isAnimating)
+        XCTAssertEqual(luckyButton.accessibilityLabel, L10n.Home.feelingLuckyLoading)
+        XCTAssertFalse(collectionView.isUserInteractionEnabled)
+        XCTAssertEqual(router.showQuestionCallCount, 0)
+        XCTAssertTrue(viewController.cardSlideTransitionSourceView === luckyButton)
+        XCTAssertNotNil(releaseDelay)
+
+        QuizFactory.shared.questionsCount = 10
+        releaseDelay?()
+        drainAnimations(0.01)
+
+        XCTAssertEqual(router.showQuestionCallCount, 1)
+        XCTAssertTrue(progressView.isAnimating)
+        XCTAssertEqual(QuizFactory.shared.questionsCount, 5)
+    }
+
+    func testFeelingLuckyCancellationRestoresHomeAndIgnoresStaleDelayCompletion() throws {
+        QuizFactory.shared.themes = [makeTheme(name: "Музыка", questionCount: 15)]
+        var releaseDelay: (() -> Void)?
+        let viewController = QuizViewController(
+            randomThemeIDProvider: { _ in "music" },
+            feelingLuckyMinimumFeedbackDelay: {
+                await withCheckedContinuation { continuation in
+                    releaseDelay = { continuation.resume() }
+                }
+            }
+        )
+        let router = HomeRouterSpy()
+        viewController.router = router
+        let window = UIWindow(frame: CGRect(x: 0, y: 0, width: 390, height: 844))
+        window.rootViewController = viewController
+        window.makeKeyAndVisible()
+        window.layoutIfNeeded()
+        testWindows.append(window)
+        drainAnimations(0.01)
+
+        let luckyButton = try XCTUnwrap(
+            viewController.view.descendant(withAccessibilityIdentifier: "homeFeelingLuckyButton") as? UIButton
+        )
+        let progressView = try XCTUnwrap(
+            luckyButton.descendant(withAccessibilityIdentifier: "homeFeelingLuckyProgressView")
+                as? UIActivityIndicatorView
+        )
+        let collectionView = try XCTUnwrap(
+            viewController.view.descendant(withAccessibilityIdentifier: "homeThemesCollectionView")
+                as? UICollectionView
+        )
+        let settingsButton = try XCTUnwrap(
+            viewController.view.descendant(withAccessibilityIdentifier: "homeSettingsButton") as? UIButton
+        )
+
+        luckyButton.sendActions(for: .touchUpInside)
+        drainAnimations(0.01)
+        XCTAssertNotNil(releaseDelay)
+        XCTAssertTrue(progressView.isAnimating)
+
+        viewController.quizFlowWillReturnToThemes()
+
+        XCTAssertTrue(luckyButton.isEnabled)
+        XCTAssertFalse(progressView.isAnimating)
+        XCTAssertEqual(luckyButton.accessibilityLabel, L10n.Home.feelingLucky)
+        XCTAssertTrue(collectionView.isUserInteractionEnabled)
+        XCTAssertTrue(settingsButton.isEnabled)
+        XCTAssertEqual(router.showQuestionCallCount, 0)
+
+        releaseDelay?()
+        drainAnimations(0.01)
+
+        XCTAssertEqual(router.showQuestionCallCount, 0)
+        XCTAssertTrue(luckyButton.isEnabled)
+        XCTAssertFalse(progressView.isAnimating)
     }
 
     func testFeelingLuckyRejectsProviderResultOutsideEligibleThemes() throws {

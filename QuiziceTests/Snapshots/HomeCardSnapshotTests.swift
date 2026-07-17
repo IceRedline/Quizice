@@ -89,6 +89,29 @@ final class HomeCardSnapshotTests: XCTestCase {
         )
     }
 
+    func testFeelingLuckyLoadingActionCardSnapshot() {
+        let cell = SnapshotSupport.makeCollectionCell(
+            item: 3,
+            themes: themes,
+            designStyle: .radar,
+            feelingLuckyLoading: true
+        )
+        let progressView = cell.contentView.subviews
+            .compactMap { $0 as? UIButton }
+            .flatMap(\.subviews)
+            .flatMap(\.subviews)
+            .first { $0.accessibilityIdentifier == "homeFeelingLuckyProgressView" }
+        progressView?.layer.speed = 0
+        progressView?.layer.timeOffset = 0
+
+        SnapshotSupport.assertComponent(
+            cell.contentView,
+            named: "radar-feeling-lucky-card-loading",
+            size: CGSize(width: 390, height: 140),
+            backgroundAppearance: SnapshotSupport.appearance(designStyle: .radar)
+        )
+    }
+
     func testStatisticsCardSnapshot() {
         let cell = SnapshotSupport.makeCollectionCell(item: 4, themes: themes, designStyle: .classic)
 

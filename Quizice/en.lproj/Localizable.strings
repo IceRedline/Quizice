@@ -48,6 +48,7 @@
 "home.exit_alert.message" = "Are you sure you want to exit?";
 "home.feeling_lucky" = "Feeling lucky";
 "home.feeling_lucky.accessibility_hint" = "Starts a random theme";
+"home.feeling_lucky.loading" = "Picking questions";
 "home.statistics.accessibility_hint" = "Opens overall statistics for completed quizzes";
 "home.statistics.accessibility_label" = "Overall statistics";
 "home.statistics.accessibility_value_format" = "Played: %d. Accuracy: %d%%";

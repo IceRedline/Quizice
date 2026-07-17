@@ -48,6 +48,7 @@
 "home.exit_alert.message" = "¿Seguro que quieres salir?";
 "home.feeling_lucky" = "Voy a tener suerte";
 "home.feeling_lucky.accessibility_hint" = "Inicia un tema aleatorio";
+"home.feeling_lucky.loading" = "Eligiendo preguntas";
 "home.statistics.accessibility_hint" = "Abre las estadísticas generales de los quizzes completados";
 "home.statistics.accessibility_label" = "Estadísticas generales";
 "home.statistics.accessibility_value_format" = "Jugados: %d. Precisión: %d%%";

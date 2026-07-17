@@ -125,7 +125,8 @@ enum SnapshotSupport {
         themes: [QuizTheme],
         designStyle: AppDesignStyle = .clean,
         cleanColorScheme: CleanColorSchemePreference = .light,
-        collectionWidth: CGFloat = 390
+        collectionWidth: CGFloat = 390,
+        feelingLuckyLoading: Bool = false
     ) -> UICollectionViewCell {
         setUp(designStyle: designStyle, cleanColorScheme: cleanColorScheme)
         let repository = SnapshotThemeRepository(themes: themes)
@@ -137,6 +138,7 @@ enum SnapshotSupport {
             themeRepository: repository,
             statisticsStore: StatisticsStore(userDefaults: defaults, key: "attempts")
         )
+        service.isFeelingLuckyLoading = feelingLuckyLoading
         let collectionView = makeCollectionView(width: collectionWidth)
         collectionView.dataSource = service
         collectionView.delegate = service
