@@ -33,6 +33,31 @@ final class AnalyticsServiceTests: XCTestCase {
         XCTAssertEqual(completed.parameters["score_percent"] as? Int, 80)
     }
 
+    func testThemeCardFlipUsesVisibleFaceAndPrivacySafeThemeContext() {
+        let flippedToBack = AnalyticsEvent.themeCardFlipped(
+            theme: .catalog(id: "music"),
+            visibleFace: .back
+        )
+        XCTAssertEqual(flippedToBack.name, "theme_card_flipped")
+        XCTAssertEqual(flippedToBack.parameters["visible_face"] as? String, "back")
+        XCTAssertEqual(flippedToBack.parameters["theme_source"] as? String, "catalog")
+        XCTAssertEqual(flippedToBack.parameters["theme_id"] as? String, "music")
+
+        let flippedToFront = AnalyticsEvent.themeCardFlipped(
+            theme: .catalog(id: "culture"),
+            visibleFace: .front
+        )
+        XCTAssertEqual(flippedToFront.parameters["visible_face"] as? String, "front")
+        XCTAssertEqual(flippedToFront.parameters["theme_source"] as? String, "catalog")
+        XCTAssertEqual(flippedToFront.parameters["theme_id"] as? String, "culture")
+
+        let aiFlip = AnalyticsEvent.themeCardFlipped(theme: .ai, visibleFace: .back)
+        XCTAssertEqual(aiFlip.parameters["theme_source"] as? String, "ai")
+        XCTAssertNil(aiFlip.parameters["theme_id"])
+        XCTAssertNil(aiFlip.parameters["theme_name"])
+        XCTAssertNil(aiFlip.parameters["description"])
+    }
+
     func testAIEventsNeverExposePromptOrGeneratedThemeIdentifier() {
         let selected = AnalyticsEvent.themeSelected(theme: .ai, method: .ai)
         XCTAssertEqual(selected.parameters["theme_source"] as? String, "ai")
@@ -71,6 +96,7 @@ final class AnalyticsServiceTests: XCTestCase {
         let events: [AnalyticsEvent] = [
             .screenView(screen: .home),
             .themeSelected(theme: .catalog(id: "music"), method: .manual),
+            .themeCardFlipped(theme: .catalog(id: "music"), visibleFace: .back),
             .quizSetupCancelled(theme: .catalog(id: "music")),
             .quizStarted(theme: .catalog(id: "music"), questionCount: 5),
             .quizAnswered(theme: .catalog(id: "music"), questionIndex: 1, totalQuestions: 5, outcome: .correct),
@@ -89,11 +115,11 @@ final class AnalyticsServiceTests: XCTestCase {
         ]
 
         XCTAssertEqual(events.map(\.name), [
-            "screen_view", "theme_selected", "quiz_setup_cancelled", "quiz_started",
-            "quiz_answered", "quiz_exit_requested", "quiz_exit_cancelled", "quiz_abandoned",
-            "quiz_completed", "quiz_result_action", "statistics_viewed", "ai_generation_started",
-            "ai_generation_succeeded", "ai_generation_failed", "ai_generation_cancelled",
-            "setting_changed", "settings_action"
+            "screen_view", "theme_selected", "theme_card_flipped", "quiz_setup_cancelled",
+            "quiz_started", "quiz_answered", "quiz_exit_requested", "quiz_exit_cancelled",
+            "quiz_abandoned", "quiz_completed", "quiz_result_action", "statistics_viewed",
+            "ai_generation_started", "ai_generation_succeeded", "ai_generation_failed",
+            "ai_generation_cancelled", "setting_changed", "settings_action"
         ])
     }
 

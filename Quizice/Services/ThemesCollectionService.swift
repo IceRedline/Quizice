@@ -42,15 +42,10 @@ final class ThemesCollectionService: NSObject, UICollectionViewDelegate, UIColle
         static let secondaryActionButtonHeight: CGFloat = 54
         static let statisticsCardHeight: CGFloat = 112
         static let lastItemBottomInset: CGFloat = 24
-        static let cardContentHorizontalInset: CGFloat = 24
         static let aiThemeBadgeTrailingInset: CGFloat = 16
         static let aiThemeBadgeHorizontalInset: CGFloat = 10
         static let aiThemeBadgeVerticalInset: CGFloat = 5
         static let aiThemeBadgeMinimumWidth: CGFloat = 48
-        static let statisticsStackSpacing: CGFloat = 6
-        static let statisticsContentSpacing: CGFloat = 12
-        static let statisticsMetricsSpacing: CGFloat = 8
-        static let statisticsMetricSpacing: CGFloat = 6
         static let cellShadowOffset = CGSize(width: 0, height: 12)
         static let cellShadowRadius: CGFloat = 22
     }
@@ -59,9 +54,6 @@ final class ThemesCollectionService: NSObject, UICollectionViewDelegate, UIColle
         static let themeCardBackgroundAlpha: CGFloat = 0.20
         static let themeCardBorderAlpha: CGFloat = 0.45
         static let themeCardCornerRadius: CGFloat = 28
-        static let statisticsCardBackgroundAlpha: CGFloat = 0.18
-        static let statisticsCardBorderAlpha: CGFloat = 0.40
-        static let statisticsCardCornerRadius: CGFloat = 30
         static let feelingLuckyButtonBackgroundAlpha: CGFloat = 0.14
         static let feelingLuckyButtonBorderAlpha: CGFloat = 0.36
         static let feelingLuckyButtonCornerRadius: CGFloat = 20
@@ -78,11 +70,8 @@ final class ThemesCollectionService: NSObject, UICollectionViewDelegate, UIColle
         static let cellShadowOpacity: Float = 0.22
         static let titleFontSize: CGFloat = 24
         static let descriptionFontSize: CGFloat = 15
-        static let statisticsMetricValueFontSize: CGFloat = 18
-        static let statisticsMetricTitleFontSize: CGFloat = 14
         static let luckyFontSize: CGFloat = 19
         static let betaBadgeFontSize: CGFloat = 12
-        static let statisticsTitleMinimumScaleFactor: CGFloat = 0.72
     }
 
     weak var delegate: ThemeCollectionDelegate?
@@ -91,6 +80,13 @@ final class ThemesCollectionService: NSObject, UICollectionViewDelegate, UIColle
         didSet {
             guard oldValue != presentedThemeID else { return }
             reconfigureThemeCells(withIDs: [oldValue, presentedThemeID].compactMap { $0 })
+        }
+    }
+
+    var isStatisticsPresented = false {
+        didSet {
+            guard oldValue != isStatisticsPresented else { return }
+            reconfigureStatisticsCell()
         }
     }
 
@@ -138,16 +134,30 @@ final class ThemesCollectionService: NSObject, UICollectionViewDelegate, UIColle
             return cell
         }
 
+        if indexPath.item == statisticsIndex {
+            guard let cell = collectionView.dequeueReusableCell(
+                withReuseIdentifier: StatisticsCardCollectionViewCell.reuseIdentifier,
+                for: indexPath
+            ) as? StatisticsCardCollectionViewCell else {
+                preconditionFailure("Expected StatisticsCardCollectionViewCell")
+            }
+            cell.configure(
+                summary: statisticsStore.loadSummary(),
+                appearance: appearance,
+                isSourceHidden: isStatisticsPresented
+            )
+            cell.actionButton.removeTarget(self, action: nil, for: .allEvents)
+            cell.actionButton.addTarget(self, action: #selector(buttonTouchedDown(_:)), for: .touchDown)
+            cell.actionButton.addTarget(self, action: #selector(statisticsButtonTouchedUpInside(_:)), for: .touchUpInside)
+            cell.actionButton.addTarget(self, action: #selector(buttonTouchedUpOutside(_:)), for: .touchUpOutside)
+            return cell
+        }
+
         let cell = collectionView.dequeueReusableCell(
             withReuseIdentifier: Content.themeCellReuseIdentifier,
             for: indexPath
         )
         prepare(cell, appearance: appearance)
-
-        if indexPath.item == statisticsIndex {
-            configureStatisticsCard(in: cell, appearance: appearance)
-            return cell
-        }
 
         if indexPath.item == feelingLuckyIndex {
             configureFeelingLuckyCard(in: cell, appearance: appearance)
@@ -335,150 +345,6 @@ final class ThemesCollectionService: NSObject, UICollectionViewDelegate, UIColle
         return button
     }
 
-    private func configureStatisticsCard(in cell: UICollectionViewCell, appearance: AppAppearance) {
-        cell.applyShadow(.none)
-        let summary = statisticsStore.loadSummary()
-        let accuracyDisplay = "\(summary.percentage)%"
-
-        let button = UIButton(type: .system)
-        button.accessibilityIdentifier = Content.statisticsAccessibilityID
-        button.accessibilityLabel = L10n.Home.statisticsAccessibilityLabel
-        button.accessibilityHint = L10n.Home.statisticsAccessibilityHint
-        button.accessibilityValue = L10n.Home.statisticsAccessibilityValue(
-            playedQuizzes: summary.playedQuizzes,
-            percentage: summary.percentage
-        )
-        button.applyActionAppearance(appearance.row, appearance: appearance, textColor: appearance.surfaceTextColor)
-        applyCleanOutlineStyleIfNeeded(
-            to: button,
-            appearance: appearance,
-            borderColor: appearance.screenTextColor.withAlphaComponent(0.18)
-        )
-        applyRadarTransparentStyleIfNeeded(to: button, appearance: appearance)
-        button.clipsToBounds = true
-        button.translatesAutoresizingMaskIntoConstraints = false
-        button.addTarget(self, action: #selector(buttonTouchedDown(_:)), for: .touchDown)
-        button.addTarget(self, action: #selector(statisticsButtonTouchedUpInside(_:)), for: .touchUpInside)
-        button.addTarget(self, action: #selector(buttonTouchedUpOutside(_:)), for: .touchUpOutside)
-
-        let titleLabel = UILabel()
-        titleLabel.accessibilityIdentifier = Content.statisticsTitleAccessibilityID
-        titleLabel.text = L10n.Statistics.title
-        titleLabel.textColor = appearance.surfaceTextColor
-        titleLabel.font = appearance.typography.font(size: Appearance.titleFontSize, weight: .bold)
-        titleLabel.adjustsFontForContentSizeCategory = true
-        titleLabel.textAlignment = .left
-        titleLabel.numberOfLines = 1
-        titleLabel.adjustsFontSizeToFitWidth = true
-        titleLabel.minimumScaleFactor = Appearance.statisticsTitleMinimumScaleFactor
-        titleLabel.allowsDefaultTighteningForTruncation = true
-        titleLabel.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
-        titleLabel.translatesAutoresizingMaskIntoConstraints = false
-
-        let descriptionLabel = UILabel()
-        descriptionLabel.accessibilityIdentifier = Content.statisticsDescriptionAccessibilityID
-        descriptionLabel.text = L10n.Home.statisticsDescription
-        descriptionLabel.textColor = appearance.secondarySurfaceTextColor
-        descriptionLabel.font = appearance.typography.font(size: Appearance.descriptionFontSize, weight: .semibold)
-        descriptionLabel.adjustsFontForContentSizeCategory = true
-        descriptionLabel.textAlignment = .left
-        descriptionLabel.numberOfLines = 2
-        descriptionLabel.lineBreakMode = .byWordWrapping
-        descriptionLabel.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
-        descriptionLabel.setContentCompressionResistancePriority(.required, for: .vertical)
-        descriptionLabel.translatesAutoresizingMaskIntoConstraints = false
-        descriptionLabel.heightAnchor.constraint(
-            greaterThanOrEqualToConstant: ceil(descriptionLabel.font.lineHeight * 2)
-        ).isActive = true
-
-        let textStackView = UIStackView(arrangedSubviews: [titleLabel, descriptionLabel])
-        textStackView.axis = .vertical
-        textStackView.alignment = .fill
-        textStackView.spacing = Layout.statisticsStackSpacing
-        textStackView.isUserInteractionEnabled = false
-        textStackView.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
-        textStackView.translatesAutoresizingMaskIntoConstraints = false
-
-        let playedMetricView = makeStatisticsMetricView(
-            title: L10n.Home.statisticsPlayedShort,
-            value: "\(summary.playedQuizzes)",
-            titleAccessibilityIdentifier: Content.statisticsPlayedTitleAccessibilityID,
-            valueAccessibilityIdentifier: Content.statisticsPlayedValueAccessibilityID,
-            appearance: appearance
-        )
-        let accuracyMetricView = makeStatisticsMetricView(
-            title: L10n.Home.statisticsAccuracyShort,
-            value: accuracyDisplay,
-            titleAccessibilityIdentifier: Content.statisticsAccuracyTitleAccessibilityID,
-            valueAccessibilityIdentifier: Content.statisticsAccuracyValueAccessibilityID,
-            appearance: appearance
-        )
-
-        let metricsStackView = UIStackView(arrangedSubviews: [playedMetricView, accuracyMetricView])
-        metricsStackView.axis = .vertical
-        metricsStackView.alignment = .fill
-        metricsStackView.spacing = Layout.statisticsMetricsSpacing
-        metricsStackView.isUserInteractionEnabled = false
-        metricsStackView.setContentCompressionResistancePriority(.required, for: .horizontal)
-        metricsStackView.translatesAutoresizingMaskIntoConstraints = false
-
-        let contentStackView = UIStackView(arrangedSubviews: [textStackView, metricsStackView])
-        contentStackView.axis = .horizontal
-        contentStackView.alignment = .center
-        contentStackView.distribution = .fill
-        contentStackView.spacing = Layout.statisticsContentSpacing
-        contentStackView.isUserInteractionEnabled = false
-        contentStackView.translatesAutoresizingMaskIntoConstraints = false
-
-        pin(button, to: cell.contentView, bottomInset: Layout.lastItemBottomInset)
-        button.addSubview(contentStackView)
-
-        NSLayoutConstraint.activate([
-            contentStackView.leadingAnchor.constraint(equalTo: button.leadingAnchor, constant: Layout.cardContentHorizontalInset),
-            contentStackView.trailingAnchor.constraint(equalTo: button.trailingAnchor, constant: -Layout.cardContentHorizontalInset),
-            contentStackView.centerYAnchor.constraint(equalTo: button.centerYAnchor)
-        ])
-    }
-
-    private func makeStatisticsMetricView(
-        title: String,
-        value: String,
-        titleAccessibilityIdentifier: String,
-        valueAccessibilityIdentifier: String,
-        appearance: AppAppearance
-    ) -> UIStackView {
-        let valueLabel = UILabel()
-        valueLabel.accessibilityIdentifier = valueAccessibilityIdentifier
-        valueLabel.text = value
-        valueLabel.textColor = appearance.surfaceTextColor
-        valueLabel.font = appearance.typography.font(size: Appearance.statisticsMetricValueFontSize, weight: .bold)
-        valueLabel.adjustsFontForContentSizeCategory = true
-        valueLabel.textAlignment = .right
-        valueLabel.numberOfLines = 0
-        valueLabel.setContentCompressionResistancePriority(.required, for: .horizontal)
-        valueLabel.translatesAutoresizingMaskIntoConstraints = false
-
-        let titleLabel = UILabel()
-        titleLabel.accessibilityIdentifier = titleAccessibilityIdentifier
-        titleLabel.text = title
-        titleLabel.textColor = appearance.secondarySurfaceTextColor
-        titleLabel.font = appearance.typography.font(size: Appearance.statisticsMetricTitleFontSize, weight: .semibold)
-        titleLabel.adjustsFontForContentSizeCategory = true
-        titleLabel.textAlignment = .left
-        titleLabel.numberOfLines = 1
-        titleLabel.setContentHuggingPriority(.required, for: .horizontal)
-        titleLabel.setContentCompressionResistancePriority(.required, for: .horizontal)
-        titleLabel.translatesAutoresizingMaskIntoConstraints = false
-
-        let stackView = UIStackView(arrangedSubviews: [titleLabel, valueLabel])
-        stackView.axis = .horizontal
-        stackView.alignment = .center
-        stackView.spacing = Layout.statisticsMetricSpacing
-        stackView.isUserInteractionEnabled = false
-        stackView.translatesAutoresizingMaskIntoConstraints = false
-        return stackView
-    }
-
     private func applyCleanOutlineStyleIfNeeded(to button: UIButton, appearance: AppAppearance, borderColor: UIColor) {
         guard appearance.designStyle == .clean else { return }
         button.backgroundColor = appearance.card.backgroundColor
@@ -532,6 +398,16 @@ final class ThemesCollectionService: NSObject, UICollectionViewDelegate, UIColle
 
         UIView.performWithoutAnimation {
             collectionView.reconfigureItems(at: indexPaths)
+        }
+    }
+
+    private func reconfigureStatisticsCell() {
+        guard let collectionView = observedCollectionView else { return }
+        let indexPath = IndexPath(item: statisticsIndex, section: 0)
+        guard collectionView.numberOfItems(inSection: 0) > indexPath.item else { return }
+
+        UIView.performWithoutAnimation {
+            collectionView.reconfigureItems(at: [indexPath])
         }
     }
 
