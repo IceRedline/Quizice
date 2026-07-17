@@ -256,6 +256,97 @@ final class HomeThemeCardReducerTests: XCTestCase {
         XCTAssertEqual(state.themeID, "music")
     }
 
+    func testStatisticsPresentationUsesDedicatedIdentityAndClearsThemeSetupState() {
+        var state = HomeThemeCardState()
+
+        let effect = reduce(&state, .presentStatistics)
+
+        XCTAssertEqual(effect, .expandStatistics)
+        XCTAssertEqual(state.phase, .expanding)
+        XCTAssertEqual(state.presentedCard, .statistics)
+        XCTAssertTrue(state.isStatisticsPresented)
+        XCTAssertNil(state.themeID)
+        XCTAssertNil(state.presentedThemeID)
+        XCTAssertEqual(state.availableQuestionCounts, [])
+        XCTAssertNil(state.selectedQuestionCount)
+        XCTAssertFalse(state.canStart)
+
+        XCTAssertNil(reduce(&state, .presentStatistics))
+        XCTAssertNil(
+            reduce(
+                &state,
+                .present(
+                    themeID: "music",
+                    availableQuestionCounts: [5, 10, 15],
+                    preferredQuestionCount: 10
+                )
+            )
+        )
+        XCTAssertEqual(state.presentedCard, .statistics)
+        XCTAssertEqual(state.phase, .expanding)
+    }
+
+    func testExpandedStatisticsRejectsThemeOnlyActionsAndCollapsesToGrid() {
+        var state = statisticsPresentedState()
+
+        XCTAssertNil(reduce(&state, .expansionCompleted))
+        XCTAssertEqual(state.phase, .expandedFront)
+        XCTAssertTrue(state.isStatisticsPresented)
+
+        let expandedState = state
+        XCTAssertNil(reduce(&state, .flipRequested))
+        XCTAssertNil(reduce(&state, .flipCompleted(.back)))
+        XCTAssertNil(reduce(&state, .questionCountSelected(5)))
+        XCTAssertNil(reduce(&state, .startRequested))
+        XCTAssertEqual(state, expandedState)
+
+        XCTAssertEqual(reduce(&state, .closeRequested), .collapseStatistics)
+        XCTAssertEqual(state.phase, .collapsing)
+        XCTAssertTrue(state.isStatisticsPresented)
+        XCTAssertNil(reduce(&state, .collapseCompleted))
+        XCTAssertEqual(state, HomeThemeCardState())
+        XCTAssertFalse(state.isStatisticsPresented)
+    }
+
+    func testStatisticsExpansionCanReverseWithoutLosingItsIdentity() {
+        var state = statisticsPresentedState()
+
+        XCTAssertEqual(
+            reduce(&state, .closeRequested),
+            .reverseExpansion(shouldPresent: false)
+        )
+        XCTAssertEqual(state.phase, .collapsing)
+        XCTAssertEqual(state.presentedCard, .statistics)
+        XCTAssertTrue(state.isStatisticsPresented)
+
+        XCTAssertEqual(
+            reduce(&state, .closeRequested),
+            .reverseExpansion(shouldPresent: true)
+        )
+        XCTAssertEqual(state.phase, .expanding)
+        XCTAssertEqual(state.presentedCard, .statistics)
+
+        XCTAssertNil(reduce(&state, .expansionCompleted))
+        XCTAssertEqual(state.phase, .expandedFront)
+        XCTAssertTrue(state.isStatisticsPresented)
+    }
+
+    func testThemePresentationRejectsStatisticsUntilThemeReturnsToGrid() {
+        var state = presentedState()
+
+        XCTAssertNil(reduce(&state, .presentStatistics))
+        XCTAssertEqual(state.presentedCard, .theme("music"))
+        XCTAssertFalse(state.isStatisticsPresented)
+
+        XCTAssertNil(reduce(&state, .expansionCompleted))
+        XCTAssertEqual(reduce(&state, .closeRequested), .collapse(themeID: "music"))
+        XCTAssertNil(reduce(&state, .collapseCompleted))
+        XCTAssertEqual(state, HomeThemeCardState())
+
+        XCTAssertEqual(reduce(&state, .presentStatistics), .expandStatistics)
+        XCTAssertEqual(state.presentedCard, .statistics)
+    }
+
     func testFrontBackSelectionAndStartLifecycleLaunchesOnlyOnce() {
         var state = presentedState()
 
@@ -388,6 +479,12 @@ final class HomeThemeCardReducerTests: XCTestCase {
         _ = reduce(&state, .expansionCompleted)
         _ = reduce(&state, .flipRequested)
         _ = reduce(&state, .flipCompleted(.back))
+        return state
+    }
+
+    private func statisticsPresentedState() -> HomeThemeCardState {
+        var state = HomeThemeCardState()
+        _ = reduce(&state, .presentStatistics)
         return state
     }
 

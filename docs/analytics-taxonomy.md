@@ -12,9 +12,10 @@ Privacy rules:
 
 | Event | Owner | Parameters |
 | --- | --- | --- |
-| `screen_view` | Screen lifecycle | `screen`, theme context when relevant |
-| `theme_selected` | Theme selection transition | `selection_method`, theme context |
-| `quiz_setup_cancelled` | Quiz setup transition | theme context |
+| `screen_view` | Logical screen or inline surface exposure | `screen`, theme context when relevant |
+| `theme_selected` | Accepted theme selection and card expansion | `selection_method`, theme context |
+| `theme_card_flipped` | Completed home theme-card flip | `visible_face` (`front` or `back`), theme context |
+| `quiz_setup_cancelled` | Completed quiz setup dismissal | theme context |
 | `quiz_started` | Quiz start transition | `question_count`, theme context |
 | `quiz_answered` | `QuizQuestionPresenter` | `question_index`, `total_questions`, `outcome`, theme context |
 | `quiz_exit_requested` | Question screen | progress counters, theme context |
@@ -22,7 +23,7 @@ Privacy rules:
 | `quiz_abandoned` | Question screen | progress counters, theme context |
 | `quiz_completed` | `QuizQuestionPresenter` | score counters, `score_percent`, theme context |
 | `quiz_result_action` | Result screen | `action`, theme context |
-| `statistics_viewed` | Statistics screen | aggregate counters only |
+| `statistics_viewed` | Statistics screen or expanded inline card | aggregate counters only |
 | `ai_generation_started` | AI generation feature | locale, prompt length, count, difficulty |
 | `ai_generation_succeeded` | AI generation feature | locale, count, difficulty, duration |
 | `ai_generation_failed` | AI generation feature | locale, normalized error code, duration |
@@ -31,3 +32,5 @@ Privacy rules:
 | `settings_action` | Settings feature | typed `profile` or `feedback` action |
 
 Answer and completion events are idempotent: a question can emit at most one `quiz_answered`, and an attempt can emit at most one `quiz_completed`.
+
+`theme_card_flipped` is emitted only after the requested face becomes visible. `visible_face` describes the resulting face, not the animation direction. The first completed flip to `back` exposes the quiz description surface; expanding the inline statistics card exposes the statistics surface. Card animation progress itself is not tracked.

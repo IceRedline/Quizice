@@ -198,6 +198,10 @@ enum SnapshotSupport {
             ThemeCardCollectionViewCell.self,
             forCellWithReuseIdentifier: ThemeCardCollectionViewCell.reuseIdentifier
         )
+        collectionView.register(
+            StatisticsCardCollectionViewCell.self,
+            forCellWithReuseIdentifier: StatisticsCardCollectionViewCell.reuseIdentifier
+        )
         return collectionView
     }
 }

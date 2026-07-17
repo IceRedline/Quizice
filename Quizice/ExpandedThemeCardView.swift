@@ -1,11 +1,18 @@
 import UIKit
 
+private final class ThemeCardTransformCarrierView: UIView {
+    override class var layerClass: AnyClass {
+        CATransformLayer.self
+    }
+}
+
 final class ExpandedThemeCardView: UIView, UIGestureRecognizerDelegate {
     private enum AccessibilityID {
         static let root = "expandedThemeCardView"
         static let frontPlane = "expandedThemeCardFrontPlane"
         static let backPlane = "expandedThemeCardBackPlane"
         static let rotatingCarrier = "expandedThemeCardRotatingCarrier"
+        static let shadowProxy = "expandedThemeCardShadowProxy"
         static let flipInteractionOverlay = "expandedThemeCardFlipInteractionOverlay"
         static let front = "expandedThemeCardFrontView"
         static let frontSurfaceButton = "expandedThemeCardFrontSurfaceButton"
@@ -77,7 +84,8 @@ final class ExpandedThemeCardView: UIView, UIGestureRecognizerDelegate {
     private(set) var face: HomeThemeCardFace = .front
 
     private let perspectiveStageView = UIView()
-    private let rotatingCardView = UIView()
+    private let shadowProxyView = UIView()
+    private let rotatingCardView = ThemeCardTransformCarrierView()
     private let frontPlaneView = UIView()
     private let backPlaneView = UIView()
     private let frontSurfaceView = UIView()
@@ -142,7 +150,7 @@ final class ExpandedThemeCardView: UIView, UIGestureRecognizerDelegate {
             roundedRect: bounds,
             cornerRadius: cardCornerRadius
         ).cgPath
-        rotatingCardView.layer.shadowPath = shadowPath
+        shadowProxyView.layer.shadowPath = shadowPath
     }
 
     func configure(
@@ -195,7 +203,6 @@ final class ExpandedThemeCardView: UIView, UIGestureRecognizerDelegate {
            targetFace == startFace || targetFace == endFace {
             faceAnimationTarget = targetFace
             faceAnimationCompletion = completion
-            updateAccessibilityVisibility(for: targetFace)
             animator.isReversed = targetFace == startFace
             return
         }
@@ -208,7 +215,6 @@ final class ExpandedThemeCardView: UIView, UIGestureRecognizerDelegate {
         }
 
         cancelFaceAnimation()
-        updateAccessibilityVisibility(for: targetFace)
 
         guard animated else {
             face = targetFace
@@ -227,7 +233,7 @@ final class ExpandedThemeCardView: UIView, UIGestureRecognizerDelegate {
     func setTransitionShadowHidden(_ isHidden: Bool) {
         isTransitionShadowHidden = isHidden
         let shadow = isHidden ? AppShadowStyle.none : configuredShadowStyle
-        rotatingCardView.applyShadow(shadow)
+        shadowProxyView.applyShadow(shadow)
     }
 
     func setTransitionSurfaceHidden(_ isHidden: Bool) {
@@ -287,6 +293,12 @@ final class ExpandedThemeCardView: UIView, UIGestureRecognizerDelegate {
         perspectiveStageView.clipsToBounds = false
         addSubview(perspectiveStageView)
 
+        shadowProxyView.accessibilityIdentifier = AccessibilityID.shadowProxy
+        shadowProxyView.translatesAutoresizingMaskIntoConstraints = false
+        shadowProxyView.backgroundColor = .clear
+        shadowProxyView.layer.masksToBounds = false
+        perspectiveStageView.addSubview(shadowProxyView)
+
         rotatingCardView.accessibilityIdentifier = AccessibilityID.rotatingCarrier
         rotatingCardView.translatesAutoresizingMaskIntoConstraints = false
         rotatingCardView.backgroundColor = .clear
@@ -303,6 +315,9 @@ final class ExpandedThemeCardView: UIView, UIGestureRecognizerDelegate {
             planeView.translatesAutoresizingMaskIntoConstraints = false
             planeView.backgroundColor = .clear
             planeView.layer.isDoubleSided = false
+            // CATransformLayer preserves both sides in one 3D coordinate space.
+            // The carrier performs the entire 180-degree turn while these planes
+            // keep a fixed offset, so the visual motion never reverses at 90°.
             rotatingCardView.addSubview(planeView)
 
             surfaceView.translatesAutoresizingMaskIntoConstraints = false
@@ -340,6 +355,11 @@ final class ExpandedThemeCardView: UIView, UIGestureRecognizerDelegate {
             perspectiveStageView.trailingAnchor.constraint(equalTo: trailingAnchor),
             perspectiveStageView.topAnchor.constraint(equalTo: topAnchor),
             perspectiveStageView.bottomAnchor.constraint(equalTo: bottomAnchor),
+
+            shadowProxyView.leadingAnchor.constraint(equalTo: perspectiveStageView.leadingAnchor),
+            shadowProxyView.trailingAnchor.constraint(equalTo: perspectiveStageView.trailingAnchor),
+            shadowProxyView.topAnchor.constraint(equalTo: perspectiveStageView.topAnchor),
+            shadowProxyView.bottomAnchor.constraint(equalTo: perspectiveStageView.bottomAnchor),
 
             rotatingCardView.leadingAnchor.constraint(equalTo: perspectiveStageView.leadingAnchor),
             rotatingCardView.trailingAnchor.constraint(equalTo: perspectiveStageView.trailingAnchor),
@@ -643,7 +663,7 @@ final class ExpandedThemeCardView: UIView, UIGestureRecognizerDelegate {
     }
 
     private func configureActions() {
-        frontSurfaceButton.addTarget(self, action: #selector(closeTapped), for: .touchUpInside)
+        frontSurfaceButton.addTarget(self, action: #selector(flipTapped), for: .touchUpInside)
         backSurfaceButton.addTarget(self, action: #selector(backTapped), for: .touchUpInside)
         infoButton.addTarget(self, action: #selector(flipTapped), for: .touchUpInside)
         flipInteractionButton.addTarget(self, action: #selector(flipTapped), for: .touchUpInside)
@@ -694,7 +714,7 @@ final class ExpandedThemeCardView: UIView, UIGestureRecognizerDelegate {
         applyConfiguredSurfaceAppearance()
         configuredShadowStyle = appearance.card.shadow
         let shadow = isTransitionShadowHidden ? AppShadowStyle.none : configuredShadowStyle
-        rotatingCardView.applyShadow(shadow)
+        shadowProxyView.applyShadow(shadow)
 
         frontTitleLabel.font = appearance.typography.font(
             size: Typography.frontTitleSize,
@@ -844,15 +864,10 @@ final class ExpandedThemeCardView: UIView, UIGestureRecognizerDelegate {
             return image.applyingSymbolConfiguration(configuration) ?? image
 
         case .classic:
-            let format = UIGraphicsImageRendererFormat()
-            format.opaque = false
-            format.scale = UIScreen.main.scale
-            return UIGraphicsImageRenderer(
-                size: Layout.classicFrontArtworkSize,
-                format: format
-            ).image { _ in
-                image.draw(in: CGRect(origin: .zero, size: Layout.classicFrontArtworkSize))
-            }
+            // The image view is square, but scaleAspectFit preserves the artwork's
+            // intrinsic ratio. Re-rasterizing into a square visibly stretched the
+            // non-square Classic assets during the source-to-card crossfade.
+            return image
 
         case .radar:
             return image
@@ -913,7 +928,8 @@ final class ExpandedThemeCardView: UIView, UIGestureRecognizerDelegate {
 
         let animator = UIViewPropertyAnimator(duration: duration, curve: curve) {
             self.applyFaceAnimationEndpoint(
-                targetFace,
+                from: startFace,
+                to: targetFace,
                 reduceMotion: reduceMotion
             )
         }
@@ -979,13 +995,19 @@ final class ExpandedThemeCardView: UIView, UIGestureRecognizerDelegate {
         layer.transform = CATransform3DIdentity
         flipInteractionButton.isHidden = true
         perspectiveStageView.layer.sublayerTransform = CATransform3DIdentity
-        rotatingCardView.layer.transform = CATransform3DIdentity
+        let carrierAngle = HomeThemeCardFlipTransition.carrierAngle(showing: face)
+        shadowProxyView.layer.transform = rotationY(carrierAngle)
+        rotatingCardView.layer.transform = rotationY(carrierAngle)
         frontPlaneView.isHidden = !frontIsVisible
         frontPlaneView.alpha = 1
-        frontPlaneView.layer.transform = CATransform3DIdentity
+        frontPlaneView.layer.transform = rotationY(
+            HomeThemeCardFlipTransition.localAngle(for: .front)
+        )
         backPlaneView.isHidden = frontIsVisible
         backPlaneView.alpha = 1
-        backPlaneView.layer.transform = CATransform3DIdentity
+        backPlaneView.layer.transform = rotationY(
+            HomeThemeCardFlipTransition.localAngle(for: .back)
+        )
         frontFaceView.isHidden = !frontIsVisible
         frontFaceView.alpha = 1
         frontFaceView.layer.transform = CATransform3DIdentity
@@ -1002,6 +1024,7 @@ final class ExpandedThemeCardView: UIView, UIGestureRecognizerDelegate {
         reduceMotion: Bool
     ) {
         layer.transform = CATransform3DIdentity
+        shadowProxyView.layer.transform = CATransform3DIdentity
         rotatingCardView.layer.transform = CATransform3DIdentity
         frontPlaneView.isHidden = false
         backPlaneView.isHidden = false
@@ -1014,28 +1037,47 @@ final class ExpandedThemeCardView: UIView, UIGestureRecognizerDelegate {
             frontPlaneView.alpha = startFace == .front ? 1 : 0
             backPlaneView.alpha = startFace == .back ? 1 : 0
         } else {
+            guard let transition = HomeThemeCardFlipTransition(
+                startFace: startFace,
+                targetFace: targetFace
+            ) else { return }
             var perspective = CATransform3DIdentity
             perspective.m34 = -1 / Animation.perspectiveDistance
             perspectiveStageView.layer.sublayerTransform = perspective
             frontPlaneView.alpha = 1
             backPlaneView.alpha = 1
-            frontPlaneView.layer.transform = rotationY(startFace == .front ? 0 : .pi)
-            backPlaneView.layer.transform = rotationY(startFace == .back ? 0 : .pi)
+            frontPlaneView.layer.transform = rotationY(
+                HomeThemeCardFlipTransition.localAngle(for: .front)
+            )
+            backPlaneView.layer.transform = rotationY(
+                HomeThemeCardFlipTransition.localAngle(for: .back)
+            )
+            let carrierAngle = transition.carrierAngle(progress: 0)
+            shadowProxyView.layer.transform = rotationY(carrierAngle)
+            rotatingCardView.layer.transform = rotationY(carrierAngle)
         }
 
         assert(startFace != targetFace)
     }
 
     private func applyFaceAnimationEndpoint(
-        _ targetFace: HomeThemeCardFace,
+        from startFace: HomeThemeCardFace,
+        to targetFace: HomeThemeCardFace,
         reduceMotion: Bool
     ) {
         if reduceMotion {
+            shadowProxyView.layer.transform = CATransform3DIdentity
             rotatingCardView.layer.transform = CATransform3DIdentity
             frontPlaneView.alpha = targetFace == .front ? 1 : 0
             backPlaneView.alpha = targetFace == .back ? 1 : 0
         } else {
-            rotatingCardView.layer.transform = rotationY(.pi)
+            guard let transition = HomeThemeCardFlipTransition(
+                startFace: startFace,
+                targetFace: targetFace
+            ) else { return }
+            let carrierAngle = transition.carrierAngle(progress: 1)
+            shadowProxyView.layer.transform = rotationY(carrierAngle)
+            rotatingCardView.layer.transform = rotationY(carrierAngle)
         }
     }
 

@@ -104,13 +104,71 @@ struct HomeThemeCardContentGeometry: Equatable {
 enum HomeThemeCardFace: Equatable {
     case front
     case back
+
+    var opposite: HomeThemeCardFace {
+        self == .front ? .back : .front
+    }
+}
+
+/// Pure geometry for a physical two-sided card.
+///
+/// Both faces keep a fixed 180-degree offset and travel on one shared carrier.
+/// A positive projected width means that side faces the viewer; a negative value
+/// means Core Animation must cull it because the plane is not double-sided.
+struct HomeThemeCardFlipTransition: Equatable {
+    let startFace: HomeThemeCardFace
+    let targetFace: HomeThemeCardFace
+
+    init?(startFace: HomeThemeCardFace, targetFace: HomeThemeCardFace) {
+        guard startFace != targetFace else { return nil }
+        self.startFace = startFace
+        self.targetFace = targetFace
+    }
+
+    static func carrierAngle(showing face: HomeThemeCardFace) -> CGFloat {
+        face == .front ? 0 : -.pi
+    }
+
+    static func localAngle(for face: HomeThemeCardFace) -> CGFloat {
+        face == .front ? 0 : .pi
+    }
+
+    func carrierAngle(progress: CGFloat) -> CGFloat {
+        let progress = min(max(progress, 0), 1)
+        let startAngle = Self.carrierAngle(showing: startFace)
+        let targetAngle = Self.carrierAngle(showing: targetFace)
+        return startAngle + ((targetAngle - startAngle) * progress)
+    }
+
+    func worldAngle(for face: HomeThemeCardFace, progress: CGFloat) -> CGFloat {
+        carrierAngle(progress: progress) + Self.localAngle(for: face)
+    }
+
+    func projectedWidth(for face: HomeThemeCardFace, progress: CGFloat) -> CGFloat {
+        cos(worldAngle(for: face, progress: progress))
+    }
+}
+
+enum HomePresentedCard: Equatable {
+    case theme(String)
+    case statistics
 }
 
 struct HomeThemeCardState: Equatable {
     fileprivate(set) var phase: HomeThemeCardPhase = .grid
-    fileprivate(set) var themeID: String?
+    fileprivate(set) var presentedCard: HomePresentedCard?
     fileprivate(set) var availableQuestionCounts: [Int] = []
     fileprivate(set) var selectedQuestionCount: Int?
+
+    var themeID: String? {
+        guard case let .theme(themeID) = presentedCard else { return nil }
+        return themeID
+    }
+
+    var isStatisticsPresented: Bool {
+        guard phase != .grid, presentedCard == .statistics else { return false }
+        return true
+    }
 
     var presentedThemeID: String? {
         phase == .grid ? nil : themeID
@@ -130,6 +188,7 @@ enum HomeThemeCardAction: Equatable {
         availableQuestionCounts: [Int],
         preferredQuestionCount: Int?
     )
+    case presentStatistics
     case expansionCompleted
     case flipRequested
     case flipCompleted(HomeThemeCardFace)
@@ -142,8 +201,10 @@ enum HomeThemeCardAction: Equatable {
 
 enum HomeThemeCardEffect: Equatable {
     case expand(themeID: String)
+    case expandStatistics
     case flip(HomeThemeCardFace)
     case collapse(themeID: String)
+    case collapseStatistics
     case reverseExpansion(shouldPresent: Bool)
     case launch(themeID: String, questionCount: Int)
 }
@@ -161,7 +222,7 @@ enum HomeThemeCardReducer {
             let normalizedCounts = QuizQuestionCountPolicy.supportedCounts.filter(
                 availableQuestionCounts.contains
             )
-            state.themeID = themeID
+            state.presentedCard = .theme(themeID)
             state.availableQuestionCounts = normalizedCounts
             state.selectedQuestionCount = QuizQuestionCountPolicy.initialSelection(
                 preferred: preferredQuestionCount,
@@ -170,12 +231,21 @@ enum HomeThemeCardReducer {
             state.phase = .expanding
             return .expand(themeID: themeID)
 
+        case .presentStatistics:
+            guard state.phase == .grid else { return nil }
+            state.presentedCard = .statistics
+            state.availableQuestionCounts = []
+            state.selectedQuestionCount = nil
+            state.phase = .expanding
+            return .expandStatistics
+
         case .expansionCompleted:
             guard state.phase == .expanding else { return nil }
             state.phase = .expandedFront
             return nil
 
         case .flipRequested:
+            guard state.themeID != nil else { return nil }
             switch state.phase {
             case .expandedFront:
                 state.phase = .flippingToBack
@@ -212,7 +282,7 @@ enum HomeThemeCardReducer {
             return nil
 
         case .closeRequested:
-            guard let themeID = state.themeID else {
+            guard let presentedCard = state.presentedCard else {
                 return nil
             }
             switch state.phase {
@@ -221,7 +291,12 @@ enum HomeThemeCardReducer {
                 return .reverseExpansion(shouldPresent: false)
             case .expandedFront, .expandedBack:
                 state.phase = .collapsing
-                return .collapse(themeID: themeID)
+                switch presentedCard {
+                case let .theme(themeID):
+                    return .collapse(themeID: themeID)
+                case .statistics:
+                    return .collapseStatistics
+                }
             case .collapsing:
                 state.phase = .expanding
                 return .reverseExpansion(shouldPresent: true)
@@ -236,6 +311,7 @@ enum HomeThemeCardReducer {
 
         case let .questionCountSelected(questionCount):
             guard
+                state.themeID != nil,
                 state.phase == .expandedBack,
                 state.availableQuestionCounts.contains(questionCount)
             else {
