@@ -1,8 +1,6 @@
 import UIKit
 import AVKit
-#if DEBUG
 import SwiftUI
-#endif
 
 final class QuizQuestionViewController: BaseQuizViewController, QuizQuestionViewControllerProtocol, QuizCardSlideTransitionSource, QuizCardSlideTransitionDestination {
     private enum Content {
@@ -24,6 +22,8 @@ final class QuizQuestionViewController: BaseQuizViewController, QuizQuestionView
         static let answerButtonPrefix = "questionAnswerButton"
         static let nextButton = "questionNextButton"
         static let closeButton = "questionCloseButton"
+        static let exitAlertConfirmButton = "questionExitAlertConfirmButton"
+        static let exitAlertCancelButton = "questionExitAlertCancelButton"
         static let scrollView = "questionScrollView"
     }
     
@@ -184,6 +184,8 @@ final class QuizQuestionViewController: BaseQuizViewController, QuizQuestionView
     
     private let hapticFeedback = UINotificationFeedbackGenerator()
     private let animationsEngine = Animations()
+    private let exitAlertPresenter = QuizAlertPresenter()
+    private var activeExitAlertID: UUID?
     private var soundOfCorrectAnswerPlayer: AVAudioPlayer!
     private var soundOfIncorrectAnswerPlayer: AVAudioPlayer!
     weak var router: QuizRouting?
@@ -1132,33 +1134,79 @@ final class QuizQuestionViewController: BaseQuizViewController, QuizQuestionView
     }
     
     @objc private func closeButtonTapped() {
-        guard presentedViewController == nil else { return }
+        guard presentedViewController == nil, activeExitAlertID == nil else { return }
+        let alertID = UUID()
+        activeExitAlertID = alertID
+        exitAlertPresenter.presentingViewController = self
+        guard exitAlertPresenter.present(
+            makeExitConfirmationAlertOverlay(alertID: alertID),
+            appearance: currentAppearance(),
+            reduceMotion: UIAccessibility.isReduceMotionEnabled
+        ) else {
+            activeExitAlertID = nil
+            return
+        }
+
         presenter?.pauseTimer()
         analytics.track(.quizExitRequested(presenter?.analyticsProgress ?? .empty))
+    }
 
-        let alert = UIAlertController(
+    func makeExitConfirmationAlertOverlay() -> QuizAlertOverlay {
+        makeExitConfirmationAlertOverlay(alertID: activeExitAlertID)
+    }
+
+    private func makeExitConfirmationAlertOverlay(alertID: UUID?) -> QuizAlertOverlay {
+        let cancelAction: () -> Void = { [weak self] in
+            self?.cancelExitConfirmation(alertID: alertID)
+        }
+        return QuizAlertOverlay(
             title: L10n.Question.exitAlertTitle,
             message: L10n.Question.exitAlertMessage,
-            preferredStyle: .alert
+            systemImage: "rectangle.portrait.and.arrow.right",
+            iconColor: QuizAlertAction.Emphasis.destructive.tintColor(in: currentAppearance()),
+            primaryAction: QuizAlertAction(
+                title: L10n.Common.exit,
+                emphasis: .destructive,
+                accessibilityIdentifier: AccessibilityID.exitAlertConfirmButton,
+                action: { [weak self] in self?.confirmExitAndReturnToThemes(alertID: alertID) }
+            ),
+            secondaryAction: QuizAlertAction(
+                title: L10n.Common.no,
+                emphasis: .secondary,
+                accessibilityIdentifier: AccessibilityID.exitAlertCancelButton,
+                action: cancelAction
+            ),
+            onEscape: cancelAction
         )
-        alert.addAction(UIAlertAction(title: L10n.Common.no, style: .cancel) { [weak self] _ in
-            self?.cancelExitConfirmation()
-        })
-        alert.addAction(UIAlertAction(title: L10n.Common.exit, style: .destructive) { [weak self] _ in
-            self?.confirmExitAndReturnToThemes()
-        })
-        present(alert, animated: true)
     }
 
     func cancelExitConfirmation() {
-        analytics.track(.quizExitCancelled(presenter?.analyticsProgress ?? .empty))
-        presenter?.resumeTimer()
+        cancelExitConfirmation(alertID: activeExitAlertID)
+    }
+
+    private func cancelExitConfirmation(alertID: UUID?) {
+        guard let alertID, activeExitAlertID == alertID else { return }
+        exitAlertPresenter.dismiss { [weak self] in
+            guard let self, self.activeExitAlertID == alertID else { return }
+            self.activeExitAlertID = nil
+            self.analytics.track(.quizExitCancelled(self.presenter?.analyticsProgress ?? .empty))
+            self.presenter?.resumeTimer()
+        }
     }
 
     func confirmExitAndReturnToThemes() {
-        analytics.track(.quizAbandoned(presenter?.analyticsProgress ?? .empty))
-        presenter?.resetGameProgress()
-        router?.closeQuestion()
+        confirmExitAndReturnToThemes(alertID: activeExitAlertID)
+    }
+
+    private func confirmExitAndReturnToThemes(alertID: UUID?) {
+        guard let alertID, activeExitAlertID == alertID else { return }
+        exitAlertPresenter.dismiss { [weak self] in
+            guard let self, self.activeExitAlertID == alertID else { return }
+            self.activeExitAlertID = nil
+            self.analytics.track(.quizAbandoned(self.presenter?.analyticsProgress ?? .empty))
+            self.presenter?.resetGameProgress()
+            self.router?.closeQuestion()
+        }
     }
 
     override func applyLocalizedStrings() {

@@ -513,6 +513,7 @@ final class HomeScreenVisualStateTests: XCTestCase {
         XCTAssertFalse(playButton.isEnabled)
         XCTAssertFalse(frontView.isHidden)
         XCTAssertTrue(backView.isHidden)
+        XCTAssertFalse(promptEditor.isFirstResponder)
         XCTAssertFalse(promptEditor.isScrollEnabled)
 
         promptEditor.text = " \n\t "
@@ -2670,12 +2671,15 @@ final class HomeScreenVisualStateTests: XCTestCase {
         luckyButton.sendActions(for: .touchUpInside)
         drainAnimations(0.01)
 
-        XCTAssertEqual(analytics.events.map(\.name), ["theme_selected", "quiz_started"])
-        guard analytics.events.count == 2 else { return }
-        XCTAssertEqual(analytics.events[0].parameters["selection_method"] as? String, "random")
-        XCTAssertEqual(analytics.events[0].parameters["theme_id"] as? String, "music")
-        XCTAssertEqual(analytics.events[1].parameters["theme_id"] as? String, "music")
-        XCTAssertEqual(analytics.events[1].parameters["question_count"] as? Int, 5)
+        let luckyEvents = analytics.events.filter { event in
+            !(event.name == "screen_view" && event.parameters["screen"] as? String == "home")
+        }
+        XCTAssertEqual(luckyEvents.map(\.name), ["theme_selected", "quiz_started"])
+        guard luckyEvents.count == 2 else { return }
+        XCTAssertEqual(luckyEvents[0].parameters["selection_method"] as? String, "random")
+        XCTAssertEqual(luckyEvents[0].parameters["theme_id"] as? String, "music")
+        XCTAssertEqual(luckyEvents[1].parameters["theme_id"] as? String, "music")
+        XCTAssertEqual(luckyEvents[1].parameters["question_count"] as? Int, 5)
         XCTAssertEqual(router.showQuestionCallCount, 1)
     }
 

@@ -202,6 +202,123 @@ final class YandexAIQuizThemeServiceTests: XCTestCase {
                 _ = try await self.generate()
             }
         }
+
+        let maxOutputTokensResponse = try JSONSerialization.data(withJSONObject: [
+            "status": "incomplete",
+            "incomplete_details": ["reason": "max_output_tokens"],
+            "output": []
+        ])
+        YandexAIURLProtocolStub.requestHandler = { request in
+            (Self.httpResponse(for: request), maxOutputTokensResponse)
+        }
+
+        await assertServiceError(.generationStatus("incomplete")) {
+            _ = try await self.generate()
+        }
+
+        let partialOutputResponse = try JSONSerialization.data(withJSONObject: [
+            "status": "incomplete",
+            "incomplete_details": ["reason": "max_output_tokens"],
+            "output": [[
+                "type": "message",
+                "content": [[
+                    "type": "output_text",
+                    "text": "{\"theme\":"
+                ]]
+            ]]
+        ])
+        YandexAIURLProtocolStub.requestHandler = { request in
+            (Self.httpResponse(for: request), partialOutputResponse)
+        }
+
+        await assertServiceError(.generationStatus("incomplete")) {
+            _ = try await self.generate()
+        }
+
+        let missingReasonResponse = try JSONSerialization.data(withJSONObject: [
+            "status": "incomplete",
+            "incomplete_details": ["valid": true],
+            "output": []
+        ])
+        YandexAIURLProtocolStub.requestHandler = { request in
+            (Self.httpResponse(for: request), missingReasonResponse)
+        }
+
+        await assertServiceError(.generationStatus("incomplete")) {
+            _ = try await self.generate()
+        }
+    }
+
+    func testContentFilterIncompleteStatusIsReportedAsRefusal() async throws {
+        let responseData = try JSONSerialization.data(withJSONObject: [
+            "id": "a2a373ec-b45d-469d-9d7d-c09ec4501e0e",
+            "created_at": 1_783_963_783.0,
+            "error": NSNull(),
+            "incomplete_details": [
+                "reason": "content_filter",
+                "valid": true
+            ],
+            "status": "incomplete",
+            "output": []
+        ] as [String: Any])
+        YandexAIURLProtocolStub.requestHandler = { request in
+            (Self.httpResponse(for: request), responseData)
+        }
+
+        await assertServiceError(.refused) {
+            _ = try await self.generate()
+        }
+
+        let competingIncompleteReasonResponse = try JSONSerialization.data(withJSONObject: [
+            "status": "incomplete",
+            "incomplete_details": ["reason": "max_output_tokens"],
+            "output": [[
+                "type": "message",
+                "content": [[
+                    "type": "refusal",
+                    "refusal": "Policy refusal"
+                ]]
+            ]]
+        ])
+        YandexAIURLProtocolStub.requestHandler = { request in
+            (Self.httpResponse(for: request), competingIncompleteReasonResponse)
+        }
+
+        await assertServiceError(.refused) {
+            _ = try await self.generate()
+        }
+
+        let unexpectedStatusResponse = try JSONSerialization.data(withJSONObject: [
+            "status": "failed",
+            "incomplete_details": ["reason": " Content_Filter\n"],
+            "output": []
+        ])
+        YandexAIURLProtocolStub.requestHandler = { request in
+            (Self.httpResponse(for: request), unexpectedStatusResponse)
+        }
+
+        await assertServiceError(.refused) {
+            _ = try await self.generate()
+        }
+
+        let outputRefusalResponse = try JSONSerialization.data(withJSONObject: [
+            "status": "incomplete",
+            "incomplete_details": NSNull(),
+            "output": [[
+                "type": "message",
+                "content": [[
+                    "type": "refusal",
+                    "refusal": "Policy refusal"
+                ]]
+            ]]
+        ])
+        YandexAIURLProtocolStub.requestHandler = { request in
+            (Self.httpResponse(for: request), outputRefusalResponse)
+        }
+
+        await assertServiceError(.refused) {
+            _ = try await self.generate()
+        }
     }
 
     func testMalformedResponsesEnvelopeIsRejected() async {
@@ -242,6 +359,31 @@ final class YandexAIQuizThemeServiceTests: XCTestCase {
 
         YandexAIURLProtocolStub.requestHandler = { request in
             (Self.httpResponse(for: request), responseData)
+        }
+
+        await assertServiceError(.refused) {
+            _ = try await self.generate()
+        }
+    }
+
+    func testPlainTextRefusalIsReported() async throws {
+        let responseData = try makeEnvelope(
+            outputText: "  Я не могу обсуждать эту тему. Давайте поговорим о чём-нибудь ещё.\n"
+        )
+        YandexAIURLProtocolStub.requestHandler = { request in
+            (Self.httpResponse(for: request), responseData)
+        }
+
+        await assertServiceError(.refused) {
+            _ = try await self.generate()
+        }
+
+        let incompleteResponseData = try makeEnvelope(
+            outputText: "Я не могу обсуждать эту тему. Давайте поговорим о чём-нибудь ещё.",
+            status: "incomplete"
+        )
+        YandexAIURLProtocolStub.requestHandler = { request in
+            (Self.httpResponse(for: request), incompleteResponseData)
         }
 
         await assertServiceError(.refused) {
@@ -455,16 +597,42 @@ final class YandexAIQuizThemeServiceTests: XCTestCase {
     }
 
     func testUserFacingErrorsAreClassifiedWithoutServiceText() {
-        XCTAssertEqual(AIQuizGenerationAlert(error: YandexAIQuizThemeServiceError.refused).kind, .refusal)
+        let refusalAlert = AIQuizGenerationAlert(error: YandexAIQuizThemeServiceError.refused)
+        let emptyResponseAlert = AIQuizGenerationAlert(error: YandexAIQuizThemeServiceError.missingOutputText)
+        let serviceAlert = AIQuizGenerationAlert(error: YandexAIQuizThemeServiceError.httpStatus(503))
+        let unavailableAlert = AIQuizGenerationAlert(error: YandexAIQuizThemeServiceError.missingAPIKey)
+
+        XCTAssertEqual(refusalAlert.kind, .refusal)
+        XCTAssertEqual(emptyResponseAlert.kind, .invalidQuiz)
+        XCTAssertNotEqual(refusalAlert.title, emptyResponseAlert.title)
+        XCTAssertNotEqual(refusalAlert.message, emptyResponseAlert.message)
+        XCTAssertFalse(refusalAlert.canRetry)
+        XCTAssertTrue(emptyResponseAlert.canRetry)
+        XCTAssertTrue(refusalAlert.offersEditAction)
+        XCTAssertTrue(emptyResponseAlert.offersEditAction)
+        XCTAssertTrue(serviceAlert.offersEditAction)
+        XCTAssertFalse(unavailableAlert.offersEditAction)
         XCTAssertEqual(
             AIQuizGenerationAlert(error: YandexAIQuizThemeServiceError.network(.notConnectedToInternet)).kind,
             .network
         )
+        XCTAssertEqual(
+            AIQuizGenerationAlert(error: YandexAIQuizThemeServiceError.network(.secureConnectionFailed)).kind,
+            .network
+        )
+        XCTAssertEqual(
+            AIQuizGenerationAlert(error: YandexAIQuizThemeServiceError.network(.unknown)).kind,
+            .service
+        )
         XCTAssertEqual(AIQuizGenerationAlert(error: YandexAIQuizThemeServiceError.httpStatus(429)).kind, .service)
         XCTAssertEqual(AIQuizGenerationAlert(error: YandexAIQuizThemeServiceError.httpStatus(503)).kind, .service)
+        XCTAssertEqual(
+            AIQuizGenerationAlert(error: YandexAIQuizThemeServiceError.generationStatus("incomplete")).kind,
+            .service
+        )
         XCTAssertEqual(AIQuizGenerationAlert(error: YandexAIQuizThemeServiceError.invalidQuizJSON).kind, .invalidQuiz)
         XCTAssertEqual(AIQuizGenerationAlert(error: YandexAIQuizThemeServiceError.missingAPIKey).kind, .unavailable)
-        XCTAssertFalse(AIQuizGenerationAlert(error: YandexAIQuizThemeServiceError.refused).message.contains("Yandex"))
+        XCTAssertFalse(refusalAlert.message.contains("Yandex"))
     }
 
     private func makeService(apiKey: String? = "test-api-key") -> YandexAIQuizThemeService {
@@ -526,9 +694,9 @@ final class YandexAIQuizThemeServiceTests: XCTestCase {
         return try makeEnvelope(outputText: outputText)
     }
 
-    private func makeEnvelope(outputText: String) throws -> Data {
+    private func makeEnvelope(outputText: String, status: String = "completed") throws -> Data {
         try JSONSerialization.data(withJSONObject: [
-            "status": "completed",
+            "status": status,
             "output": [
                 [
                     "type": "tool_call",

@@ -112,6 +112,48 @@ final class AppAppearanceTests: XCTestCase {
         XCTAssertTrue(cleanSystemKeyboard.doneButtonTintColor.isEqual(cleanSystem.accentColor))
     }
 
+    func testQuizAlertActionTextContrastsCleanButtonSurfaces() {
+        for colorScheme in [CleanColorSchemePreference.light, .dark] {
+            let appearance = SnapshotSupport.appearance(
+                designStyle: .clean,
+                cleanColorScheme: colorScheme
+            )
+
+            XCTAssertTrue(
+                QuizAlertAction.Emphasis.primary.textColor(in: appearance)
+                    .isEqual(appearance.accentForegroundColor)
+            )
+            XCTAssertFalse(
+                QuizAlertAction.Emphasis.primary.textColor(in: appearance)
+                    .isEqual(appearance.primaryButton.backgroundColor)
+            )
+            XCTAssertTrue(
+                QuizAlertAction.Emphasis.secondary.textColor(in: appearance)
+                    .isEqual(appearance.accentColor)
+            )
+        }
+    }
+
+    func testQuizAlertDestructiveActionUsesReadableThemeAwareStyle() {
+        for designStyle in AppDesignStyle.allCases where designStyle.isSelectable {
+            let appearance = SnapshotSupport.appearance(
+                designStyle: designStyle,
+                cleanColorScheme: .light
+            )
+            let emphasis = QuizAlertAction.Emphasis.destructive
+            let style = emphasis.surfaceStyle(in: appearance)
+
+            XCTAssertTrue(style.borderColor.isEqual(emphasis.tintColor(in: appearance)))
+            if designStyle == .clean {
+                XCTAssertTrue(style.backgroundColor.isEqual(emphasis.tintColor(in: appearance)))
+                XCTAssertTrue(emphasis.textColor(in: appearance).isEqual(UIColor.black))
+            } else {
+                XCTAssertTrue(style.backgroundColor.isEqual(appearance.secondaryButton.backgroundColor))
+                XCTAssertTrue(emphasis.textColor(in: appearance).isEqual(emphasis.tintColor(in: appearance)))
+            }
+        }
+    }
+
     func testQuizThemeActionsStayMonochromeWithoutChangingCatalogIdentity() throws {
         let appearance = SnapshotSupport.appearance(designStyle: .clean, cleanColorScheme: .light)
         let darkAppearance = SnapshotSupport.appearance(designStyle: .clean, cleanColorScheme: .dark)
