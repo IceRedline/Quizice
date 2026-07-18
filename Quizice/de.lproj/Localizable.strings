@@ -31,11 +31,14 @@
 "ai_theme.error.service.message" = "Der KI-Dienst antwortet gerade nicht. Bitte versuche es später erneut.";
 "ai_theme.error.invalid_quiz.title" = "Quiz wurde nicht erstellt";
 "ai_theme.error.invalid_quiz.message" = "Die KI konnte kein gültiges Quiz erstellen. Ändere das Thema oder versuche es erneut.";
+"ai_theme.error.configuration.title" = "API-Schlüssel erforderlich";
+"ai_theme.error.configuration.message" = "Der API-Schlüssel fehlt oder wurde abgelehnt. Aktualisiere YANDEX_AI_API_KEY im Schema „Quizice AI (Local)“ und starte die App neu.";
 "ai_theme.error.unavailable.title" = "Erstellung nicht verfügbar";
 "ai_theme.error.unavailable.message" = "Die KI-Quiz-Erstellung ist derzeit nicht verfügbar. Bitte versuche es später erneut.";
 "ai_theme.error_message" = "Das Thema konnte nicht gesendet werden. Bitte versuche es erneut.";
 "ai_theme.error_title" = "Thema nicht gesendet";
 "ai_theme.prompt_placeholder" = "Zum Beispiel: Weltraum, Marketing, Harry Potter oder Geschichte Japans";
+"ai_theme.prompt_too_long" = "Dieses Thema ist zu lang. Kürze es auf %d Zeichen.";
 "ai_theme.submit" = "Thema senden";
 "ai_theme.subtitle" = "Gib ein beliebiges Thema ein, und die KI erstellt Quizfragen dazu.";
 "ai_theme.title" = "Mit KI erstellen";
@@ -45,8 +48,9 @@
 "home.create_with_ai.beta_badge" = "Beta";
 "home.exit_alert.message" = "Möchtest du wirklich beenden?";
 "home.feeling_lucky" = "Auf gut Glück";
-"home.feeling_lucky.accessibility_hint" = "Startet ein zufälliges Thema";
+"home.feeling_lucky.accessibility_hint" = "Startet fünf zufällige Fragen aus allen Themen";
 "home.feeling_lucky.loading" = "Fragen werden ausgewählt";
+"home.feeling_lucky.random_selection" = "Zufällige Auswahl";
 "home.statistics.accessibility_hint" = "Öffnet die Gesamtstatistik abgeschlossener Quizze";
 "home.statistics.accessibility_label" = "Gesamtstatistik";
 "home.statistics.accessibility_value_format" = "Gespielt: %d. Genauigkeit: %d%%";

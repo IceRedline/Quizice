@@ -110,6 +110,14 @@ final class AppAppearanceStore {
         self.notificationCenter = notificationCenter
     }
 
+    func registerInitialDefaults() {
+        userDefaults.register(defaults: [
+            Keys.designStyle: AppDesignStyle.defaultStyle.rawValue,
+            Keys.cleanColorScheme: CleanColorSchemePreference.system.rawValue,
+            Keys.backgroundStyle: AppBackgroundStyle.defaultStyle.rawValue
+        ])
+    }
+
     var designStyle: AppDesignStyle {
         get {
             guard
@@ -180,4 +188,3 @@ final class AppAppearanceStore {
         return UITraitCollection(userInterfaceStyle: systemStyle)
     }
 }
-

@@ -265,6 +265,15 @@ final class AppMetricaAnalyticsTracker: AnalyticsTracking {
             AppLog.analytics.error("AppMetrica configuration could not be created")
             return
         }
+        if let appVersion = Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String,
+           !appVersion.isEmpty {
+            configuration.appVersion = appVersion
+        }
+        if let appBuildNumber = Bundle.main.object(forInfoDictionaryKey: "CFBundleVersion") as? String,
+           let numericBuildNumber = UInt32(appBuildNumber),
+           numericBuildNumber > 0 {
+            configuration.appBuildNumber = appBuildNumber
+        }
         configuration.locationTracking = false
         configuration.revenueAutoTrackingEnabled = false
         configuration.advertisingIdentifierTrackingEnabled = false
@@ -281,6 +290,9 @@ final class AppMetricaAnalyticsTracker: AnalyticsTracking {
 
     func track(_ event: AnalyticsEvent) {
         guard isActivated else { return }
+        #if DEBUG
+        AppLog.analytics.info("AppMetrica event queued: event=\(event.name, privacy: .public)")
+        #endif
         AppMetrica.reportEvent(name: event.name, parameters: event.parameters) { error in
             AppLog.analytics.error(
                 "AppMetrica event failed: event=\(event.name, privacy: .public) error_type=\(String(describing: type(of: error)), privacy: .public)"

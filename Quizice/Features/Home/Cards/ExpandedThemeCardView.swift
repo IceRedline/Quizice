@@ -240,7 +240,9 @@ final class ExpandedThemeCardView: UIView, UIGestureRecognizerDelegate {
         self.availableQuestionCounts = Set(availableQuestionCounts).intersection(supportedCounts)
 
         frontImageView.image = frontArtworkImage(themeID: themeID, appearance: appearance)
-        frontImageView.tintColor = borderColor
+        frontImageView.tintColor = appearance.designStyle == .classic
+            ? tintColor
+            : borderColor
         frontImageView.transform = .identity
         frontTitleLabel.transform = .identity
         frontArtworkDepthView.transform = .identity

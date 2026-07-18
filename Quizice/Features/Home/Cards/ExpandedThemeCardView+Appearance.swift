@@ -166,9 +166,6 @@ extension ExpandedThemeCardView {
             return image.applyingSymbolConfiguration(configuration) ?? image
 
         case .classic:
-            // The image view is square, but scaleAspectFit preserves the artwork's
-            // intrinsic ratio. Re-rasterizing into a square visibly stretched the
-            // non-square Classic assets during the source-to-card crossfade.
             return image
 
         case .radar:

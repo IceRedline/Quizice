@@ -19,6 +19,33 @@ final class AppAppearanceStoreTests: XCTestCase {
         XCTAssertEqual(store.backgroundStyle, .slate5x5)
     }
 
+    func testRegisteredInitialDefaultsUseClassicWithoutOverridingASelection() {
+        let defaultHarness = makeHarness()
+        let defaultStore = AppAppearanceStore(
+            userDefaults: defaultHarness.defaults,
+            notificationCenter: defaultHarness.notificationCenter
+        )
+
+        defaultStore.registerInitialDefaults()
+
+        XCTAssertEqual(defaultHarness.defaults.string(forKey: AppAppearanceStore.Keys.designStyle), "classic")
+        XCTAssertEqual(defaultStore.designStyle, .classic)
+
+        let selectedHarness = makeHarness()
+        selectedHarness.defaults.set(
+            AppDesignStyle.radar.rawValue,
+            forKey: AppAppearanceStore.Keys.designStyle
+        )
+        let selectedStore = AppAppearanceStore(
+            userDefaults: selectedHarness.defaults,
+            notificationCenter: selectedHarness.notificationCenter
+        )
+
+        selectedStore.registerInitialDefaults()
+
+        XCTAssertEqual(selectedStore.designStyle, .radar)
+    }
+
     func testPersistsDesignAndCleanMode() {
         let harness = makeHarness()
         let store = AppAppearanceStore(userDefaults: harness.defaults, notificationCenter: harness.notificationCenter)

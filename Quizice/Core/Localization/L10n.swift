@@ -29,6 +29,7 @@ enum L10n {
         static var feelingLucky: String { L10n.localized("home.feeling_lucky", comment: "Feeling lucky random theme button title") }
         static var feelingLuckyAccessibilityHint: String { L10n.localized("home.feeling_lucky.accessibility_hint", comment: "Feeling lucky button accessibility hint") }
         static var feelingLuckyLoading: String { L10n.localized("home.feeling_lucky.loading", comment: "Feeling lucky loading state title") }
+        static var randomSelection: String { L10n.localized("home.feeling_lucky.random_selection", comment: "Feeling lucky quiz theme title") }
         static var statisticsAccessibilityHint: String { L10n.localized("home.statistics.accessibility_hint", comment: "Home statistics card accessibility hint") }
         static var statisticsAccessibilityLabel: String { L10n.localized("home.statistics.accessibility_label", comment: "Home statistics card accessibility label") }
         static var statisticsAccuracyShort: String { L10n.localized("home.statistics.accuracy_short", comment: "Home statistics card accuracy metric title") }
@@ -105,6 +106,11 @@ enum L10n {
                 static var message: String { L10n.localized("ai_theme.error.invalid_quiz.message", comment: "Invalid generated quiz message") }
             }
 
+            enum Configuration {
+                static var title: String { L10n.localized("ai_theme.error.configuration.title", comment: "AI debug configuration title") }
+                static var message: String { L10n.localized("ai_theme.error.configuration.message", comment: "AI debug configuration message") }
+            }
+
             enum Unavailable {
                 static var title: String { L10n.localized("ai_theme.error.unavailable.title", comment: "AI unavailable title") }
                 static var message: String { L10n.localized("ai_theme.error.unavailable.message", comment: "AI unavailable message") }
@@ -117,6 +123,13 @@ enum L10n {
         static var errorTitle: String { L10n.localized("ai_theme.error_title", comment: "AI theme creation error title") }
         static var generating: String { L10n.localized("ai_theme.generating", comment: "AI generation button title") }
         static var promptPlaceholder: String { L10n.localized("ai_theme.prompt_placeholder", comment: "AI theme prompt placeholder") }
+        static func promptTooLong(maximumLength: Int) -> String {
+            L10n.formatted(
+                "ai_theme.prompt_too_long",
+                comment: "AI theme prompt validation message",
+                maximumLength
+            )
+        }
         static var questionCount: String { L10n.localized("ai_theme.question_count", comment: "AI quiz question count selector title") }
         static var retry: String { L10n.localized("ai_theme.retry", comment: "Retry AI generation action") }
         static var submit: String { L10n.localized("ai_theme.submit", comment: "AI theme creation submit button title") }

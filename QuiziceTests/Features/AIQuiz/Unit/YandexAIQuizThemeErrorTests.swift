@@ -64,7 +64,33 @@ final class YandexAIQuizThemeErrorTests: YandexAIQuizThemeServiceTestCase {
             .service
         )
         XCTAssertEqual(AIQuizGenerationAlert(error: YandexAIQuizThemeServiceError.invalidQuizJSON).kind, .invalidQuiz)
-        XCTAssertEqual(AIQuizGenerationAlert(error: YandexAIQuizThemeServiceError.missingAPIKey).kind, .unavailable)
+        XCTAssertEqual(
+            AIQuizGenerationAlert(error: YandexAIQuizThemeServiceError.missingAPIKey).kind,
+            .configuration
+        )
+        XCTAssertEqual(
+            AIQuizGenerationAlert(error: YandexAIQuizThemeServiceError.unauthorized).kind,
+            .configuration
+        )
+        XCTAssertTrue(unavailableAlert.message.contains("Quizice AI (Local)"))
         XCTAssertFalse(refusalAlert.message.contains("Yandex"))
+    }
+
+    func testProductionPresentationNeverExposesAPIKeyConfigurationErrors() {
+        let missingKeyAlert = AIQuizGenerationAlert(
+            error: YandexAIQuizThemeServiceError.missingAPIKey,
+            exposesConfigurationErrors: false
+        )
+        let rejectedKeyAlert = AIQuizGenerationAlert(
+            error: YandexAIQuizThemeServiceError.unauthorized,
+            exposesConfigurationErrors: false
+        )
+
+        XCTAssertEqual(missingKeyAlert.kind, .unavailable)
+        XCTAssertEqual(rejectedKeyAlert.kind, .unavailable)
+        XCTAssertFalse(missingKeyAlert.title.localizedCaseInsensitiveContains("API"))
+        XCTAssertFalse(missingKeyAlert.message.localizedCaseInsensitiveContains("API"))
+        XCTAssertFalse(rejectedKeyAlert.title.localizedCaseInsensitiveContains("API"))
+        XCTAssertFalse(rejectedKeyAlert.message.localizedCaseInsensitiveContains("API"))
     }
 }

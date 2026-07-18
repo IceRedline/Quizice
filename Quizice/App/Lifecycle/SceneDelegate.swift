@@ -13,6 +13,7 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
     ) {
         guard let windowScene = scene as? UIWindowScene else { return }
 
+        AppAppearanceStore.shared.registerInitialDefaults()
         let window = UIWindow(windowScene: windowScene)
         let isRunningTests = ProcessInfo.processInfo.environment["QUIZICE_XCTEST_SMOKE_HOST"] == "1"
             || NSClassFromString("XCTestCase") != nil

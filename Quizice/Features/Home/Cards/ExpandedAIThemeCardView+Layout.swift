@@ -165,6 +165,14 @@ extension ExpandedAIThemeCardView {
         promptPlaceholderLabel.isUserInteractionEnabled = false
         promptPlaceholderLabel.translatesAutoresizingMaskIntoConstraints = false
 
+        promptValidationLabel.accessibilityIdentifier = AccessibilityID.promptValidation
+        promptValidationLabel.adjustsFontForContentSizeCategory = true
+        promptValidationLabel.numberOfLines = 2
+        promptValidationLabel.lineBreakMode = .byWordWrapping
+        promptValidationLabel.isAccessibilityElement = true
+        promptValidationLabel.isHidden = true
+        promptValidationLabel.translatesAutoresizingMaskIntoConstraints = false
+
         promptContainerView.addSubview(promptTextView)
         promptContainerView.addSubview(promptPlaceholderLabel)
         NSLayoutConstraint.activate([
@@ -192,6 +200,7 @@ extension ExpandedAIThemeCardView {
         frontContentStack.translatesAutoresizingMaskIntoConstraints = false
         frontContentStack.addArrangedSubview(frontHeaderStack)
         frontContentStack.addArrangedSubview(promptContainerView)
+        frontContentStack.addArrangedSubview(promptValidationLabel)
 
         configureScrollView(frontScrollView)
         frontScrollView.contentInset.bottom = Layout.scrollBottomInset
@@ -268,13 +277,16 @@ extension ExpandedAIThemeCardView {
             frontTitleLabel,
             frontSubtitleLabel,
             promptTextView,
+            promptValidationLabel,
             playButton,
             closeButton
         ]
     }
 
     func configureBackFace() {
-        configureLabel(backTitleLabel, numberOfLines: 0)
+        configureLabel(backTitleLabel, numberOfLines: 2)
+        backTitleLabel.lineBreakMode = .byTruncatingTail
+        backTitleLabel.allowsDefaultTighteningForTruncation = true
         configureLabel(questionCountLabel, numberOfLines: 0)
         questionCountLabel.text = L10n.AITheme.questionCount
         configureLabel(difficultyLabel, numberOfLines: 0)

@@ -48,6 +48,7 @@ extension QuizViewController {
 
     func quizFlowWillReturnToThemes() {
         restoreHomeAfterQuizIfNeeded(force: true)
+        themesCollectionService.refreshStatistics()
     }
 
     func aiThemeButtonTouchedUpInside(_ sender: UIButton) {
@@ -80,14 +81,12 @@ extension QuizViewController {
         let hasThemes = themeRepository.themes?.isEmpty == false
         if !hasThemes {
             motivationLabel.text = L10n.Home.unavailableThemes
-            invalidateMotivationBlurredText()
         }
     }
 
     func refreshMotivationPrompt() {
         guard themeRepository.themes?.isEmpty == false else { return }
         motivationLabel.text = motivationPromptProvider(motivationLabel.text)
-        invalidateMotivationBlurredText()
     }
 
     static func randomMotivationPrompt(excluding currentPrompt: String? = nil) -> String {
@@ -108,22 +107,26 @@ extension QuizViewController {
             return
         }
 
-        let eligibleThemes = themes.filter { theme in
-            QuizQuestionCountPolicy.availableCounts(
-                for: ThemeModel(quizTheme: theme).questionsAndAnswers
-            ).contains(QuizQuestionCountPolicy.supportedCounts[0])
-        }
-        guard
-            let themeID = randomThemeIDProvider(eligibleThemes),
-            eligibleThemes.contains(where: { $0.stableID == themeID }),
-            session.loadTheme(themeID: themeID)
-        else {
+        let questionCount = QuizQuestionCountPolicy.supportedCounts[0]
+        let usableQuestions = themes
+            .flatMap(\.questions)
+            .filter { question in
+                QuizQuestionCountPolicy.isUsable(QuestionModel(quizQuestion: question))
+            }
+        let selectedQuestions = Array(randomQuestionsProvider(usableQuestions).prefix(questionCount))
+        guard selectedQuestions.count == questionCount else {
             motivationLabel.text = L10n.Question.unavailableMessage
-            invalidateMotivationBlurredText()
             return
         }
 
-        session.questionsCount = QuizQuestionCountPolicy.supportedCounts[0]
+        let randomSelectionTheme = QuizTheme(
+            id: "random-selection",
+            theme: L10n.Home.randomSelection,
+            themeDescription: L10n.Home.feelingLucky,
+            questions: selectedQuestions
+        )
+        session.chosenTheme = ThemeModel(quizTheme: randomSelectionTheme)
+        session.questionsCount = questionCount
         analytics.track(.themeSelected(theme: session.chosenTheme?.analyticsTheme ?? .unknown, method: .random))
         quizTransitionSourceView = sourceView
         isQuizLaunchPending = true
@@ -143,14 +146,14 @@ extension QuizViewController {
             guard
                 self.feelingLuckyRequestID == requestID,
                 self.isQuizLaunchPending,
-                self.session.chosenTheme?.themeID == themeID
+                self.session.chosenTheme?.themeID == randomSelectionTheme.stableID
             else {
                 self.cancelFeelingLuckyLaunch()
                 return
             }
 
             self.feelingLuckyTask = nil
-            self.session.questionsCount = QuizQuestionCountPolicy.supportedCounts[0]
+            self.session.questionsCount = questionCount
             self.analytics.track(
                 .quizStarted(
                     theme: self.session.chosenTheme?.analyticsTheme ?? .unknown,

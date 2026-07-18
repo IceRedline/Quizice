@@ -57,7 +57,9 @@ func colorAndDisableButtons() {
         resetQuestionScrollPosition()
         resetAllColors()
         
-        timerBar.progress = presenter?.currentProgress ?? .zero
+        // The incoming card is prepared off-screen. Put its timer in the initial
+        // state before the slide begins so no frame can expose the previous value.
+        updateProgress(1)
         themeNameLabel.text = viewModel.themeName
         questionLabel.text = viewModel.questionText
         applyAnswers(viewModel.answers)

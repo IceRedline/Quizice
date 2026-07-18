@@ -78,14 +78,9 @@ extension QuizViewController {
     func startAIThemeProgressUpdates(for requestID: UUID) {
         aiProgressTask?.cancel()
         aiProgressTask = Task { @MainActor [weak self] in
-            let updates: [(UInt64, HomeAIGenerationPhase)] = [
-                (1_000_000_000, .sending),
-                (1_500_000_000, .generating),
-                (3_500_000_000, .almostReady)
-            ]
             do {
-                for (delay, phase) in updates {
-                    try await Task.sleep(nanoseconds: delay)
+                for update in AIQuizGenerationPhase.delayedUpdates {
+                    try await Task.sleep(nanoseconds: update.delayNanoseconds)
                     try Task.checkCancellation()
                     guard
                         let self,
@@ -94,7 +89,7 @@ extension QuizViewController {
                         return
                     }
                     self.homeStore.sendAI(
-                        .progressAdvanced(requestID: requestID, phase: phase)
+                        .progressAdvanced(requestID: requestID, phase: update.phase)
                     )
                     self.refreshExpandedAIThemeCard()
                 }
@@ -132,6 +127,7 @@ extension QuizViewController {
             "AI quiz result accepted: questions=\(theme.questions.count, privacy: .public)"
         )
 
+        theme.aiGenerationConfiguration = submission.configuration
         session.chosenTheme = ThemeModel(quizTheme: theme)
         session.questionsCount = theme.questions.count
         analytics.track(.themeSelected(theme: .ai, method: .ai))

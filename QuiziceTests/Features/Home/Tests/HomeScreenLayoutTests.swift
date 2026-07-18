@@ -95,59 +95,71 @@ final class HomeScreenLayoutTests: HomeScreenVisualStateTestCase {
         let viewController = makeHomeViewController(in: CGRect(x: 0, y: 0, width: 390, height: 430))
         let collectionView = try XCTUnwrap(viewController.view.descendant(withAccessibilityIdentifier: "homeThemesCollectionView") as? UICollectionView)
         let motivationLabel = try XCTUnwrap(viewController.view.descendant(withAccessibilityIdentifier: "homeMotivationLabel") as? UILabel)
-        let blurredTextImageView = try XCTUnwrap(viewController.view.descendant(withAccessibilityIdentifier: "homeMotivationBlurredImageView") as? UIImageView)
         let topInset = collectionView.adjustedContentInset.top
 
         XCTAssertGreaterThan(topInset, 0)
         XCTAssertEqual(motivationLabel.alpha, 1)
-        XCTAssertEqual(blurredTextImageView.alpha, 0)
 
         collectionView.contentOffset.y = -topInset + 18
         collectionView.delegate?.scrollViewDidScroll?(collectionView)
 
         XCTAssertEqual(motivationLabel.alpha, 0.75, accuracy: 0.001)
-        XCTAssertGreaterThan(blurredTextImageView.alpha, 0.8)
-        XCTAssertNotNil(blurredTextImageView.image)
 
         collectionView.contentOffset.y = -topInset + 36
         collectionView.delegate?.scrollViewDidScroll?(collectionView)
 
         XCTAssertEqual(motivationLabel.alpha, 0.5, accuracy: 0.001)
-        XCTAssertGreaterThan(blurredTextImageView.alpha, 0.8)
-        XCTAssertNotNil(blurredTextImageView.image)
 
         collectionView.contentOffset.y = -topInset + 72
         collectionView.delegate?.scrollViewDidScroll?(collectionView)
 
         XCTAssertEqual(motivationLabel.alpha, 0, accuracy: 0.001)
-        XCTAssertEqual(blurredTextImageView.alpha, 0, accuracy: 0.001)
     }
 
-    func testHomeMotivationGlowSurvivesReturningFromTheme() throws {
-        QuizFactory.shared.themes = [
-            makeTheme(name: "Музыка"),
-            makeTheme(name: "Технологии"),
-            makeTheme(name: "История и культура"),
-            makeTheme(name: "Политика и бизнес")
-        ]
+    func testHomeMotivationLabelHasNoGlowLayerOnFirstAppearanceAfterLaunch() throws {
+        QuizFactory.shared.themes = [makeTheme(name: "Музыка")]
+        QuizFactory.shared.startup1st = true
+        let viewController = QuizViewController()
+        viewController.loadViewIfNeeded()
+        viewController.view.frame = CGRect(x: 0, y: 0, width: 390, height: 844)
+        viewController.view.layoutIfNeeded()
 
-        let viewController = makeHomeViewController(in: CGRect(x: 0, y: 0, width: 390, height: 430))
-        let collectionView = try XCTUnwrap(viewController.view.descendant(withAccessibilityIdentifier: "homeThemesCollectionView") as? UICollectionView)
-        let motivationLabel = try XCTUnwrap(viewController.view.descendant(withAccessibilityIdentifier: "homeMotivationLabel") as? UILabel)
-        let blurredTextImageView = try XCTUnwrap(viewController.view.descendant(withAccessibilityIdentifier: "homeMotivationBlurredImageView") as? UIImageView)
-        let topInset = collectionView.adjustedContentInset.top
+        viewController.viewDidAppear(false)
 
-        collectionView.contentOffset.y = -topInset + 18
-        collectionView.delegate?.scrollViewDidScroll?(collectionView)
-        let titleBeforeReturn = motivationLabel.text
-        let glowAlphaBeforeReturn = blurredTextImageView.alpha
-        XCTAssertNotNil(blurredTextImageView.image)
+        XCTAssertNil(
+            viewController.view.descendant(
+                withAccessibilityIdentifier: "homeMotivationBlurredImageView"
+            )
+        )
+        XCTAssertFalse(QuizFactory.shared.startup1st)
+    }
 
-        viewController.viewWillAppear(false)
+    func testHomeStatisticsRefreshesWhenQuizFlowReturns() throws {
+        QuizFactory.shared.themes = [makeTheme(name: "Музыка")]
+        let statisticsStore = makeStatisticsStore()
+        let viewController = QuizViewController(statisticsStore: statisticsStore)
+        let window = UIWindow(frame: CGRect(x: 0, y: 0, width: 390, height: 844))
+        window.rootViewController = viewController
+        window.makeKeyAndVisible()
+        window.layoutIfNeeded()
+        testWindows.append(window)
 
-        XCTAssertEqual(motivationLabel.text, titleBeforeReturn)
-        XCTAssertEqual(blurredTextImageView.alpha, glowAlphaBeforeReturn, accuracy: 0.001)
-        XCTAssertNotNil(blurredTextImageView.image)
+        let initialPlayedValue = try XCTUnwrap(
+            viewController.view.descendant(
+                withAccessibilityIdentifier: "homeStatisticsPlayedValueLabel"
+            ) as? UILabel
+        )
+        XCTAssertEqual(initialPlayedValue.text, "0")
+
+        statisticsStore.recordAttempt(correctAnswers: 4, totalQuestions: 5)
+        viewController.quizFlowWillReturnToThemes()
+
+        let refreshedPlayedValue = try XCTUnwrap(
+            viewController.view.descendant(
+                withAccessibilityIdentifier: "homeStatisticsPlayedValueLabel"
+            ) as? UILabel
+        )
+        XCTAssertEqual(refreshedPlayedValue.text, "1")
     }
 
     func testHomeCollectionIsLayeredAboveMotivationHeader() throws {

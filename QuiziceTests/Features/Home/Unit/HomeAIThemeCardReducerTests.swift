@@ -37,6 +37,31 @@ final class HomeAIThemeCardReducerTests: XCTestCase {
         XCTAssertFalse(state.canRevealConfiguration)
     }
 
+    func testPromptLongerThanMaximumCannotRevealOrSubmit() {
+        var state = HomeAIThemeCardState()
+        let maximumPrompt = String(
+            repeating: "A",
+            count: AIQuizGenerationConfiguration.maximumThemeLength
+        )
+        let oversizedPrompt = maximumPrompt + "B"
+
+        _ = reduce(&state, .promptChanged(maximumPrompt))
+        XCTAssertFalse(state.isPromptTooLong)
+        XCTAssertTrue(state.canRevealConfiguration)
+        XCTAssertTrue(state.canSubmit)
+
+        _ = reduce(&state, .promptChanged(oversizedPrompt))
+        XCTAssertTrue(state.isPromptTooLong)
+        XCTAssertFalse(state.canRevealConfiguration)
+        XCTAssertFalse(state.canSubmit)
+        XCTAssertNil(
+            reduce(
+                &state,
+                .submitRequested(requestID: firstRequestID, locale: locale, now: firstDate)
+            )
+        )
+    }
+
     func testSelectorsAcceptOnlySupportedCountsAndRemainEditableBeforeSubmission() {
         var state = validDraftState()
 

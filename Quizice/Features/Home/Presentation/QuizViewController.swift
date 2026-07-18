@@ -14,7 +14,6 @@ final class QuizViewController: BaseQuizViewController, ThemeCollectionDelegate,
     enum AccessibilityID {
         static let rootView = "homeRootView"
         static let motivationLabel = "homeMotivationLabel"
-        static let motivationBlurredImageView = "homeMotivationBlurredImageView"
         static let headerStackView = "homeHeaderStackView"
         static let themesCollectionView = "homeThemesCollectionView"
         static let screenStackView = "homeScreenStackView"
@@ -47,10 +46,6 @@ final class QuizViewController: BaseQuizViewController, ThemeCollectionDelegate,
         static let collectionTopInset: CGFloat = 0
         static let collectionBottomInset: CGFloat = 0
         static let motivationFadeDistance: CGFloat = 72
-        static let motivationBlurRampDistance: CGFloat = 18
-        static let motivationBlurHoldDistance: CGFloat = 42
-        static let motivationBlurRadius: CGFloat = 7
-        static let motivationBlurPadding: CGFloat = 24
         static let settingsButtonTopInset: CGFloat = 8
         static let settingsButtonTrailingInset: CGFloat = 14
         static let settingsButtonSize: CGFloat = 44
@@ -96,7 +91,6 @@ final class QuizViewController: BaseQuizViewController, ThemeCollectionDelegate,
     enum Appearance {
         static let hiddenAlpha: CGFloat = 0
         static let visibleAlpha: CGFloat = 1
-        static let motivationBlurMaxAlpha: CGFloat = 0.82
         static let headerLayerZPosition: CGFloat = 0
         static let collectionLayerZPosition: CGFloat = 10
         static let controlsLayerZPosition: CGFloat = 20
@@ -139,7 +133,6 @@ final class QuizViewController: BaseQuizViewController, ThemeCollectionDelegate,
 
     var motivationContainerView: UIView!
     var motivationLabel: UILabel!
-    var motivationBlurredImageView: UIImageView!
     var headerStackView: UIStackView!
     var screenStackView: UIStackView!
     var settingsButton: UIButton!
@@ -157,7 +150,7 @@ final class QuizViewController: BaseQuizViewController, ThemeCollectionDelegate,
     let analytics: AnalyticsTracking
     let themesCollectionService: ThemesCollectionService
     let motivationPromptProvider: (String?) -> String
-    let randomThemeIDProvider: ([QuizTheme]) -> String?
+    let randomQuestionsProvider: ([QuizQuestion]) -> [QuizQuestion]
     let cardReduceMotionProvider: () -> Bool
     let cardReduceTransparencyProvider: () -> Bool
     let cardDeviceParallaxEnabledProvider: () -> Bool
@@ -167,8 +160,6 @@ final class QuizViewController: BaseQuizViewController, ThemeCollectionDelegate,
     let feelingLuckyMinimumFeedbackDelay: () async -> Void
     let animationsEngine = Animations()
     let sourceSnapshotFactory = HomeCardSourceSnapshotFactory()
-    let motivationBlurContext = CIContext(options: nil)
-    var motivationBlurSnapshotSignature: String?
     let homeStore = HomeFeatureStore()
     var homeCardState: HomeThemeCardState { homeStore.cardState }
     var homeAIThemeCardState: HomeAIThemeCardState { homeStore.aiThemeCardState }
@@ -220,7 +211,7 @@ final class QuizViewController: BaseQuizViewController, ThemeCollectionDelegate,
     }
 
     var startupAnimatedViews: [UIView] {
-        [motivationLabel, motivationBlurredImageView, themesCollectionView, settingsButton]
+        [motivationLabel, themesCollectionView, settingsButton]
     }
 
     init(
@@ -230,7 +221,7 @@ final class QuizViewController: BaseQuizViewController, ThemeCollectionDelegate,
         aiQuizThemeService: AIQuizThemeServiceProtocol = MockAIQuizThemeService(),
         analytics: AnalyticsTracking = AppMetricaAnalyticsTracker.shared,
         motivationPromptProvider: @escaping (String?) -> String = QuizViewController.randomMotivationPrompt,
-        randomThemeIDProvider: @escaping ([QuizTheme]) -> String? = { $0.randomElement()?.stableID },
+        randomQuestionsProvider: @escaping ([QuizQuestion]) -> [QuizQuestion] = { $0.shuffled() },
         cardReduceMotionProvider: @escaping () -> Bool = { UIAccessibility.isReduceMotionEnabled },
         cardReduceTransparencyProvider: @escaping () -> Bool = { UIAccessibility.isReduceTransparencyEnabled },
         cardDeviceParallaxEnabledProvider: @escaping () -> Bool = { true },
@@ -247,7 +238,7 @@ final class QuizViewController: BaseQuizViewController, ThemeCollectionDelegate,
         self.aiQuizThemeService = aiQuizThemeService
         self.analytics = analytics
         self.motivationPromptProvider = motivationPromptProvider
-        self.randomThemeIDProvider = randomThemeIDProvider
+        self.randomQuestionsProvider = randomQuestionsProvider
         self.themesCollectionService = ThemesCollectionService(
             themeRepository: themeRepository,
             statisticsStore: statisticsStore
@@ -345,7 +336,6 @@ final class QuizViewController: BaseQuizViewController, ThemeCollectionDelegate,
         motivationLabel?.textAlignment = .left
         headerStackView?.alignment = .leading
         headerStackView?.directionalLayoutMargins = Layout.headerMargins
-        invalidateMotivationBlurredText()
 
         settingsButton?.backgroundColor = .clear
         settingsButton?.layer.borderWidth = 0

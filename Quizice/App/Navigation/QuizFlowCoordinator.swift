@@ -34,6 +34,10 @@ final class QuizFlowCoordinator: NSObject, QuizRouting, UIViewControllerTransiti
     private let aiQuizThemeService: AIQuizThemeServiceProtocol
     private let analytics: AnalyticsTracking
     private let cardSlideTransitionAnimator = QuizCardSlidePresentationAnimator()
+    private let aiReplayAlertPresenter = QuizAlertPresenter()
+    private weak var resultViewController: QuizResultViewController?
+    private var aiReplayTask: Task<Void, Never>?
+    private var aiReplayProgressTask: Task<Void, Never>?
 
     init(
         window: UIWindow,
@@ -50,6 +54,11 @@ final class QuizFlowCoordinator: NSObject, QuizRouting, UIViewControllerTransiti
         self.aiQuizThemeService = aiQuizThemeService ?? Self.makeDefaultAIQuizThemeService()
         self.analytics = analytics
         super.init()
+    }
+
+    deinit {
+        aiReplayTask?.cancel()
+        aiReplayProgressTask?.cancel()
     }
 
     func start() {
@@ -78,6 +87,7 @@ final class QuizFlowCoordinator: NSObject, QuizRouting, UIViewControllerTransiti
 
     func showResult(_ result: QuizResultState) {
         let viewController = QuizResultViewController()
+        resultViewController = viewController
         viewController.analytics = analytics
         viewController.router = self
         viewController.configurePresenter(QuizResultPresenter(result: result, session: session))
@@ -104,16 +114,141 @@ final class QuizFlowCoordinator: NSObject, QuizRouting, UIViewControllerTransiti
     }
 
     func replayQuiz() {
+        guard aiReplayTask == nil else { return }
+        guard let configuration = session.chosenTheme?.aiGenerationConfiguration else {
+            presentFreshQuestionController()
+            return
+        }
+
+        let service = aiQuizThemeService
+        let startedAt = Date()
+        analytics.track(
+            .aiGenerationStarted(
+                locale: configuration.locale.identifier,
+                promptLength: configuration.theme.count,
+                questionCount: configuration.questionCount,
+                difficulty: configuration.difficulty
+            )
+        )
+        resultViewController?.setReplayGenerationPhase(.analyzing)
+        startAIReplayProgressUpdates()
+        aiReplayTask = Task { @MainActor [weak self] in
+            do {
+                let theme = try await service.generateQuizTheme(configuration: configuration)
+                try Task.checkCancellation()
+                guard let self else { return }
+
+                theme.aiGenerationConfiguration = configuration
+                self.session.chosenTheme = ThemeModel(quizTheme: theme)
+                self.session.questionsCount = configuration.questionCount
+                self.analytics.track(
+                    .aiGenerationSucceeded(
+                        locale: configuration.locale.identifier,
+                        questionCount: theme.questions.count,
+                        difficulty: configuration.difficulty,
+                        durationMilliseconds: Self.durationMilliseconds(since: startedAt)
+                    )
+                )
+                self.stopAIReplayLoading()
+                self.presentFreshQuestionController()
+            } catch is CancellationError {
+                self?.stopAIReplayLoading()
+            } catch {
+                guard let self else { return }
+                self.stopAIReplayLoading()
+                let errorCode = (error as? YandexAIQuizThemeServiceError)?.analyticsCode ?? "unexpected"
+                self.analytics.track(
+                    .aiGenerationFailed(
+                        locale: configuration.locale.identifier,
+                        errorCode: errorCode,
+                        durationMilliseconds: Self.durationMilliseconds(since: startedAt)
+                    )
+                )
+                self.analytics.reportOperationalError(error, context: .aiGeneration(code: errorCode))
+                self.presentAIReplayFailure(error)
+            }
+        }
+    }
+
+    private func startAIReplayProgressUpdates() {
+        aiReplayProgressTask?.cancel()
+        aiReplayProgressTask = Task { @MainActor [weak self] in
+            do {
+                for update in AIQuizGenerationPhase.delayedUpdates {
+                    try await Task.sleep(nanoseconds: update.delayNanoseconds)
+                    try Task.checkCancellation()
+                    guard let self, self.aiReplayTask != nil else { return }
+                    self.resultViewController?.setReplayGenerationPhase(update.phase)
+                }
+            } catch is CancellationError {
+                return
+            } catch {
+                return
+            }
+        }
+    }
+
+    private func stopAIReplayLoading() {
+        aiReplayTask = nil
+        aiReplayProgressTask?.cancel()
+        aiReplayProgressTask = nil
+        resultViewController?.setReplayGenerationPhase(nil)
+    }
+
+    private func presentFreshQuestionController() {
         navigationController.dismiss(animated: false) { [weak self] in
             self?.showQuestion()
         }
     }
 
     func returnToThemes() {
+        aiReplayTask?.cancel()
+        stopAIReplayLoading()
+        aiReplayAlertPresenter.dismiss()
         navigationController.popToRootViewController(animated: false)
         (navigationController.viewControllers.first as? QuizHomeReturnHandling)?
             .quizFlowWillReturnToThemes()
         navigationController.dismiss(animated: true)
+    }
+
+    private func presentAIReplayFailure(_ error: Error) {
+        guard let resultViewController else { return }
+        let alert = AIQuizGenerationAlert(error: error)
+        let dismissAction = QuizAlertAction(
+            title: alert.offersEditAction ? L10n.Common.back : L10n.Settings.alertAction,
+            emphasis: alert.canRetry ? .secondary : .primary,
+            accessibilityIdentifier: "aiReplayAlertDismissButton",
+            action: { [weak self] in self?.aiReplayAlertPresenter.dismiss() }
+        )
+        let retryAction = QuizAlertAction(
+            title: L10n.AITheme.retry,
+            emphasis: .primary,
+            accessibilityIdentifier: "aiReplayAlertRetryButton",
+            action: { [weak self] in
+                self?.aiReplayAlertPresenter.dismiss { [weak self] in
+                    self?.replayQuiz()
+                }
+            }
+        )
+        let overlay = QuizAlertOverlay(
+            title: alert.title,
+            message: alert.message,
+            systemImage: alert.kind.systemImage,
+            iconColor: alert.kind.iconColor(in: resultViewController.currentAppearance()),
+            primaryAction: alert.canRetry ? retryAction : dismissAction,
+            secondaryAction: alert.canRetry ? dismissAction : nil,
+            onEscape: { [weak self] in self?.aiReplayAlertPresenter.dismiss() }
+        )
+        aiReplayAlertPresenter.presentingViewController = resultViewController
+        _ = aiReplayAlertPresenter.present(
+            overlay,
+            appearance: resultViewController.currentAppearance(),
+            reduceMotion: UIAccessibility.isReduceMotionEnabled
+        )
+    }
+
+    private static func durationMilliseconds(since startDate: Date) -> Int {
+        max(Int(Date().timeIntervalSince(startDate) * 1_000), 0)
     }
 
     private var presentedViewController: UIViewController {
@@ -145,7 +280,10 @@ final class QuizFlowCoordinator: NSObject, QuizRouting, UIViewControllerTransiti
     private static func makeDefaultAIQuizThemeService() -> AIQuizThemeServiceProtocol {
         #if DEBUG
         let apiKey = DebugYandexAIAPIKeyStore.resolveAPIKey()
-        return YandexAIQuizThemeService(apiKey: apiKey)
+        return YandexAIQuizThemeService(
+            apiKey: apiKey,
+            onUnauthorized: DebugYandexAIAPIKeyStore.removeRejectedAPIKey
+        )
         #else
         return YandexAIQuizThemeService(apiKey: nil)
         #endif

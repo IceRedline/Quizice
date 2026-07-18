@@ -38,8 +38,8 @@ profiles, and automatic revenue tracking are disabled.
 1. Register the iOS app in AppMetrica and copy its API key from
    **Settings → Main**.
 2. In Xcode, select the `Quizice` target and open **Build Settings**.
-3. Replace `YOUR_APPMETRICA_API_KEY` in the user-defined
-   `APPMETRICA_API_KEY` setting for both Debug and Release.
+3. Keep the user-defined `APPMETRICA_API_KEY` setting synchronized for Debug
+   and Release so local sessions and production sessions reach the same app.
 
 The value is substituted into the `AppMetricaAPIKey` entry in `Info.plist`.
 An empty value or the placeholder leaves analytics disabled. XCTest and SwiftUI
