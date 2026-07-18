@@ -262,7 +262,11 @@ final class BackendConfigurationTests: XCTestCase {
 
 final class KeychainSessionStoreTests: XCTestCase {
     func testRoundTripAndClear() throws {
-        let store = KeychainSessionStore(service: "QuiziceTests.Auth.\(UUID().uuidString)")
+        let client = InMemoryKeychainClient()
+        let store = KeychainSessionStore(
+            service: "QuiziceTests.Auth.\(UUID().uuidString)",
+            client: client
+        )
         let session = AuthSession(
             userID: "user-1",
             accessToken: "secret",
@@ -273,6 +277,22 @@ final class KeychainSessionStoreTests: XCTestCase {
         XCTAssertEqual(try store.load(), session)
         try store.clear()
         XCTAssertNil(try store.load())
+    }
+}
+
+private final class InMemoryKeychainClient: KeychainClient {
+    private var data: Data?
+
+    func loadData(service: String, account: String) throws -> Data? {
+        data
+    }
+
+    func saveData(_ data: Data, service: String, account: String) throws {
+        self.data = data
+    }
+
+    func deleteData(service: String, account: String) throws {
+        data = nil
     }
 }
 

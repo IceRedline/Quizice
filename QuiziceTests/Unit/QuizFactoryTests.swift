@@ -37,8 +37,7 @@ final class QuizFactoryTests: XCTestCase {
 
     func testSwiftDataThemeStoreReplacesFetchesAndClearsThemes() throws {
         let container = try ModelContainer(
-            for: QuizTheme.self,
-            QuizQuestion.self,
+            for: SwiftDataThemeStore.schema,
             configurations: ModelConfiguration(isStoredInMemoryOnly: true)
         )
         let context = ModelContext(container)

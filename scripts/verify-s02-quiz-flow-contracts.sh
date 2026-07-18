@@ -15,10 +15,10 @@ set -euo pipefail
 readonly PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$PROJECT_ROOT"
 
-readonly THEMES_SERVICE="Quizice/Services/ThemesCollectionService.swift"
-readonly QUESTION_PRESENTER="Quizice/Services/QuizQuestionPresenter.swift"
-readonly RESULT_VIEW_CONTROLLER="Quizice/QuizResultViewController.swift"
-readonly RESULT_PRESENTER="Quizice/Services/QuizResultPresenter.swift"
+readonly THEMES_SERVICE="Quizice/Features/Home/Collection/ThemesCollectionService.swift"
+readonly QUESTION_PRESENTER="Quizice/Features/QuizPlay/Presentation/QuizQuestionPresenter.swift"
+readonly RESULT_VIEW_CONTROLLER="Quizice/Features/QuizResult/UI/QuizResultViewController.swift"
+readonly RESULT_PRESENTER="Quizice/Features/QuizResult/Presentation/QuizResultPresenter.swift"
 readonly DATA_JSON="Quizice/data.json"
 readonly S01_VERIFIER="./scripts/verify-s01-programmatic-shell.sh"
 
