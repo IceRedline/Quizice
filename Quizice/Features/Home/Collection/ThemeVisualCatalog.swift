@@ -1,5 +1,10 @@
 import UIKit
 
+enum ThemeIconVisualStyle {
+    static let shadowOffset: CGFloat = 3
+    static let shadowAlpha: CGFloat = 0.26
+}
+
 private struct ThemeVisualDescriptor {
     let classicSymbolName: String
     let fallbackClassicSymbolName: String

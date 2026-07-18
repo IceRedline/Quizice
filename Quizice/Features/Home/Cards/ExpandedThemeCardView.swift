@@ -13,6 +13,7 @@ final class ExpandedThemeCardView: UIView, UIGestureRecognizerDelegate {
         static let flipInteractionOverlay = "expandedThemeCardFlipInteractionOverlay"
         static let front = "expandedThemeCardFrontView"
         static let frontSurfaceButton = "expandedThemeCardFrontSurfaceButton"
+        static let frontImageShadow = "expandedThemeCardFrontImageShadowView"
         static let frontImage = "expandedThemeCardFrontImageView"
         static let closeButton = "expandedThemeCardCloseButton"
         static let infoButton = "expandedThemeCardInfoButton"
@@ -104,6 +105,7 @@ final class ExpandedThemeCardView: UIView, UIGestureRecognizerDelegate {
 
     let frontSurfaceButton = UIButton(type: .custom)
     let frontArtworkDepthView = UIView()
+    let frontIconShadowView = UIImageView()
     let frontImageView = UIImageView()
     let frontTitleDepthView = UIView()
     let frontTitleLabel = UILabel()
@@ -239,7 +241,16 @@ final class ExpandedThemeCardView: UIView, UIGestureRecognizerDelegate {
         let supportedCounts = Set(Self.supportedQuestionCounts)
         self.availableQuestionCounts = Set(availableQuestionCounts).intersection(supportedCounts)
 
-        frontImageView.image = frontArtworkImage(themeID: themeID, appearance: appearance)
+        let frontArtwork = frontArtworkImage(themeID: themeID, appearance: appearance)
+        let isSymbolIcon = appearance.designStyle != .radar
+        frontIconShadowView.image = isSymbolIcon ? frontArtwork : nil
+        frontIconShadowView.tintColor = .black
+        frontIconShadowView.alpha = isSymbolIcon ? ThemeIconVisualStyle.shadowAlpha : 0
+        frontIconShadowView.transform = isSymbolIcon
+            ? CGAffineTransform(translationX: 0, y: ThemeIconVisualStyle.shadowOffset)
+            : .identity
+
+        frontImageView.image = frontArtwork
         frontImageView.tintColor = appearance.designStyle == .classic
             ? tintColor
             : borderColor

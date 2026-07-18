@@ -256,6 +256,11 @@ final class HomeExpandedCardTransitionTests: HomeScreenVisualStateTestCase {
                 withAccessibilityIdentifier: "expandedThemeCardFrontImageView"
             ) as? UIImageView
         )
+        let frontImageShadowView = try XCTUnwrap(
+            viewController.view.descendant(
+                withAccessibilityIdentifier: "expandedThemeCardFrontImageShadowView"
+            ) as? UIImageView
+        )
         card.layoutIfNeeded()
         XCTAssertTrue(backdrop.superview === viewController.view)
         XCTAssertTrue(transitionView.superview === viewController.view)
@@ -277,6 +282,10 @@ final class HomeExpandedCardTransitionTests: HomeScreenVisualStateTestCase {
         XCTAssertTrue(card.accessibilityViewIsModal)
         XCTAssertEqual(frontImageView.contentMode, .scaleAspectFit)
         XCTAssertGreaterThan(frontImageView.image?.size.width ?? 0, 0)
+        XCTAssertEqual(frontImageShadowView.image?.pngData(), frontImageView.image?.pngData())
+        XCTAssertEqual(frontImageShadowView.transform.ty, 3, accuracy: 0.01)
+        XCTAssertEqual(frontImageShadowView.alpha, 0.26, accuracy: 0.01)
+        assertColor(frontImageShadowView.tintColor, equals: .black)
         XCTAssertTrue(
             viewController.view.descendant(withAccessibilityIdentifier: "homeHeaderStackView")?.accessibilityElementsHidden == true
         )

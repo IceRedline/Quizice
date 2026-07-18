@@ -108,6 +108,14 @@ final class HomeCollectionServiceTests: HomeScreenVisualStateTestCase {
             XCTAssertEqual(titleLabel.frame.maxY, themeCell.bounds.maxY - 6, accuracy: 0.5)
             XCTAssertEqual(imageView.superview?.bounds.size, CGSize(width: 64, height: 64))
 
+            let iconViews = imageView.superview?.subviews.compactMap { $0 as? UIImageView } ?? []
+            XCTAssertEqual(iconViews.count, 2)
+            let shadowView = try XCTUnwrap(iconViews.first { $0 !== imageView })
+            XCTAssertEqual(shadowView.image?.pngData(), imageView.image?.pngData())
+            XCTAssertEqual(shadowView.transform.ty, 3, accuracy: 0.01)
+            XCTAssertEqual(shadowView.alpha, 0.26, accuracy: 0.01)
+            assertColor(shadowView.tintColor, equals: .black)
+
             let fittingSize = CGSize(width: titleLabel.bounds.width, height: CGFloat.greatestFiniteMagnitude)
             let requiredTitleHeight = titleLabel.sizeThatFits(fittingSize).height
             XCTAssertLessThanOrEqual(requiredTitleHeight, titleLabel.bounds.height + 0.5)
@@ -148,6 +156,14 @@ final class HomeCollectionServiceTests: HomeScreenVisualStateTestCase {
             assertColor(imageView.tintColor, equals: tintColor)
             XCTAssertEqual(imageView.superview?.bounds.size, CGSize(width: 64, height: 64))
             XCTAssertEqual(imageView.transform, .identity)
+
+            let iconViews = imageView.superview?.subviews.compactMap { $0 as? UIImageView } ?? []
+            XCTAssertEqual(iconViews.count, 2)
+            let shadowView = try XCTUnwrap(iconViews.first { $0 !== imageView })
+            XCTAssertEqual(shadowView.image?.pngData(), imageView.image?.pngData())
+            XCTAssertEqual(shadowView.transform.ty, 3, accuracy: 0.01)
+            XCTAssertEqual(shadowView.alpha, 0.26, accuracy: 0.01)
+            assertColor(shadowView.tintColor, equals: .black)
         }
     }
 
