@@ -20,7 +20,7 @@ final class ThemesCollectionService: NSObject, UICollectionViewDelegate, UIColle
 
         static let musicThemeLogoCleanSymbolName = "music.note.square.stack"
         static let technologyThemeLogoCleanSymbolName = "gamecontroller"
-        static let cultureThemeLogoCleanSymbolName = "theatermasks"
+        static let cultureThemeLogoCleanSymbolName = "theatermask.and.paintbrush"
         static let politicsThemeLogoCleanSymbolName = "building.columns"
         static let musicThemeLogoRadarImageName = "theme_logo_music_radar"
         static let technologyThemeLogoRadarImageName = "theme_logo_tech_radar"

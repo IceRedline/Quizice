@@ -68,7 +68,7 @@ final class HomeCollectionServiceTests: HomeScreenVisualStateTestCase {
         let themeAssets = [
             (themeID: "music", themeName: "Музыка", symbolName: "music.note.square.stack", fallbackSymbolName: "music.note", tintColorName: "themeMusicTint"),
             (themeID: "technology", themeName: "Технологии", symbolName: "gamecontroller", fallbackSymbolName: "gamecontroller", tintColorName: "themeTechnologyTint"),
-            (themeID: "history_culture", themeName: "История и культура", symbolName: "theatermasks", fallbackSymbolName: "theatermasks.fill", tintColorName: "themeCultureTint"),
+            (themeID: "history_culture", themeName: "История и культура", symbolName: "theatermask.and.paintbrush", fallbackSymbolName: "theatermask.and.paintbrush.fill", tintColorName: "themeCultureTint"),
             (themeID: "politics_business", themeName: "Политика и бизнес", symbolName: "building.columns", fallbackSymbolName: "building.columns.fill", tintColorName: "themePoliticsTint")
         ]
         QuizFactory.shared.themes = themeAssets.map { makeTheme(name: $0.themeName) }
@@ -119,7 +119,7 @@ final class HomeCollectionServiceTests: HomeScreenVisualStateTestCase {
         let themeAssets = [
             (themeID: "music", themeName: "Музыка", symbolName: "music.note.list", fallbackSymbolName: "music.note", tintColorName: "themeMusicTint"),
             (themeID: "technology", themeName: "Технологии", symbolName: "cpu.fill", fallbackSymbolName: "desktopcomputer", tintColorName: "themeTechnologyTint"),
-            (themeID: "history_culture", themeName: "История и культура", symbolName: "theatermasks.fill", fallbackSymbolName: "theatermasks", tintColorName: "themeCultureTint"),
+            (themeID: "history_culture", themeName: "История и культура", symbolName: "theatermask.and.paintbrush.fill", fallbackSymbolName: "theatermasks", tintColorName: "themeCultureTint"),
             (themeID: "politics_business", themeName: "Политика и бизнес", symbolName: "briefcase.fill", fallbackSymbolName: "building.columns.fill", tintColorName: "themePoliticsTint")
         ]
         QuizFactory.shared.themes = themeAssets.map { makeTheme(name: $0.themeName) }
