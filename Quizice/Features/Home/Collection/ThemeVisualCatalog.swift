@@ -42,10 +42,10 @@ enum ThemeVisualCatalog {
             tintColorName: ThemesCollectionService.Content.technologyThemeTintColorName
         ),
         "history_culture": ThemeVisualDescriptor(
-            classicSymbolName: "theatermasks.fill",
+            classicSymbolName: "theatermask.and.paintbrush.fill",
             fallbackClassicSymbolName: "theatermasks",
             cleanSymbolName: ThemesCollectionService.Content.cultureThemeLogoCleanSymbolName,
-            fallbackCleanSymbolName: "theatermasks.fill",
+            fallbackCleanSymbolName: "theatermask.and.paintbrush.fill",
             radarLogoName: ThemesCollectionService.Content.cultureThemeLogoRadarImageName,
             tintColorName: ThemesCollectionService.Content.cultureThemeTintColorName
         ),
