@@ -9,9 +9,7 @@
 "home.background_style.grid_4x4" = "4×4-Netz";
 "home.background_style.grid_5x5" = "5×5-Netz";
 "description.default_theme_description" = "Themenbeschreibung nicht verfügbar";
-"description.default_theme_name" = "Kein Thema";
 "description.question_count" = "Anzahl der Fragen";
-"description.ai_question_count_fixed" = "Die Anzahl wurde beim Erstellen festgelegt und kann nicht geändert werden";
 "ai_theme.difficulty" = "Schwierigkeit";
 "ai_theme.difficulty.easy" = "Leicht";
 "ai_theme.difficulty.medium" = "Mittel";
@@ -133,10 +131,9 @@
 "settings.section.developer" = "Entwicklung";
 "settings.backend.localhost" = "Lokales Backend";
 "settings.backend.localhost.subtitle" = "Simulator: localhost:8000 · Neustart erforderlich";
-"statistics.accessibility_label" = "Bildschirm für Gesamtstatistik";
+"statistics.accessibility_label" = "Gesamtstatistik";
 "statistics.best_result" = "Bestes Ergebnis";
 "statistics.correct_answers" = "Richtige Antworten";
-"statistics.empty_state.accessibility_label" = "Noch keine abgeschlossenen Quizze. Beende dein erstes Quiz, um die Gesamtstatistik zu sehen.";
 "statistics.empty_state.text" = "Beende dein erstes Quiz, um die Gesamtstatistik zu sehen. Hier erscheinen gespielte Quizze, Genauigkeit und bestes Ergebnis.";
 "statistics.percentage" = "Prozent richtig";
 "statistics.played_quizzes" = "Gespielte Quizze";

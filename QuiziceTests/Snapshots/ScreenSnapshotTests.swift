@@ -55,6 +55,17 @@ final class ScreenSnapshotTests: XCTestCase {
         )
     }
 
+    func testRadarExpandedStatisticsLargeHistorySnapshot() throws {
+        SnapshotSupport.setUp(designStyle: .radar)
+        let size = try XCTUnwrap(SnapshotSupport.iPhone17Pro.size)
+
+        SnapshotSupport.assertScreen(
+            try makeExpandedStatisticsCardViewController(size: size),
+            named: "radar-home-expanded-statistics-large-history-iphone-17-pro",
+            device: SnapshotSupport.iPhone17Pro
+        )
+    }
+
     func testClassicExpandedThemeCardFrontSnapshot() throws {
         SnapshotSupport.setUp(designStyle: .classic)
 
@@ -181,10 +192,6 @@ final class ScreenSnapshotTests: XCTestCase {
         )
     }
 
-    func testDescriptionScreenSnapshot() {
-        SnapshotSupport.assertScreen(makeDescriptionViewController(), named: "clean-description", size: portraitSize)
-    }
-
     func testQuestionScreenSnapshot() {
         SnapshotSupport.assertScreen(makeQuestionViewController(), named: "clean-question", size: portraitSize)
     }
@@ -261,46 +268,12 @@ final class ScreenSnapshotTests: XCTestCase {
         SnapshotSupport.assertScreen(makeResultViewController(), named: "clean-result", size: portraitSize)
     }
 
-    func testStatisticsScreenSnapshot() {
-        let suiteName = "ScreenSnapshotTests.\(UUID().uuidString)"
-        let defaults = UserDefaults(suiteName: suiteName)!
-        defaults.removePersistentDomain(forName: suiteName)
-        let store = StatisticsStore(userDefaults: defaults, key: "attempts")
-        store.recordAttempt(correctAnswers: 4, totalQuestions: 5)
-        store.recordAttempt(correctAnswers: 8, totalQuestions: 10)
-        let viewController = StatisticsViewController(statisticsStore: store)
-        viewController.loadViewIfNeeded()
-        viewController.viewWillAppear(false)
-
-        SnapshotSupport.assertScreen(viewController, named: "clean-statistics", size: portraitSize)
-
-        defaults.removePersistentDomain(forName: suiteName)
-    }
-
-    func testRadarStatisticsLargeHistorySnapshot() {
-        SnapshotSupport.setUp(designStyle: .radar)
-
-        SnapshotSupport.assertScreen(
-            makeLargeHistoryStatisticsViewController(),
-            named: "radar-statistics-large-history-iphone-17-pro",
-            device: SnapshotSupport.iPhone17Pro
-        )
-    }
-
-    func testDescriptionAdaptiveCanvasSnapshots() {
-        assertAdaptiveSnapshots(makeViewController: makeDescriptionViewController, screenName: "description")
-    }
-
     func testQuestionAdaptiveCanvasSnapshots() {
         assertAdaptiveSnapshots(makeViewController: { self.makeQuestionViewController() }, screenName: "question")
     }
 
     func testResultAdaptiveCanvasSnapshots() {
         assertAdaptiveSnapshots(makeViewController: makeResultViewController, screenName: "result")
-    }
-
-    func testStatisticsAdaptiveCanvasSnapshots() {
-        assertAdaptiveSnapshots(makeViewController: makeStatisticsViewController, screenName: "statistics")
     }
 
     private func assertAdaptiveSnapshots(
@@ -325,18 +298,9 @@ final class ScreenSnapshotTests: XCTestCase {
         )
     }
 
-    private func makeDescriptionViewController() -> QuizDescriptionViewController {
-        let viewController = QuizDescriptionViewController()
-        viewController.loadViewIfNeeded()
-        viewController.updateLabels(
-            themeName: "Музыка",
-            themeDescription: "Проверьте знания о любимых исполнителях и песнях."
-        )
-        return viewController
-    }
-
     private func makeHomeViewController(
         themes: [QuizTheme]? = nil,
+        statisticsAttempts: [(correctAnswers: Int, totalQuestions: Int)] = [],
         cardDeviceParallaxEnabledProvider: @escaping () -> Bool = { true }
     ) -> QuizViewController {
         let suiteName = "ScreenSnapshotTests.home.\(UUID().uuidString)"
@@ -350,11 +314,55 @@ final class ScreenSnapshotTests: XCTestCase {
             SnapshotSupport.makeTheme(id: "politics_business", name: "Политика и бизнес")
         ]
         QuizFactory.shared.startup1st = false
+        let statisticsStore = StatisticsStore(userDefaults: defaults, key: "attempts")
+        statisticsAttempts.forEach {
+            statisticsStore.recordAttempt(
+                correctAnswers: $0.correctAnswers,
+                totalQuestions: $0.totalQuestions
+            )
+        }
         return QuizViewController(
-            statisticsStore: StatisticsStore(userDefaults: defaults, key: "attempts"),
+            statisticsStore: statisticsStore,
             motivationPromptProvider: { _ in "Время\nпроверить факты" },
             cardDeviceParallaxEnabledProvider: cardDeviceParallaxEnabledProvider
         )
+    }
+
+    private func makeExpandedStatisticsCardViewController(size: CGSize) throws -> QuizViewController {
+        let attempts = Array(repeating: (correctAnswers: 5, totalQuestions: 5), count: 10)
+            + Array(repeating: (correctAnswers: 1, totalQuestions: 5), count: 24)
+            + Array(repeating: (correctAnswers: 0, totalQuestions: 5), count: 19)
+        let viewController = makeHomeViewController(
+            themes: [makeExpandedCardTheme()],
+            statisticsAttempts: attempts,
+            cardDeviceParallaxEnabledProvider: { false }
+        )
+        viewController.loadViewIfNeeded()
+        viewController.view.frame = CGRect(origin: .zero, size: size)
+        viewController.view.setNeedsLayout()
+        viewController.view.layoutIfNeeded()
+
+        let collectionView = try XCTUnwrap(
+            viewController.view.snapshotDescendant(
+                withAccessibilityIdentifier: "homeThemesCollectionView"
+            ) as? UICollectionView
+        )
+        collectionView.layoutIfNeeded()
+        let statisticsButton = try XCTUnwrap(
+            viewController.view.snapshotDescendant(
+                withAccessibilityIdentifier: "homeStatisticsCard"
+            ) as? UIButton
+        )
+        statisticsButton.sendActions(for: .touchUpInside)
+        drainHomeCardAnimations()
+        viewController.view.setNeedsLayout()
+        viewController.view.layoutIfNeeded()
+        _ = try XCTUnwrap(
+            viewController.view.snapshotDescendant(
+                withAccessibilityIdentifier: "homeExpandedStatisticsCard"
+            )
+        )
+        return viewController
     }
 
     private func makeExpandedThemeCardViewController(
@@ -553,40 +561,6 @@ final class ScreenSnapshotTests: XCTestCase {
         return viewController
     }
 
-    private func makeStatisticsViewController() -> StatisticsViewController {
-        let suiteName = "ScreenSnapshotTests.adaptive.\(UUID().uuidString)"
-        defaultsSuiteNames.append(suiteName)
-        let defaults = UserDefaults(suiteName: suiteName)!
-        defaults.removePersistentDomain(forName: suiteName)
-        let store = StatisticsStore(userDefaults: defaults, key: "attempts")
-        store.recordAttempt(correctAnswers: 4, totalQuestions: 5)
-        store.recordAttempt(correctAnswers: 8, totalQuestions: 10)
-        let viewController = StatisticsViewController(statisticsStore: store)
-        viewController.loadViewIfNeeded()
-        viewController.viewWillAppear(false)
-        return viewController
-    }
-
-    private func makeLargeHistoryStatisticsViewController() -> StatisticsViewController {
-        let suiteName = "ScreenSnapshotTests.large-statistics.\(UUID().uuidString)"
-        defaultsSuiteNames.append(suiteName)
-        let defaults = UserDefaults(suiteName: suiteName)!
-        defaults.removePersistentDomain(forName: suiteName)
-        let store = StatisticsStore(userDefaults: defaults, key: "attempts")
-        for _ in 0..<10 {
-            store.recordAttempt(correctAnswers: 5, totalQuestions: 5)
-        }
-        for _ in 0..<24 {
-            store.recordAttempt(correctAnswers: 1, totalQuestions: 5)
-        }
-        for _ in 0..<19 {
-            store.recordAttempt(correctAnswers: 0, totalQuestions: 5)
-        }
-        let viewController = StatisticsViewController(statisticsStore: store)
-        viewController.loadViewIfNeeded()
-        viewController.viewWillAppear(false)
-        return viewController
-    }
 }
 
 @MainActor

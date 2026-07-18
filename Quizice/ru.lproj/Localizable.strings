@@ -9,9 +9,7 @@
 "home.background_style.grid_4x4" = "Сетка 4×4";
 "home.background_style.grid_5x5" = "Сетка 5×5";
 "description.default_theme_description" = "Описание темы недоступно";
-"description.default_theme_name" = "Без темы";
 "description.question_count" = "Количество вопросов";
-"description.ai_question_count_fixed" = "Количество задано при создании квиза и не может быть изменено";
 "ai_theme.difficulty" = "Сложность";
 "ai_theme.difficulty.easy" = "Лёгкая";
 "ai_theme.difficulty.medium" = "Средняя";
@@ -49,7 +47,7 @@
 "home.feeling_lucky" = "Мне повезет";
 "home.feeling_lucky.accessibility_hint" = "Запускает случайную тему";
 "home.feeling_lucky.loading" = "Подбираем вопросы";
-"home.statistics.accessibility_hint" = "Открывает экран общей статистики по завершённым викторинам";
+"home.statistics.accessibility_hint" = "Открывает расширенную карточку общей статистики по завершённым викторинам";
 "home.statistics.accessibility_label" = "Общая статистика";
 "home.statistics.accessibility_value_format" = "Пройдено: %d. Точность: %d%%";
 "home.statistics.accuracy_short" = "Точность";
@@ -133,10 +131,9 @@
 "settings.section.developer" = "Разработка";
 "settings.backend.localhost" = "Локальный backend";
 "settings.backend.localhost.subtitle" = "Симулятор: localhost:8000 · нужен перезапуск";
-"statistics.accessibility_label" = "Экран общей статистики";
+"statistics.accessibility_label" = "Общая статистика";
 "statistics.best_result" = "Лучший результат";
 "statistics.correct_answers" = "Правильных ответов";
-"statistics.empty_state.accessibility_label" = "Пока нет завершённых викторин. Пройдите первую викторину, чтобы увидеть общую статистику.";
 "statistics.empty_state.text" = "Пройдите первую викторину, чтобы увидеть общую статистику. Здесь появятся сыгранные квизы, точность и лучший результат.";
 "statistics.percentage" = "Процент правильных";
 "statistics.played_quizzes" = "Пройдено викторин";
