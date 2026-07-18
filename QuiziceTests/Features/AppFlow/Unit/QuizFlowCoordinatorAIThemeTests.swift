@@ -257,6 +257,10 @@ final class QuizFlowCoordinatorAIThemeTests: QuizFlowCoordinatorTestCase {
         )
         coordinator.start()
         navigationController.topViewControllerOverride = navigationController
+        coordinator.showQuestion()
+        let questionViewController = try XCTUnwrap(
+            navigationController.presentedControllers.last as? QuizQuestionViewController
+        )
         coordinator.showResult(QuizResultState(correctAnswers: 7, totalQuestions: 10))
         let resultViewController = try XCTUnwrap(
             navigationController.presentedControllers.last as? QuizResultViewController
@@ -294,8 +298,9 @@ final class QuizFlowCoordinatorAIThemeTests: QuizFlowCoordinatorTestCase {
         try await waitUntil { session.chosenTheme?.themeID == "regenerated-ai-theme" }
         XCTAssertEqual(session.questionsCount, 10)
         XCTAssertEqual(session.chosenTheme?.aiGenerationConfiguration, configuration)
-        XCTAssertTrue(navigationController.presentedControllers.last is QuizQuestionViewController)
-        XCTAssertEqual(navigationController.dismissAnimationFlags.last, false)
+        XCTAssertEqual(questionViewController.presenter?.themeID, "regenerated-ai-theme")
+        XCTAssertEqual(navigationController.presentedControllers.count, 2)
+        XCTAssertTrue(navigationController.dismissAnimationFlags.isEmpty)
         XCTAssertTrue(replayButton.isEnabled)
         XCTAssertFalse(activityIndicator.isAnimating)
         XCTAssertTrue(progressLabel.isHidden)

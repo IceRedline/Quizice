@@ -18,15 +18,16 @@ final class QuizFlowCoordinatorNavigationTests: QuizFlowCoordinatorTestCase {
     }
 
     func testImmediateQuestionReturnExplicitlyRestoresLuckyHomeInteraction() async throws {
-        let question = QuizQuestion(
-            question: "Question?",
-            answers: ["A", "B", "C", "D"],
-            correctAnswer: "A"
-        )
         let theme = SnapshotSupport.makeTheme(
             id: "music",
             name: "Music",
-            questions: Array(repeating: question, count: 5)
+            questions: (0..<5).map { index in
+                QuizQuestion(
+                    question: "Question \(index)?",
+                    answers: ["A", "B", "C", "D"],
+                    correctAnswer: "A"
+                )
+            }
         )
         let window = UIWindow(frame: CGRect(x: 0, y: 0, width: 390, height: 844))
         let navigationController = RoutingNavigationControllerSpy()
@@ -75,7 +76,7 @@ final class QuizFlowCoordinatorNavigationTests: QuizFlowCoordinatorTestCase {
         )
     }
 
-    func testReplayPreservesSelectionAndPresentsFreshQuestionController() throws {
+    func testReplayPreservesSelectionAndReusesQuestionControllerWithoutShowingHome() throws {
         let harness = makeHarness()
         harness.coordinator.start()
         harness.navigationController.topViewControllerOverride = harness.navigationController
@@ -89,10 +90,70 @@ final class QuizFlowCoordinatorNavigationTests: QuizFlowCoordinatorTestCase {
         harness.coordinator.replayQuiz()
 
         let replayedQuestion = try XCTUnwrap(harness.navigationController.presentedControllers.last as? QuizQuestionViewController)
-        XCTAssertFalse(firstQuestion === replayedQuestion)
+        XCTAssertTrue(firstQuestion === replayedQuestion)
+        XCTAssertEqual(harness.navigationController.presentedControllers.count, 1)
         XCTAssertEqual(session.chosenTheme?.themeID, selectedThemeID)
         XCTAssertEqual(session.questionsCount, 10)
-        XCTAssertEqual(harness.navigationController.dismissAnimationFlags.last, false)
+        XCTAssertTrue(harness.navigationController.dismissAnimationFlags.isEmpty)
+    }
+
+    func testRandomSelectionReplayChoosesAChangedFiveQuestionSetFromTheFullCatalog() throws {
+        let catalogQuestions = (0..<8).map { index in
+            QuizQuestion(
+                question: "Catalog question \(index)?",
+                answers: ["A", "B", "C", "D"],
+                correctAnswer: "A"
+            )
+        }
+        let catalogTheme = SnapshotSupport.makeTheme(
+            id: "catalog",
+            name: "Catalog",
+            questions: catalogQuestions
+        )
+        let initialRandomTheme = try XCTUnwrap(
+            RandomQuizSelection.makeTheme(
+                from: [catalogTheme],
+                title: L10n.Home.randomSelection,
+                description: L10n.Home.feelingLucky,
+                randomizing: { $0 }
+            )
+        )
+        let initialQuestionTexts = initialRandomTheme.questions.map(\.question)
+        let window = UIWindow(frame: CGRect(x: 0, y: 0, width: 390, height: 844))
+        let navigationController = RoutingNavigationControllerSpy()
+        let repository = RoutingThemeRepository(themes: [catalogTheme])
+        let session = RoutingSession()
+        session.chosenTheme = ThemeModel(quizTheme: initialRandomTheme)
+        session.questionsCount = RandomQuizSelection.questionCount
+        let coordinator = QuizFlowCoordinator(
+            window: window,
+            navigationController: navigationController,
+            themeRepository: repository,
+            session: session,
+            aiQuizThemeService: MockAIQuizThemeService(),
+            randomQuestionsProvider: { $0 }
+        )
+        coordinator.start()
+        navigationController.topViewControllerOverride = navigationController
+        coordinator.showQuestion()
+        let questionViewController = try XCTUnwrap(
+            navigationController.presentedControllers.last as? QuizQuestionViewController
+        )
+
+        coordinator.replayQuiz()
+
+        let replayedTheme = try XCTUnwrap(session.chosenTheme)
+        let replayedQuestionTexts = replayedTheme.quizTheme.questions.map(\.question)
+        XCTAssertEqual(replayedTheme.themeID, RandomQuizSelection.themeID)
+        XCTAssertEqual(replayedTheme.themeName, L10n.Home.randomSelection)
+        XCTAssertEqual(replayedQuestionTexts.count, RandomQuizSelection.questionCount)
+        XCTAssertNotEqual(replayedQuestionTexts, initialQuestionTexts)
+        XCTAssertTrue(replayedQuestionTexts.contains("Catalog question 5?"))
+        XCTAssertTrue(replayedQuestionTexts.contains("Catalog question 6?"))
+        XCTAssertTrue(replayedQuestionTexts.contains("Catalog question 7?"))
+        XCTAssertEqual(session.questionsCount, RandomQuizSelection.questionCount)
+        XCTAssertTrue(navigationController.presentedControllers.last === questionViewController)
+        XCTAssertEqual(navigationController.presentedControllers.count, 1)
     }
 
     func testReturnToThemesReachesNavigationRoot() {

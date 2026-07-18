@@ -33,8 +33,10 @@ final class QuizFlowCoordinator: NSObject, QuizRouting, UIViewControllerTransiti
     private let session: QuizSessionManaging
     private let aiQuizThemeService: AIQuizThemeServiceProtocol
     private let analytics: AnalyticsTracking
+    private let randomQuestionsProvider: ([QuizQuestion]) -> [QuizQuestion]
     private let cardSlideTransitionAnimator = QuizCardSlidePresentationAnimator()
     private let aiReplayAlertPresenter = QuizAlertPresenter()
+    private weak var activeQuestionViewController: QuizQuestionViewController?
     private weak var resultViewController: QuizResultViewController?
     private var aiReplayTask: Task<Void, Never>?
     private var aiReplayProgressTask: Task<Void, Never>?
@@ -45,7 +47,8 @@ final class QuizFlowCoordinator: NSObject, QuizRouting, UIViewControllerTransiti
         themeRepository: ThemeRepository = QuizFactory.shared,
         session: QuizSessionManaging = QuizSessionStore.shared,
         aiQuizThemeService: AIQuizThemeServiceProtocol? = nil,
-        analytics: AnalyticsTracking = AppMetricaAnalyticsTracker.shared
+        analytics: AnalyticsTracking = AppMetricaAnalyticsTracker.shared,
+        randomQuestionsProvider: @escaping ([QuizQuestion]) -> [QuizQuestion] = { $0.shuffled() }
     ) {
         self.window = window
         self.navigationController = navigationController
@@ -53,6 +56,7 @@ final class QuizFlowCoordinator: NSObject, QuizRouting, UIViewControllerTransiti
         self.session = session
         self.aiQuizThemeService = aiQuizThemeService ?? Self.makeDefaultAIQuizThemeService()
         self.analytics = analytics
+        self.randomQuestionsProvider = randomQuestionsProvider
         super.init()
     }
 
@@ -66,7 +70,8 @@ final class QuizFlowCoordinator: NSObject, QuizRouting, UIViewControllerTransiti
             themeRepository: themeRepository,
             session: session,
             aiQuizThemeService: aiQuizThemeService,
-            analytics: analytics
+            analytics: analytics,
+            randomQuestionsProvider: randomQuestionsProvider
         )
         viewController.router = self
         navigationController.setNavigationBarHidden(true, animated: false)
@@ -81,6 +86,7 @@ final class QuizFlowCoordinator: NSObject, QuizRouting, UIViewControllerTransiti
         viewController.configurePresenter(
             QuizQuestionPresenter(session: session, analytics: analytics)
         )
+        activeQuestionViewController = viewController
         guard let presentingViewController = navigationController.topViewController else { return }
         presentWithCardSlide(viewController, from: presentingViewController)
     }
@@ -115,6 +121,10 @@ final class QuizFlowCoordinator: NSObject, QuizRouting, UIViewControllerTransiti
 
     func replayQuiz() {
         guard aiReplayTask == nil else { return }
+        if replayRandomSelectionQuiz() {
+            presentFreshQuestionController()
+            return
+        }
         guard let configuration = session.chosenTheme?.aiGenerationConfiguration else {
             presentFreshQuestionController()
             return
@@ -170,6 +180,24 @@ final class QuizFlowCoordinator: NSObject, QuizRouting, UIViewControllerTransiti
         }
     }
 
+    private func replayRandomSelectionQuiz() -> Bool {
+        guard
+            let previousTheme = session.chosenTheme,
+            previousTheme.themeID == RandomQuizSelection.themeID,
+            let randomSelectionTheme = RandomQuizSelection.makeTheme(
+                from: themeRepository.themes ?? themeRepository.fetchQuizThemes(),
+                excluding: previousTheme.quizTheme.questions,
+                title: L10n.Home.randomSelection,
+                description: L10n.Home.feelingLucky,
+                randomizing: randomQuestionsProvider
+            )
+        else { return false }
+
+        session.chosenTheme = ThemeModel(quizTheme: randomSelectionTheme)
+        session.questionsCount = RandomQuizSelection.questionCount
+        return true
+    }
+
     private func startAIReplayProgressUpdates() {
         aiReplayProgressTask?.cancel()
         aiReplayProgressTask = Task { @MainActor [weak self] in
@@ -196,6 +224,16 @@ final class QuizFlowCoordinator: NSObject, QuizRouting, UIViewControllerTransiti
     }
 
     private func presentFreshQuestionController() {
+        if let activeQuestionViewController {
+            activeQuestionViewController.prepareForReplay(
+                QuizQuestionPresenter(session: session, analytics: analytics)
+            )
+            let replayResultViewController = resultViewController
+            resultViewController = nil
+            replayResultViewController?.dismiss(animated: false)
+            return
+        }
+
         navigationController.dismiss(animated: false) { [weak self] in
             self?.showQuestion()
         }

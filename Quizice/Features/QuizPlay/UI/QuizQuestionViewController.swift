@@ -267,6 +267,32 @@ final class QuizQuestionViewController: BaseQuizViewController, QuizQuestionView
         self.presenter?.view = self
     }
 
+    func prepareForReplay(_ presenter: QuizQuestionPresenterProtocol) {
+        loadViewIfNeeded()
+        self.presenter?.stopTimer()
+        exitAlertPresenter.dismiss()
+        activeExitAlertID = nil
+        outgoingQuestionCardSnapshot?.removeFromSuperview()
+        outgoingQuestionCardSnapshot = nil
+        isQuestionTransitionInProgress = false
+        hasLoadedQuestion = false
+        currentAnswerOptions = []
+
+        questionCardView?.layer.removeAllAnimations()
+        questionCardView?.transform = .identity
+        questionCardView?.isUserInteractionEnabled = true
+        questionChromeViews.forEach { view in
+            view.layer.removeAllAnimations()
+            view.alpha = 1
+            view.transform = .identity
+        }
+
+        configurePresenter(presenter)
+        presenter.viewDidLoad()
+        applyAppearance()
+        view.layoutIfNeeded()
+    }
+
     override func applyAppearance() {
         guard isViewLoaded else { return }
         let appearance = currentAppearance()

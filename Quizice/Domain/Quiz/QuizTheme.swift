@@ -44,6 +44,60 @@ class QuizTheme {
     }
 }
 
+enum RandomQuizSelection {
+    static let themeID = "random-selection"
+    static let questionCount = 5
+
+    static func makeTheme(
+        from themes: [QuizTheme],
+        excluding previousQuestions: [QuizQuestion] = [],
+        title: String,
+        description: String,
+        randomizing: ([QuizQuestion]) -> [QuizQuestion]
+    ) -> QuizTheme? {
+        let usableQuestions = themes
+            .flatMap(\.questions)
+            .filter { question in
+                QuizQuestionCountPolicy.isUsable(QuestionModel(quizQuestion: question))
+            }
+        let usableQuestionIDs = Set(usableQuestions.map(ObjectIdentifier.init))
+        var seenQuestionIDs = Set<ObjectIdentifier>()
+        let randomizedQuestions = randomizing(usableQuestions).filter { question in
+            let identifier = ObjectIdentifier(question)
+            return usableQuestionIDs.contains(identifier) && seenQuestionIDs.insert(identifier).inserted
+        }
+
+        let previousSignatures = Set(previousQuestions.map(QuestionSignature.init))
+        let unseenQuestions = randomizedQuestions.filter {
+            !previousSignatures.contains(QuestionSignature(question: $0))
+        }
+        let repeatedQuestions = randomizedQuestions.filter {
+            previousSignatures.contains(QuestionSignature(question: $0))
+        }
+        let selectedQuestions = Array((unseenQuestions + repeatedQuestions).prefix(questionCount))
+        guard selectedQuestions.count == questionCount else { return nil }
+
+        return QuizTheme(
+            id: themeID,
+            theme: title,
+            themeDescription: description,
+            questions: selectedQuestions
+        )
+    }
+
+    private struct QuestionSignature: Hashable {
+        let question: String
+        let answers: [String]
+        let correctAnswer: String
+
+        init(question: QuizQuestion) {
+            self.question = question.question
+            answers = question.answers
+            correctAnswer = question.correctAnswer
+        }
+    }
+}
+
 struct QuizThemeDTO: Decodable {
     let id: String
     let theme: String

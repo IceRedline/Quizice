@@ -107,26 +107,18 @@ extension QuizViewController {
             return
         }
 
-        let questionCount = QuizQuestionCountPolicy.supportedCounts[0]
-        let usableQuestions = themes
-            .flatMap(\.questions)
-            .filter { question in
-                QuizQuestionCountPolicy.isUsable(QuestionModel(quizQuestion: question))
-            }
-        let selectedQuestions = Array(randomQuestionsProvider(usableQuestions).prefix(questionCount))
-        guard selectedQuestions.count == questionCount else {
+        guard let randomSelectionTheme = RandomQuizSelection.makeTheme(
+            from: themes,
+            title: L10n.Home.randomSelection,
+            description: L10n.Home.feelingLucky,
+            randomizing: randomQuestionsProvider
+        ) else {
             motivationLabel.text = L10n.Question.unavailableMessage
             return
         }
 
-        let randomSelectionTheme = QuizTheme(
-            id: "random-selection",
-            theme: L10n.Home.randomSelection,
-            themeDescription: L10n.Home.feelingLucky,
-            questions: selectedQuestions
-        )
         session.chosenTheme = ThemeModel(quizTheme: randomSelectionTheme)
-        session.questionsCount = questionCount
+        session.questionsCount = RandomQuizSelection.questionCount
         analytics.track(.themeSelected(theme: session.chosenTheme?.analyticsTheme ?? .unknown, method: .random))
         quizTransitionSourceView = sourceView
         isQuizLaunchPending = true
@@ -153,7 +145,7 @@ extension QuizViewController {
             }
 
             self.feelingLuckyTask = nil
-            self.session.questionsCount = questionCount
+            self.session.questionsCount = RandomQuizSelection.questionCount
             self.analytics.track(
                 .quizStarted(
                     theme: self.session.chosenTheme?.analyticsTheme ?? .unknown,

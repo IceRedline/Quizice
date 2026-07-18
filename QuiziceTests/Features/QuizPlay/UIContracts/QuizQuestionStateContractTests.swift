@@ -28,6 +28,43 @@ final class QuizQuestionStateContractTests: CrossScreenVisualTestCase {
         XCTAssertEqual(router.results, [QuizResultState(correctAnswers: 1, totalQuestions: 1)])
     }
 
+    func testPreparingReplayRestoresQuestionScreenWithoutReturningToHome() throws {
+        QuizFactory.shared.chosenTheme = makeQuestionTheme()
+        QuizFactory.shared.questionsCount = 1
+
+        let viewController = QuizQuestionViewController()
+        viewController.loadViewIfNeeded()
+        viewController.showResults(QuizResultState(correctAnswers: 1, totalQuestions: 1))
+
+        let replayTheme = QuizTheme(
+            id: RandomQuizSelection.themeID,
+            theme: L10n.Home.randomSelection,
+            themeDescription: L10n.Home.feelingLucky,
+            questions: [
+                QuizQuestion(
+                    question: "Новый вопрос после повтора?",
+                    answers: ["A", "B", "C", "D"],
+                    correctAnswer: "A"
+                )
+            ]
+        )
+        QuizFactory.shared.chosenTheme = ThemeModel(quizTheme: replayTheme)
+        let replayPresenter = QuizQuestionPresenter()
+
+        viewController.prepareForReplay(replayPresenter)
+        defer { replayPresenter.stopTimer() }
+
+        let themeLabel = try XCTUnwrap(
+            viewController.view.descendant(withAccessibilityIdentifier: "questionThemeLabel") as? UILabel
+        )
+        let questionLabel = try XCTUnwrap(
+            viewController.view.descendant(withAccessibilityIdentifier: "questionTextLabel") as? UILabel
+        )
+        XCTAssertEqual(themeLabel.text, L10n.Home.randomSelection)
+        XCTAssertEqual(questionLabel.text, "Новый вопрос после повтора?")
+        XCTAssertTrue(viewController.questionChromeViews.allSatisfy { $0.alpha == 1 })
+    }
+
     func testQuestionScreenUpdatesExistingCardWhenNextQuestionViewModelIsLoaded() throws {
         QuizFactory.shared.chosenTheme = makeQuestionTheme()
         QuizFactory.shared.questionsCount = 1
