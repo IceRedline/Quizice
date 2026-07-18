@@ -373,7 +373,6 @@ final class QuizResultViewController: BaseQuizViewController, QuizResultViewCont
 
     @objc private func replayButtonTapped() {
         guard replayButton.isEnabled else { return }
-        setReplayGenerationPhase(.analyzing)
         analytics.track(.quizResultAction(theme: presenter?.analyticsTheme ?? .unknown, action: .replay))
         router?.replayQuiz()
     }

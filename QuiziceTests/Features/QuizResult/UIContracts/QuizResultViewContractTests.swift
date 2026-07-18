@@ -57,8 +57,19 @@ final class QuizResultViewContractTests: CrossScreenVisualTestCase {
         let descriptionLabel = try XCTUnwrap(viewController.view.descendant(withAccessibilityIdentifier: "resultDescriptionLabel") as? UILabel)
         let replayButton = try XCTUnwrap(viewController.view.descendant(withAccessibilityIdentifier: "resultReplayButton") as? UIButton)
         let themesButton = try XCTUnwrap(viewController.view.descendant(withAccessibilityIdentifier: "resultThemesButton") as? UIButton)
+        let loadingContent = try XCTUnwrap(
+            viewController.view.descendant(withAccessibilityIdentifier: "resultReplayLoadingContent")
+        )
+        let progressLabel = try XCTUnwrap(
+            viewController.view.descendant(withAccessibilityIdentifier: "resultReplayProgressStatus") as? UILabel
+        )
 
         replayButton.sendActions(for: .touchUpInside)
+
+        XCTAssertTrue(loadingContent.isHidden)
+        XCTAssertTrue(progressLabel.isHidden)
+        XCTAssertEqual(replayButton.title(for: .normal), L10n.Result.playAgain)
+
         themesButton.sendActions(for: .touchUpInside)
 
         XCTAssertEqual(resultLabel.text, "0/0")
