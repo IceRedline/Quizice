@@ -1,5 +1,15 @@
 import Foundation
 
+struct AIQuizGenerationConfiguration: Equatable {
+    static let supportedQuestionCounts = [5, 10, 15]
+    static let maximumThemeLength = 120
+
+    let theme: String
+    let questionCount: Int
+    let difficulty: AIQuizDifficulty
+    let locale: Locale
+}
+
 enum QuizThemeSource: String, Codable {
     case catalog
     case ai
@@ -11,19 +21,22 @@ class QuizTheme {
     var themeDescription: String
     var sourceRawValue: String?
     var questions: [QuizQuestion]
+    var aiGenerationConfiguration: AIQuizGenerationConfiguration?
     
     init(
         id: String,
         theme: String,
         themeDescription: String,
         questions: [QuizQuestion],
-        source: QuizThemeSource = .catalog
+        source: QuizThemeSource = .catalog,
+        aiGenerationConfiguration: AIQuizGenerationConfiguration? = nil
     ) {
         self.id = id
         self.theme = theme
         self.themeDescription = themeDescription
         self.sourceRawValue = source.rawValue
         self.questions = questions
+        self.aiGenerationConfiguration = aiGenerationConfiguration
     }
 
     var source: QuizThemeSource {

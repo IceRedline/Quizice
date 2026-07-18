@@ -93,8 +93,7 @@ final class HomeCollectionServiceTests: HomeScreenVisualStateTestCase {
             XCTAssertEqual(imageView.image?.renderingMode, .alwaysTemplate)
             XCTAssertEqual(imageView.contentMode, .scaleAspectFit)
             assertColor(imageView.tintColor, equals: tintColor.withAlphaComponent(0.75))
-            XCTAssertEqual(imageView.transform.a, 0.70, accuracy: 0.01)
-            XCTAssertEqual(imageView.transform.d, 0.70, accuracy: 0.01)
+            XCTAssertEqual(imageView.transform, .identity)
             XCTAssertEqual(titleLabel.text, themeAsset.themeName)
             XCTAssertEqual(titleLabel.textAlignment, .center)
             XCTAssertEqual(titleLabel.numberOfLines, 2)
@@ -103,15 +102,52 @@ final class HomeCollectionServiceTests: HomeScreenVisualStateTestCase {
             assertColor(titleLabel.textColor, equals: assetColor("themeCleanSurfaceText"))
             assertColor(UIColor(cgColor: themeButton.layer.borderColor ?? UIColor.clear.cgColor), equals: tintColor.withAlphaComponent(0.75))
             XCTAssertEqual(themeButton.layer.borderWidth, 2)
-            XCTAssertGreaterThanOrEqual(imageView.bounds.height, 80)
             XCTAssertLessThan(imageView.frame.minY, titleLabel.frame.minY)
             XCTAssertLessThanOrEqual(imageView.frame.maxY, titleLabel.frame.minY)
             XCTAssertEqual(titleLabel.frame.height, 56, accuracy: 0.5)
             XCTAssertEqual(titleLabel.frame.maxY, themeCell.bounds.maxY - 6, accuracy: 0.5)
+            XCTAssertEqual(imageView.superview?.bounds.size, CGSize(width: 64, height: 64))
 
             let fittingSize = CGSize(width: titleLabel.bounds.width, height: CGFloat.greatestFiniteMagnitude)
             let requiredTitleHeight = titleLabel.sizeThatFits(fittingSize).height
             XCTAssertLessThanOrEqual(requiredTitleHeight, titleLabel.bounds.height + 0.5)
+        }
+    }
+
+    func testClassicThemeCardsUseMeaningfulTintedSFSymbols() throws {
+        useDesignStyle(.classic)
+        let themeAssets = [
+            (themeID: "music", themeName: "Музыка", symbolName: "music.note.list", fallbackSymbolName: "music.note", tintColorName: "themeMusicTint"),
+            (themeID: "technology", themeName: "Технологии", symbolName: "cpu.fill", fallbackSymbolName: "desktopcomputer", tintColorName: "themeTechnologyTint"),
+            (themeID: "history_culture", themeName: "История и культура", symbolName: "theatermasks.fill", fallbackSymbolName: "theatermasks", tintColorName: "themeCultureTint"),
+            (themeID: "politics_business", themeName: "Политика и бизнес", symbolName: "briefcase.fill", fallbackSymbolName: "building.columns.fill", tintColorName: "themePoliticsTint")
+        ]
+        QuizFactory.shared.themes = themeAssets.map { makeTheme(name: $0.themeName) }
+        let service = ThemesCollectionService()
+        let collectionView = makeCollectionView()
+
+        for (index, themeAsset) in themeAssets.enumerated() {
+            let themeCell = service.collectionView(collectionView, cellForItemAt: IndexPath(item: index, section: 0))
+            let imageView = try XCTUnwrap(
+                themeCell.contentView.descendant(
+                    withAccessibilityIdentifier: "homeThemeImageView-\(themeAsset.themeID)"
+                ) as? UIImageView
+            )
+            let expectedSymbolImage = UIImage(systemName: themeAsset.symbolName)
+                ?? UIImage(systemName: themeAsset.fallbackSymbolName)
+            let expectedImage = try XCTUnwrap(expectedSymbolImage?.withRenderingMode(.alwaysTemplate))
+            let tintColor = try XCTUnwrap(UIColor(named: themeAsset.tintColorName))
+
+            themeCell.frame = CGRect(x: 0, y: 0, width: 163, height: 163)
+            themeCell.contentView.frame = themeCell.bounds
+            themeCell.layoutIfNeeded()
+            themeCell.contentView.layoutIfNeeded()
+
+            XCTAssertEqual(imageView.image?.pngData(), expectedImage.pngData())
+            XCTAssertEqual(imageView.image?.renderingMode, .alwaysTemplate)
+            assertColor(imageView.tintColor, equals: tintColor)
+            XCTAssertEqual(imageView.superview?.bounds.size, CGSize(width: 64, height: 64))
+            XCTAssertEqual(imageView.transform, .identity)
         }
     }
 

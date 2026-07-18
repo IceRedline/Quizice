@@ -62,6 +62,7 @@ final class ExpandedAIThemeCardView: UIView, UITextViewDelegate {
         static let playButton = "expandedAIThemeCardPlayButton"
         static let backButton = "expandedAIThemeCardBackButton"
         static let promptEditor = "aiThemePromptEditor"
+        static let promptValidation = "aiThemePromptValidation"
         static let questionCountSelector = "aiThemeQuestionCountSelector"
         static let difficultySelector = "aiThemeDifficultySelector"
         static let submitButton = "aiThemeSubmitButton"
@@ -173,6 +174,7 @@ final class ExpandedAIThemeCardView: UIView, UITextViewDelegate {
     let promptContainerView = UIView()
     let promptTextView = UITextView()
     let promptPlaceholderLabel = UILabel()
+    let promptValidationLabel = UILabel()
     let closeButton = UIButton(type: .system)
     let playButton = UIButton(type: .system)
 
@@ -193,7 +195,7 @@ final class ExpandedAIThemeCardView: UIView, UITextViewDelegate {
     let progressLabel = UILabel()
     var questionCountButtons: [UIButton] = []
     var difficultyButtons: [UIButton] = []
-    var lastRenderedGenerationPhase: HomeAIGenerationPhase?
+    var lastRenderedGenerationPhase: AIQuizGenerationPhase?
 
     var configuredAppearance: AppAppearance?
     var configuredSurfaceStyle: AppSurfaceStyle?
@@ -282,6 +284,11 @@ final class ExpandedAIThemeCardView: UIView, UITextViewDelegate {
         isSubmitting = state.isSubmitting
         canRevealConfiguration = state.canRevealConfiguration
         canSubmit = state.canSubmit
+        promptValidationLabel.text = state.isPromptTooLong
+            ? L10n.AITheme.promptTooLong(maximumLength: AIQuizGenerationConfiguration.maximumThemeLength)
+            : nil
+        promptValidationLabel.isHidden = !state.isPromptTooLong
+        promptValidationLabel.accessibilityElementsHidden = !state.isPromptTooLong
 
         backTitleLabel.text = state.prompt.trimmingCharacters(in: .whitespacesAndNewlines)
         if backTitleLabel.text?.isEmpty != false {

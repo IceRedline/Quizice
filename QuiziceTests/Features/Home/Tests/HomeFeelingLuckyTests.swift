@@ -9,7 +9,7 @@ final class HomeFeelingLuckyTests: HomeScreenVisualStateTestCase {
         QuizFactory.shared.questionsCount = 15
 
         let viewController = QuizViewController(
-            randomThemeIDProvider: { _ in "music" },
+            randomQuestionsProvider: { $0 },
             feelingLuckyMinimumFeedbackDelay: {}
         )
         let router = HomeRouterSpy()
@@ -36,7 +36,7 @@ final class HomeFeelingLuckyTests: HomeScreenVisualStateTestCase {
         let analytics = HomeAnalyticsTrackingSpy()
         let viewController = QuizViewController(
             analytics: analytics,
-            randomThemeIDProvider: { _ in "music" },
+            randomQuestionsProvider: { $0 },
             feelingLuckyMinimumFeedbackDelay: {}
         )
         let router = HomeRouterSpy()
@@ -61,22 +61,21 @@ final class HomeFeelingLuckyTests: HomeScreenVisualStateTestCase {
         XCTAssertEqual(luckyEvents.map(\.name), ["theme_selected", "quiz_started"])
         guard luckyEvents.count == 2 else { return }
         XCTAssertEqual(luckyEvents[0].parameters["selection_method"] as? String, "random")
-        XCTAssertEqual(luckyEvents[0].parameters["theme_id"] as? String, "music")
-        XCTAssertEqual(luckyEvents[1].parameters["theme_id"] as? String, "music")
+        XCTAssertEqual(luckyEvents[0].parameters["theme_id"] as? String, "random-selection")
+        XCTAssertEqual(luckyEvents[1].parameters["theme_id"] as? String, "random-selection")
         XCTAssertEqual(luckyEvents[1].parameters["question_count"] as? Int, 5)
         XCTAssertEqual(router.showQuestionCallCount, 1)
     }
 
-    func testFeelingLuckyOffersOnlyThemesThatCanSupplyFiveQuestions() throws {
-        QuizFactory.shared.themes = [
-            makeTheme(name: "Музыка", questionCount: 4),
-            makeTheme(name: "Технологии", questionCount: 5)
-        ]
-        var offeredThemeIDs: [String] = []
+    func testFeelingLuckySelectsFiveQuestionsFromTheCombinedPoolAndUsesRandomSelectionTitle() throws {
+        let music = makeTheme(name: "Музыка", questionCount: 3)
+        let technology = makeTheme(name: "Технологии", questionCount: 4)
+        QuizFactory.shared.themes = [music, technology]
+        var offeredQuestions: [QuizQuestion] = []
         let viewController = QuizViewController(
-            randomThemeIDProvider: { themes in
-                offeredThemeIDs = themes.map(\.stableID)
-                return themes.first?.stableID
+            randomQuestionsProvider: { questions in
+                offeredQuestions = questions
+                return Array(questions.reversed())
             },
             feelingLuckyMinimumFeedbackDelay: {}
         )
@@ -94,8 +93,19 @@ final class HomeFeelingLuckyTests: HomeScreenVisualStateTestCase {
         luckyButton.sendActions(for: .touchUpInside)
         drainAnimations(0.01)
 
-        XCTAssertEqual(offeredThemeIDs, ["technology"])
-        XCTAssertEqual(QuizFactory.shared.chosenTheme?.themeID, "technology")
+        XCTAssertEqual(offeredQuestions.count, 7)
+        XCTAssertTrue(music.questions.allSatisfy { question in offeredQuestions.contains { $0 === question } })
+        XCTAssertTrue(technology.questions.allSatisfy { question in offeredQuestions.contains { $0 === question } })
+        let selectedTheme = try XCTUnwrap(QuizFactory.shared.chosenTheme)
+        XCTAssertEqual(selectedTheme.themeID, "random-selection")
+        XCTAssertEqual(selectedTheme.themeName, L10n.Home.randomSelection)
+        XCTAssertEqual(selectedTheme.questionsAndAnswers.count, 5)
+        XCTAssertTrue(selectedTheme.quizTheme.questions.contains { selected in
+            music.questions.contains { $0 === selected }
+        })
+        XCTAssertTrue(selectedTheme.quizTheme.questions.contains { selected in
+            technology.questions.contains { $0 === selected }
+        })
         XCTAssertEqual(QuizFactory.shared.questionsCount, 5)
         XCTAssertEqual(router.showQuestionCallCount, 1)
     }
@@ -104,7 +114,7 @@ final class HomeFeelingLuckyTests: HomeScreenVisualStateTestCase {
         QuizFactory.shared.themes = [makeTheme(name: "Музыка", questionCount: 15)]
         var releaseDelay: (() -> Void)?
         let viewController = QuizViewController(
-            randomThemeIDProvider: { _ in "music" },
+            randomQuestionsProvider: { $0 },
             feelingLuckyMinimumFeedbackDelay: {
                 await withCheckedContinuation { continuation in
                     releaseDelay = { continuation.resume() }
@@ -156,7 +166,7 @@ final class HomeFeelingLuckyTests: HomeScreenVisualStateTestCase {
         QuizFactory.shared.themes = [makeTheme(name: "Музыка", questionCount: 15)]
         var releaseDelay: (() -> Void)?
         let viewController = QuizViewController(
-            randomThemeIDProvider: { _ in "music" },
+            randomQuestionsProvider: { $0 },
             feelingLuckyMinimumFeedbackDelay: {
                 await withCheckedContinuation { continuation in
                     releaseDelay = { continuation.resume() }
@@ -209,12 +219,12 @@ final class HomeFeelingLuckyTests: HomeScreenVisualStateTestCase {
         XCTAssertFalse(progressView.isAnimating)
     }
 
-    func testFeelingLuckyRejectsProviderResultOutsideEligibleThemes() throws {
+    func testFeelingLuckyDoesNotLaunchWhenCombinedPoolHasFewerThanFiveUsableQuestions() throws {
         QuizFactory.shared.themes = [
-            makeTheme(name: "Музыка", questionCount: 4),
-            makeTheme(name: "Технологии", questionCount: 5)
+            makeTheme(name: "Музыка", questionCount: 2),
+            makeTheme(name: "Технологии", questionCount: 2)
         ]
-        let viewController = QuizViewController(randomThemeIDProvider: { _ in "music" })
+        let viewController = QuizViewController(randomQuestionsProvider: { $0 })
         let router = HomeRouterSpy()
         viewController.router = router
         let window = UIWindow(frame: CGRect(x: 0, y: 0, width: 390, height: 844))

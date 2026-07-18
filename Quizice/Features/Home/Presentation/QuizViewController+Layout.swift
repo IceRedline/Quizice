@@ -42,26 +42,13 @@ extension QuizViewController {
         motivationLabel.accessibilityIdentifier = AccessibilityID.motivationLabel
         motivationLabel.adjustsFontForContentSizeCategory = true
 
-        motivationBlurredImageView = UIImageView()
-        motivationBlurredImageView.accessibilityIdentifier = AccessibilityID.motivationBlurredImageView
-        motivationBlurredImageView.alpha = Appearance.hiddenAlpha
-        motivationBlurredImageView.contentMode = .topLeft
-        motivationBlurredImageView.isUserInteractionEnabled = false
-        motivationBlurredImageView.translatesAutoresizingMaskIntoConstraints = false
-
-        motivationContainerView.addSubview(motivationBlurredImageView)
         motivationContainerView.addSubview(motivationLabel)
 
         NSLayoutConstraint.activate([
             motivationLabel.leadingAnchor.constraint(equalTo: motivationContainerView.leadingAnchor),
             motivationLabel.trailingAnchor.constraint(equalTo: motivationContainerView.trailingAnchor),
             motivationLabel.topAnchor.constraint(equalTo: motivationContainerView.topAnchor),
-            motivationLabel.bottomAnchor.constraint(equalTo: motivationContainerView.bottomAnchor),
-
-            motivationBlurredImageView.leadingAnchor.constraint(equalTo: motivationContainerView.leadingAnchor, constant: -Layout.motivationBlurPadding),
-            motivationBlurredImageView.trailingAnchor.constraint(equalTo: motivationContainerView.trailingAnchor, constant: Layout.motivationBlurPadding),
-            motivationBlurredImageView.topAnchor.constraint(equalTo: motivationContainerView.topAnchor, constant: -Layout.motivationBlurPadding),
-            motivationBlurredImageView.bottomAnchor.constraint(equalTo: motivationContainerView.bottomAnchor, constant: Layout.motivationBlurPadding)
+            motivationLabel.bottomAnchor.constraint(equalTo: motivationContainerView.bottomAnchor)
         ])
     }
 
@@ -206,7 +193,6 @@ extension QuizViewController {
     func updateCollectionTopInset() {
         let oldTopInset = themesCollectionView.contentInset.top
         let topInset = headerStackView.bounds.height + Layout.screenTopInset + Layout.headerToCollectionSpacing
-        refreshMotivationBlurredTextIfNeeded()
         guard abs(oldTopInset - topInset) > Layout.scrollActivationTolerance else { return }
 
         let contentOffsetFromTopInset = themesCollectionView.contentOffset.y + oldTopInset
@@ -222,76 +208,8 @@ extension QuizViewController {
         let scrolledDistance = max(scrollView.contentOffset.y + scrollView.adjustedContentInset.top, .zero)
         let progress = min(scrolledDistance / Layout.motivationFadeDistance, 1)
         let alpha = 1 - progress
-        let blurInProgress = min(scrolledDistance / Layout.motivationBlurRampDistance, 1)
-        let blurOutDistance = Layout.motivationFadeDistance - Layout.motivationBlurHoldDistance
-        let blurOutProgress = max(min((scrolledDistance - Layout.motivationBlurHoldDistance) / blurOutDistance, 1), 0)
 
         motivationLabel.alpha = alpha
-        motivationBlurredImageView.alpha = Appearance.motivationBlurMaxAlpha * blurInProgress * (1 - blurOutProgress)
-    }
-
-    func invalidateMotivationBlurredText() {
-        motivationBlurSnapshotSignature = nil
-        motivationBlurredImageView?.image = nil
-    }
-
-    func refreshMotivationBlurredTextIfNeeded() {
-        guard motivationLabel.bounds.width > .zero, motivationLabel.bounds.height > .zero else { return }
-
-        let signature = [
-            motivationLabel.text ?? "",
-            motivationLabel.font.fontName,
-            "\(motivationLabel.font.pointSize)",
-            String(describing: motivationLabel.textColor),
-            "\(motivationLabel.bounds.size.width)",
-            "\(motivationLabel.bounds.size.height)",
-            "\(Layout.motivationBlurPadding)"
-        ].joined(separator: "|")
-
-        guard motivationBlurSnapshotSignature != signature else { return }
-        motivationBlurSnapshotSignature = signature
-        motivationBlurredImageView.image = makeBlurredMotivationTextImage()
-    }
-
-    func makeBlurredMotivationTextImage() -> UIImage? {
-        let padding = Layout.motivationBlurPadding
-        let bounds = CGRect(
-            origin: .zero,
-            size: CGSize(
-                width: motivationLabel.bounds.width + padding * 2,
-                height: motivationLabel.bounds.height + padding * 2
-            )
-        )
-        let format = UIGraphicsImageRendererFormat()
-        format.scale = UIScreen.main.scale
-        format.opaque = false
-
-        let sourceImage = UIGraphicsImageRenderer(bounds: bounds, format: format).image { context in
-            context.cgContext.translateBy(x: padding, y: padding)
-            motivationLabel.layer.render(in: context.cgContext)
-        }
-
-        guard
-            let inputImage = CIImage(image: sourceImage),
-            let clampFilter = CIFilter(name: "CIAffineClamp"),
-            let blurFilter = CIFilter(name: "CIGaussianBlur")
-        else {
-            return sourceImage
-        }
-
-        clampFilter.setValue(inputImage, forKey: kCIInputImageKey)
-        clampFilter.setValue(CGAffineTransform.identity, forKey: kCIInputTransformKey)
-        blurFilter.setValue(clampFilter.outputImage, forKey: kCIInputImageKey)
-        blurFilter.setValue(Layout.motivationBlurRadius, forKey: kCIInputRadiusKey)
-
-        guard
-            let outputImage = blurFilter.outputImage?.cropped(to: inputImage.extent),
-            let cgImage = motivationBlurContext.createCGImage(outputImage, from: inputImage.extent)
-        else {
-            return sourceImage
-        }
-
-        return UIImage(cgImage: cgImage, scale: sourceImage.scale, orientation: sourceImage.imageOrientation)
     }
 
     func animateStartupViews() {

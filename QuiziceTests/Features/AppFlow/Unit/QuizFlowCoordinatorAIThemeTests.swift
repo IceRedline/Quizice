@@ -87,6 +87,10 @@ final class QuizFlowCoordinatorAIThemeTests: QuizFlowCoordinatorTestCase {
         XCTAssertEqual(harness.analytics.quizStartedCount, 1)
         XCTAssertEqual(harness.session.chosenTheme?.themeID, generatedTheme.stableID)
         XCTAssertTrue(harness.session.chosenTheme?.isAIGenerated == true)
+        XCTAssertEqual(
+            harness.session.chosenTheme?.aiGenerationConfiguration,
+            service.generatedConfigurations.first
+        )
         XCTAssertEqual(harness.session.questionsCount, 10)
         XCTAssertEqual(controls.card.accessibilityIdentifier, "homeExpandedAIThemeCard")
         let snapshot = try XCTUnwrap(routeSnapshot)
@@ -227,6 +231,74 @@ final class QuizFlowCoordinatorAIThemeTests: QuizFlowCoordinatorTestCase {
                 accessibilityIdentifier: "homeExpandedAIThemeCard"
             )
         )
+    }
+
+    func testReplayRegeneratesAIQuizWithOriginalConfigurationAndIsSingleFlight() async throws {
+        let service = ControllableRoutingAIQuizThemeService()
+        let window = UIWindow(frame: CGRect(x: 0, y: 0, width: 390, height: 844))
+        let navigationController = RoutingNavigationControllerSpy()
+        let session = RoutingSession()
+        let configuration = AIQuizGenerationConfiguration(
+            theme: "История космоса",
+            questionCount: 10,
+            difficulty: .hard,
+            locale: Locale(identifier: "ru_RU")
+        )
+        let originalTheme = makeGeneratedAITheme(questionCount: 10, id: "original-ai-theme")
+        originalTheme.aiGenerationConfiguration = configuration
+        session.chosenTheme = ThemeModel(quizTheme: originalTheme)
+        session.questionsCount = configuration.questionCount
+        let coordinator = QuizFlowCoordinator(
+            window: window,
+            navigationController: navigationController,
+            themeRepository: RoutingThemeRepository(themes: []),
+            session: session,
+            aiQuizThemeService: service
+        )
+        coordinator.start()
+        navigationController.topViewControllerOverride = navigationController
+        coordinator.showResult(QuizResultState(correctAnswers: 7, totalQuestions: 10))
+        let resultViewController = try XCTUnwrap(
+            navigationController.presentedControllers.last as? QuizResultViewController
+        )
+        resultViewController.loadViewIfNeeded()
+
+        coordinator.replayQuiz()
+        coordinator.replayQuiz()
+
+        try await waitUntil { service.generatedConfigurations.count == 1 }
+        XCTAssertEqual(service.generatedConfigurations, [configuration])
+        XCTAssertEqual(session.chosenTheme?.themeID, "original-ai-theme")
+        let replayButton = try XCTUnwrap(
+            resultViewController.view.descendant(
+                withAccessibilityIdentifier: "resultReplayButton"
+            ) as? UIButton
+        )
+        let activityIndicator = try XCTUnwrap(
+            resultViewController.view.descendant(
+                withAccessibilityIdentifier: "resultReplayActivityIndicator"
+            ) as? UIActivityIndicatorView
+        )
+        let progressLabel = try XCTUnwrap(
+            resultViewController.view.descendant(
+                withAccessibilityIdentifier: "resultReplayProgressStatus"
+            ) as? UILabel
+        )
+        XCTAssertFalse(replayButton.isEnabled)
+        XCTAssertTrue(activityIndicator.isAnimating)
+        XCTAssertEqual(progressLabel.text, AIQuizGenerationPhase.analyzing.title)
+
+        let regeneratedTheme = makeGeneratedAITheme(questionCount: 10, id: "regenerated-ai-theme")
+        service.resolveNext(with: .success(regeneratedTheme))
+
+        try await waitUntil { session.chosenTheme?.themeID == "regenerated-ai-theme" }
+        XCTAssertEqual(session.questionsCount, 10)
+        XCTAssertEqual(session.chosenTheme?.aiGenerationConfiguration, configuration)
+        XCTAssertTrue(navigationController.presentedControllers.last is QuizQuestionViewController)
+        XCTAssertEqual(navigationController.dismissAnimationFlags.last, false)
+        XCTAssertTrue(replayButton.isEnabled)
+        XCTAssertFalse(activityIndicator.isAnimating)
+        XCTAssertTrue(progressLabel.isHidden)
     }
 }
 

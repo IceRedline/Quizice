@@ -37,6 +37,11 @@ extension ExpandedAIThemeCardView {
             weight: .regular
         )
         promptPlaceholderLabel.textColor = appearance.secondarySurfaceTextColor
+        promptValidationLabel.font = appearance.typography.font(
+            size: Typography.progressSize,
+            weight: .medium
+        )
+        promptValidationLabel.textColor = appearance.destructiveColor
         promptContainerView.applySurfaceStyle(appearance.row)
 
         backTitleLabel.font = appearance.typography.font(
@@ -207,6 +212,15 @@ extension ExpandedAIThemeCardView {
         canRevealConfiguration = !textView.text
             .trimmingCharacters(in: .whitespacesAndNewlines)
             .isEmpty
+        let isPromptTooLong = textView.text
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+            .count > AIQuizGenerationConfiguration.maximumThemeLength
+        promptValidationLabel.text = isPromptTooLong
+            ? L10n.AITheme.promptTooLong(maximumLength: AIQuizGenerationConfiguration.maximumThemeLength)
+            : nil
+        promptValidationLabel.isHidden = !isPromptTooLong
+        promptValidationLabel.accessibilityElementsHidden = !isPromptTooLong
+        canRevealConfiguration = canRevealConfiguration && !isPromptTooLong
         canSubmit = canRevealConfiguration && !isSubmitting
         renderControls()
         onPromptChanged?(textView.text)

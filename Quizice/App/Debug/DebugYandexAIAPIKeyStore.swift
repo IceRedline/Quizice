@@ -26,6 +26,20 @@ enum DebugYandexAIAPIKeyStore {
         return storedValue
     }
 
+    static func removeRejectedAPIKey() {
+        let query: [CFString: Any] = [
+            kSecClass: kSecClassGenericPassword,
+            kSecAttrService: service,
+            kSecAttrAccount: account
+        ]
+        let status = SecItemDelete(query as CFDictionary)
+        guard status != errSecSuccess, status != errSecItemNotFound else {
+            AppLog.quiz.info("Rejected Yandex AI API key removed from Debug Keychain")
+            return
+        }
+        AppLog.quiz.error("Failed to remove rejected Yandex AI API key from Debug Keychain: status=\(status, privacy: .public)")
+    }
+
     private static func save(_ value: String) {
         let query: [CFString: Any] = [
             kSecClass: kSecClassGenericPassword,

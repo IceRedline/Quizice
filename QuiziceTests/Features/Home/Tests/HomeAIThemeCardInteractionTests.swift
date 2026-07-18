@@ -127,6 +127,7 @@ final class HomeAIThemeCardInteractionTests: HomeScreenVisualStateTestCase {
                 withAccessibilityIdentifier: "homeExpandedAIThemeCard"
             )
         )
+        let cardView = try XCTUnwrap(card as? ExpandedAIThemeCardView)
         let promptEditor = try XCTUnwrap(
             card.descendant(withAccessibilityIdentifier: "aiThemePromptEditor") as? UITextView
         )
@@ -147,6 +148,8 @@ final class HomeAIThemeCardInteractionTests: HomeScreenVisualStateTestCase {
         XCTAssertTrue(backView.isHidden)
         XCTAssertFalse(promptEditor.isFirstResponder)
         XCTAssertFalse(promptEditor.isScrollEnabled)
+        XCTAssertEqual(cardView.backTitleLabel.numberOfLines, 2)
+        XCTAssertEqual(cardView.backTitleLabel.lineBreakMode, .byTruncatingTail)
 
         promptEditor.text = " \n\t "
         promptEditor.delegate?.textViewDidChange?(promptEditor)
@@ -156,6 +159,29 @@ final class HomeAIThemeCardInteractionTests: HomeScreenVisualStateTestCase {
         promptEditor.text = "  Космос  \n"
         promptEditor.delegate?.textViewDidChange?(promptEditor)
 
+        XCTAssertTrue(playButton.isEnabled)
+
+        promptEditor.text = String(
+            repeating: "Очень длинная тема ",
+            count: 10
+        )
+        promptEditor.delegate?.textViewDidChange?(promptEditor)
+
+        let validationLabel = try XCTUnwrap(
+            card.descendant(withAccessibilityIdentifier: "aiThemePromptValidation") as? UILabel
+        )
+        XCTAssertFalse(validationLabel.isHidden)
+        XCTAssertEqual(
+            validationLabel.text,
+            L10n.AITheme.promptTooLong(
+                maximumLength: AIQuizGenerationConfiguration.maximumThemeLength
+            )
+        )
+        XCTAssertFalse(playButton.isEnabled)
+
+        promptEditor.text = "  Космос  \n"
+        promptEditor.delegate?.textViewDidChange?(promptEditor)
+        XCTAssertTrue(validationLabel.isHidden)
         XCTAssertTrue(playButton.isEnabled)
 
         playButton.sendActions(for: .touchUpInside)
