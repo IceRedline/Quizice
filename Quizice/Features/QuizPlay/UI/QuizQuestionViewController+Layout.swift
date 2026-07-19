@@ -27,6 +27,24 @@ func configureProgrammaticSubviews(in rootView: UIView) {
         
         questionNumberLabel = makeLabel(font: typography.font(size: Typography.questionNumberFontSize, weight: .medium))
         questionNumberLabel.accessibilityIdentifier = AccessibilityID.questionNumberLabel
+
+#if DEBUG
+        debugQuestionSourceLabel = UILabel()
+        debugQuestionSourceLabel.accessibilityIdentifier = AccessibilityID.backendQuestionSource
+        debugQuestionSourceLabel.font = .monospacedSystemFont(
+            ofSize: Typography.backendSourceFontSize,
+            weight: .bold
+        )
+        debugQuestionSourceLabel.textColor = .white
+        debugQuestionSourceLabel.textAlignment = .center
+        debugQuestionSourceLabel.layer.cornerRadius = 9
+        debugQuestionSourceLabel.clipsToBounds = true
+        debugQuestionSourceLabel.translatesAutoresizingMaskIntoConstraints = false
+        debugQuestionSourceLabel.isHidden = !DebugBackendSettings.shouldShowSourceIndicators
+        debugQuestionSourceLabel.setContentHuggingPriority(.required, for: .horizontal)
+        debugQuestionSourceLabel.setContentCompressionResistancePriority(.required, for: .horizontal)
+        updateDebugQuestionSourceIndicator()
+#endif
     }
     
     func configureQuestionCard() {
@@ -114,7 +132,11 @@ func configureProgrammaticSubviews(in rootView: UIView) {
         scrollView.alwaysBounceVertical = false
         scrollView.translatesAutoresizingMaskIntoConstraints = false
 
-        [themeNameLabel, questionNumberLabel, closeButton, scrollView, nextButton].forEach(rootView.addSubview)
+        var rootSubviews: [UIView] = [themeNameLabel, questionNumberLabel, closeButton, scrollView, nextButton]
+#if DEBUG
+        rootSubviews.append(debugQuestionSourceLabel)
+#endif
+        rootSubviews.forEach(rootView.addSubview)
         scrollView.addSubview(questionCardView)
         [timerContainerView, questionLabel, answersStackView].forEach(questionCardView.addSubview)
         timerContainerView.addSubview(timerBar)
@@ -125,11 +147,20 @@ func configureProgrammaticSubviews(in rootView: UIView) {
     }
     
     func activateLayoutConstraints(in rootView: UIView) {
-        NSLayoutConstraint.activate([
+        var debugSourceConstraints: [NSLayoutConstraint] = []
+#if DEBUG
+        debugSourceConstraints = [
+            debugQuestionSourceLabel.centerYAnchor.constraint(equalTo: themeNameLabel.centerYAnchor),
+            debugQuestionSourceLabel.leadingAnchor.constraint(equalTo: rootView.leadingAnchor, constant: 8),
+            debugQuestionSourceLabel.widthAnchor.constraint(greaterThanOrEqualToConstant: 54),
+            debugQuestionSourceLabel.heightAnchor.constraint(equalToConstant: 20)
+        ]
+#endif
+
+        let constraints = [
             themeNameLabel.topAnchor.constraint(equalTo: rootView.safeAreaLayoutGuide.topAnchor, constant: Layout.topInset),
             themeNameLabel.leadingAnchor.constraint(equalTo: rootView.leadingAnchor, constant: Layout.rootHorizontalInset + Layout.closeButtonSize),
             themeNameLabel.trailingAnchor.constraint(equalTo: rootView.trailingAnchor, constant: -(Layout.rootHorizontalInset + Layout.closeButtonSize)),
-
             closeButton.centerYAnchor.constraint(equalTo: themeNameLabel.centerYAnchor),
             closeButton.trailingAnchor.constraint(equalTo: rootView.trailingAnchor, constant: -Layout.closeButtonTrailingInset),
             closeButton.widthAnchor.constraint(equalToConstant: Layout.closeButtonSize),
@@ -186,7 +217,8 @@ func configureProgrammaticSubviews(in rootView: UIView) {
             nextButton.widthAnchor.constraint(equalToConstant: Layout.actionButtonWidth),
             nextButton.heightAnchor.constraint(greaterThanOrEqualToConstant: Layout.primaryActionButtonHeight),
             nextButton.bottomAnchor.constraint(equalTo: rootView.safeAreaLayoutGuide.bottomAnchor, constant: -Layout.bottomMaximumInset)
-        ])
+        ]
+        NSLayoutConstraint.activate(constraints + debugSourceConstraints)
 
         let cardWidthConstraint = questionCardView.widthAnchor.constraint(
             equalTo: scrollView.frameLayoutGuide.widthAnchor,

@@ -13,6 +13,9 @@ final class BackendClientTests: XCTestCase {
         BackendTestURLProtocol.requestHandler = { request in
             XCTAssertEqual(request.url?.path, "/api/v1/themes")
             XCTAssertEqual(request.url?.query, "locale=ru")
+#if DEBUG
+            XCTAssertEqual(request.cachePolicy, .reloadIgnoringLocalCacheData)
+#endif
             let body = Data(
                 #"{"locale":"ru","themes":[{"id":"music","name":"Музыка","description":"Описание"}]}"#.utf8
             )
@@ -118,6 +121,7 @@ final class BackendClientTests: XCTestCase {
         XCTAssertEqual(prepared.stableID, "music")
         XCTAssertEqual(prepared.questions.count, 5)
         XCTAssertTrue(prepared.questions.allSatisfy { $0.question.hasPrefix("Local") })
+        XCTAssertEqual(prepared.questionOrigin, .bundled)
     }
 
     func testEachQuizPreparationUsesANewLowercaseUUIDSeed() async throws {
@@ -126,13 +130,29 @@ final class BackendClientTests: XCTestCase {
         repository.themes = [Self.localTheme(questionCount: 15)]
         let locale = AppLocalizationStore.shared.resolvedLanguageCode
 
-        _ = try await repository.prepareQuiz(themeID: "music", questionCount: 5, locale: locale)
+        let prepared = try await repository.prepareQuiz(themeID: "music", questionCount: 5, locale: locale)
         _ = try await repository.prepareQuiz(themeID: "music", questionCount: 5, locale: locale)
 
+        XCTAssertEqual(prepared.questionOrigin, .backend)
         XCTAssertEqual(backend.seeds.count, 2)
         XCTAssertNotEqual(backend.seeds[0], backend.seeds[1])
         XCTAssertTrue(backend.seeds.allSatisfy { UUID(uuidString: $0) != nil })
         XCTAssertTrue(backend.seeds.allSatisfy { $0 == $0.lowercased() })
+    }
+
+    func testCatalogOriginRemainsBackendWhenSubsequentRefreshFails() async {
+        let backend = SequencedCatalogBackendContentAPI()
+        let repository = ThemeCatalogRepository(backendContentAPI: backend)
+        repository.themes = [Self.localTheme(questionCount: 15)]
+        let locale = AppLocalizationStore.shared.resolvedLanguageCode
+
+        let firstRefreshSucceeded = await repository.refreshBackendCatalog(locale: locale)
+        let secondRefreshSucceeded = await repository.refreshBackendCatalog(locale: locale)
+
+        XCTAssertTrue(firstRefreshSucceeded)
+        XCTAssertFalse(secondRefreshSucceeded)
+        XCTAssertEqual(repository.catalogOrigin, .backend)
+        XCTAssertEqual(repository.themes?.first?.theme, "Remote Music")
     }
 
     func testBackendAIRejectsGuestBeforeCreatingNetworkRequest() async {
@@ -537,6 +557,7 @@ final class BackendClientTests: XCTestCase {
         XCTAssertEqual(theme.id, "ai-generated-id")
         XCTAssertEqual(theme.questions.count, 5)
         XCTAssertEqual(theme.aiGenerationConfiguration, Self.aiConfiguration)
+        XCTAssertEqual(theme.questionOrigin, .backend)
     }
 
     private func makeContentAPI(
@@ -784,5 +805,33 @@ private final class RecordingBackendContentAPI: BackendContentAPI {
                 )
             }
         )
+    }
+}
+
+private final class SequencedCatalogBackendContentAPI: BackendContentAPI {
+    private var fetchCount = 0
+
+    func fetchThemes(locale: String) async throws -> BackendThemeCatalogResponse {
+        defer { fetchCount += 1 }
+        guard fetchCount == 0 else { throw URLError(.timedOut) }
+        return BackendThemeCatalogResponse(
+            locale: locale,
+            themes: [
+                BackendThemeDTO(
+                    id: "music",
+                    name: "Remote Music",
+                    description: "Remote Description"
+                )
+            ]
+        )
+    }
+
+    func fetchQuestions(
+        themeID: String,
+        count: Int,
+        locale: String,
+        seed: String
+    ) async throws -> BackendQuestionBatchResponse {
+        throw URLError(.unsupportedURL)
     }
 }

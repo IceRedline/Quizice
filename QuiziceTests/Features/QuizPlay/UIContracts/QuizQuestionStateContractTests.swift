@@ -34,6 +34,9 @@ final class QuizQuestionStateContractTests: CrossScreenVisualTestCase {
 
         let viewController = QuizQuestionViewController()
         viewController.loadViewIfNeeded()
+#if DEBUG
+        XCTAssertEqual(viewController.debugQuestionSourceLabel.text, "LOCAL")
+#endif
         viewController.showResults(QuizResultState(correctAnswers: 1, totalQuestions: 1))
 
         let replayTheme = QuizTheme(
@@ -46,7 +49,8 @@ final class QuizQuestionStateContractTests: CrossScreenVisualTestCase {
                     answers: ["A", "B", "C", "D"],
                     correctAnswer: "A"
                 )
-            ]
+            ],
+            questionOrigin: .backend
         )
         QuizFactory.shared.chosenTheme = ThemeModel(quizTheme: replayTheme)
         let replayPresenter = QuizQuestionPresenter()
@@ -63,6 +67,9 @@ final class QuizQuestionStateContractTests: CrossScreenVisualTestCase {
         XCTAssertEqual(themeLabel.text, L10n.Home.randomSelection)
         XCTAssertEqual(questionLabel.text, "Новый вопрос после повтора?")
         XCTAssertTrue(viewController.questionChromeViews.allSatisfy { $0.alpha == 1 })
+#if DEBUG
+        XCTAssertEqual(viewController.debugQuestionSourceLabel.text, "BACKEND")
+#endif
     }
 
     func testQuestionScreenUpdatesExistingCardWhenNextQuestionViewModelIsLoaded() throws {

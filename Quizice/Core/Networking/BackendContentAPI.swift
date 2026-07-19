@@ -162,6 +162,9 @@ final class HTTPBackendContentAPI: BackendContentAPI {
         validate: (Response) -> Bool
     ) async throws -> Response {
         var request = URLRequest(url: url, timeoutInterval: requestTimeout)
+#if DEBUG
+        request.cachePolicy = .reloadIgnoringLocalCacheData
+#endif
         request.httpMethod = "GET"
         request.setValue("application/json", forHTTPHeaderField: "Accept")
 
