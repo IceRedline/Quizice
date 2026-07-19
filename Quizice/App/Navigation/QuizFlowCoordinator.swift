@@ -32,12 +32,14 @@ final class QuizFlowCoordinator: NSObject, QuizRouting, UIViewControllerTransiti
     private let themeRepository: ThemeRepository
     private let session: QuizSessionManaging
     private let aiQuizThemeService: AIQuizThemeServiceProtocol
+    private let aiQuizAccessProvider: AIQuizAccessProviding
     private let analytics: AnalyticsTracking
     private let randomQuestionsProvider: ([QuizQuestion]) -> [QuizQuestion]
     private let cardSlideTransitionAnimator = QuizCardSlidePresentationAnimator()
     private let aiReplayAlertPresenter = QuizAlertPresenter()
     private weak var activeQuestionViewController: QuizQuestionViewController?
     private weak var resultViewController: QuizResultViewController?
+    private var catalogReplayTask: Task<Void, Never>?
     private var aiReplayTask: Task<Void, Never>?
     private var aiReplayProgressTask: Task<Void, Never>?
 
@@ -47,20 +49,25 @@ final class QuizFlowCoordinator: NSObject, QuizRouting, UIViewControllerTransiti
         themeRepository: ThemeRepository = QuizFactory.shared,
         session: QuizSessionManaging = QuizSessionStore.shared,
         aiQuizThemeService: AIQuizThemeServiceProtocol? = nil,
+        aiQuizAccessProvider: AIQuizAccessProviding? = nil,
         analytics: AnalyticsTracking = AppMetricaAnalyticsTracker.shared,
         randomQuestionsProvider: @escaping ([QuizQuestion]) -> [QuizQuestion] = { $0.shuffled() }
     ) {
+        let resolvedAIQuizAccessProvider = aiQuizAccessProvider ?? AIQuizAccessStore.shared
         self.window = window
         self.navigationController = navigationController
         self.themeRepository = themeRepository
         self.session = session
-        self.aiQuizThemeService = aiQuizThemeService ?? Self.makeDefaultAIQuizThemeService()
+        self.aiQuizThemeService = aiQuizThemeService
+            ?? Self.makeDefaultAIQuizThemeService(accessProvider: resolvedAIQuizAccessProvider)
+        self.aiQuizAccessProvider = resolvedAIQuizAccessProvider
         self.analytics = analytics
         self.randomQuestionsProvider = randomQuestionsProvider
         super.init()
     }
 
     deinit {
+        catalogReplayTask?.cancel()
         aiReplayTask?.cancel()
         aiReplayProgressTask?.cancel()
     }
@@ -70,6 +77,7 @@ final class QuizFlowCoordinator: NSObject, QuizRouting, UIViewControllerTransiti
             themeRepository: themeRepository,
             session: session,
             aiQuizThemeService: aiQuizThemeService,
+            aiQuizAccessProvider: aiQuizAccessProvider,
             analytics: analytics,
             randomQuestionsProvider: randomQuestionsProvider
         )
@@ -120,13 +128,17 @@ final class QuizFlowCoordinator: NSObject, QuizRouting, UIViewControllerTransiti
     }
 
     func replayQuiz() {
-        guard aiReplayTask == nil else { return }
+        guard aiReplayTask == nil, catalogReplayTask == nil else { return }
         if replayRandomSelectionQuiz() {
             presentFreshQuestionController()
             return
         }
         guard let configuration = session.chosenTheme?.aiGenerationConfiguration else {
-            presentFreshQuestionController()
+            replayCatalogQuiz()
+            return
+        }
+        guard aiQuizAccessProvider.isAIQuizAvailable else {
+            presentAIReplayFailure(YandexAIQuizThemeServiceError.authenticationRequired)
             return
         }
 
@@ -176,6 +188,44 @@ final class QuizFlowCoordinator: NSObject, QuizRouting, UIViewControllerTransiti
                 )
                 self.analytics.reportOperationalError(error, context: .aiGeneration(code: errorCode))
                 self.presentAIReplayFailure(error)
+            }
+        }
+    }
+
+    private func replayCatalogQuiz() {
+        guard let previousTheme = session.chosenTheme else {
+            presentFreshQuestionController()
+            return
+        }
+        let themeID = previousTheme.themeID
+        let questionCount = session.questionsCount
+        let locale = AppLocalizationStore.shared.resolvedLanguageCode
+
+        catalogReplayTask = Task { @MainActor [weak self] in
+            guard let self else { return }
+            do {
+                let preparedTheme = try await self.themeRepository.prepareQuiz(
+                    themeID: themeID,
+                    questionCount: questionCount,
+                    locale: locale
+                )
+                try Task.checkCancellation()
+                guard
+                    self.session.chosenTheme?.themeID == themeID,
+                    AppLocalizationStore.shared.resolvedLanguageCode == locale
+                else {
+                    throw CancellationError()
+                }
+                self.catalogReplayTask = nil
+                self.session.chosenTheme = ThemeModel(quizTheme: preparedTheme)
+                self.session.questionsCount = questionCount
+                self.presentFreshQuestionController()
+            } catch is CancellationError {
+                self.catalogReplayTask = nil
+            } catch {
+                self.catalogReplayTask = nil
+                self.analytics.reportOperationalError(error, context: .contentLoad)
+                self.presentFreshQuestionController()
             }
         }
     }
@@ -240,6 +290,8 @@ final class QuizFlowCoordinator: NSObject, QuizRouting, UIViewControllerTransiti
     }
 
     func returnToThemes() {
+        catalogReplayTask?.cancel()
+        catalogReplayTask = nil
         aiReplayTask?.cancel()
         stopAIReplayLoading()
         aiReplayAlertPresenter.dismiss()
@@ -315,15 +367,16 @@ final class QuizFlowCoordinator: NSObject, QuizRouting, UIViewControllerTransiti
         presentingViewController.present(viewController, animated: true)
     }
 
-    private static func makeDefaultAIQuizThemeService() -> AIQuizThemeServiceProtocol {
-        #if DEBUG
-        let apiKey = DebugYandexAIAPIKeyStore.resolveAPIKey()
-        return YandexAIQuizThemeService(
-            apiKey: apiKey,
-            onUnauthorized: DebugYandexAIAPIKeyStore.removeRejectedAPIKey
-        )
-        #else
+    private static func makeDefaultAIQuizThemeService(
+        accessProvider: AIQuizAccessProviding
+    ) -> AIQuizThemeServiceProtocol {
+        if let configuration = BackendConfiguration.load() {
+            return BackendAIQuizThemeService(
+                configuration: configuration,
+                metrics: AppMetricaAnalyticsTracker.shared,
+                accessProvider: accessProvider
+            )
+        }
         return YandexAIQuizThemeService(apiKey: nil)
-        #endif
     }
 }

@@ -7,6 +7,10 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		B10000000000000000000002 /* BackendContentAPI.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10000000000000000000001 /* BackendContentAPI.swift */; };
+		B10000000000000000000005 /* BackendAIQuizThemeService.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10000000000000000000004 /* BackendAIQuizThemeService.swift */; };
+		B10000000000000000000007 /* BackendClientTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10000000000000000000006 /* BackendClientTests.swift */; };
+		B10000000000000000000009 /* LiveBackendContractTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10000000000000000000008 /* LiveBackendContractTests.swift */; };
 		0003220FA45176EA04A58596 /* QuizQuestionCountPolicy.swift in Sources */ = {isa = PBXBuildFile; fileRef = F93AF33B6FA83D319132BD54 /* QuizQuestionCountPolicy.swift */; };
 		A1D1FF1C0A00000200000002 /* AIQuizDifficulty.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1D1FF1C0A00000100000001 /* AIQuizDifficulty.swift */; };
 		013A11228A2DFE3CAEC27F51 /* ExpandedAIThemeCardView+Appearance.swift in Sources */ = {isa = PBXBuildFile; fileRef = DCA9234F162B4CE2242F18A8 /* ExpandedAIThemeCardView+Appearance.swift */; };
@@ -240,6 +244,10 @@
 		8262BBDADFD39A2E1117F76C /* HomeCollectionServiceTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = HomeCollectionServiceTests.swift; sourceTree = "<group>"; };
 		8462CEEBEA2C10276F40E922 /* HomeAIThemeCardState.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = HomeAIThemeCardState.swift; sourceTree = "<group>"; };
 		84999FAFF59131533DB4008F /* BackendConfiguration.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = BackendConfiguration.swift; sourceTree = "<group>"; };
+		B10000000000000000000001 /* BackendContentAPI.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = BackendContentAPI.swift; sourceTree = "<group>"; };
+		B10000000000000000000004 /* BackendAIQuizThemeService.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = BackendAIQuizThemeService.swift; sourceTree = "<group>"; };
+		B10000000000000000000006 /* BackendClientTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = BackendClientTests.swift; sourceTree = "<group>"; };
+		B10000000000000000000008 /* LiveBackendContractTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = LiveBackendContractTests.swift; sourceTree = "<group>"; };
 		871A9D8106F4AC20F770F451 /* QuizViewController.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = QuizViewController.swift; sourceTree = "<group>"; };
 		87B22704C9841FA1A6955424 /* ComponentSnapshotTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ComponentSnapshotTests.swift; sourceTree = "<group>"; };
 		8822A5B878D44CB82877183D /* AuthModels.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AuthModels.swift; sourceTree = "<group>"; };
@@ -575,6 +583,15 @@
 			path = Home;
 			sourceTree = "<group>";
 		};
+		B10000000000000000000003 /* Networking */ = {
+			isa = PBXGroup;
+			children = (
+				B10000000000000000000001 /* BackendContentAPI.swift */,
+			);
+			name = Networking;
+			path = Networking;
+			sourceTree = "<group>";
+		};
 		599B93B302C2350EC68DA55A /* Core */ = {
 			isa = PBXGroup;
 			children = (
@@ -583,6 +600,7 @@
 				4E8FAAF492BFADE68107EB49 /* DesignSystem */,
 				282666817B6C44F54593FA02 /* Localization */,
 				149E42E5D9153AA87024235A /* Logging */,
+				B10000000000000000000003 /* Networking */,
 				FDF068AB904843A2DB981D37 /* Persistence */,
 				E5C724D3542630054D8DDB01 /* Session */,
 			);
@@ -593,6 +611,7 @@
 		5C76D999EB6B873EAD664591 /* Data */ = {
 			isa = PBXGroup;
 			children = (
+				B10000000000000000000004 /* BackendAIQuizThemeService.swift */,
 				C151A3DA0E5DDE1CCD0FB8F1 /* AIQuizThemeService.swift */,
 			);
 			name = Data;
@@ -975,8 +994,10 @@
 				2C045F0F1F8FF8CCB7196E1B /* AnalyticsServiceTests.swift */,
 				6A7E73CC187A089F6D5215B1 /* AppAppearanceTests.swift */,
 				C42A75C09759C2D0F8FC78C2 /* AuthServiceTests.swift */,
+				B10000000000000000000006 /* BackendClientTests.swift */,
 				43967E761EE3C2C1360397EA /* HomeThemeCardFlipTransitionTests.swift */,
 				15CCD31365CAC105EA3F080B /* LocalizationTests.swift */,
+				B10000000000000000000008 /* LiveBackendContractTests.swift */,
 				9C83493B5946FF3E4A04293C /* QuizFactoryTests.swift */,
 				B87163E818824EBEFD6A6605 /* QuizQuestionPresenterFailureStateTests.swift */,
 				7437B1988E720F61100D0DFA /* QuizQuestionPresenterTests.swift */,
@@ -1231,6 +1252,7 @@
 				B740A1655C5D91EC1FE95F66 /* SceneDelegate.swift in Sources */,
 				9513724A0EA74596BA4B56C7 /* QuizFlowCoordinator.swift in Sources */,
 				2465B215AD94E69D77F872BB /* AnalyticsService.swift in Sources */,
+				B10000000000000000000002 /* BackendContentAPI.swift in Sources */,
 				D7E82CFA753F341CAA0395AD /* AuthModels.swift in Sources */,
 				B55AF88819584133CB2007D9 /* BackendConfiguration.swift in Sources */,
 				4D6FAE5E0FDBB639C1424B3F /* GameCenterAuthenticationService.swift in Sources */,
@@ -1260,6 +1282,7 @@
 				78FA2135554CF9BC45CF9697 /* ThemeModel.swift in Sources */,
 				A7A6D3FE979A97DF9422E944 /* ThemeRepository.swift in Sources */,
 				ECC18972747CA37F00E49103 /* StatisticsSummary.swift in Sources */,
+				B10000000000000000000005 /* BackendAIQuizThemeService.swift in Sources */,
 				7F824035722FE51B373FA82A /* AIQuizThemeService.swift in Sources */,
 				513D345C821103A4C859241C /* AIQuizThemePresentationSupport.swift in Sources */,
 				013A11228A2DFE3CAEC27F51 /* ExpandedAIThemeCardView+Appearance.swift in Sources */,
@@ -1360,8 +1383,10 @@
 				A9AFF7C8ACE328BA5A3FC832 /* AnalyticsServiceTests.swift in Sources */,
 				D166E8010E80FA2754489B9A /* AppAppearanceTests.swift in Sources */,
 				76635C743D62053B33366893 /* AuthServiceTests.swift in Sources */,
+				B10000000000000000000007 /* BackendClientTests.swift in Sources */,
 				5D190DABB9C20596EF4666E9 /* HomeThemeCardFlipTransitionTests.swift in Sources */,
 				2CDC0F89012E1DF42C18CF95 /* LocalizationTests.swift in Sources */,
+				B10000000000000000000009 /* LiveBackendContractTests.swift in Sources */,
 				F8FB31616EA0973B761A8E3D /* QuizFactoryTests.swift in Sources */,
 				44D96E9AACB00911BF56D648 /* QuizQuestionPresenterFailureStateTests.swift in Sources */,
 				187B8C82B8210453A198B2C1 /* QuizQuestionPresenterTests.swift in Sources */,
@@ -1438,7 +1463,7 @@
 				APPMETRICA_API_KEY = "f86ee459-cc9e-4cbf-82cc-a3b614e80da7";
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
-				BACKEND_BASE_URL = "";
+				BACKEND_BASE_URL = "https://bbav8b1v6032q53l8360.containers.yandexcloud.net/api";
 				CODE_SIGN_ENTITLEMENTS = Quizice/Quizice.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
@@ -1474,7 +1499,7 @@
 				APPMETRICA_API_KEY = "f86ee459-cc9e-4cbf-82cc-a3b614e80da7";
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
-				BACKEND_BASE_URL = "";
+				BACKEND_BASE_URL = "https://bbav8b1v6032q53l8360.containers.yandexcloud.net/api";
 				CODE_SIGN_ENTITLEMENTS = Quizice/Quizice.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;

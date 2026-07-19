@@ -28,6 +28,7 @@ Privacy rules:
 | `ai_generation_succeeded` | AI generation feature | locale, count, difficulty, duration |
 | `ai_generation_failed` | AI generation feature | locale, normalized error code, duration |
 | `ai_generation_cancelled` | AI generation feature | locale, duration |
+| `backend_request_completed` | Backend client after transport, decoding, and contract validation | operation, normalized result, duration, response size, optional HTTP status class |
 | `setting_changed` | Settings feature | typed setting name and old/new enum raw values |
 | `settings_action` | Settings feature | typed `profile` or `feedback` action |
 

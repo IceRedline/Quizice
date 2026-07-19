@@ -516,7 +516,7 @@ final class HomeExpandedThemeCardMotionTests: HomeScreenVisualStateTestCase {
         XCTAssertTrue(CATransform3DIsIdentity(parallaxCarrier.layer.transform))
     }
 
-    func testExpandedThemeStartStopsBackMotionBeforeRoutingAndIgnoresRepeatedStart() throws {
+    func testExpandedThemeStartStopsBackMotionBeforeRoutingAndIgnoresRepeatedStart() async throws {
         QuizFactory.shared.themes = [makeTheme(name: "Музыка", questionCount: 15)]
         let motionProvider = HomeThemeCardMotionProviderFake()
         let viewController = QuizViewController(
@@ -536,7 +536,7 @@ final class HomeExpandedThemeCardMotionTests: HomeScreenVisualStateTestCase {
             viewController.view.descendant(withAccessibilityIdentifier: "music") as? UIButton
         )
         sourceButton.sendActions(for: .touchUpInside)
-        drainAnimations()
+        try await waitUntil { viewController.homeCardState.phase == .expandedFront }
 
         let infoButton = try XCTUnwrap(
             viewController.view.descendant(
@@ -544,7 +544,7 @@ final class HomeExpandedThemeCardMotionTests: HomeScreenVisualStateTestCase {
             ) as? UIButton
         )
         infoButton.sendActions(for: .touchUpInside)
-        drainAnimations(0.34)
+        try await waitUntil { viewController.homeCardState.phase == .expandedBack }
 
         let card = try XCTUnwrap(
             viewController.view.descendant(
@@ -573,6 +573,7 @@ final class HomeExpandedThemeCardMotionTests: HomeScreenVisualStateTestCase {
         }
 
         startButton.sendActions(for: .touchUpInside)
+        try await waitUntil { router.showQuestionCallCount == 1 }
 
         XCTAssertEqual(providerWasStoppedBeforeRouting, true)
         XCTAssertEqual(panWasDisabledBeforeRouting, true)

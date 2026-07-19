@@ -9,6 +9,7 @@ class QuizFlowCoordinatorTestCase: XCTestCase {
 
     override func setUp() {
         super.setUp()
+        AIQuizAccessStore.shared.update(isAuthenticated: true)
         animationsWereEnabled = UIView.areAnimationsEnabled
         UIView.setAnimationsEnabled(true)
         AppLocalizationStore.shared.languagePreference = .russian
@@ -23,6 +24,7 @@ class QuizFlowCoordinatorTestCase: XCTestCase {
     }
 
     override func tearDown() {
+        AIQuizAccessStore.shared.update(isAuthenticated: false)
         resetSharedQuizFactoryForTests()
         UserDefaults.standard.removeObject(forKey: AppLocalizationStore.Keys.language)
         UserDefaults.standard.removeObject(forKey: AppAppearanceStore.Keys.designStyle)

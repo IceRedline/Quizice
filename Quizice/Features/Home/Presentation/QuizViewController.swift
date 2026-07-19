@@ -147,6 +147,7 @@ final class QuizViewController: BaseQuizViewController, ThemeCollectionDelegate,
     let session: QuizSessionManaging
     let statisticsStore: StatisticsStore
     let aiQuizThemeService: AIQuizThemeServiceProtocol
+    let aiQuizAccessProvider: AIQuizAccessProviding
     let analytics: AnalyticsTracking
     let themesCollectionService: ThemesCollectionService
     let motivationPromptProvider: (String?) -> String
@@ -184,6 +185,9 @@ final class QuizViewController: BaseQuizViewController, ThemeCollectionDelegate,
     let aiAlertPresenter = QuizAlertPresenter()
     var feelingLuckyTask: Task<Void, Never>?
     var feelingLuckyRequestID: UUID?
+    var backendCatalogRefreshTask: Task<Void, Never>?
+    var backendCatalogRefreshRequestID: UUID?
+    var quizPreparationTask: Task<Void, Never>?
     weak var quizTransitionSourceView: UIView?
     var isQuizLaunchPending = false
     var hasQuizLaunchStarted = false
@@ -219,6 +223,7 @@ final class QuizViewController: BaseQuizViewController, ThemeCollectionDelegate,
         session: QuizSessionManaging = QuizSessionStore.shared,
         statisticsStore: StatisticsStore = StatisticsStore(),
         aiQuizThemeService: AIQuizThemeServiceProtocol = MockAIQuizThemeService(),
+        aiQuizAccessProvider: AIQuizAccessProviding = AIQuizAccessStore.shared,
         analytics: AnalyticsTracking = AppMetricaAnalyticsTracker.shared,
         motivationPromptProvider: @escaping (String?) -> String = QuizViewController.randomMotivationPrompt,
         randomQuestionsProvider: @escaping ([QuizQuestion]) -> [QuizQuestion] = { $0.shuffled() },
@@ -236,6 +241,7 @@ final class QuizViewController: BaseQuizViewController, ThemeCollectionDelegate,
         self.session = session
         self.statisticsStore = statisticsStore
         self.aiQuizThemeService = aiQuizThemeService
+        self.aiQuizAccessProvider = aiQuizAccessProvider
         self.analytics = analytics
         self.motivationPromptProvider = motivationPromptProvider
         self.randomQuestionsProvider = randomQuestionsProvider
@@ -258,6 +264,8 @@ final class QuizViewController: BaseQuizViewController, ThemeCollectionDelegate,
         aiProgressTask?.cancel()
         aiAlertPresentationTask?.cancel()
         feelingLuckyTask?.cancel()
+        backendCatalogRefreshTask?.cancel()
+        quizPreparationTask?.cancel()
     }
 
     @available(*, unavailable)
@@ -286,6 +294,7 @@ final class QuizViewController: BaseQuizViewController, ThemeCollectionDelegate,
         configureThemesCollectionService()
         installLocalizationObserver()
         updateThemeAvailabilityMessage()
+        refreshBackendCatalog()
     }
 
     override func viewDidLayoutSubviews() {
@@ -368,5 +377,6 @@ final class QuizViewController: BaseQuizViewController, ThemeCollectionDelegate,
         updateThemeAvailabilityMessage()
         themesCollectionView.reloadData()
         refreshExpandedThemeCardAppearance()
+        refreshBackendCatalog()
     }
 }

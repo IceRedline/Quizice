@@ -87,6 +87,7 @@ enum AnalyticsEvent {
     case aiGenerationSucceeded(locale: String, questionCount: Int, difficulty: AIQuizDifficulty, durationMilliseconds: Int)
     case aiGenerationFailed(locale: String, errorCode: String, durationMilliseconds: Int)
     case aiGenerationCancelled(locale: String, durationMilliseconds: Int)
+    case backendRequestCompleted(BackendRequestMetric)
     case settingChanged(setting: AnalyticsSetting, oldValue: String, newValue: String)
     case settingsAction(AnalyticsSettingsAction)
 
@@ -108,6 +109,7 @@ enum AnalyticsEvent {
         case .aiGenerationSucceeded: return "ai_generation_succeeded"
         case .aiGenerationFailed: return "ai_generation_failed"
         case .aiGenerationCancelled: return "ai_generation_cancelled"
+        case .backendRequestCompleted: return "backend_request_completed"
         case .settingChanged: return "setting_changed"
         case .settingsAction: return "settings_action"
         }
@@ -169,6 +171,17 @@ enum AnalyticsEvent {
             ]
         case let .aiGenerationCancelled(locale, durationMilliseconds):
             return ["locale": locale, "duration_ms": max(durationMilliseconds, 0)]
+        case let .backendRequestCompleted(metric):
+            var parameters: [String: Any] = [
+                "operation": metric.operation.rawValue,
+                "result": metric.result.rawValue,
+                "duration_ms": max(metric.durationMilliseconds, 0),
+                "response_bytes": max(metric.responseBytes, 0)
+            ]
+            if let statusCode = metric.statusCode {
+                parameters["status_class"] = "\(statusCode / 100)xx"
+            }
+            return parameters
         case let .settingChanged(setting, oldValue, newValue):
             return ["setting": setting.rawValue, "old_value": oldValue, "new_value": newValue]
         case let .settingsAction(action):
@@ -330,6 +343,12 @@ final class AppMetricaAnalyticsTracker: AnalyticsTracking {
         environment["XCTestConfigurationFilePath"] != nil ||
         environment["XCODE_RUNNING_FOR_PREVIEWS"] == "1" ||
         environment["QUIZICE_XCTEST_SMOKE_HOST"] == "1"
+    }
+}
+
+extension AppMetricaAnalyticsTracker: BackendRequestMetricRecording {
+    func record(_ metric: BackendRequestMetric) {
+        track(.backendRequestCompleted(metric))
     }
 }
 

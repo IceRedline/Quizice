@@ -8,6 +8,7 @@ class HomeScreenVisualStateTestCase: XCTestCase {
 
     override func setUp() {
         super.setUp()
+        AIQuizAccessStore.shared.update(isAuthenticated: true)
         AppLocalizationStore.shared.languagePreference = .russian
         resetQuizFactory()
         // Pin the clean color scheme so shadow/surface assertions are deterministic
@@ -22,6 +23,7 @@ class HomeScreenVisualStateTestCase: XCTestCase {
 
     override func tearDown() {
         testWindows = []
+        AIQuizAccessStore.shared.update(isAuthenticated: false)
         resetQuizFactory()
         UserDefaults.standard.removeObject(forKey: AppAppearanceStore.Keys.designStyle)
         UserDefaults.standard.removeObject(forKey: AppAppearanceStore.Keys.cleanColorScheme)
@@ -31,6 +33,20 @@ class HomeScreenVisualStateTestCase: XCTestCase {
         UserDefaults.standard.removeObject(forKey: DebugBackendSettings.useLocalhostKey)
 #endif
         super.tearDown()
+    }
+
+    func waitUntil(
+        timeout: TimeInterval = 2,
+        condition: @escaping @MainActor () -> Bool
+    ) async throws {
+        let deadline = Date().addingTimeInterval(timeout)
+        while !condition() {
+            guard Date() < deadline else {
+                XCTFail("Timed out waiting for Home state")
+                return
+            }
+            try await Task.sleep(nanoseconds: 10_000_000)
+        }
     }
 
 

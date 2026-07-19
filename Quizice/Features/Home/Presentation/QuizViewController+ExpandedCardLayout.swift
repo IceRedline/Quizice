@@ -9,18 +9,60 @@ extension QuizViewController {
             let router
         else { return }
 
-        session.questionsCount = questionCount
-        analytics.track(
-            .quizStarted(
-                theme: session.chosenTheme?.analyticsTheme ?? .unknown,
-                questionCount: questionCount
-            )
-        )
         quizTransitionSourceView = cardView.transitionSourceView
         isQuizLaunchPending = true
-        hasQuizLaunchStarted = true
+        hasQuizLaunchStarted = false
         cardView.isUserInteractionEnabled = false
-        router.showQuestion()
+        let locale = AppLocalizationStore.shared.resolvedLanguageCode
+        quizPreparationTask?.cancel()
+        quizPreparationTask = Task { @MainActor [weak self, weak router] in
+            guard let self, let router else { return }
+            do {
+                let preparedTheme = try await self.themeRepository.prepareQuiz(
+                    themeID: themeID,
+                    questionCount: questionCount,
+                    locale: locale
+                )
+                try Task.checkCancellation()
+                guard
+                    self.homeCardState.phase == .launching,
+                    self.homeCardState.themeID == themeID,
+                    AppLocalizationStore.shared.resolvedLanguageCode == locale
+                else {
+                    throw CancellationError()
+                }
+
+                self.quizPreparationTask = nil
+                self.session.chosenTheme = ThemeModel(quizTheme: preparedTheme)
+                self.session.questionsCount = questionCount
+                self.analytics.track(
+                    .quizStarted(
+                        theme: self.session.chosenTheme?.analyticsTheme ?? .unknown,
+                        questionCount: questionCount
+                    )
+                )
+                self.hasQuizLaunchStarted = true
+                router.showQuestion()
+            } catch is CancellationError {
+                self.finishFailedQuizPreparation(message: nil)
+            } catch {
+                self.analytics.reportOperationalError(error, context: .contentLoad)
+                self.finishFailedQuizPreparation(message: L10n.Question.unavailableMessage)
+            }
+        }
+    }
+
+    private func finishFailedQuizPreparation(message: String?) {
+        quizPreparationTask = nil
+        guard isQuizLaunchPending, !hasQuizLaunchStarted else { return }
+        homeStore.send(.launchFailed)
+        isQuizLaunchPending = false
+        quizTransitionSourceView = nil
+        expandedThemeCardView?.isUserInteractionEnabled = true
+        updateExpandedThemeCardParallaxPhase()
+        if let message {
+            motivationLabel.text = message
+        }
     }
 
     func makeExpandedCardBackdrop(appearance: AppAppearance) -> UIView {
