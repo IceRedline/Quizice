@@ -31,11 +31,14 @@
 "ai_theme.error.service.message" = "The AI service is not responding right now. Please try again a little later.";
 "ai_theme.error.invalid_quiz.title" = "Quiz was not created";
 "ai_theme.error.invalid_quiz.message" = "AI could not assemble a valid quiz. Edit the topic or try again.";
+"ai_theme.error.configuration.title" = "API key required";
+"ai_theme.error.configuration.message" = "The API key is missing or was rejected. Update YANDEX_AI_API_KEY in the “Quizice AI (Local)” scheme and relaunch the app.";
 "ai_theme.error.unavailable.title" = "Generation unavailable";
 "ai_theme.error.unavailable.message" = "AI quiz generation is unavailable right now. Please try again later.";
 "ai_theme.error_message" = "Could not submit the theme. Please try again.";
 "ai_theme.error_title" = "Theme not submitted";
 "ai_theme.prompt_placeholder" = "For example: space, marketing, Harry Potter, or Japanese history";
+"ai_theme.prompt_too_long" = "This topic is too long. Shorten it to %d characters.";
 "ai_theme.submit" = "Submit theme";
 "ai_theme.subtitle" = "Enter any topic and AI will prepare quiz questions for it.";
 "ai_theme.title" = "Create with AI";
@@ -45,8 +48,9 @@
 "home.create_with_ai.beta_badge" = "Beta";
 "home.exit_alert.message" = "Are you sure you want to exit?";
 "home.feeling_lucky" = "Feeling lucky";
-"home.feeling_lucky.accessibility_hint" = "Starts a random theme";
+"home.feeling_lucky.accessibility_hint" = "Starts five random questions from all topics";
 "home.feeling_lucky.loading" = "Picking questions";
+"home.feeling_lucky.random_selection" = "Random selection";
 "home.statistics.accessibility_hint" = "Opens overall statistics for completed quizzes";
 "home.statistics.accessibility_label" = "Overall statistics";
 "home.statistics.accessibility_value_format" = "Played: %d. Accuracy: %d%%";

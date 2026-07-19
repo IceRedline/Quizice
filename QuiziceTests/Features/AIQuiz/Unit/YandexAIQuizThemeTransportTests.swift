@@ -45,12 +45,29 @@ final class YandexAIQuizThemeTransportTests: YandexAIQuizThemeServiceTestCase {
         }
     }
 
-    func testHTTPFailureIsReportedWithoutDecodingOrExposingBody() async {
+    func testUnauthorizedResponseInvalidatesRejectedKeyWithoutExposingBody() async {
+        var invalidationCount = 0
         YandexAIURLProtocolStub.requestHandler = { request in
             (Self.httpResponse(for: request, statusCode: 401), Data("secret response".utf8))
         }
 
-        await assertServiceError(.httpStatus(401)) {
+        await assertServiceError(.unauthorized) {
+            _ = try await YandexAIQuizThemeService(
+                apiKey: "rejected-api-key",
+                session: self.session,
+                onUnauthorized: { invalidationCount += 1 }
+            )
+            .generateQuizTheme(configuration: self.configuration())
+        }
+        XCTAssertEqual(invalidationCount, 1)
+    }
+
+    func testOtherHTTPFailureIsReportedWithoutDecodingOrExposingBody() async {
+        YandexAIURLProtocolStub.requestHandler = { request in
+            (Self.httpResponse(for: request, statusCode: 403), Data("secret response".utf8))
+        }
+
+        await assertServiceError(.httpStatus(403)) {
             _ = try await self.generate()
         }
     }

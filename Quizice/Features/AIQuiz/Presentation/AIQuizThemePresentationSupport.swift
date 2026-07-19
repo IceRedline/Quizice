@@ -1,6 +1,32 @@
 import SwiftUI
 import UIKit
 
+enum AIQuizGenerationPhase: Int, CaseIterable, Equatable {
+    case analyzing
+    case sending
+    case generating
+    case almostReady
+
+    static let delayedUpdates: [(delayNanoseconds: UInt64, phase: AIQuizGenerationPhase)] = [
+        (1_000_000_000, .sending),
+        (1_500_000_000, .generating),
+        (3_500_000_000, .almostReady)
+    ]
+
+    var title: String {
+        switch self {
+        case .analyzing:
+            return L10n.AITheme.Progress.analyzing
+        case .sending:
+            return L10n.AITheme.Progress.sending
+        case .generating:
+            return L10n.AITheme.Progress.generating
+        case .almostReady:
+            return L10n.AITheme.Progress.almostReady
+        }
+    }
+}
+
 extension AIQuizDifficulty {
     var title: String {
         switch self {
@@ -32,6 +58,7 @@ struct AIQuizGenerationAlert: Identifiable, Equatable {
         case network
         case service
         case invalidQuiz
+        case configuration
         case unavailable
     }
 
@@ -45,6 +72,7 @@ struct AIQuizGenerationAlert: Identifiable, Equatable {
         case .network: return L10n.AITheme.Error.Network.title
         case .service: return L10n.AITheme.Error.Service.title
         case .invalidQuiz: return L10n.AITheme.Error.InvalidQuiz.title
+        case .configuration: return L10n.AITheme.Error.Configuration.title
         case .unavailable: return L10n.AITheme.Error.Unavailable.title
         }
     }
@@ -55,6 +83,7 @@ struct AIQuizGenerationAlert: Identifiable, Equatable {
         case .network: return L10n.AITheme.Error.Network.message
         case .service: return L10n.AITheme.Error.Service.message
         case .invalidQuiz: return L10n.AITheme.Error.InvalidQuiz.message
+        case .configuration: return L10n.AITheme.Error.Configuration.message
         case .unavailable: return L10n.AITheme.Error.Unavailable.message
         }
     }
@@ -62,7 +91,7 @@ struct AIQuizGenerationAlert: Identifiable, Equatable {
     var canRetry: Bool {
         switch kind {
         case .network, .service, .invalidQuiz: return true
-        case .refusal, .unavailable: return false
+        case .refusal, .configuration, .unavailable: return false
         }
     }
 
@@ -74,7 +103,18 @@ struct AIQuizGenerationAlert: Identifiable, Equatable {
         canRetry || shouldFocusPromptOnDismiss
     }
 
-    init(error: Error) {
+    init(error: Error, exposesConfigurationErrors: Bool? = nil) {
+        let shouldExposeConfigurationErrors: Bool
+        if let exposesConfigurationErrors {
+            shouldExposeConfigurationErrors = exposesConfigurationErrors
+        } else {
+            #if DEBUG
+            shouldExposeConfigurationErrors = true
+            #else
+            shouldExposeConfigurationErrors = false
+            #endif
+        }
+
         guard let serviceError = error as? YandexAIQuizThemeServiceError else {
             kind = .unavailable
             return
@@ -101,7 +141,9 @@ struct AIQuizGenerationAlert: Identifiable, Equatable {
             kind = .service
         case .invalidResponseJSON, .missingOutputText, .invalidQuizJSON, .invalidContract:
             kind = .invalidQuiz
-        case .unavailableInRelease, .missingAPIKey, .emptyPrompt, .requestEncodingFailed,
+        case .missingAPIKey, .unauthorized:
+            kind = shouldExposeConfigurationErrors ? .configuration : .unavailable
+        case .unavailableInRelease, .emptyPrompt, .requestEncodingFailed,
              .invalidHTTPResponse, .httpStatus:
             kind = .unavailable
         }
@@ -157,8 +199,10 @@ struct QuizAlertAction {
             switch appearance.designStyle {
             case .classic:
                 return .systemRed
-            case .clean, .radar:
+            case .clean:
                 return appearance.destructiveColor
+            case .radar:
+                return appearance.accentColor
             }
         }
     }
@@ -468,6 +512,7 @@ extension AIQuizGenerationAlert.Kind {
         case .network: return "wifi.slash"
         case .service: return "clock.fill"
         case .invalidQuiz: return "doc.text.fill"
+        case .configuration: return "key.fill"
         case .unavailable: return "exclamationmark.triangle.fill"
         }
     }
@@ -482,7 +527,7 @@ extension AIQuizGenerationAlert.Kind {
             switch self {
             case .refusal, .unavailable:
                 return appearance.destructiveColor
-            case .network, .service, .invalidQuiz:
+            case .network, .service, .invalidQuiz, .configuration:
                 return appearance.accentColor
             }
         }

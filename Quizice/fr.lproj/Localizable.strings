@@ -31,11 +31,14 @@
 "ai_theme.error.service.message" = "Le service d’IA ne répond pas actuellement. Réessayez un peu plus tard.";
 "ai_theme.error.invalid_quiz.title" = "Quiz non créé";
 "ai_theme.error.invalid_quiz.message" = "L’IA n’a pas pu créer un quiz valide. Modifiez le thème ou réessayez.";
+"ai_theme.error.configuration.title" = "Clé API requise";
+"ai_theme.error.configuration.message" = "La clé API est absente ou a été refusée. Mettez à jour YANDEX_AI_API_KEY dans le schéma « Quizice AI (Local) », puis relancez l’app.";
 "ai_theme.error.unavailable.title" = "Génération indisponible";
 "ai_theme.error.unavailable.message" = "La génération de quiz par IA est indisponible pour le moment. Réessayez plus tard.";
 "ai_theme.error_message" = "Impossible d’envoyer le thème. Réessayez.";
 "ai_theme.error_title" = "Thème non envoyé";
 "ai_theme.prompt_placeholder" = "Par exemple : espace, marketing, Harry Potter ou histoire du Japon";
+"ai_theme.prompt_too_long" = "Ce thème est trop long. Raccourcissez-le à %d caractères.";
 "ai_theme.submit" = "Envoyer le thème";
 "ai_theme.subtitle" = "Saisissez un thème et l’IA préparera des questions de quiz.";
 "ai_theme.title" = "Créer avec l’IA";
@@ -45,8 +48,9 @@
 "home.create_with_ai.beta_badge" = "Bêta";
 "home.exit_alert.message" = "Voulez-vous vraiment quitter ?";
 "home.feeling_lucky" = "J’ai de la chance";
-"home.feeling_lucky.accessibility_hint" = "Lance un thème aléatoire";
+"home.feeling_lucky.accessibility_hint" = "Lance cinq questions aléatoires de tous les thèmes";
 "home.feeling_lucky.loading" = "Sélection des questions";
+"home.feeling_lucky.random_selection" = "Sélection aléatoire";
 "home.statistics.accessibility_hint" = "Ouvre les statistiques globales des quiz terminés";
 "home.statistics.accessibility_label" = "Statistiques globales";
 "home.statistics.accessibility_value_format" = "Joués : %d. Précision : %d%%";

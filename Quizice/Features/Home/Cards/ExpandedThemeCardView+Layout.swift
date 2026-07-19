@@ -126,6 +126,12 @@ extension ExpandedThemeCardView {
         frontImageView.isUserInteractionEnabled = false
         frontImageView.translatesAutoresizingMaskIntoConstraints = false
 
+        frontIconShadowView.accessibilityIdentifier = AccessibilityID.frontImageShadow
+        frontIconShadowView.contentMode = .scaleAspectFit
+        frontIconShadowView.isAccessibilityElement = false
+        frontIconShadowView.isUserInteractionEnabled = false
+        frontIconShadowView.translatesAutoresizingMaskIntoConstraints = false
+
         frontTitleDepthView.accessibilityIdentifier = AccessibilityID.frontTitleDepth
         frontTitleDepthView.translatesAutoresizingMaskIntoConstraints = false
         frontTitleDepthView.isUserInteractionEnabled = false
@@ -152,6 +158,7 @@ extension ExpandedThemeCardView {
 
         frontFaceView.addSubview(frontSurfaceButton)
         frontFaceView.addSubview(frontArtworkDepthView)
+        frontArtworkDepthView.addSubview(frontIconShadowView)
         frontArtworkDepthView.addSubview(frontImageView)
         frontFaceView.addSubview(frontTitleDepthView)
         frontTitleDepthView.addSubview(frontTitleLabel)
@@ -226,7 +233,12 @@ extension ExpandedThemeCardView {
             frontImageView.leadingAnchor.constraint(equalTo: frontArtworkDepthView.leadingAnchor),
             frontImageView.trailingAnchor.constraint(equalTo: frontArtworkDepthView.trailingAnchor),
             frontImageView.topAnchor.constraint(equalTo: frontArtworkDepthView.topAnchor),
-            frontImageView.bottomAnchor.constraint(equalTo: frontArtworkDepthView.bottomAnchor)
+            frontImageView.bottomAnchor.constraint(equalTo: frontArtworkDepthView.bottomAnchor),
+
+            frontIconShadowView.leadingAnchor.constraint(equalTo: frontArtworkDepthView.leadingAnchor),
+            frontIconShadowView.trailingAnchor.constraint(equalTo: frontArtworkDepthView.trailingAnchor),
+            frontIconShadowView.topAnchor.constraint(equalTo: frontArtworkDepthView.topAnchor),
+            frontIconShadowView.bottomAnchor.constraint(equalTo: frontArtworkDepthView.bottomAnchor)
         ])
 
         frontFaceView.accessibilityElements = [frontTitleLabel, infoButton, closeButton]

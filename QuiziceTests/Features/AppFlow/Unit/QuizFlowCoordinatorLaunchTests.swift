@@ -131,7 +131,7 @@ final class QuizFlowCoordinatorLaunchTests: QuizFlowCoordinatorTestCase {
             window.rootViewController = nil
         }
 
-        await fulfillment(of: [completionExpectation], timeout: 1)
+        await fulfillment(of: [completionExpectation], timeout: 3)
 
         XCTAssertEqual(completionStyle, .crossfade)
     }

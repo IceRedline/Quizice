@@ -18,13 +18,9 @@ final class ThemesCollectionService: NSObject, UICollectionViewDelegate, UIColle
         static let statisticsAccuracyValueAccessibilityID = "homeStatisticsAccuracyValueLabel"
         static let statisticsAccuracyTitleAccessibilityID = "homeStatisticsAccuracyTitleLabel"
 
-        static let musicThemeLogoImageName = "theme_logo_music"
-        static let technologyThemeLogoImageName = "theme_logo_tech.png"
-        static let cultureThemeLogoImageName = "theme_logo_culture.png"
-        static let politicsThemeLogoImageName = "theme_logo_politics"
         static let musicThemeLogoCleanSymbolName = "music.note.square.stack"
         static let technologyThemeLogoCleanSymbolName = "gamecontroller"
-        static let cultureThemeLogoCleanSymbolName = "theatermasks"
+        static let cultureThemeLogoCleanSymbolName = "theatermask.and.paintbrush"
         static let politicsThemeLogoCleanSymbolName = "building.columns"
         static let musicThemeLogoRadarImageName = "theme_logo_music_radar"
         static let technologyThemeLogoRadarImageName = "theme_logo_tech_radar"
@@ -122,6 +118,10 @@ final class ThemesCollectionService: NSObject, UICollectionViewDelegate, UIColle
         self.themeRepository = themeRepository
         self.statisticsStore = statisticsStore
         super.init()
+    }
+
+    func refreshStatistics() {
+        reconfigureStatisticsCell()
     }
 
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int { themeCount + 3 }

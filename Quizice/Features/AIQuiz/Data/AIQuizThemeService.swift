@@ -1,14 +1,5 @@
 import Foundation
 
-struct AIQuizGenerationConfiguration: Equatable {
-    static let supportedQuestionCounts = [5, 10, 15]
-
-    let theme: String
-    let questionCount: Int
-    let difficulty: AIQuizDifficulty
-    let locale: Locale
-}
-
 protocol AIQuizThemeServiceProtocol: AnyObject {
     func generateQuizTheme(configuration: AIQuizGenerationConfiguration) async throws -> QuizTheme
 }
@@ -27,6 +18,7 @@ enum YandexAIQuizContractViolation: Equatable {
 enum YandexAIQuizThemeServiceError: Error, Equatable {
     case unavailableInRelease
     case missingAPIKey
+    case unauthorized
     case emptyPrompt
     case requestEncodingFailed
     case network(URLError.Code)
@@ -45,6 +37,7 @@ extension YandexAIQuizThemeServiceError {
         switch self {
         case .unavailableInRelease: return "unavailable_in_release"
         case .missingAPIKey: return "missing_api_key"
+        case .unauthorized: return "unauthorized"
         case .emptyPrompt: return "empty_prompt"
         case .requestEncodingFailed: return "request_encoding_failed"
         case .network: return "network"
@@ -90,6 +83,8 @@ private extension YandexAIQuizThemeServiceError {
             return "unavailable_in_release"
         case .missingAPIKey:
             return "missing_api_key environment_variable=YANDEX_AI_API_KEY"
+        case .unauthorized:
+            return "unauthorized status_code=401 environment_variable=YANDEX_AI_API_KEY"
         case .emptyPrompt:
             return "empty_prompt"
         case .requestEncodingFailed:
@@ -123,6 +118,8 @@ extension YandexAIQuizThemeServiceError: LocalizedError {
             return "AI quiz generation is unavailable in this build."
         case .missingAPIKey:
             return "Yandex AI API key is not configured."
+        case .unauthorized:
+            return "Yandex AI API key was rejected."
         case .emptyPrompt:
             return "Enter a quiz theme."
         case .requestEncodingFailed:
@@ -165,15 +162,18 @@ final class YandexAIQuizThemeService: AIQuizThemeServiceProtocol {
     private let encoder: JSONEncoder
     private let decoder: JSONDecoder
     private let idGenerator: () -> String
+    private let onUnauthorized: () -> Void
 
     init(
         apiKey: String?,
         session: URLSession = .shared,
-        idGenerator: @escaping () -> String = { UUID().uuidString }
+        idGenerator: @escaping () -> String = { UUID().uuidString },
+        onUnauthorized: @escaping () -> Void = {}
     ) {
         self.apiKey = apiKey
         self.session = session
         self.idGenerator = idGenerator
+        self.onUnauthorized = onUnauthorized
         encoder = JSONEncoder()
         decoder = JSONDecoder()
     }
@@ -237,6 +237,10 @@ final class YandexAIQuizThemeService: AIQuizThemeServiceProtocol {
             AppLog.quiz.info(
                 "AI quiz response received: status_code=\(httpResponse.statusCode, privacy: .public) body_bytes=\(data.count, privacy: .public)"
             )
+            if httpResponse.statusCode == 401 {
+                onUnauthorized()
+                throw YandexAIQuizThemeServiceError.unauthorized
+            }
             guard (200..<300).contains(httpResponse.statusCode) else {
                 throw YandexAIQuizThemeServiceError.httpStatus(httpResponse.statusCode)
             }
@@ -291,6 +295,12 @@ final class YandexAIQuizThemeService: AIQuizThemeServiceProtocol {
             }
 
             let theme = try makeQuizTheme(from: payload, expectedQuestionCount: configuration.questionCount)
+            theme.aiGenerationConfiguration = AIQuizGenerationConfiguration(
+                theme: trimmedPrompt,
+                questionCount: configuration.questionCount,
+                difficulty: configuration.difficulty,
+                locale: configuration.locale
+            )
             AppLog.quiz.info(
                 "AI quiz generation completed: locale=\(languageCode, privacy: .public) questions=\(theme.questions.count, privacy: .public)"
             )

@@ -31,11 +31,14 @@
 "ai_theme.error.service.message" = "ИИ-сервис сейчас не отвечает. Попробуйте ещё раз немного позже.";
 "ai_theme.error.invalid_quiz.title" = "Квиз не получился";
 "ai_theme.error.invalid_quiz.message" = "ИИ не смог собрать корректный квиз. Измените формулировку темы или попробуйте снова.";
+"ai_theme.error.configuration.title" = "Нужен API-ключ";
+"ai_theme.error.configuration.message" = "API-ключ отсутствует или отклонён. Обновите YANDEX_AI_API_KEY в схеме «Quizice AI (Local)» и перезапустите приложение.";
 "ai_theme.error.unavailable.title" = "Генерация недоступна";
 "ai_theme.error.unavailable.message" = "Сейчас создать квиз с ИИ не получится. Попробуйте позже.";
 "ai_theme.error_message" = "Не удалось отправить тему. Попробуйте еще раз.";
 "ai_theme.error_title" = "Тема не отправлена";
 "ai_theme.prompt_placeholder" = "Например: космос, маркетинг, Гарри Поттер или история Японии";
+"ai_theme.prompt_too_long" = "Тема слишком длинная. Сократите её до %d символов.";
 "ai_theme.submit" = "Отправить тему";
 "ai_theme.subtitle" = "Введите любую тему, и ИИ подготовит под нее вопросы для квиза.";
 "ai_theme.title" = "Создать с ИИ";
@@ -45,8 +48,9 @@
 "home.create_with_ai.beta_badge" = "Бета";
 "home.exit_alert.message" = "Вы уверены что хотите выйти?";
 "home.feeling_lucky" = "Мне повезет";
-"home.feeling_lucky.accessibility_hint" = "Запускает случайную тему";
+"home.feeling_lucky.accessibility_hint" = "Запускает пять случайных вопросов из всех тем";
 "home.feeling_lucky.loading" = "Подбираем вопросы";
+"home.feeling_lucky.random_selection" = "Случайный выбор";
 "home.statistics.accessibility_hint" = "Открывает расширенную карточку общей статистики по завершённым викторинам";
 "home.statistics.accessibility_label" = "Общая статистика";
 "home.statistics.accessibility_value_format" = "Пройдено: %d. Точность: %d%%";

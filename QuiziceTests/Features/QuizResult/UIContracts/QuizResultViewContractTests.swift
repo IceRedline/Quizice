@@ -57,8 +57,19 @@ final class QuizResultViewContractTests: CrossScreenVisualTestCase {
         let descriptionLabel = try XCTUnwrap(viewController.view.descendant(withAccessibilityIdentifier: "resultDescriptionLabel") as? UILabel)
         let replayButton = try XCTUnwrap(viewController.view.descendant(withAccessibilityIdentifier: "resultReplayButton") as? UIButton)
         let themesButton = try XCTUnwrap(viewController.view.descendant(withAccessibilityIdentifier: "resultThemesButton") as? UIButton)
+        let loadingContent = try XCTUnwrap(
+            viewController.view.descendant(withAccessibilityIdentifier: "resultReplayLoadingContent")
+        )
+        let progressLabel = try XCTUnwrap(
+            viewController.view.descendant(withAccessibilityIdentifier: "resultReplayProgressStatus") as? UILabel
+        )
 
         replayButton.sendActions(for: .touchUpInside)
+
+        XCTAssertTrue(loadingContent.isHidden)
+        XCTAssertTrue(progressLabel.isHidden)
+        XCTAssertEqual(replayButton.title(for: .normal), L10n.Result.playAgain)
+
         themesButton.sendActions(for: .touchUpInside)
 
         XCTAssertEqual(resultLabel.text, "0/0")
@@ -67,5 +78,50 @@ final class QuizResultViewContractTests: CrossScreenVisualTestCase {
         XCTAssertNil(QuizFactory.shared.chosenTheme)
         XCTAssertEqual(router.replayQuizCallCount, 1)
         XCTAssertEqual(router.returnToThemesCallCount, 1)
+    }
+
+    func testResultReplayShowsSameAIProgressPhasesAsCreationCard() throws {
+        let viewController = QuizResultViewController()
+        viewController.loadViewIfNeeded()
+
+        let replayButton = try XCTUnwrap(
+            viewController.view.descendant(
+                withAccessibilityIdentifier: "resultReplayButton"
+            ) as? UIButton
+        )
+        let activityIndicator = try XCTUnwrap(
+            viewController.view.descendant(
+                withAccessibilityIdentifier: "resultReplayActivityIndicator"
+            ) as? UIActivityIndicatorView
+        )
+        let progressLabel = try XCTUnwrap(
+            viewController.view.descendant(
+                withAccessibilityIdentifier: "resultReplayProgressStatus"
+            ) as? UILabel
+        )
+        let loadingContent = try XCTUnwrap(
+            viewController.view.descendant(
+                withAccessibilityIdentifier: "resultReplayLoadingContent"
+            )
+        )
+
+        for phase in AIQuizGenerationPhase.allCases {
+            viewController.setReplayGenerationPhase(phase)
+
+            XCTAssertFalse(replayButton.isEnabled)
+            XCTAssertNil(replayButton.title(for: .normal))
+            XCTAssertFalse(loadingContent.isHidden)
+            XCTAssertTrue(activityIndicator.isAnimating)
+            XCTAssertFalse(progressLabel.isHidden)
+            XCTAssertEqual(progressLabel.text, phase.title)
+        }
+
+        viewController.setReplayGenerationPhase(nil)
+
+        XCTAssertTrue(replayButton.isEnabled)
+        XCTAssertEqual(replayButton.title(for: .normal), L10n.Result.playAgain)
+        XCTAssertTrue(loadingContent.isHidden)
+        XCTAssertFalse(activityIndicator.isAnimating)
+        XCTAssertTrue(progressLabel.isHidden)
     }
 }

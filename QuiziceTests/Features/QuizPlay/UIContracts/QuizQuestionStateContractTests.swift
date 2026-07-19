@@ -28,6 +28,43 @@ final class QuizQuestionStateContractTests: CrossScreenVisualTestCase {
         XCTAssertEqual(router.results, [QuizResultState(correctAnswers: 1, totalQuestions: 1)])
     }
 
+    func testPreparingReplayRestoresQuestionScreenWithoutReturningToHome() throws {
+        QuizFactory.shared.chosenTheme = makeQuestionTheme()
+        QuizFactory.shared.questionsCount = 1
+
+        let viewController = QuizQuestionViewController()
+        viewController.loadViewIfNeeded()
+        viewController.showResults(QuizResultState(correctAnswers: 1, totalQuestions: 1))
+
+        let replayTheme = QuizTheme(
+            id: RandomQuizSelection.themeID,
+            theme: L10n.Home.randomSelection,
+            themeDescription: L10n.Home.feelingLucky,
+            questions: [
+                QuizQuestion(
+                    question: "Новый вопрос после повтора?",
+                    answers: ["A", "B", "C", "D"],
+                    correctAnswer: "A"
+                )
+            ]
+        )
+        QuizFactory.shared.chosenTheme = ThemeModel(quizTheme: replayTheme)
+        let replayPresenter = QuizQuestionPresenter()
+
+        viewController.prepareForReplay(replayPresenter)
+        defer { replayPresenter.stopTimer() }
+
+        let themeLabel = try XCTUnwrap(
+            viewController.view.descendant(withAccessibilityIdentifier: "questionThemeLabel") as? UILabel
+        )
+        let questionLabel = try XCTUnwrap(
+            viewController.view.descendant(withAccessibilityIdentifier: "questionTextLabel") as? UILabel
+        )
+        XCTAssertEqual(themeLabel.text, L10n.Home.randomSelection)
+        XCTAssertEqual(questionLabel.text, "Новый вопрос после повтора?")
+        XCTAssertTrue(viewController.questionChromeViews.allSatisfy { $0.alpha == 1 })
+    }
+
     func testQuestionScreenUpdatesExistingCardWhenNextQuestionViewModelIsLoaded() throws {
         QuizFactory.shared.chosenTheme = makeQuestionTheme()
         QuizFactory.shared.questionsCount = 1
@@ -312,6 +349,55 @@ final class QuizQuestionStateContractTests: CrossScreenVisualTestCase {
         XCTAssertEqual(presenter.resetGameProgressCallCount, 0)
         XCTAssertEqual(router.closeQuestionCallCount, 0)
         XCTAssertEqual(analytics.exitEventNames, ["quiz_exit_requested", "quiz_exit_cancelled"])
+    }
+
+    func testRadarExitAlertUsesOnlyRadarAccentForDestructiveStyling() {
+        UserDefaults.standard.set(AppDesignStyle.radar.rawValue, forKey: AppAppearanceStore.Keys.designStyle)
+        let viewController = QuizQuestionViewController()
+        viewController.loadViewIfNeeded()
+        let appearance = currentAppearance()
+
+        let overlay = viewController.makeExitConfirmationAlertOverlay()
+        let destructive = overlay.primaryAction.emphasis
+
+        assertColor(overlay.iconColor, equals: appearance.accentColor)
+        assertColor(destructive.tintColor(in: appearance), equals: appearance.accentColor)
+        assertColor(destructive.textColor(in: appearance), equals: appearance.accentColor)
+        assertColor(destructive.surfaceStyle(in: appearance).borderColor, equals: appearance.accentColor)
+    }
+
+    func testPreparingIncomingQuestionCardResetsTimerBeforeSlideAnimationStarts() throws {
+        let presenter = ExitConfirmationPresenterSpy()
+        presenter.currentProgress = 0.24
+        let viewController = QuizQuestionViewController()
+        viewController.configurePresenter(presenter)
+        viewController.loadViewIfNeeded()
+        viewController.view.layoutIfNeeded()
+
+        let makeViewModel: (Int) -> QuizQuestionViewModel = { number in
+            QuizQuestionViewModel(
+                themeName: "Тест",
+                questionText: "Вопрос \(number)?",
+                questionNumberText: "Вопрос №\(number)",
+                answers: [
+                    QuizAnswerOption(id: "\(number)-a", title: "A"),
+                    QuizAnswerOption(id: "\(number)-b", title: "B"),
+                    QuizAnswerOption(id: "\(number)-c", title: "C"),
+                    QuizAnswerOption(id: "\(number)-d", title: "D")
+                ]
+            )
+        }
+        viewController.loadQuestionToView(makeViewModel(1))
+        viewController.updateProgress(0.24)
+
+        viewController.applyQuestion(makeViewModel(2), updatesQuestionNumber: false)
+
+        let timer = try XCTUnwrap(
+            viewController.view.descendant(
+                withAccessibilityIdentifier: "questionTimerProgressView"
+            ) as? UIProgressView
+        )
+        XCTAssertEqual(timer.progress, 1, accuracy: 0.001)
     }
 
     func testRadarQuestionFeedbackKeepsCorrectAnswerBrightAndDimsOtherAnswers() throws {
