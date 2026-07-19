@@ -1,5 +1,48 @@
+import Foundation
+
+enum QuizPreparationError: Error, Equatable {
+    case unavailable
+}
+
 protocol ThemeRepository: AnyObject {
     var themes: [QuizTheme]? { get }
     func loadData(forceReload: Bool)
     func fetchQuizThemes() -> [QuizTheme]
+    @discardableResult
+    func refreshBackendCatalog(locale: String) async -> Bool
+    func prepareQuiz(themeID: String, questionCount: Int, locale: String) async throws -> QuizTheme
+}
+
+extension ThemeRepository {
+    @discardableResult
+    func refreshBackendCatalog(locale: String) async -> Bool { false }
+
+    func prepareQuiz(
+        themeID: String,
+        questionCount: Int,
+        locale: String
+    ) async throws -> QuizTheme {
+        let catalog = themes ?? fetchQuizThemes()
+        guard
+            QuizQuestionCountPolicy.supportedCounts.contains(questionCount),
+            let theme = catalog.first(where: { $0.stableID == themeID })
+        else {
+            throw QuizPreparationError.unavailable
+        }
+
+        let questions = theme.questions.filter {
+            QuizQuestionCountPolicy.isUsable(QuestionModel(quizQuestion: $0))
+        }
+        guard questions.count >= questionCount else {
+            throw QuizPreparationError.unavailable
+        }
+
+        return QuizTheme(
+            id: theme.id,
+            theme: theme.theme,
+            themeDescription: theme.themeDescription,
+            questions: Array(questions.shuffled().prefix(questionCount)),
+            source: theme.source
+        )
+    }
 }

@@ -4,6 +4,32 @@ import XCTest
 
 @MainActor
 final class HomeAIThemeCardInteractionTests: HomeScreenVisualStateTestCase {
+    func testGuestCannotOpenAIThemeCard() throws {
+        QuizFactory.shared.themes = [makeTheme(name: "Музыка")]
+        let viewController = QuizViewController(
+            aiQuizAccessProvider: HomeAIQuizAccessStub(isAvailable: false)
+        )
+        let window = UIWindow(frame: CGRect(x: 0, y: 0, width: 390, height: 844))
+        window.rootViewController = viewController
+        window.makeKeyAndVisible()
+        window.layoutIfNeeded()
+        testWindows.append(window)
+        let sourceButton = try XCTUnwrap(
+            viewController.view.descendant(
+                withAccessibilityIdentifier: "homeCreateWithAIButton"
+            ) as? UIButton
+        )
+
+        sourceButton.sendActions(for: .touchUpInside)
+
+        XCTAssertEqual(viewController.homeCardState.phase, .grid)
+        XCTAssertNil(
+            viewController.view.descendant(
+                withAccessibilityIdentifier: "homeExpandedAIThemeCard"
+            )
+        )
+    }
+
     func testAIThemeCardExpandsInlineAboveFullScreenBackdropAndDisablesGrid() throws {
         QuizFactory.shared.themes = [makeTheme(name: "Музыка")]
 
@@ -344,4 +370,12 @@ final class HomeAIThemeCardInteractionTests: HomeScreenVisualStateTestCase {
         drainAnimations()
     }
 
+}
+
+private final class HomeAIQuizAccessStub: AIQuizAccessProviding {
+    let isAIQuizAvailable: Bool
+
+    init(isAvailable: Bool) {
+        isAIQuizAvailable = isAvailable
+    }
 }

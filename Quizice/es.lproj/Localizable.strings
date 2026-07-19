@@ -31,6 +31,8 @@
 "ai_theme.error.service.message" = "El servicio de IA no responde ahora. Inténtalo de nuevo un poco más tarde.";
 "ai_theme.error.invalid_quiz.title" = "No se creó el quiz";
 "ai_theme.error.invalid_quiz.message" = "La IA no pudo crear un quiz válido. Edita el tema o inténtalo de nuevo.";
+"ai_theme.error.authentication.title" = "Se necesita Game Center";
+"ai_theme.error.authentication.message" = "Inicia sesión en Game Center para crear quizzes con IA.";
 "ai_theme.error.configuration.title" = "Se necesita una clave de API";
 "ai_theme.error.configuration.message" = "La clave de API falta o fue rechazada. Actualiza YANDEX_AI_API_KEY en el esquema “Quizice AI (Local)” y reinicia la app.";
 "ai_theme.error.unavailable.title" = "Generación no disponible";

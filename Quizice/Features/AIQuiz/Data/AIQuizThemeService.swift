@@ -5,18 +5,27 @@ protocol AIQuizThemeServiceProtocol: AnyObject {
 }
 
 enum YandexAIQuizContractViolation: Equatable {
+    case promptTooLong(maximum: Int, actual: Int)
+    case localeMismatch(expected: String, actual: String)
+    case invalidSuccessMessage
+    case invalidRefusal
     case emptyTheme
     case emptyThemeDescription
     case invalidQuestionCount(expected: Int, actual: Int)
     case emptyQuestion(index: Int)
+    case questionTooLong(index: Int)
+    case duplicateQuestions
     case invalidAnswerCount(questionIndex: Int, actual: Int)
     case emptyAnswer(questionIndex: Int, answerIndex: Int)
+    case answerTooLong(questionIndex: Int, answerIndex: Int)
     case duplicateAnswers(questionIndex: Int)
     case invalidCorrectAnswer(questionIndex: Int)
+    case invalidExplanation(questionIndex: Int)
 }
 
 enum YandexAIQuizThemeServiceError: Error, Equatable {
     case unavailableInRelease
+    case authenticationRequired
     case missingAPIKey
     case unauthorized
     case emptyPrompt
@@ -36,6 +45,7 @@ extension YandexAIQuizThemeServiceError {
     var analyticsCode: String {
         switch self {
         case .unavailableInRelease: return "unavailable_in_release"
+        case .authenticationRequired: return "authentication_required"
         case .missingAPIKey: return "missing_api_key"
         case .unauthorized: return "unauthorized"
         case .emptyPrompt: return "empty_prompt"
@@ -56,6 +66,14 @@ extension YandexAIQuizThemeServiceError {
 private extension YandexAIQuizContractViolation {
     var diagnosticDescription: String {
         switch self {
+        case let .promptTooLong(maximum, actual):
+            return "prompt_too_long maximum=\(maximum) actual=\(actual)"
+        case let .localeMismatch(expected, actual):
+            return "locale_mismatch expected=\(expected) actual=\(actual)"
+        case .invalidSuccessMessage:
+            return "invalid_success_message"
+        case .invalidRefusal:
+            return "invalid_refusal"
         case .emptyTheme:
             return "empty_theme"
         case .emptyThemeDescription:
@@ -64,14 +82,22 @@ private extension YandexAIQuizContractViolation {
             return "invalid_question_count expected=\(expected) actual=\(actual)"
         case let .emptyQuestion(index):
             return "empty_question index=\(index)"
+        case let .questionTooLong(index):
+            return "question_too_long index=\(index)"
+        case .duplicateQuestions:
+            return "duplicate_questions"
         case let .invalidAnswerCount(questionIndex, actual):
             return "invalid_answer_count question_index=\(questionIndex) actual=\(actual)"
         case let .emptyAnswer(questionIndex, answerIndex):
             return "empty_answer question_index=\(questionIndex) answer_index=\(answerIndex)"
+        case let .answerTooLong(questionIndex, answerIndex):
+            return "answer_too_long question_index=\(questionIndex) answer_index=\(answerIndex)"
         case let .duplicateAnswers(questionIndex):
             return "duplicate_answers question_index=\(questionIndex)"
         case let .invalidCorrectAnswer(questionIndex):
             return "invalid_correct_answer question_index=\(questionIndex)"
+        case let .invalidExplanation(questionIndex):
+            return "invalid_explanation question_index=\(questionIndex)"
         }
     }
 }
@@ -81,6 +107,8 @@ private extension YandexAIQuizThemeServiceError {
         switch self {
         case .unavailableInRelease:
             return "unavailable_in_release"
+        case .authenticationRequired:
+            return "authentication_required"
         case .missingAPIKey:
             return "missing_api_key environment_variable=YANDEX_AI_API_KEY"
         case .unauthorized:
@@ -116,6 +144,8 @@ extension YandexAIQuizThemeServiceError: LocalizedError {
         switch self {
         case .unavailableInRelease:
             return "AI quiz generation is unavailable in this build."
+        case .authenticationRequired:
+            return "Game Center authentication is required for AI quiz generation."
         case .missingAPIKey:
             return "Yandex AI API key is not configured."
         case .unauthorized:

@@ -318,7 +318,7 @@ final class HomeExpandedThemeCardInteractionTests: HomeScreenVisualStateTestCase
         )
     }
 
-    func testExpandedThemeBackSelectsCountAndStartsOnlyOnce() throws {
+    func testExpandedThemeBackSelectsCountAndStartsOnlyOnce() async throws {
         QuizFactory.shared.themes = [makeTheme(name: "Музыка", questionCount: 15)]
 
         let viewController = makeHomeViewController(in: CGRect(x: 0, y: 0, width: 390, height: 844))
@@ -328,13 +328,13 @@ final class HomeExpandedThemeCardInteractionTests: HomeScreenVisualStateTestCase
             viewController.view.descendant(withAccessibilityIdentifier: "music") as? UIButton
         )
         sourceButton.sendActions(for: .touchUpInside)
-        drainAnimations()
+        try await waitUntil { viewController.homeCardState.phase == .expandedFront }
 
         let infoButton = try XCTUnwrap(
             viewController.view.descendant(withAccessibilityIdentifier: "expandedThemeCardInfoButton") as? UIButton
         )
         infoButton.sendActions(for: .touchUpInside)
-        drainAnimations(0.34)
+        try await waitUntil { viewController.homeCardState.phase == .expandedBack }
 
         let questionCountControl = try XCTUnwrap(
             viewController.view.descendant(withAccessibilityIdentifier: "descriptionQuestionCountPicker") as? UISegmentedControl
@@ -347,6 +347,7 @@ final class HomeExpandedThemeCardInteractionTests: HomeScreenVisualStateTestCase
 
         startButton.sendActions(for: .touchUpInside)
         startButton.sendActions(for: .touchUpInside)
+        try await waitUntil { router.showQuestionCallCount == 1 }
 
         XCTAssertEqual(QuizFactory.shared.questionsCount, 10)
         XCTAssertEqual(router.showQuestionCallCount, 1)
@@ -363,7 +364,7 @@ final class HomeExpandedThemeCardInteractionTests: HomeScreenVisualStateTestCase
         )
     }
 
-    func testExpandedThemeAnalyticsTracksCancellationAndSelectedCountStart() throws {
+    func testExpandedThemeAnalyticsTracksCancellationAndSelectedCountStart() async throws {
         QuizFactory.shared.themes = [makeTheme(name: "Музыка", questionCount: 15)]
         let analytics = HomeAnalyticsTrackingSpy()
         let viewController = QuizViewController(
@@ -384,7 +385,7 @@ final class HomeExpandedThemeCardInteractionTests: HomeScreenVisualStateTestCase
             viewController.view.descendant(withAccessibilityIdentifier: "music") as? UIButton
         )
         sourceButton.sendActions(for: .touchUpInside)
-        drainAnimations(0.22)
+        try await waitUntil { viewController.homeCardState.phase == .expandedFront }
         let closeButton = try XCTUnwrap(
             viewController.view.descendant(withAccessibilityIdentifier: "expandedThemeCardCloseButton") as? UIButton
         )
@@ -393,7 +394,7 @@ final class HomeExpandedThemeCardInteractionTests: HomeScreenVisualStateTestCase
             !(event.name == "screen_view" && event.parameters["screen"] as? String == "home")
         }
         XCTAssertEqual(eventsBeforeCollapseCompletion.map(\.name), ["theme_selected"])
-        drainAnimations(0.22)
+        try await waitUntil { viewController.homeCardState.phase == .grid }
 
         let cancellationEvents = analytics.events.filter { event in
             !(event.name == "screen_view" && event.parameters["screen"] as? String == "home")
@@ -417,12 +418,12 @@ final class HomeExpandedThemeCardInteractionTests: HomeScreenVisualStateTestCase
             viewController.view.descendant(withAccessibilityIdentifier: "music") as? UIButton
         )
         sourceButton.sendActions(for: .touchUpInside)
-        drainAnimations(0.22)
+        try await waitUntil { viewController.homeCardState.phase == .expandedFront }
         let infoButton = try XCTUnwrap(
             viewController.view.descendant(withAccessibilityIdentifier: "expandedThemeCardInfoButton") as? UIButton
         )
         infoButton.sendActions(for: .touchUpInside)
-        drainAnimations(0.22)
+        try await waitUntil { viewController.homeCardState.phase == .expandedBack }
         let questionCountControl = try XCTUnwrap(
             viewController.view.descendant(withAccessibilityIdentifier: "descriptionQuestionCountPicker") as? UISegmentedControl
         )
@@ -432,6 +433,7 @@ final class HomeExpandedThemeCardInteractionTests: HomeScreenVisualStateTestCase
             viewController.view.descendant(withAccessibilityIdentifier: "descriptionStartButton") as? UIButton
         )
         startButton.sendActions(for: .touchUpInside)
+        try await waitUntil { router.showQuestionCallCount == 1 }
 
         let startEvents = analytics.events.filter { event in
             !(event.name == "screen_view" && event.parameters["screen"] as? String == "home")

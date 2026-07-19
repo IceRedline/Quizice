@@ -5,6 +5,8 @@ extension Notification.Name {
 }
 
 final class StatisticsStore {
+    private static let maximumAttemptsPerSyncRequest = 100
+
     struct Attempt: Codable, Equatable {
         let correctAnswers: Int
         let totalQuestions: Int
@@ -158,7 +160,7 @@ final class StatisticsStore {
         return SyncRequest(
             migrationId: state.migrationId,
             legacySummary: state.legacySummary,
-            attempts: state.pendingAttempts
+            attempts: Array(state.pendingAttempts.prefix(Self.maximumAttemptsPerSyncRequest))
         )
     }
 

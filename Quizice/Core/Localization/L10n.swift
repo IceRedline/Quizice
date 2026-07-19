@@ -106,6 +106,11 @@ enum L10n {
                 static var message: String { L10n.localized("ai_theme.error.invalid_quiz.message", comment: "Invalid generated quiz message") }
             }
 
+            enum Authentication {
+                static var title: String { L10n.localized("ai_theme.error.authentication.title", comment: "AI authentication required title") }
+                static var message: String { L10n.localized("ai_theme.error.authentication.message", comment: "AI authentication required message") }
+            }
+
             enum Configuration {
                 static var title: String { L10n.localized("ai_theme.error.configuration.title", comment: "AI debug configuration title") }
                 static var message: String { L10n.localized("ai_theme.error.configuration.message", comment: "AI debug configuration message") }

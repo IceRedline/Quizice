@@ -26,6 +26,7 @@ final class GameCenterAuthenticationServiceTests: XCTestCase {
         XCTAssertEqual(harness.api.authenticatedIdentities.count, 1)
         XCTAssertEqual(harness.api.syncRequests.first?.attempts.count, 1)
         XCTAssertEqual(harness.statistics.loadSummary(), harness.api.syncSummary)
+        XCTAssertTrue(harness.aiAccess.isAIQuizAvailable)
     }
 
     func testUnavailableGameCenterEntersGuestMode() async {
@@ -36,6 +37,7 @@ final class GameCenterAuthenticationServiceTests: XCTestCase {
 
         await waitUntil { harness.service.state == .guest }
         XCTAssertTrue(harness.api.authenticatedIdentities.isEmpty)
+        XCTAssertFalse(harness.aiAccess.isAIQuizAvailable)
     }
 
     func testValidCachedSessionIsUsedOnlyForMatchingPlayer() async {
@@ -107,6 +109,7 @@ final class GameCenterAuthenticationServiceTests: XCTestCase {
         await waitUntil { harness.service.state == .guest }
         XCTAssertEqual(harness.api.syncRequests.count, 2)
         XCTAssertNil(harness.sessionStore.session)
+        XCTAssertFalse(harness.aiAccess.isAIQuizAvailable)
     }
 
     func testRepeatedAuthenticatedCallbackDoesNotExchangeAgain() async {
@@ -121,12 +124,109 @@ final class GameCenterAuthenticationServiceTests: XCTestCase {
         XCTAssertEqual(harness.api.authenticatedIdentities.count, 1)
     }
 
+    func testBackendAuthenticationInvalidationCoalescesAndRefreshesSession() async {
+        let harness = makeHarness()
+        harness.service.start { _ in }
+        harness.gameCenter.emit(.authenticated(teamPlayerID: "team-1"))
+        await waitUntil {
+            harness.service.state == .authenticated(userID: "user-1", teamPlayerID: "team-1")
+        }
+
+        harness.sessionStore.session = nil
+        harness.aiAccess.update(isAuthenticated: false)
+        harness.notificationCenter.post(name: .backendAuthenticationInvalidated, object: nil)
+        harness.notificationCenter.post(name: .backendAuthenticationInvalidated, object: nil)
+
+        await waitUntil {
+            harness.api.authenticatedIdentities.count == 2 &&
+                harness.service.state == .authenticated(userID: "user-1", teamPlayerID: "team-1")
+        }
+        XCTAssertEqual(harness.api.authenticatedIdentities.count, 2)
+        XCTAssertTrue(harness.aiAccess.isAIQuizAvailable)
+        XCTAssertEqual(harness.sessionStore.session?.accessToken, "access-token")
+    }
+
+    func testBackendAuthenticationRefreshFailureEntersGuestMode() async {
+        let harness = makeHarness()
+        harness.service.start { _ in }
+        harness.gameCenter.emit(.authenticated(teamPlayerID: "team-1"))
+        await waitUntil {
+            harness.service.state == .authenticated(userID: "user-1", teamPlayerID: "team-1")
+        }
+
+        harness.api.authenticationErrors = [.transport(.notConnectedToInternet)]
+        harness.sessionStore.session = nil
+        harness.aiAccess.update(isAuthenticated: false)
+        harness.notificationCenter.post(name: .backendAuthenticationInvalidated, object: nil)
+
+        await waitUntil { harness.service.state == .guest }
+        XCTAssertFalse(harness.aiAccess.isAIQuizAvailable)
+        XCTAssertNil(harness.sessionStore.session)
+    }
+
+    func testTransientRefreshFailureRetriesOnceOnForegroundAndRestoresAuthenticatedAccess() async {
+        let harness = makeHarness()
+        harness.service.start { _ in }
+        harness.gameCenter.emit(.authenticated(teamPlayerID: "team-1"))
+        await waitUntil {
+            harness.service.state == .authenticated(userID: "user-1", teamPlayerID: "team-1")
+        }
+
+        harness.api.authenticationErrors = [.transport(.notConnectedToInternet)]
+        harness.notificationCenter.post(name: .backendAuthenticationInvalidated, object: nil)
+
+        await waitUntil { harness.service.state == .guest }
+        XCTAssertEqual(harness.api.authenticatedIdentities.count, 2)
+        XCTAssertFalse(harness.aiAccess.isAIQuizAvailable)
+        XCTAssertNil(harness.sessionStore.session)
+
+        try? await Task.sleep(nanoseconds: 50_000_000)
+        XCTAssertEqual(harness.api.authenticatedIdentities.count, 2)
+
+        harness.service.retrySynchronization()
+        harness.service.retrySynchronization()
+
+        await waitUntil {
+            harness.api.authenticatedIdentities.count == 3 &&
+                harness.service.state == .authenticated(userID: "user-1", teamPlayerID: "team-1")
+        }
+        XCTAssertEqual(harness.api.authenticatedIdentities.count, 3)
+        XCTAssertTrue(harness.aiAccess.isAIQuizAvailable)
+        XCTAssertEqual(harness.sessionStore.session?.teamPlayerID, "team-1")
+    }
+
+    func testSynchronizationDrainsOneHundredAndOneAttemptsInTwoBatches() async {
+        let harness = makeHarness()
+        for index in 0..<101 {
+            harness.statistics.recordAttempt(
+                correctAnswers: index % 5,
+                totalQuestions: 5
+            )
+        }
+
+        harness.service.start { _ in }
+        harness.gameCenter.emit(.authenticated(teamPlayerID: "team-1"))
+
+        await waitUntil(timeout: 2) {
+            harness.api.syncRequests.count == 2 &&
+                harness.statistics.hasPendingSync(for: "user-1") == false
+        }
+
+        XCTAssertEqual(harness.api.syncRequests.map(\.attempts.count), [100, 1])
+        XCTAssertEqual(
+            Set(harness.api.syncRequests.flatMap { $0.attempts.map(\.id) }).count,
+            101
+        )
+    }
+
     private func makeHarness(storedSession: AuthSession? = nil) -> (
         service: GameCenterAuthenticationService,
         gameCenter: FakeGameCenterClient,
         api: FakeAuthAPI,
         sessionStore: MemorySessionStore,
-        statistics: StatisticsStore
+        statistics: StatisticsStore,
+        notificationCenter: NotificationCenter,
+        aiAccess: AIQuizAccessStore
     ) {
         let suiteName = "GameCenterAuthenticationServiceTests.\(UUID().uuidString)"
         let defaults = UserDefaults(suiteName: suiteName)!
@@ -140,6 +240,7 @@ final class GameCenterAuthenticationServiceTests: XCTestCase {
         let gameCenter = FakeGameCenterClient()
         let api = FakeAuthAPI()
         let sessionStore = MemorySessionStore(session: storedSession)
+        let aiAccess = AIQuizAccessStore()
         let service = GameCenterAuthenticationService(
             gameCenter: gameCenter,
             api: api,
@@ -147,9 +248,18 @@ final class GameCenterAuthenticationServiceTests: XCTestCase {
             statisticsStore: statistics,
             bundleIdentifier: "ru.avtabenskiy.Quizice",
             now: { Date(timeIntervalSince1970: 1_000) },
-            notificationCenter: notificationCenter
+            notificationCenter: notificationCenter,
+            aiQuizAccessStore: aiAccess
         )
-        return (service, gameCenter, api, sessionStore, statistics)
+        return (
+            service,
+            gameCenter,
+            api,
+            sessionStore,
+            statistics,
+            notificationCenter,
+            aiAccess
+        )
     }
 
     private func waitUntil(
@@ -169,62 +279,345 @@ final class GameCenterAuthenticationServiceTests: XCTestCase {
 final class HTTPAuthAPITests: XCTestCase {
     override func tearDown() {
         AuthURLProtocol.requestHandler = nil
+        AuthURLProtocol.hangingRequestHandler = nil
+        AuthURLProtocol.stopHandler = nil
         super.tearDown()
     }
 
-    func testProvisionalContractEncodesIdentityAndBearerHeader() async throws {
-        let configuration = URLSessionConfiguration.ephemeral
-        configuration.protocolClasses = [AuthURLProtocol.self]
-        let session = URLSession(configuration: configuration)
-        let api = HTTPAuthAPI(
-            configuration: BackendConfiguration(baseURL: URL(string: "https://backend.example")!),
-            session: session
-        )
+    func testLiveCamelCaseContractEncodesRequestsAndDecodesResponses() async throws {
+        let metrics = AuthBackendMetricSpy()
+        let api = makeAPI(metrics: metrics)
         var requestNumber = 0
         AuthURLProtocol.requestHandler = { request in
             requestNumber += 1
             if requestNumber == 1 {
-                XCTAssertEqual(request.url?.path, "/v1/auth/game-center")
+                XCTAssertEqual(request.url?.path, "/api/v1/auth/game-center")
+                XCTAssertEqual(request.value(forHTTPHeaderField: "Content-Type"), "application/json")
+                XCTAssertEqual(request.value(forHTTPHeaderField: "Accept"), "application/json")
                 let body = try XCTUnwrap(Self.bodyData(from: request))
                 let json = try XCTUnwrap(JSONSerialization.jsonObject(with: body) as? [String: String])
-                XCTAssertEqual(json["teamPlayerId"], "team-1")
-                XCTAssertEqual(json["signature"], Data("signature".utf8).base64EncodedString())
-                XCTAssertEqual(json["timestamp"], "123456")
+                XCTAssertEqual(
+                    json,
+                    [
+                        "teamPlayerId": "team-1",
+                        "bundleId": "ru.avtabenskiy.Quizice",
+                        "publicKeyUrl": "https://apple.example/key",
+                        "signature": "c2lnbmF0dXJl",
+                        "salt": "c2FsdA==",
+                        "timestamp": "123456"
+                    ]
+                )
                 let data = Data(
-                    #"{"userId":"user-1","accessToken":"token","expiresAt":"2999-01-01T00:00:00Z"}"#.utf8
+                    #"{"userId":"018f4f5e-7b6a-7c8d-9e0f-123456789abc","accessToken":"token","expiresAt":"2030-01-01T00:00:00Z"}"#.utf8
                 )
                 return (HTTPURLResponse(url: request.url!, statusCode: 200, httpVersion: nil, headerFields: nil)!, data)
             }
 
-            XCTAssertEqual(request.url?.path, "/v1/me/statistics/sync")
+            XCTAssertEqual(request.url?.path, "/api/v1/me/statistics/sync")
             XCTAssertEqual(request.value(forHTTPHeaderField: "Authorization"), "Bearer token")
+            let body = try XCTUnwrap(Self.bodyData(from: request))
+            let json = try XCTUnwrap(JSONSerialization.jsonObject(with: body) as? [String: Any])
+            XCTAssertEqual(Set(json.keys), ["migrationId", "legacySummary", "attempts"])
+            XCTAssertEqual(json["migrationId"] as? String, "migration-1")
+            XCTAssertEqual(
+                json["legacySummary"] as? [String: Int],
+                [
+                    "playedQuizzes": 1,
+                    "correctAnswers": 4,
+                    "totalQuestions": 5,
+                    "bestCorrectAnswers": 4,
+                    "bestTotalQuestions": 5
+                ]
+            )
+            let attempts = try XCTUnwrap(json["attempts"] as? [[String: Any]])
+            XCTAssertEqual(attempts.count, 1)
+            XCTAssertEqual(Set(attempts[0].keys), ["id", "correctAnswers", "totalQuestions", "completedAt"])
+            XCTAssertEqual(attempts[0]["id"] as? String, "attempt-1")
+            XCTAssertEqual(attempts[0]["correctAnswers"] as? Int, 3)
+            XCTAssertEqual(attempts[0]["totalQuestions"] as? Int, 5)
+            XCTAssertEqual(attempts[0]["completedAt"] as? String, "1970-01-01T00:20:34Z")
             let data = Data(
-                #"{"summary":{"playedQuizzes":0,"correctAnswers":0,"totalQuestions":0,"bestCorrectAnswers":0,"bestTotalQuestions":0},"acceptedAttemptIds":[],"legacySummaryAccepted":true}"#.utf8
+                #"{"summary":{"playedQuizzes":2,"correctAnswers":7,"totalQuestions":10,"bestCorrectAnswers":4,"bestTotalQuestions":5},"acceptedAttemptIds":["attempt-1"],"legacySummaryAccepted":true}"#.utf8
             )
             return (HTTPURLResponse(url: request.url!, statusCode: 200, httpVersion: nil, headerFields: nil)!, data)
         }
 
-        let identity = GameCenterIdentity(
-            teamPlayerId: "team-1",
-            bundleId: "ru.avtabenskiy.Quizice",
-            publicKeyUrl: "https://apple.example/key",
-            signature: Data("signature".utf8).base64EncodedString(),
-            salt: Data("salt".utf8).base64EncodedString(),
-            timestamp: "123456"
-        )
-        let authSession = try await api.authenticate(identity: identity)
+        let authSession = try await api.authenticate(identity: Self.identity)
         XCTAssertEqual(authSession.teamPlayerID, "team-1")
+        XCTAssertEqual(authSession.userID, "018f4f5e-7b6a-7c8d-9e0f-123456789abc")
 
         let response = try await api.syncStatistics(
             request: StatisticsStore.SyncRequest(
-                migrationId: "migration",
-                legacySummary: nil,
-                attempts: []
+                migrationId: "migration-1",
+                legacySummary: StatisticsSummary(
+                    playedQuizzes: 1,
+                    correctAnswers: 4,
+                    totalQuestions: 5,
+                    bestCorrectAnswers: 4,
+                    bestTotalQuestions: 5
+                ),
+                attempts: [
+                    StatisticsStore.PendingAttempt(
+                        id: "attempt-1",
+                        correctAnswers: 3,
+                        totalQuestions: 5,
+                        completedAt: Date(timeIntervalSince1970: 1_234)
+                    )
+                ]
             ),
             accessToken: authSession.accessToken
         )
-        XCTAssertEqual(response.summary, .empty)
+        XCTAssertEqual(response.summary.playedQuizzes, 2)
+        XCTAssertEqual(response.acceptedAttemptIds, ["attempt-1"])
+        XCTAssertEqual(metrics.values.map(\.operation), [.authentication, .statisticsSync])
+        XCTAssertEqual(metrics.values.map(\.result), [.success, .success])
+        XCTAssertTrue(metrics.values.allSatisfy { $0.statusCode == 200 })
+        XCTAssertTrue(metrics.values.allSatisfy { $0.durationMilliseconds >= 0 })
     }
+
+    func testAuthenticationDecodesRFC3339ExpirationWithAndWithoutFractionalSeconds() async throws {
+        let fixtures: [(value: String, expectedTimestamp: TimeInterval)] = [
+            ("2030-01-01T00:00:00Z", 1_893_456_000),
+            ("2030-01-01T00:00:00.123Z", 1_893_456_000.123)
+        ]
+
+        for fixture in fixtures {
+            let api = makeAPI()
+            AuthURLProtocol.requestHandler = { request in
+                let data = Data(
+                    #"{"userId":"user-1","accessToken":"token","expiresAt":"\#(fixture.value)"}"#.utf8
+                )
+                return (
+                    HTTPURLResponse(
+                        url: request.url!,
+                        statusCode: 200,
+                        httpVersion: nil,
+                        headerFields: nil
+                    )!,
+                    data
+                )
+            }
+
+            let session = try await api.authenticate(identity: Self.identity)
+
+            XCTAssertEqual(
+                session.expiresAt.timeIntervalSince1970,
+                fixture.expectedTimestamp,
+                accuracy: 0.001
+            )
+        }
+    }
+
+    func testUnauthorizedResponseDecodesLiveErrorEnvelopeIncludingRequestID() async {
+        let api = makeAPI()
+        AuthURLProtocol.requestHandler = { request in
+            let data = Data(
+                #"{"requestId":"request-42","code":"unauthorized","message":"invalid token"}"#.utf8
+            )
+            return (HTTPURLResponse(url: request.url!, statusCode: 401, httpVersion: nil, headerFields: nil)!, data)
+        }
+
+        do {
+            _ = try await api.syncStatistics(request: Self.emptySyncRequest, accessToken: "expired")
+            XCTFail("Expected unauthorized error")
+        } catch let error as BackendAPIError {
+            XCTAssertEqual(
+                error,
+                .unauthorized(
+                    BackendErrorEnvelope(
+                        code: "unauthorized",
+                        message: "invalid token",
+                        requestId: "request-42"
+                    )
+                )
+            )
+        } catch {
+            XCTFail("Unexpected error: \(error)")
+        }
+    }
+
+    func testMalformedSuccessJSONThrowsDecodingError() async {
+        let api = makeAPI()
+        AuthURLProtocol.requestHandler = { request in
+            (
+                HTTPURLResponse(url: request.url!, statusCode: 200, httpVersion: nil, headerFields: nil)!,
+                Data(#"{"userId":"user-1"}"#.utf8)
+            )
+        }
+
+        await assertError(.decoding) {
+            try await api.authenticate(identity: Self.identity)
+        }
+    }
+
+    func testNonHTTPResponseThrowsInvalidResponse() async {
+        let api = makeAPI()
+        AuthURLProtocol.requestHandler = { request in
+            (
+                URLResponse(
+                    url: request.url!,
+                    mimeType: "application/json",
+                    expectedContentLength: 0,
+                    textEncodingName: nil
+                ),
+                Data()
+            )
+        }
+
+        await assertError(.invalidResponse) {
+            try await api.authenticate(identity: Self.identity)
+        }
+    }
+
+    func testTimeoutIsInjectedIntoRequestAndMappedToTransportError() async {
+        let api = makeAPI(requestTimeout: 0.25)
+        AuthURLProtocol.requestHandler = { request in
+            XCTAssertEqual(request.timeoutInterval, 0.25, accuracy: 0.001)
+            throw URLError(.timedOut)
+        }
+
+        await assertError(.transport(.timedOut)) {
+            try await api.authenticate(identity: Self.identity)
+        }
+    }
+
+    func testCancellingRequestPropagatesCancellationError() async {
+        let api = makeAPI()
+        let requestStarted = expectation(description: "Request started")
+        let requestStopped = expectation(description: "Request stopped")
+        AuthURLProtocol.hangingRequestHandler = { _ in requestStarted.fulfill() }
+        AuthURLProtocol.stopHandler = { requestStopped.fulfill() }
+
+        let task = Task {
+            try await api.authenticate(identity: Self.identity)
+        }
+        await fulfillment(of: [requestStarted], timeout: 1)
+        task.cancel()
+
+        do {
+            _ = try await task.value
+            XCTFail("Expected cancellation")
+        } catch is CancellationError {
+            // Expected: cancellation is not converted into a recoverable transport error.
+        } catch {
+            XCTFail("Unexpected error: \(error)")
+        }
+        await fulfillment(of: [requestStopped], timeout: 1)
+    }
+
+    func testInvalidAuthenticationSuccessValuesThrowContractViolation() async {
+        let invalidFixtures = [
+            #"{"userId":"","accessToken":"token","expiresAt":"2030-01-01T00:00:00Z"}"#,
+            #"{"userId":"user-1","accessToken":"   ","expiresAt":"2030-01-01T00:00:00Z"}"#,
+            #"{"userId":"user-1","accessToken":"token","expiresAt":"2020-01-01T00:00:00Z"}"#
+        ]
+
+        for fixture in invalidFixtures {
+            let api = makeAPI()
+            AuthURLProtocol.requestHandler = { request in
+                (
+                    HTTPURLResponse(url: request.url!, statusCode: 200, httpVersion: nil, headerFields: nil)!,
+                    Data(fixture.utf8)
+                )
+            }
+
+            await assertError(.contractViolation) {
+                try await api.authenticate(identity: Self.identity)
+            }
+        }
+    }
+
+    func testInconsistentStatisticsSuccessThrowsContractViolation() async {
+        let api = makeAPI()
+        AuthURLProtocol.requestHandler = { request in
+            let data = Data(
+                #"{"summary":{"playedQuizzes":1,"correctAnswers":6,"totalQuestions":5,"bestCorrectAnswers":6,"bestTotalQuestions":5},"acceptedAttemptIds":[],"legacySummaryAccepted":true}"#.utf8
+            )
+            return (HTTPURLResponse(url: request.url!, statusCode: 200, httpVersion: nil, headerFields: nil)!, data)
+        }
+
+        await assertError(.contractViolation) {
+            try await api.syncStatistics(request: Self.emptySyncRequest, accessToken: "token")
+        }
+    }
+
+    func testStatisticsResponseMustAcknowledgeEveryAttemptInBatch() async {
+        let api = makeAPI()
+        AuthURLProtocol.requestHandler = { request in
+            let data = Data(
+                #"{"summary":{"playedQuizzes":1,"correctAnswers":3,"totalQuestions":5,"bestCorrectAnswers":3,"bestTotalQuestions":5},"acceptedAttemptIds":[],"legacySummaryAccepted":true}"#.utf8
+            )
+            return (
+                HTTPURLResponse(url: request.url!, statusCode: 200, httpVersion: nil, headerFields: nil)!,
+                data
+            )
+        }
+        let request = StatisticsStore.SyncRequest(
+            migrationId: "migration-1",
+            legacySummary: nil,
+            attempts: [
+                StatisticsStore.PendingAttempt(
+                    id: "attempt-1",
+                    correctAnswers: 3,
+                    totalQuestions: 5,
+                    completedAt: Date(timeIntervalSince1970: 1_234)
+                )
+            ]
+        )
+
+        await assertError(.contractViolation) {
+            try await api.syncStatistics(request: request, accessToken: "token")
+        }
+    }
+
+    private func makeAPI(
+        requestTimeout: TimeInterval = 15,
+        metrics: BackendRequestMetricRecording = NoopBackendRequestMetricRecorder()
+    ) -> HTTPAuthAPI {
+        let configuration = URLSessionConfiguration.ephemeral
+        configuration.protocolClasses = [AuthURLProtocol.self]
+        let session = URLSession(configuration: configuration)
+        return HTTPAuthAPI(
+            configuration: BackendConfiguration(
+                baseURL: URL(string: "https://backend.example/api")!
+            ),
+            session: session,
+            requestTimeout: requestTimeout,
+            now: { Date(timeIntervalSince1970: 1_700_000_000) },
+            metrics: metrics
+        )
+    }
+
+    private func assertError<T>(
+        _ expectedError: BackendAPIError,
+        file: StaticString = #filePath,
+        line: UInt = #line,
+        operation: () async throws -> T
+    ) async {
+        do {
+            _ = try await operation()
+            XCTFail("Expected \(expectedError)", file: file, line: line)
+        } catch let error as BackendAPIError {
+            XCTAssertEqual(error, expectedError, file: file, line: line)
+        } catch {
+            XCTFail("Unexpected error: \(error)", file: file, line: line)
+        }
+    }
+
+    private static let identity = GameCenterIdentity(
+        teamPlayerId: "team-1",
+        bundleId: "ru.avtabenskiy.Quizice",
+        publicKeyUrl: "https://apple.example/key",
+        signature: "c2lnbmF0dXJl",
+        salt: "c2FsdA==",
+        timestamp: "123456"
+    )
+
+    private static let emptySyncRequest = StatisticsStore.SyncRequest(
+        migrationId: "migration-1",
+        legacySummary: nil,
+        attempts: []
+    )
 
     private static func bodyData(from request: URLRequest) -> Data? {
         if let body = request.httpBody { return body }
@@ -243,8 +636,28 @@ final class HTTPAuthAPITests: XCTestCase {
     }
 }
 
-#if DEBUG
 final class BackendConfigurationTests: XCTestCase {
+    func testProductionEndpointIsAccepted() throws {
+        let configuration = try XCTUnwrap(
+            BackendConfiguration.configuration(
+                from: "https://bbav8b1v6032q53l8360.containers.yandexcloud.net/api"
+            )
+        )
+
+        XCTAssertEqual(
+            configuration.baseURL.absoluteString,
+            "https://bbav8b1v6032q53l8360.containers.yandexcloud.net/api"
+        )
+    }
+
+    func testRelativeMissingHostAndInsecureRemoteURLsAreRejected() {
+        XCTAssertNil(BackendConfiguration.configuration(from: "api/v1"))
+        XCTAssertNil(BackendConfiguration.configuration(from: "https:///api"))
+        XCTAssertNil(BackendConfiguration.configuration(from: "http://backend.example/api"))
+        XCTAssertNil(BackendConfiguration.configuration(from: "$(BACKEND_BASE_URL)"))
+    }
+
+    #if DEBUG
     func testLocalhostOverrideWinsWhenEnabled() throws {
         let suiteName = "BackendConfigurationTests.\(UUID().uuidString)"
         let defaults = try XCTUnwrap(UserDefaults(suiteName: suiteName))
@@ -257,8 +670,15 @@ final class BackendConfigurationTests: XCTestCase {
 
         XCTAssertEqual(configuration.baseURL, URL(string: "http://localhost:8000/api"))
     }
+
+    func testHTTPLocalhostIsAcceptedOnlyByDebugValidation() throws {
+        let configuration = try XCTUnwrap(
+            BackendConfiguration.configuration(from: "http://localhost:8000/api")
+        )
+        XCTAssertEqual(configuration.baseURL, DebugBackendSettings.localhostBaseURL)
+    }
+    #endif
 }
-#endif
 
 final class KeychainSessionStoreTests: XCTestCase {
     func testRoundTripAndClear() throws {
@@ -326,6 +746,7 @@ private final class FakeGameCenterClient: GameCenterAuthenticating {
 
 private final class FakeAuthAPI: AuthAPI {
     var authenticatedIdentities: [GameCenterIdentity] = []
+    var authenticationErrors: [BackendAPIError] = []
     var syncRequests: [StatisticsStore.SyncRequest] = []
     var syncAccessTokens: [String] = []
     var syncErrors: [BackendAPIError] = []
@@ -333,6 +754,9 @@ private final class FakeAuthAPI: AuthAPI {
 
     func authenticate(identity: GameCenterIdentity) async throws -> AuthSession {
         authenticatedIdentities.append(identity)
+        if authenticationErrors.isEmpty == false {
+            throw authenticationErrors.removeFirst()
+        }
         return AuthSession(
             userID: "user-1",
             accessToken: "access-token",
@@ -371,12 +795,18 @@ private final class MemorySessionStore: SessionStoring {
 }
 
 private final class AuthURLProtocol: URLProtocol {
-    static var requestHandler: ((URLRequest) throws -> (HTTPURLResponse, Data))?
+    static var requestHandler: ((URLRequest) throws -> (URLResponse, Data))?
+    static var hangingRequestHandler: ((URLRequest) -> Void)?
+    static var stopHandler: (() -> Void)?
 
     override class func canInit(with request: URLRequest) -> Bool { true }
     override class func canonicalRequest(for request: URLRequest) -> URLRequest { request }
 
     override func startLoading() {
+        if let hangingRequestHandler = Self.hangingRequestHandler {
+            hangingRequestHandler(request)
+            return
+        }
         do {
             let handler = try XCTUnwrap(Self.requestHandler)
             let (response, data) = try handler(request)
@@ -388,5 +818,15 @@ private final class AuthURLProtocol: URLProtocol {
         }
     }
 
-    override func stopLoading() {}
+    override func stopLoading() {
+        Self.stopHandler?()
+    }
+}
+
+private final class AuthBackendMetricSpy: BackendRequestMetricRecording {
+    private(set) var values: [BackendRequestMetric] = []
+
+    func record(_ metric: BackendRequestMetric) {
+        values.append(metric)
+    }
 }

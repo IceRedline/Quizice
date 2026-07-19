@@ -1,6 +1,28 @@
 import UIKit
 
 extension QuizViewController {
+    func refreshBackendCatalog() {
+        backendCatalogRefreshTask?.cancel()
+        let requestID = UUID()
+        backendCatalogRefreshRequestID = requestID
+        let locale = AppLocalizationStore.shared.resolvedLanguageCode
+        backendCatalogRefreshTask = Task { @MainActor [weak self] in
+            guard let self else { return }
+            let didRefresh = await self.themeRepository.refreshBackendCatalog(locale: locale)
+            guard self.backendCatalogRefreshRequestID == requestID else { return }
+            self.backendCatalogRefreshTask = nil
+            self.backendCatalogRefreshRequestID = nil
+            guard
+                didRefresh,
+                !Task.isCancelled,
+                AppLocalizationStore.shared.resolvedLanguageCode == locale
+            else { return }
+            self.updateThemeAvailabilityMessage()
+            self.themesCollectionView.reloadData()
+            self.refreshExpandedThemeCardAppearance()
+        }
+    }
+
     func themeButtonTouchedDown(_ sender: UIButton) {
         animationsEngine.animateDownFloat(sender)
     }
@@ -53,6 +75,7 @@ extension QuizViewController {
 
     func aiThemeButtonTouchedUpInside(_ sender: UIButton) {
         animationsEngine.animateUpFloat(sender)
+        guard aiQuizAccessProvider.isAIQuizAvailable else { return }
         guard homeCardState.phase == .grid, !isQuizLaunchPending else { return }
         let effect = homeStore.send(.presentAI)
         guard let effect else { return }
