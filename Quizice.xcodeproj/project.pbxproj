@@ -11,6 +11,9 @@
 		B10000000000000000000005 /* BackendAIQuizThemeService.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10000000000000000000004 /* BackendAIQuizThemeService.swift */; };
 		B10000000000000000000007 /* BackendClientTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10000000000000000000006 /* BackendClientTests.swift */; };
 		B10000000000000000000009 /* LiveBackendContractTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10000000000000000000008 /* LiveBackendContractTests.swift */; };
+		B20000000000000000000002 /* BackendClientTestSupport.swift in Sources */ = {isa = PBXBuildFile; fileRef = B20000000000000000000001 /* BackendClientTestSupport.swift */; };
+		B20000000000000000000004 /* AuthServiceTestSupport.swift in Sources */ = {isa = PBXBuildFile; fileRef = B20000000000000000000003 /* AuthServiceTestSupport.swift */; };
+		B20000000000000000000006 /* KeychainSessionStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B20000000000000000000005 /* KeychainSessionStoreTests.swift */; };
 		0003220FA45176EA04A58596 /* QuizQuestionCountPolicy.swift in Sources */ = {isa = PBXBuildFile; fileRef = F93AF33B6FA83D319132BD54 /* QuizQuestionCountPolicy.swift */; };
 		A1D1FF1C0A00000200000002 /* AIQuizDifficulty.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1D1FF1C0A00000100000001 /* AIQuizDifficulty.swift */; };
 		013A11228A2DFE3CAEC27F51 /* ExpandedAIThemeCardView+Appearance.swift in Sources */ = {isa = PBXBuildFile; fileRef = DCA9234F162B4CE2242F18A8 /* ExpandedAIThemeCardView+Appearance.swift */; };
@@ -248,6 +251,9 @@
 		B10000000000000000000004 /* BackendAIQuizThemeService.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = BackendAIQuizThemeService.swift; sourceTree = "<group>"; };
 		B10000000000000000000006 /* BackendClientTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = BackendClientTests.swift; sourceTree = "<group>"; };
 		B10000000000000000000008 /* LiveBackendContractTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = LiveBackendContractTests.swift; sourceTree = "<group>"; };
+		B20000000000000000000001 /* BackendClientTestSupport.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = BackendClientTestSupport.swift; sourceTree = "<group>"; };
+		B20000000000000000000003 /* AuthServiceTestSupport.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AuthServiceTestSupport.swift; sourceTree = "<group>"; };
+		B20000000000000000000005 /* KeychainSessionStoreTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = KeychainSessionStoreTests.swift; sourceTree = "<group>"; };
 		871A9D8106F4AC20F770F451 /* QuizViewController.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = QuizViewController.swift; sourceTree = "<group>"; };
 		87B22704C9841FA1A6955424 /* ComponentSnapshotTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ComponentSnapshotTests.swift; sourceTree = "<group>"; };
 		8822A5B878D44CB82877183D /* AuthModels.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AuthModels.swift; sourceTree = "<group>"; };
@@ -994,8 +1000,11 @@
 				2C045F0F1F8FF8CCB7196E1B /* AnalyticsServiceTests.swift */,
 				6A7E73CC187A089F6D5215B1 /* AppAppearanceTests.swift */,
 				C42A75C09759C2D0F8FC78C2 /* AuthServiceTests.swift */,
+				B20000000000000000000003 /* AuthServiceTestSupport.swift */,
 				B10000000000000000000006 /* BackendClientTests.swift */,
+				B20000000000000000000001 /* BackendClientTestSupport.swift */,
 				43967E761EE3C2C1360397EA /* HomeThemeCardFlipTransitionTests.swift */,
+				B20000000000000000000005 /* KeychainSessionStoreTests.swift */,
 				15CCD31365CAC105EA3F080B /* LocalizationTests.swift */,
 				B10000000000000000000008 /* LiveBackendContractTests.swift */,
 				9C83493B5946FF3E4A04293C /* QuizFactoryTests.swift */,
@@ -1383,8 +1392,11 @@
 				A9AFF7C8ACE328BA5A3FC832 /* AnalyticsServiceTests.swift in Sources */,
 				D166E8010E80FA2754489B9A /* AppAppearanceTests.swift in Sources */,
 				76635C743D62053B33366893 /* AuthServiceTests.swift in Sources */,
+				B20000000000000000000004 /* AuthServiceTestSupport.swift in Sources */,
 				B10000000000000000000007 /* BackendClientTests.swift in Sources */,
+				B20000000000000000000002 /* BackendClientTestSupport.swift in Sources */,
 				5D190DABB9C20596EF4666E9 /* HomeThemeCardFlipTransitionTests.swift in Sources */,
+				B20000000000000000000006 /* KeychainSessionStoreTests.swift in Sources */,
 				2CDC0F89012E1DF42C18CF95 /* LocalizationTests.swift in Sources */,
 				B10000000000000000000009 /* LiveBackendContractTests.swift in Sources */,
 				F8FB31616EA0973B761A8E3D /* QuizFactoryTests.swift in Sources */,
