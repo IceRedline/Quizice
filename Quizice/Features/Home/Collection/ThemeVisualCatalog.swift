@@ -1,7 +1,13 @@
 import UIKit
 
+enum ThemeIconVisualStyle {
+    static let shadowOffset: CGFloat = 3
+    static let shadowAlpha: CGFloat = 0.26
+}
+
 private struct ThemeVisualDescriptor {
-    let classicLogoName: String
+    let classicSymbolName: String
+    let fallbackClassicSymbolName: String
     let cleanSymbolName: String
     let fallbackCleanSymbolName: String
     let radarLogoName: String
@@ -9,13 +15,15 @@ private struct ThemeVisualDescriptor {
 
     func logoImage(for designStyle: AppDesignStyle) -> UIImage? {
         switch designStyle {
+        case .classic:
+            let symbolImage = UIImage(systemName: classicSymbolName)
+                ?? UIImage(systemName: fallbackClassicSymbolName)
+            return symbolImage?.withRenderingMode(.alwaysTemplate)
         case .clean:
             let symbolImage = UIImage(systemName: cleanSymbolName) ?? UIImage(systemName: fallbackCleanSymbolName)
             return symbolImage?.withRenderingMode(.alwaysTemplate)
         case .radar:
             return UIImage(named: radarLogoName)
-        case .classic:
-            return UIImage(named: classicLogoName)
         }
     }
 }
@@ -23,28 +31,32 @@ private struct ThemeVisualDescriptor {
 enum ThemeVisualCatalog {
     private static let descriptors: [String: ThemeVisualDescriptor] = [
         "music": ThemeVisualDescriptor(
-            classicLogoName: ThemesCollectionService.Content.musicThemeLogoImageName,
+            classicSymbolName: "music.note.list",
+            fallbackClassicSymbolName: "music.note",
             cleanSymbolName: ThemesCollectionService.Content.musicThemeLogoCleanSymbolName,
             fallbackCleanSymbolName: "music.note",
             radarLogoName: ThemesCollectionService.Content.musicThemeLogoRadarImageName,
             tintColorName: ThemesCollectionService.Content.musicThemeTintColorName
         ),
         "technology": ThemeVisualDescriptor(
-            classicLogoName: ThemesCollectionService.Content.technologyThemeLogoImageName,
+            classicSymbolName: "cpu.fill",
+            fallbackClassicSymbolName: "desktopcomputer",
             cleanSymbolName: ThemesCollectionService.Content.technologyThemeLogoCleanSymbolName,
             fallbackCleanSymbolName: ThemesCollectionService.Content.technologyThemeLogoCleanSymbolName,
             radarLogoName: ThemesCollectionService.Content.technologyThemeLogoRadarImageName,
             tintColorName: ThemesCollectionService.Content.technologyThemeTintColorName
         ),
         "history_culture": ThemeVisualDescriptor(
-            classicLogoName: ThemesCollectionService.Content.cultureThemeLogoImageName,
+            classicSymbolName: "theatermask.and.paintbrush.fill",
+            fallbackClassicSymbolName: "theatermasks",
             cleanSymbolName: ThemesCollectionService.Content.cultureThemeLogoCleanSymbolName,
-            fallbackCleanSymbolName: "theatermasks.fill",
+            fallbackCleanSymbolName: "theatermask.and.paintbrush.fill",
             radarLogoName: ThemesCollectionService.Content.cultureThemeLogoRadarImageName,
             tintColorName: ThemesCollectionService.Content.cultureThemeTintColorName
         ),
         "politics_business": ThemeVisualDescriptor(
-            classicLogoName: ThemesCollectionService.Content.politicsThemeLogoImageName,
+            classicSymbolName: "briefcase.fill",
+            fallbackClassicSymbolName: "building.columns.fill",
             cleanSymbolName: ThemesCollectionService.Content.politicsThemeLogoCleanSymbolName,
             fallbackCleanSymbolName: "building.columns.fill",
             radarLogoName: ThemesCollectionService.Content.politicsThemeLogoRadarImageName,

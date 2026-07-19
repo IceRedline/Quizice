@@ -11,6 +11,10 @@ struct ThemeModel {
         quizTheme.source == .ai
     }
 
+    var aiGenerationConfiguration: AIQuizGenerationConfiguration? {
+        quizTheme.aiGenerationConfiguration
+    }
+
     var themeName: String {
         quizTheme.theme
     }

@@ -4,12 +4,11 @@ final class ThemeCardCollectionViewCell: UICollectionViewCell {
     static let reuseIdentifier = "homeThemeCardCell"
 
     private enum Layout {
-        static let imageTopInset: CGFloat = 14
-        static let imageHorizontalInset: CGFloat = 4
+        static let imageTopInset: CGFloat = 34
+        static let iconSize: CGFloat = 64
         static let titleHorizontalInset: CGFloat = 8
         static let titleBottomInset: CGFloat = 6
         static let titleHeight: CGFloat = 56
-        static let cleanSymbolScale: CGFloat = 0.70
     }
 
     private enum Typography {
@@ -19,6 +18,9 @@ final class ThemeCardCollectionViewCell: UICollectionViewCell {
 
     let actionButton = UIButton(type: .custom)
 
+    private let themeImageContainerView = UIView()
+    private let themeIconSlotView = UIView()
+    private let themeIconShadowView = UIImageView()
     private let themeImageView = UIImageView()
     private let themeTitleLabel = ThemeCardFittingLabel(
         baseFont: .preferredFont(forTextStyle: .headline),
@@ -67,6 +69,11 @@ final class ThemeCardCollectionViewCell: UICollectionViewCell {
         themeImageView.transform = .identity
         themeImageView.accessibilityIdentifier = nil
 
+        themeIconShadowView.image = nil
+        themeIconShadowView.tintColor = nil
+        themeIconShadowView.alpha = 1
+        themeIconShadowView.transform = .identity
+
         themeTitleLabel.text = nil
         themeTitleLabel.textColor = nil
         themeTitleLabel.accessibilityIdentifier = nil
@@ -96,15 +103,24 @@ final class ThemeCardCollectionViewCell: UICollectionViewCell {
         actionButton.layer.borderColor = borderColor.cgColor
         actionButton.layer.masksToBounds = true
 
-        themeImageView.image = ThemeVisualCatalog.logoImage(
+        let isSymbolIcon = appearance.designStyle != .radar
+        let logoImage = ThemeVisualCatalog.logoImage(
             for: themeID,
             designStyle: appearance.designStyle
         )
-        themeImageView.tintColor = borderColor
-        themeImageView.transform = appearance.designStyle == .clean
-            ? CGAffineTransform(scaleX: Layout.cleanSymbolScale, y: Layout.cleanSymbolScale)
-            : .identity
+        themeImageView.image = logoImage
+        themeImageView.tintColor = appearance.designStyle == .classic
+            ? tintColor
+            : borderColor
+        themeImageView.transform = .identity
         themeImageView.accessibilityIdentifier = "\(ThemesCollectionService.Content.themeImageAccessibilityIDPrefix)-\(themeID)"
+
+        themeIconShadowView.image = isSymbolIcon ? logoImage : nil
+        themeIconShadowView.tintColor = .black
+        themeIconShadowView.alpha = isSymbolIcon ? ThemeIconVisualStyle.shadowAlpha : 0
+        themeIconShadowView.transform = isSymbolIcon
+            ? CGAffineTransform(translationX: 0, y: ThemeIconVisualStyle.shadowOffset)
+            : .identity
 
         themeTitleLabel.updateBaseFont(
             appearance.typography.font(size: Typography.titleSize, weight: .semibold)
@@ -126,9 +142,17 @@ final class ThemeCardCollectionViewCell: UICollectionViewCell {
         containerView.accessibilityElementsHidden = true
         containerView.isUserInteractionEnabled = false
 
+        let imageCenter = themeImageView.convert(
+            CGPoint(x: themeImageView.bounds.midX, y: themeImageView.bounds.midY),
+            to: actionButton
+        )
+        let shadowCenter = themeIconShadowView.convert(
+            CGPoint(x: themeIconShadowView.bounds.midX, y: themeIconShadowView.bounds.midY),
+            to: actionButton
+        )
         let imageView = UIImageView(image: themeImageView.image)
         imageView.bounds = themeImageView.bounds
-        imageView.center = themeImageView.center
+        imageView.center = imageCenter
         imageView.transform = themeImageView.transform
         imageView.alpha = themeImageView.alpha
         imageView.contentMode = themeImageView.contentMode
@@ -149,13 +173,24 @@ final class ThemeCardCollectionViewCell: UICollectionViewCell {
         titleLabel.lineBreakMode = themeTitleLabel.lineBreakMode
         titleLabel.allowsDefaultTighteningForTruncation = themeTitleLabel.allowsDefaultTighteningForTruncation
 
+        if themeIconShadowView.image != nil {
+            let shadowImageView = UIImageView(image: themeIconShadowView.image)
+            shadowImageView.bounds = themeIconShadowView.bounds
+            shadowImageView.center = shadowCenter
+            shadowImageView.transform = themeIconShadowView.transform
+            shadowImageView.alpha = themeIconShadowView.alpha
+            shadowImageView.contentMode = themeIconShadowView.contentMode
+            shadowImageView.tintColor = themeIconShadowView.tintColor
+            shadowImageView.clipsToBounds = themeIconShadowView.clipsToBounds
+            containerView.addSubview(shadowImageView)
+        }
         containerView.addSubview(imageView)
         containerView.addSubview(titleLabel)
         return (
             view: containerView,
             geometry: HomeThemeCardContentGeometry(
                 containerSize: actionButton.bounds.size,
-                imageCenter: themeImageView.center,
+                imageCenter: imageCenter,
                 titleCenter: themeTitleLabel.center
             )
         )
@@ -169,6 +204,21 @@ final class ThemeCardCollectionViewCell: UICollectionViewCell {
 
         actionButton.clipsToBounds = true
         actionButton.translatesAutoresizingMaskIntoConstraints = false
+
+        themeImageContainerView.backgroundColor = .clear
+        themeImageContainerView.isAccessibilityElement = false
+        themeImageContainerView.isUserInteractionEnabled = false
+        themeImageContainerView.translatesAutoresizingMaskIntoConstraints = false
+
+        themeIconSlotView.backgroundColor = .clear
+        themeIconSlotView.isAccessibilityElement = false
+        themeIconSlotView.isUserInteractionEnabled = false
+        themeIconSlotView.translatesAutoresizingMaskIntoConstraints = false
+
+        themeIconShadowView.contentMode = .scaleAspectFit
+        themeIconShadowView.isAccessibilityElement = false
+        themeIconShadowView.isUserInteractionEnabled = false
+        themeIconShadowView.translatesAutoresizingMaskIntoConstraints = false
 
         themeImageView.contentMode = .scaleAspectFit
         themeImageView.isAccessibilityElement = false
@@ -185,7 +235,10 @@ final class ThemeCardCollectionViewCell: UICollectionViewCell {
         themeTitleLabel.translatesAutoresizingMaskIntoConstraints = false
 
         contentView.addSubview(actionButton)
-        actionButton.addSubview(themeImageView)
+        actionButton.addSubview(themeImageContainerView)
+        themeImageContainerView.addSubview(themeIconSlotView)
+        themeIconSlotView.addSubview(themeIconShadowView)
+        themeIconSlotView.addSubview(themeImageView)
         actionButton.addSubview(themeTitleLabel)
 
         NSLayoutConstraint.activate([
@@ -194,20 +247,18 @@ final class ThemeCardCollectionViewCell: UICollectionViewCell {
             actionButton.topAnchor.constraint(equalTo: contentView.topAnchor),
             actionButton.bottomAnchor.constraint(equalTo: contentView.bottomAnchor),
 
-            themeImageView.topAnchor.constraint(
+            themeImageContainerView.topAnchor.constraint(
                 equalTo: actionButton.topAnchor,
                 constant: Layout.imageTopInset
             ),
-            themeImageView.leadingAnchor.constraint(
-                equalTo: actionButton.leadingAnchor,
-                constant: Layout.imageHorizontalInset
+            themeImageContainerView.leadingAnchor.constraint(
+                equalTo: actionButton.leadingAnchor
             ),
-            themeImageView.trailingAnchor.constraint(
-                equalTo: actionButton.trailingAnchor,
-                constant: -Layout.imageHorizontalInset
+            themeImageContainerView.trailingAnchor.constraint(
+                equalTo: actionButton.trailingAnchor
             ),
+            themeImageContainerView.bottomAnchor.constraint(equalTo: themeTitleLabel.topAnchor),
 
-            themeTitleLabel.topAnchor.constraint(equalTo: themeImageView.bottomAnchor),
             themeTitleLabel.leadingAnchor.constraint(
                 equalTo: actionButton.leadingAnchor,
                 constant: Layout.titleHorizontalInset
@@ -220,7 +271,22 @@ final class ThemeCardCollectionViewCell: UICollectionViewCell {
                 equalTo: actionButton.bottomAnchor,
                 constant: -Layout.titleBottomInset
             ),
-            themeTitleLabel.heightAnchor.constraint(equalToConstant: Layout.titleHeight)
+            themeTitleLabel.heightAnchor.constraint(equalToConstant: Layout.titleHeight),
+
+            themeIconSlotView.centerXAnchor.constraint(equalTo: themeImageContainerView.centerXAnchor),
+            themeIconSlotView.centerYAnchor.constraint(equalTo: themeImageContainerView.centerYAnchor),
+            themeIconSlotView.widthAnchor.constraint(equalToConstant: Layout.iconSize),
+            themeIconSlotView.heightAnchor.constraint(equalToConstant: Layout.iconSize),
+
+            themeIconShadowView.leadingAnchor.constraint(equalTo: themeIconSlotView.leadingAnchor),
+            themeIconShadowView.trailingAnchor.constraint(equalTo: themeIconSlotView.trailingAnchor),
+            themeIconShadowView.topAnchor.constraint(equalTo: themeIconSlotView.topAnchor),
+            themeIconShadowView.bottomAnchor.constraint(equalTo: themeIconSlotView.bottomAnchor),
+
+            themeImageView.leadingAnchor.constraint(equalTo: themeIconSlotView.leadingAnchor),
+            themeImageView.trailingAnchor.constraint(equalTo: themeIconSlotView.trailingAnchor),
+            themeImageView.topAnchor.constraint(equalTo: themeIconSlotView.topAnchor),
+            themeImageView.bottomAnchor.constraint(equalTo: themeIconSlotView.bottomAnchor)
         ])
     }
 

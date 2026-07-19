@@ -1,25 +1,5 @@
 import Foundation
 
-enum HomeAIGenerationPhase: Int, CaseIterable, Equatable {
-    case analyzing
-    case sending
-    case generating
-    case almostReady
-
-    var title: String {
-        switch self {
-        case .analyzing:
-            return L10n.AITheme.Progress.analyzing
-        case .sending:
-            return L10n.AITheme.Progress.sending
-        case .generating:
-            return L10n.AITheme.Progress.generating
-        case .almostReady:
-            return L10n.AITheme.Progress.almostReady
-        }
-    }
-}
-
 struct HomeAIThemeCardSubmission: Equatable {
     let id: UUID
     let configuration: AIQuizGenerationConfiguration
@@ -32,15 +12,19 @@ struct HomeAIThemeCardState: Equatable {
         AIQuizGenerationConfiguration.supportedQuestionCounts[0]
     fileprivate(set) var selectedDifficulty: AIQuizDifficulty = .medium
     fileprivate(set) var activeSubmission: HomeAIThemeCardSubmission?
-    fileprivate(set) var generationPhase: HomeAIGenerationPhase?
+    fileprivate(set) var generationPhase: AIQuizGenerationPhase?
     fileprivate(set) var activeAlert: AIQuizGenerationAlert?
 
     var trimmedPrompt: String {
         prompt.trimmingCharacters(in: .whitespacesAndNewlines)
     }
 
+    var isPromptTooLong: Bool {
+        trimmedPrompt.count > AIQuizGenerationConfiguration.maximumThemeLength
+    }
+
     var canRevealConfiguration: Bool {
-        !trimmedPrompt.isEmpty
+        !trimmedPrompt.isEmpty && !isPromptTooLong
     }
 
     var isSubmitting: Bool {
@@ -61,7 +45,7 @@ enum HomeAIThemeCardAction: Equatable {
     case questionCountSelected(Int)
     case difficultySelected(AIQuizDifficulty)
     case submitRequested(requestID: UUID, locale: Locale, now: Date)
-    case progressAdvanced(requestID: UUID, phase: HomeAIGenerationPhase)
+    case progressAdvanced(requestID: UUID, phase: AIQuizGenerationPhase)
     case submissionSucceeded(requestID: UUID)
     case submissionFailed(requestID: UUID, alert: AIQuizGenerationAlert)
     case cancelRequested

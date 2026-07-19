@@ -10,6 +10,9 @@ final class QuizResultViewController: BaseQuizViewController, QuizResultViewCont
         static let scoreLabel = "resultScoreLabel"
         static let descriptionLabel = "resultDescriptionLabel"
         static let replayButton = "resultReplayButton"
+        static let replayLoadingContent = "resultReplayLoadingContent"
+        static let replayActivityIndicator = "resultReplayActivityIndicator"
+        static let replayProgressStatus = "resultReplayProgressStatus"
         static let themesButton = "resultThemesButton"
         static let contentStackView = "resultContentStackView"
         static let scrollView = "resultScrollView"
@@ -27,12 +30,14 @@ final class QuizResultViewController: BaseQuizViewController, QuizResultViewCont
         static let actionButtonHeight: CGFloat = 56
         static let maximumContentWidth: CGFloat = 430
         static let actionButtonSpacing: CGFloat = 12
+        static let replayLoadingContentSpacing: CGFloat = 10
     }
     
     private enum Typography {
         static let resultFontSize: CGFloat = 38
         static let descriptionFontSize: CGFloat = 21
         static let buttonFontSize: CGFloat = 20
+        static let progressFontSize: CGFloat = 15
         static let unlimitedNumberOfLines = 0
         static let resultMinimumScaleFactor: CGFloat = 0.82
     }
@@ -64,7 +69,12 @@ final class QuizResultViewController: BaseQuizViewController, QuizResultViewCont
     private var resultDescription: UILabel!
     
     private var replayButton: UIButton!
+    private var replayLoadingContentStack: UIStackView!
+    private var replayActivityIndicator: UIActivityIndicatorView!
+    private var replayLoadingTitleLabel: UILabel!
+    private var replayProgressLabel: UILabel!
     private var themesButton: UIButton!
+    private var replayGenerationPhase: AIQuizGenerationPhase?
     weak var router: QuizResultRouting?
     var analytics: AnalyticsTracking = AppMetricaAnalyticsTracker.shared
     
@@ -105,6 +115,38 @@ final class QuizResultViewController: BaseQuizViewController, QuizResultViewCont
         resultLabel.text = resultText
         resultDescription.text = descriptionText
     }
+
+    func setReplayGenerationPhase(_ phase: AIQuizGenerationPhase?) {
+        guard isViewLoaded else { return }
+        let previousPhase = replayGenerationPhase
+        replayGenerationPhase = phase
+        let isLoading = phase != nil
+
+        replayButton.isEnabled = !isLoading
+        replayButton.setTitle(isLoading ? nil : L10n.Result.playAgain, for: .normal)
+        replayLoadingContentStack.isHidden = !isLoading
+        replayLoadingTitleLabel.text = L10n.AITheme.generating
+        replayProgressLabel.text = phase?.title
+        replayProgressLabel.isHidden = !isLoading
+        replayProgressLabel.accessibilityElementsHidden = !isLoading
+        replayButton.accessibilityLabel = isLoading
+            ? L10n.AITheme.generating
+            : L10n.Result.playAgain
+        if isLoading {
+            replayActivityIndicator.startAnimating()
+        } else {
+            replayActivityIndicator.stopAnimating()
+        }
+        replayButton.accessibilityTraits = isLoading
+            ? replayButton.accessibilityTraits.union(.updatesFrequently)
+            : replayButton.accessibilityTraits.subtracting(.updatesFrequently)
+
+        if previousPhase != phase,
+           let phase,
+           UIAccessibility.isVoiceOverRunning {
+            UIAccessibility.post(notification: .announcement, argument: phase.title)
+        }
+    }
     
     private func configureProgrammaticSubviews(in rootView: UIView) {
         configureResultCardView()
@@ -137,6 +179,14 @@ final class QuizResultViewController: BaseQuizViewController, QuizResultViewCont
         resultDescription = makeLabel(font: typography.font(size: Typography.descriptionFontSize, weight: .regular), accessibilityIdentifier: AccessibilityID.descriptionLabel)
         resultDescription.numberOfLines = Typography.unlimitedNumberOfLines
         resultDescription.textColor = UIColor.white.withAlphaComponent(Appearance.descriptionTextAlpha)
+
+        replayProgressLabel = makeLabel(
+            font: typography.font(size: Typography.progressFontSize, weight: .medium),
+            accessibilityIdentifier: AccessibilityID.replayProgressStatus
+        )
+        replayProgressLabel.numberOfLines = Typography.unlimitedNumberOfLines
+        replayProgressLabel.accessibilityTraits.insert(.updatesFrequently)
+        replayProgressLabel.isHidden = true
     }
     
     private func configureActionButtons() {
@@ -145,6 +195,7 @@ final class QuizResultViewController: BaseQuizViewController, QuizResultViewCont
             accessibilityIdentifier: AccessibilityID.replayButton
         )
         replayButton.addTarget(self, action: #selector(replayButtonTapped), for: .touchUpInside)
+        configureReplayLoadingContent()
 
         themesButton = makeActionButton(
             title: L10n.Result.toThemes,
@@ -152,9 +203,46 @@ final class QuizResultViewController: BaseQuizViewController, QuizResultViewCont
         )
         themesButton.addTarget(self, action: #selector(themesButtonTapped), for: .touchUpInside)
     }
+
+    private func configureReplayLoadingContent() {
+        replayActivityIndicator = UIActivityIndicatorView(style: .medium)
+        replayActivityIndicator.accessibilityIdentifier = AccessibilityID.replayActivityIndicator
+        replayActivityIndicator.hidesWhenStopped = true
+
+        replayLoadingTitleLabel = UILabel()
+        replayLoadingTitleLabel.adjustsFontForContentSizeCategory = true
+        replayLoadingTitleLabel.text = L10n.AITheme.generating
+
+        replayLoadingContentStack = UIStackView(
+            arrangedSubviews: [replayActivityIndicator, replayLoadingTitleLabel]
+        )
+        replayLoadingContentStack.accessibilityIdentifier = AccessibilityID.replayLoadingContent
+        replayLoadingContentStack.axis = .horizontal
+        replayLoadingContentStack.alignment = .center
+        replayLoadingContentStack.spacing = Layout.replayLoadingContentSpacing
+        replayLoadingContentStack.isHidden = true
+        replayLoadingContentStack.isUserInteractionEnabled = false
+        replayLoadingContentStack.translatesAutoresizingMaskIntoConstraints = false
+        replayButton.addSubview(replayLoadingContentStack)
+
+        NSLayoutConstraint.activate([
+            replayLoadingContentStack.centerXAnchor.constraint(equalTo: replayButton.centerXAnchor),
+            replayLoadingContentStack.centerYAnchor.constraint(equalTo: replayButton.centerYAnchor),
+            replayLoadingContentStack.leadingAnchor.constraint(
+                greaterThanOrEqualTo: replayButton.leadingAnchor,
+                constant: Layout.contentHorizontalInset
+            ),
+            replayLoadingContentStack.trailingAnchor.constraint(
+                lessThanOrEqualTo: replayButton.trailingAnchor,
+                constant: -Layout.contentHorizontalInset
+            )
+        ])
+    }
     
     private func configureContentStackView() {
-        let actionsStackView = UIStackView(arrangedSubviews: [replayButton, themesButton])
+        let actionsStackView = UIStackView(
+            arrangedSubviews: [replayButton, replayProgressLabel, themesButton]
+        )
         actionsStackView.axis = .vertical
         actionsStackView.spacing = Layout.actionButtonSpacing
 
@@ -264,6 +352,17 @@ final class QuizResultViewController: BaseQuizViewController, QuizResultViewCont
             )
         )
         replayButton?.titleLabel?.font = appearance.typography.font(size: Typography.buttonFontSize, weight: .semibold)
+        replayLoadingTitleLabel?.font = appearance.typography.font(size: Typography.buttonFontSize, weight: .semibold)
+        replayLoadingTitleLabel?.textColor = QuizThemeAccentStyle.primaryButtonTextColor(
+            themeID: presenter?.themeID,
+            appearance: appearance
+        )
+        replayActivityIndicator?.color = QuizThemeAccentStyle.primaryButtonTextColor(
+            themeID: presenter?.themeID,
+            appearance: appearance
+        )
+        replayProgressLabel?.font = appearance.typography.font(size: Typography.progressFontSize, weight: .medium)
+        replayProgressLabel?.textColor = appearance.secondarySurfaceTextColor
         themesButton?.applyActionAppearance(
             QuizThemeAccentStyle.secondaryButtonStyle(themeID: presenter?.themeID, appearance: appearance),
             appearance: appearance,
@@ -273,6 +372,7 @@ final class QuizResultViewController: BaseQuizViewController, QuizResultViewCont
     }
 
     @objc private func replayButtonTapped() {
+        guard replayButton.isEnabled else { return }
         analytics.track(.quizResultAction(theme: presenter?.analyticsTheme ?? .unknown, action: .replay))
         router?.replayQuiz()
     }
@@ -284,7 +384,7 @@ final class QuizResultViewController: BaseQuizViewController, QuizResultViewCont
 
     override func applyLocalizedStrings() {
         guard isViewLoaded else { return }
-        replayButton.setTitle(L10n.Result.playAgain, for: .normal)
+        setReplayGenerationPhase(replayGenerationPhase)
         themesButton.setTitle(L10n.Result.toThemes, for: .normal)
         presenter?.viewDidLoad()
     }
