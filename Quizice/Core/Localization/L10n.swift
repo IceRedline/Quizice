@@ -212,6 +212,8 @@ enum L10n {
         static var developerSectionTitle: String { L10n.localized("settings.section.developer", comment: "Debug settings developer section title") }
         static var localhostBackend: String { L10n.localized("settings.backend.localhost", comment: "Debug localhost backend toggle title") }
         static var localhostBackendSubtitle: String { L10n.localized("settings.backend.localhost.subtitle", comment: "Debug localhost backend toggle subtitle") }
+        static var localContentOnly: String { L10n.localized("settings.backend.local_content_only", comment: "Debug local content only toggle title") }
+        static var localContentOnlySubtitle: String { L10n.localized("settings.backend.local_content_only.subtitle", comment: "Debug local content only toggle subtitle") }
 #endif
 
         static func restartRequiredMessage(selection: String) -> String {

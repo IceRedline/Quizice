@@ -137,6 +137,8 @@
 "settings.section.developer" = "Développement";
 "settings.backend.localhost" = "Backend local";
 "settings.backend.localhost.subtitle" = "Simulateur : localhost:8000 · redémarrage requis";
+"settings.backend.local_content_only" = "Contenu local uniquement";
+"settings.backend.local_content_only.subtitle" = "Sans backend : thèmes et questions intégrés · redémarrage requis";
 "statistics.accessibility_label" = "Statistiques globales";
 "statistics.best_result" = "Meilleur résultat";
 "statistics.correct_answers" = "Bonnes réponses";

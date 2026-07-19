@@ -671,6 +671,16 @@ final class BackendConfigurationTests: XCTestCase {
         XCTAssertEqual(configuration.baseURL, URL(string: "http://localhost:8000/api"))
     }
 
+    func testLocalContentOnlyDisablesBackendConfiguration() throws {
+        let suiteName = "BackendConfigurationTests.\(UUID().uuidString)"
+        let defaults = try XCTUnwrap(UserDefaults(suiteName: suiteName))
+        defer { defaults.removePersistentDomain(forName: suiteName) }
+        defaults.set(true, forKey: DebugBackendSettings.useLocalhostKey)
+        defaults.set(true, forKey: DebugBackendSettings.useLocalContentOnlyKey)
+
+        XCTAssertNil(BackendConfiguration.load(bundle: .main, userDefaults: defaults))
+    }
+
     func testHTTPLocalhostIsAcceptedOnlyByDebugValidation() throws {
         let configuration = try XCTUnwrap(
             BackendConfiguration.configuration(from: "http://localhost:8000/api")

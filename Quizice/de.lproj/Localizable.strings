@@ -137,6 +137,8 @@
 "settings.section.developer" = "Entwicklung";
 "settings.backend.localhost" = "Lokales Backend";
 "settings.backend.localhost.subtitle" = "Simulator: localhost:8000 · Neustart erforderlich";
+"settings.backend.local_content_only" = "Nur lokale Inhalte";
+"settings.backend.local_content_only.subtitle" = "Ohne Backend: Themen und Fragen aus der App · Neustart erforderlich";
 "statistics.accessibility_label" = "Gesamtstatistik";
 "statistics.best_result" = "Bestes Ergebnis";
 "statistics.correct_answers" = "Richtige Antworten";

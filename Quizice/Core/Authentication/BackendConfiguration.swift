@@ -10,6 +10,9 @@ struct BackendConfiguration: Equatable {
         userDefaults: UserDefaults = .standard
     ) -> BackendConfiguration? {
         #if DEBUG
+        if userDefaults.bool(forKey: DebugBackendSettings.useLocalContentOnlyKey) {
+            return nil
+        }
         if userDefaults.bool(forKey: DebugBackendSettings.useLocalhostKey) {
             return BackendConfiguration(baseURL: DebugBackendSettings.localhostBaseURL)
         }
@@ -45,6 +48,7 @@ struct BackendConfiguration: Equatable {
 
 #if DEBUG
 enum DebugBackendSettings {
+    static let useLocalContentOnlyKey = "quizice.debug.backend.use-local-content-only"
     static let useLocalhostKey = "quizice.debug.backend.use-localhost"
     static let localhostBaseURL = URL(string: "http://localhost:8000/api")!
 
