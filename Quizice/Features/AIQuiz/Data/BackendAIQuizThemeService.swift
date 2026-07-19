@@ -338,7 +338,8 @@ final class BackendAIQuizThemeService: AIQuizThemeServiceProtocol {
             theme: theme,
             themeDescription: description,
             questions: questions,
-            source: .ai
+            source: .ai,
+            questionOrigin: .backend
         )
     }
 

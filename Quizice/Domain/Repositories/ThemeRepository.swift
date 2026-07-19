@@ -4,8 +4,14 @@ enum QuizPreparationError: Error, Equatable {
     case unavailable
 }
 
+enum QuizCatalogOrigin: String, Equatable {
+    case bundled
+    case backend
+}
+
 protocol ThemeRepository: AnyObject {
     var themes: [QuizTheme]? { get }
+    var catalogOrigin: QuizCatalogOrigin { get }
     func loadData(forceReload: Bool)
     func fetchQuizThemes() -> [QuizTheme]
     @discardableResult
@@ -14,6 +20,8 @@ protocol ThemeRepository: AnyObject {
 }
 
 extension ThemeRepository {
+    var catalogOrigin: QuizCatalogOrigin { .bundled }
+
     @discardableResult
     func refreshBackendCatalog(locale: String) async -> Bool { false }
 
@@ -42,7 +50,8 @@ extension ThemeRepository {
             theme: theme.theme,
             themeDescription: theme.themeDescription,
             questions: Array(questions.shuffled().prefix(questionCount)),
-            source: theme.source
+            source: theme.source,
+            questionOrigin: theme.questionOrigin
         )
     }
 }

@@ -3,6 +3,9 @@ import UIKit
 extension QuizViewController {
     func refreshBackendCatalog() {
         backendCatalogRefreshTask?.cancel()
+#if DEBUG
+        debugCatalogSourceState = .loading
+#endif
         let requestID = UUID()
         backendCatalogRefreshRequestID = requestID
         let locale = AppLocalizationStore.shared.resolvedLanguageCode
@@ -12,6 +15,15 @@ extension QuizViewController {
             guard self.backendCatalogRefreshRequestID == requestID else { return }
             self.backendCatalogRefreshTask = nil
             self.backendCatalogRefreshRequestID = nil
+#if DEBUG
+            if didRefresh {
+                self.debugCatalogSourceState = .backend
+            } else if self.themeRepository.catalogOrigin == .backend {
+                self.debugCatalogSourceState = .backendStale
+            } else {
+                self.debugCatalogSourceState = .local
+            }
+#endif
             guard
                 didRefresh,
                 !Task.isCancelled,

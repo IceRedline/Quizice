@@ -1,6 +1,24 @@
 import UIKit
 
 final class QuizViewController: BaseQuizViewController, ThemeCollectionDelegate, QuizCardSlideTransitionSource, QuizHomeReturnHandling {
+#if DEBUG
+    enum DebugCatalogSourceState: Equatable {
+        case loading
+        case backend
+        case backendStale
+        case local
+
+        var title: String {
+            switch self {
+            case .loading: "CATALOG: LOADING"
+            case .backend: "CATALOG: BACKEND"
+            case .backendStale: "CATALOG: BACKEND STALE"
+            case .local: "CATALOG: LOCAL"
+            }
+        }
+    }
+#endif
+
     enum Content {
 #if DEBUG
         static let backgroundStyleIconName = "circle.grid.3x3.fill"
@@ -19,6 +37,9 @@ final class QuizViewController: BaseQuizViewController, ThemeCollectionDelegate,
         static let screenStackView = "homeScreenStackView"
         static let settingsButton = "homeSettingsButton"
         static let settingsVisualSurface = "homeSettingsVisualSurface"
+#if DEBUG
+        static let backendCatalogSource = "homeBackendCatalogSource"
+#endif
         static let expandedCard = "homeExpandedThemeCard"
         static let expandedStatisticsCard = "homeExpandedStatisticsCard"
         static let expandedAIThemeCard = "homeExpandedAIThemeCard"
@@ -85,6 +106,9 @@ final class QuizViewController: BaseQuizViewController, ThemeCollectionDelegate,
         static let motivationFontSize: CGFloat = 26
         static let actionButtonFontSize: CGFloat = 19
         static let settingsIconPointSize: CGFloat = 14
+#if DEBUG
+        static let backendSourceFontSize: CGFloat = 10
+#endif
         static let unlimitedNumberOfLines = 0
     }
 
@@ -139,6 +163,10 @@ final class QuizViewController: BaseQuizViewController, ThemeCollectionDelegate,
     var settingsButtonVisualSurface: UIView!
 #if DEBUG
     var isDebugInterfaceHidden = false
+    var debugCatalogSourceLabel: InsetLabel!
+    var debugCatalogSourceState: DebugCatalogSourceState = .loading {
+        didSet { updateDebugCatalogSourceIndicator() }
+    }
 #endif
 
     var themesCollectionView: UICollectionView!
@@ -359,6 +387,7 @@ final class QuizViewController: BaseQuizViewController, ThemeCollectionDelegate,
 
 #if DEBUG
         updateSettingsDebugMenu(appearance: appearance)
+        updateDebugCatalogSourceIndicator()
 #endif
 
         themesCollectionView?.backgroundColor = .clear

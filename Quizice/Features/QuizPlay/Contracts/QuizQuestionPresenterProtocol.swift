@@ -7,6 +7,10 @@ protocol QuizQuestionPresenterProtocol {
     var correctAnswers: Int { get set }
     var questionsTotalCount: Int? { get set }
     var currentProgress: Float { get set }
+#if DEBUG
+    var questionOrigin: QuizQuestionOrigin { get }
+    var themeSource: QuizThemeSource { get }
+#endif
     
     func viewDidLoad()
     func startTimer()
@@ -30,4 +34,8 @@ extension QuizQuestionPresenterProtocol {
 extension QuizQuestionPresenterProtocol {
     var themeID: String? { nil }
     var analyticsTheme: AnalyticsTheme { .unknown }
+#if DEBUG
+    var questionOrigin: QuizQuestionOrigin { .bundled }
+    var themeSource: QuizThemeSource { .catalog }
+#endif
 }

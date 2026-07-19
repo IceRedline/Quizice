@@ -452,7 +452,8 @@ final class YandexAIQuizThemeService: AIQuizThemeServiceProtocol {
             theme: themeName,
             themeDescription: themeDescription,
             questions: questions,
-            source: .ai
+            source: .ai,
+            questionOrigin: .directAI
         )
     }
 
@@ -604,7 +605,8 @@ final class MockAIQuizThemeService: AIQuizThemeServiceProtocol {
             theme: trimmedPrompt,
             themeDescription: "AI generated quiz placeholder",
             questions: [],
-            source: .ai
+            source: .ai,
+            questionOrigin: .mock
         )
     }
 }

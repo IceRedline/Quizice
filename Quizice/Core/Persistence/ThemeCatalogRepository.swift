@@ -31,6 +31,7 @@ final class ThemeCatalogRepository: ThemeRepository {
     private let remoteQuestionTimeoutNanoseconds: UInt64
 
     var themes: [QuizTheme]?
+    private(set) var catalogOrigin: QuizCatalogOrigin = .bundled
     var onCatalogReplaced: (() -> Void)?
 
     init(
@@ -64,6 +65,7 @@ final class ThemeCatalogRepository: ThemeRepository {
             if !forceReload, localizedHash == savedHash, !existingThemes.isEmpty {
                 AppLog.content.debug("JSON unchanged, loading \(existingThemes.count) themes from SwiftData")
                 themes = existingThemes
+                catalogOrigin = .bundled
                 return
             }
 
@@ -71,6 +73,7 @@ final class ThemeCatalogRepository: ThemeRepository {
             themeStore?.replaceThemes(with: loadedData.themes)
             UserDefaults.standard.set(localizedHash, forKey: Content.localizedDataHashKey)
             themes = loadedData.themes
+            catalogOrigin = .bundled
             onCatalogReplaced?()
         } catch {
             AppLog.content.error("Localized data loading error: \(String(describing: error), privacy: .public)")
@@ -111,9 +114,11 @@ final class ThemeCatalogRepository: ThemeRepository {
                     theme: remoteTheme.name,
                     themeDescription: remoteTheme.description,
                     questions: localTheme.questions,
-                    source: localTheme.source
+                    source: localTheme.source,
+                    questionOrigin: localTheme.questionOrigin
                 )
             }
+            catalogOrigin = .backend
             AppLog.content.info(
                 "Backend theme catalog accepted: locale=\(locale, privacy: .public) themes=\(response.themes.count, privacy: .public)"
             )
@@ -122,7 +127,7 @@ final class ThemeCatalogRepository: ThemeRepository {
             return false
         } catch {
             AppLog.content.error(
-                "Backend theme catalog rejected; bundled catalog remains active: \(String(describing: error), privacy: .public)"
+                "Backend theme catalog rejected; current catalog remains active: origin=\(self.catalogOrigin.rawValue, privacy: .public) error=\(String(describing: error), privacy: .public)"
             )
             return false
         }
@@ -161,7 +166,8 @@ final class ThemeCatalogRepository: ThemeRepository {
                 theme: metadata.theme,
                 themeDescription: metadata.themeDescription,
                 questions: response.questions.map { $0.makeModel() },
-                source: .catalog
+                source: .catalog,
+                questionOrigin: .backend
             )
         } catch is CancellationError {
             throw CancellationError()
@@ -197,7 +203,8 @@ final class ThemeCatalogRepository: ThemeRepository {
             theme: theme.theme,
             themeDescription: theme.themeDescription,
             questions: Array(usableQuestions.shuffled().prefix(questionCount)),
-            source: theme.source
+            source: theme.source,
+            questionOrigin: .bundled
         )
     }
 

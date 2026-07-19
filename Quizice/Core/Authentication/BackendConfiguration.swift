@@ -47,5 +47,12 @@ struct BackendConfiguration: Equatable {
 enum DebugBackendSettings {
     static let useLocalhostKey = "quizice.debug.backend.use-localhost"
     static let localhostBaseURL = URL(string: "http://localhost:8000/api")!
+
+    static var shouldShowSourceIndicators: Bool {
+        let environment = ProcessInfo.processInfo.environment
+        return environment["XCTestConfigurationFilePath"] == nil
+            && environment["QUIZICE_XCTEST_SMOKE_HOST"] != "1"
+            && NSClassFromString("XCTestCase") == nil
+    }
 }
 #endif
