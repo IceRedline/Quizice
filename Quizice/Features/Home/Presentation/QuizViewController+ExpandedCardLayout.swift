@@ -32,7 +32,7 @@ extension QuizViewController {
                     throw CancellationError()
                 }
 
-                self.quizPreparationTask = nil
+                self.stopQuizPreparationProgress()
                 self.session.chosenTheme = ThemeModel(quizTheme: preparedTheme)
                 self.session.questionsCount = questionCount
                 self.analytics.track(
@@ -50,10 +50,11 @@ extension QuizViewController {
                 self.finishFailedQuizPreparation(message: L10n.Question.unavailableMessage)
             }
         }
+        startQuizPreparationProgress(for: cardView)
     }
 
     private func finishFailedQuizPreparation(message: String?) {
-        quizPreparationTask = nil
+        stopQuizPreparationProgress()
         guard isQuizLaunchPending, !hasQuizLaunchStarted else { return }
         homeStore.send(.launchFailed)
         isQuizLaunchPending = false
@@ -63,6 +64,30 @@ extension QuizViewController {
         if let message {
             motivationLabel.text = message
         }
+    }
+
+    private func startQuizPreparationProgress(for cardView: ExpandedThemeCardView) {
+        quizPreparationProgressTask?.cancel()
+        let delay = quizPreparationProgressDelay
+        quizPreparationProgressTask = Task { @MainActor [weak self, weak cardView] in
+            await delay()
+            guard
+                !Task.isCancelled,
+                let self,
+                let cardView,
+                self.quizPreparationTask != nil,
+                self.isQuizLaunchPending,
+                self.expandedThemeCardView === cardView
+            else { return }
+            cardView.setStartLoading(true)
+        }
+    }
+
+    private func stopQuizPreparationProgress() {
+        quizPreparationTask = nil
+        quizPreparationProgressTask?.cancel()
+        quizPreparationProgressTask = nil
+        expandedThemeCardView?.setStartLoading(false)
     }
 
     func makeExpandedCardBackdrop(appearance: AppAppearance) -> UIView {

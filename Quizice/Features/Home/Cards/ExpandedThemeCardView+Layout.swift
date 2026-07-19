@@ -304,6 +304,16 @@ extension ExpandedThemeCardView {
         startButton.translatesAutoresizingMaskIntoConstraints = false
         startButton.installPressFeedback()
 
+        startActivityIndicator.accessibilityIdentifier = AccessibilityID.startActivityIndicator
+        startActivityIndicator.hidesWhenStopped = true
+        startActivityIndicator.isUserInteractionEnabled = false
+        startActivityIndicator.translatesAutoresizingMaskIntoConstraints = false
+        startButton.addSubview(startActivityIndicator)
+        NSLayoutConstraint.activate([
+            startActivityIndicator.centerXAnchor.constraint(equalTo: startButton.centerXAnchor),
+            startActivityIndicator.centerYAnchor.constraint(equalTo: startButton.centerYAnchor)
+        ])
+
         backControlsStack.axis = .vertical
         backControlsStack.alignment = .fill
         backControlsStack.spacing = Layout.controlsSpacing

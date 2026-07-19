@@ -337,6 +337,34 @@ final class RoutingThemeRepository: ThemeRepository {
     }
 }
 
+final class HangingRoutingThemeRepository: ThemeRepository {
+    var themes: [QuizTheme]?
+    private(set) var prepareQuizCallCount = 0
+
+    init(themes: [QuizTheme]) {
+        self.themes = themes
+    }
+
+    func loadData(forceReload: Bool) {}
+
+    func fetchQuizThemes() -> [QuizTheme] {
+        themes ?? []
+    }
+
+    func prepareQuiz(
+        themeID: String,
+        questionCount: Int,
+        locale: String
+    ) async throws -> QuizTheme {
+        prepareQuizCallCount += 1
+        try await Task.sleep(nanoseconds: 60_000_000_000)
+        guard let theme = themes?.first(where: { $0.stableID == themeID }) else {
+            throw QuizPreparationError.unavailable
+        }
+        return theme
+    }
+}
+
 final class RoutingSession: QuizSessionManaging {
     var themes: [QuizTheme]?
     var chosenTheme: ThemeModel?
