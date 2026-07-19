@@ -139,9 +139,15 @@ final class ThemeCatalogRepository: ThemeRepository {
         locale: String
     ) async throws -> QuizTheme {
         let localFallback = try makeLocalQuiz(themeID: themeID, questionCount: questionCount)
-        guard let backendContentAPI else { return localFallback }
+        guard let backendContentAPI else {
+            AppLog.content.notice(
+                "📦 LOCAL QUESTIONS: backend disabled, using bundled content theme=\(themeID, privacy: .public) locale=\(locale, privacy: .public) count=\(questionCount, privacy: .public)"
+            )
+            return localFallback
+        }
 
         let seed = seedGenerator()
+        let startedAt = Date()
         do {
             let response = try await withBackendTimeout(
                 nanoseconds: remoteQuestionTimeoutNanoseconds
@@ -161,11 +167,15 @@ final class ThemeCatalogRepository: ThemeRepository {
             let metadata = (themes ?? fetchQuizThemes()).first {
                 $0.stableID == themeID
             } ?? localFallback
+            let questions = response.questions.map { $0.makeModel() }
+            AppLog.content.notice(
+                "✅ BACKEND QUESTIONS: received theme=\(themeID, privacy: .public) locale=\(locale, privacy: .public) requested=\(questionCount, privacy: .public) received=\(questions.count, privacy: .public) seed=\(seed, privacy: .public) duration_ms=\(Self.durationMilliseconds(since: startedAt), privacy: .public)"
+            )
             return QuizTheme(
                 id: metadata.id,
                 theme: metadata.theme,
                 themeDescription: metadata.themeDescription,
-                questions: response.questions.map { $0.makeModel() },
+                questions: questions,
                 source: .catalog,
                 questionOrigin: .backend
             )
@@ -173,7 +183,7 @@ final class ThemeCatalogRepository: ThemeRepository {
             throw CancellationError()
         } catch {
             AppLog.content.error(
-                "Backend questions unavailable; using bundled fallback: theme=\(themeID, privacy: .public) locale=\(locale, privacy: .public) error=\(String(describing: error), privacy: .public)"
+                "⚠️ BACKEND QUESTIONS: failed, using bundled fallback theme=\(themeID, privacy: .public) locale=\(locale, privacy: .public) count=\(questionCount, privacy: .public) seed=\(seed, privacy: .public) duration_ms=\(Self.durationMilliseconds(since: startedAt), privacy: .public) error=\(String(describing: error), privacy: .public)"
             )
             return localFallback
         }
@@ -211,5 +221,9 @@ final class ThemeCatalogRepository: ThemeRepository {
     private func reloadDataForLocalizationChange() {
         guard themeStore != nil else { return }
         loadData(forceReload: true)
+    }
+
+    private static func durationMilliseconds(since startDate: Date) -> Int {
+        max(Int(Date().timeIntervalSince(startDate) * 1_000), 0)
     }
 }

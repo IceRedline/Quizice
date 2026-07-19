@@ -344,13 +344,19 @@ final class HomeExpandedThemeCardInteractionTests: HomeScreenVisualStateTestCase
         let startButton = try XCTUnwrap(
             viewController.view.descendant(withAccessibilityIdentifier: "descriptionStartButton") as? UIButton
         )
+        let activityIndicator = try XCTUnwrap(
+            viewController.view.descendant(withAccessibilityIdentifier: "descriptionStartActivityIndicator")
+                as? UIActivityIndicatorView
+        )
 
         startButton.sendActions(for: .touchUpInside)
         startButton.sendActions(for: .touchUpInside)
         try await waitUntil { router.showQuestionCallCount == 1 }
+        try await Task.sleep(nanoseconds: 800_000_000)
 
         XCTAssertEqual(QuizFactory.shared.questionsCount, 10)
         XCTAssertEqual(router.showQuestionCallCount, 1)
+        XCTAssertFalse(activityIndicator.isAnimating)
 
         viewController.viewWillAppear(false)
         XCTAssertNil(

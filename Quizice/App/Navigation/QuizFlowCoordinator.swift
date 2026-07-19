@@ -40,8 +40,10 @@ final class QuizFlowCoordinator: NSObject, QuizRouting, UIViewControllerTransiti
     private weak var activeQuestionViewController: QuizQuestionViewController?
     private weak var resultViewController: QuizResultViewController?
     private var catalogReplayTask: Task<Void, Never>?
+    private var catalogReplayProgressTask: Task<Void, Never>?
     private var aiReplayTask: Task<Void, Never>?
     private var aiReplayProgressTask: Task<Void, Never>?
+    private let catalogReplayProgressDelay: () async -> Void
 
     init(
         window: UIWindow,
@@ -51,7 +53,10 @@ final class QuizFlowCoordinator: NSObject, QuizRouting, UIViewControllerTransiti
         aiQuizThemeService: AIQuizThemeServiceProtocol? = nil,
         aiQuizAccessProvider: AIQuizAccessProviding? = nil,
         analytics: AnalyticsTracking = AppMetricaAnalyticsTracker.shared,
-        randomQuestionsProvider: @escaping ([QuizQuestion]) -> [QuizQuestion] = { $0.shuffled() }
+        randomQuestionsProvider: @escaping ([QuizQuestion]) -> [QuizQuestion] = { $0.shuffled() },
+        catalogReplayProgressDelay: @escaping () async -> Void = {
+            try? await Task.sleep(nanoseconds: 750_000_000)
+        }
     ) {
         let resolvedAIQuizAccessProvider = aiQuizAccessProvider ?? AIQuizAccessStore.shared
         self.window = window
@@ -63,11 +68,13 @@ final class QuizFlowCoordinator: NSObject, QuizRouting, UIViewControllerTransiti
         self.aiQuizAccessProvider = resolvedAIQuizAccessProvider
         self.analytics = analytics
         self.randomQuestionsProvider = randomQuestionsProvider
+        self.catalogReplayProgressDelay = catalogReplayProgressDelay
         super.init()
     }
 
     deinit {
         catalogReplayTask?.cancel()
+        catalogReplayProgressTask?.cancel()
         aiReplayTask?.cancel()
         aiReplayProgressTask?.cancel()
     }
@@ -216,18 +223,40 @@ final class QuizFlowCoordinator: NSObject, QuizRouting, UIViewControllerTransiti
                 else {
                     throw CancellationError()
                 }
-                self.catalogReplayTask = nil
+                self.stopCatalogReplayLoading()
                 self.session.chosenTheme = ThemeModel(quizTheme: preparedTheme)
                 self.session.questionsCount = questionCount
                 self.presentFreshQuestionController()
             } catch is CancellationError {
-                self.catalogReplayTask = nil
+                self.stopCatalogReplayLoading()
             } catch {
-                self.catalogReplayTask = nil
+                self.stopCatalogReplayLoading()
                 self.analytics.reportOperationalError(error, context: .contentLoad)
                 self.presentFreshQuestionController()
             }
         }
+        startCatalogReplayProgress()
+    }
+
+    private func startCatalogReplayProgress() {
+        catalogReplayProgressTask?.cancel()
+        let delay = catalogReplayProgressDelay
+        catalogReplayProgressTask = Task { @MainActor [weak self] in
+            await delay()
+            guard
+                !Task.isCancelled,
+                let self,
+                self.catalogReplayTask != nil
+            else { return }
+            self.resultViewController?.setReplayLoading(true)
+        }
+    }
+
+    private func stopCatalogReplayLoading() {
+        catalogReplayTask = nil
+        catalogReplayProgressTask?.cancel()
+        catalogReplayProgressTask = nil
+        resultViewController?.setReplayLoading(false)
     }
 
     private func replayRandomSelectionQuiz() -> Bool {
@@ -291,7 +320,7 @@ final class QuizFlowCoordinator: NSObject, QuizRouting, UIViewControllerTransiti
 
     func returnToThemes() {
         catalogReplayTask?.cancel()
-        catalogReplayTask = nil
+        stopCatalogReplayLoading()
         aiReplayTask?.cancel()
         stopAIReplayLoading()
         aiReplayAlertPresenter.dismiss()

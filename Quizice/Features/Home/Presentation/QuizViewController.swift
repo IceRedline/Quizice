@@ -187,6 +187,7 @@ final class QuizViewController: BaseQuizViewController, ThemeCollectionDelegate,
     let aiNow: () -> Date
     let aiRequestIDProvider: () -> UUID
     let feelingLuckyMinimumFeedbackDelay: () async -> Void
+    let quizPreparationProgressDelay: () async -> Void
     let animationsEngine = Animations()
     let sourceSnapshotFactory = HomeCardSourceSnapshotFactory()
     let homeStore = HomeFeatureStore()
@@ -216,6 +217,7 @@ final class QuizViewController: BaseQuizViewController, ThemeCollectionDelegate,
     var backendCatalogRefreshTask: Task<Void, Never>?
     var backendCatalogRefreshRequestID: UUID?
     var quizPreparationTask: Task<Void, Never>?
+    var quizPreparationProgressTask: Task<Void, Never>?
     weak var quizTransitionSourceView: UIView?
     var isQuizLaunchPending = false
     var hasQuizLaunchStarted = false
@@ -263,6 +265,9 @@ final class QuizViewController: BaseQuizViewController, ThemeCollectionDelegate,
         aiRequestIDProvider: @escaping () -> UUID = UUID.init,
         feelingLuckyMinimumFeedbackDelay: @escaping () async -> Void = {
             try? await Task.sleep(nanoseconds: 500_000_000)
+        },
+        quizPreparationProgressDelay: @escaping () async -> Void = {
+            try? await Task.sleep(nanoseconds: 750_000_000)
         }
     ) {
         self.themeRepository = themeRepository
@@ -284,6 +289,7 @@ final class QuizViewController: BaseQuizViewController, ThemeCollectionDelegate,
         self.aiNow = aiNow
         self.aiRequestIDProvider = aiRequestIDProvider
         self.feelingLuckyMinimumFeedbackDelay = feelingLuckyMinimumFeedbackDelay
+        self.quizPreparationProgressDelay = quizPreparationProgressDelay
         super.init(nibName: nil, bundle: nil)
     }
 
@@ -294,6 +300,7 @@ final class QuizViewController: BaseQuizViewController, ThemeCollectionDelegate,
         feelingLuckyTask?.cancel()
         backendCatalogRefreshTask?.cancel()
         quizPreparationTask?.cancel()
+        quizPreparationProgressTask?.cancel()
     }
 
     @available(*, unavailable)

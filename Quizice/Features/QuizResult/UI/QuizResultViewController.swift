@@ -75,6 +75,7 @@ final class QuizResultViewController: BaseQuizViewController, QuizResultViewCont
     private var replayProgressLabel: UILabel!
     private var themesButton: UIButton!
     private var replayGenerationPhase: AIQuizGenerationPhase?
+    private var isReplayLoading = false
     weak var router: QuizResultRouting?
     var analytics: AnalyticsTracking = AppMetricaAnalyticsTracker.shared
     
@@ -120,17 +121,45 @@ final class QuizResultViewController: BaseQuizViewController, QuizResultViewCont
         guard isViewLoaded else { return }
         let previousPhase = replayGenerationPhase
         replayGenerationPhase = phase
-        let isLoading = phase != nil
+        isReplayLoading = phase != nil
+        renderReplayLoading(
+            isLoading: isReplayLoading,
+            loadingTitle: L10n.AITheme.generating,
+            progressTitle: phase?.title
+        )
 
+        if previousPhase != phase,
+           let phase,
+           UIAccessibility.isVoiceOverRunning {
+            UIAccessibility.post(notification: .announcement, argument: phase.title)
+        }
+    }
+
+    func setReplayLoading(_ isLoading: Bool) {
+        guard isViewLoaded else { return }
+        replayGenerationPhase = nil
+        isReplayLoading = isLoading
+        renderReplayLoading(
+            isLoading: isLoading,
+            loadingTitle: L10n.Home.feelingLuckyLoading,
+            progressTitle: nil
+        )
+    }
+
+    private func renderReplayLoading(
+        isLoading: Bool,
+        loadingTitle: String,
+        progressTitle: String?
+    ) {
         replayButton.isEnabled = !isLoading
         replayButton.setTitle(isLoading ? nil : L10n.Result.playAgain, for: .normal)
         replayLoadingContentStack.isHidden = !isLoading
-        replayLoadingTitleLabel.text = L10n.AITheme.generating
-        replayProgressLabel.text = phase?.title
-        replayProgressLabel.isHidden = !isLoading
-        replayProgressLabel.accessibilityElementsHidden = !isLoading
+        replayLoadingTitleLabel.text = loadingTitle
+        replayProgressLabel.text = progressTitle
+        replayProgressLabel.isHidden = progressTitle == nil
+        replayProgressLabel.accessibilityElementsHidden = progressTitle == nil
         replayButton.accessibilityLabel = isLoading
-            ? L10n.AITheme.generating
+            ? loadingTitle
             : L10n.Result.playAgain
         if isLoading {
             replayActivityIndicator.startAnimating()
@@ -140,12 +169,6 @@ final class QuizResultViewController: BaseQuizViewController, QuizResultViewCont
         replayButton.accessibilityTraits = isLoading
             ? replayButton.accessibilityTraits.union(.updatesFrequently)
             : replayButton.accessibilityTraits.subtracting(.updatesFrequently)
-
-        if previousPhase != phase,
-           let phase,
-           UIAccessibility.isVoiceOverRunning {
-            UIAccessibility.post(notification: .announcement, argument: phase.title)
-        }
     }
     
     private func configureProgrammaticSubviews(in rootView: UIView) {
@@ -384,7 +407,11 @@ final class QuizResultViewController: BaseQuizViewController, QuizResultViewCont
 
     override func applyLocalizedStrings() {
         guard isViewLoaded else { return }
-        setReplayGenerationPhase(replayGenerationPhase)
+        if let replayGenerationPhase {
+            setReplayGenerationPhase(replayGenerationPhase)
+        } else {
+            setReplayLoading(isReplayLoading)
+        }
         themesButton.setTitle(L10n.Result.toThemes, for: .normal)
         presenter?.viewDidLoad()
     }

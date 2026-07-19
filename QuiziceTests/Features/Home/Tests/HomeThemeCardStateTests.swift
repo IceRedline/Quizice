@@ -82,4 +82,75 @@ final class HomeThemeCardStateTests: HomeScreenVisualStateTestCase {
         XCTAssertEqual(cell.actionButton.alpha, 1)
     }
 
+    func testExpandedThemeStartButtonShowsAndClearsLoadingIndicator() throws {
+        let card = makeHostedExpandedThemeCard(
+            motionProvider: HomeThemeCardMotionProviderFake(isAvailable: false)
+        )
+        let startButton = try XCTUnwrap(
+            card.descendant(withAccessibilityIdentifier: "descriptionStartButton") as? UIButton
+        )
+        let activityIndicator = try XCTUnwrap(
+            card.descendant(withAccessibilityIdentifier: "descriptionStartActivityIndicator")
+                as? UIActivityIndicatorView
+        )
+
+        card.setStartLoading(true)
+
+        XCTAssertFalse(startButton.isEnabled)
+        XCTAssertNil(startButton.title(for: .normal))
+        XCTAssertTrue(activityIndicator.isAnimating)
+
+        card.setStartLoading(false)
+
+        XCTAssertTrue(startButton.isEnabled)
+        XCTAssertEqual(startButton.title(for: .normal), L10n.Common.start)
+        XCTAssertFalse(activityIndicator.isAnimating)
+    }
+
+    func testSlowQuizPreparationShowsStartIndicatorAfterConfiguredDelay() async throws {
+        let theme = makeTheme(name: "Музыка", questionCount: 15)
+        let repository = HangingRoutingThemeRepository(themes: [theme])
+        let session = RoutingSession()
+        session.themes = [theme]
+        let viewController = QuizViewController(
+            themeRepository: repository,
+            session: session,
+            cardReduceMotionProvider: { true },
+            quizPreparationProgressDelay: {}
+        )
+        let router = HomeRouterSpy()
+        viewController.router = router
+        let window = UIWindow(frame: CGRect(x: 0, y: 0, width: 390, height: 844))
+        window.rootViewController = viewController
+        window.makeKeyAndVisible()
+        window.layoutIfNeeded()
+        testWindows.append(window)
+
+        let sourceButton = try XCTUnwrap(
+            viewController.view.descendant(withAccessibilityIdentifier: "music") as? UIButton
+        )
+        sourceButton.sendActions(for: .touchUpInside)
+        try await waitUntil { viewController.homeCardState.phase == .expandedFront }
+        let infoButton = try XCTUnwrap(
+            viewController.view.descendant(withAccessibilityIdentifier: "expandedThemeCardInfoButton") as? UIButton
+        )
+        infoButton.sendActions(for: .touchUpInside)
+        try await waitUntil { viewController.homeCardState.phase == .expandedBack }
+        let startButton = try XCTUnwrap(
+            viewController.view.descendant(withAccessibilityIdentifier: "descriptionStartButton") as? UIButton
+        )
+        let activityIndicator = try XCTUnwrap(
+            viewController.view.descendant(withAccessibilityIdentifier: "descriptionStartActivityIndicator")
+                as? UIActivityIndicatorView
+        )
+
+        startButton.sendActions(for: .touchUpInside)
+        try await waitUntil { repository.prepareQuizCallCount == 1 && activityIndicator.isAnimating }
+
+        XCTAssertFalse(startButton.isEnabled)
+        XCTAssertEqual(router.showQuestionCallCount, 0)
+        viewController.removeExpandedThemeCardViews()
+        XCTAssertFalse(activityIndicator.isAnimating)
+    }
+
 }
