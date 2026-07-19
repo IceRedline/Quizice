@@ -227,7 +227,8 @@ extension QuizViewController {
             self?.toggleDebugInterfaceVisibility()
         }
 
-        let usesLocalhostBackend = UserDefaults.standard.bool(forKey: DebugBackendSettings.useLocalhostKey)
+        let defaults = UserDefaults.standard
+        let usesLocalhostBackend = defaults.bool(forKey: DebugBackendSettings.useLocalhostKey)
         let localhostAction = UIAction(
             title: L10n.Settings.localhostBackend,
             subtitle: L10n.Settings.localhostBackendSubtitle,
@@ -237,7 +238,17 @@ extension QuizViewController {
             self?.toggleDebugLocalhostBackend()
         }
 
-        var menuElements: [UIMenuElement] = [interfaceAction, localhostAction]
+        let usesLocalContentOnly = defaults.bool(forKey: DebugBackendSettings.useLocalContentOnlyKey)
+        let localContentOnlyAction = UIAction(
+            title: L10n.Settings.localContentOnly,
+            subtitle: L10n.Settings.localContentOnlySubtitle,
+            image: UIImage(systemName: "externaldrive.fill"),
+            state: usesLocalContentOnly ? .on : .off
+        ) { [weak self] _ in
+            self?.toggleDebugLocalContentOnly()
+        }
+
+        var menuElements: [UIMenuElement] = [interfaceAction, localhostAction, localContentOnlyAction]
         if appearance.designStyle == .classic {
             let backgroundMenu = UIMenu(
                 title: L10n.Home.backgroundStyleSwitcher,
@@ -273,17 +284,38 @@ extension QuizViewController {
         let defaults = UserDefaults.standard
         let usesLocalhostBackend = !defaults.bool(forKey: DebugBackendSettings.useLocalhostKey)
         defaults.set(usesLocalhostBackend, forKey: DebugBackendSettings.useLocalhostKey)
+        if usesLocalhostBackend {
+            defaults.set(false, forKey: DebugBackendSettings.useLocalContentOnlyKey)
+        }
 
         let feedback = UISelectionFeedbackGenerator()
         feedback.prepare()
         feedback.selectionChanged()
         updateSettingsDebugMenu(appearance: currentAppearance())
+        presentDebugBackendRestartAlert(selection: L10n.Settings.localhostBackend)
+    }
 
+    func toggleDebugLocalContentOnly() {
+        let defaults = UserDefaults.standard
+        let usesLocalContentOnly = !defaults.bool(forKey: DebugBackendSettings.useLocalContentOnlyKey)
+        defaults.set(usesLocalContentOnly, forKey: DebugBackendSettings.useLocalContentOnlyKey)
+        if usesLocalContentOnly {
+            defaults.set(false, forKey: DebugBackendSettings.useLocalhostKey)
+        }
+
+        let feedback = UISelectionFeedbackGenerator()
+        feedback.prepare()
+        feedback.selectionChanged()
+        updateSettingsDebugMenu(appearance: currentAppearance())
+        presentDebugBackendRestartAlert(selection: L10n.Settings.localContentOnly)
+    }
+
+    private func presentDebugBackendRestartAlert(selection: String) {
         DispatchQueue.main.async { [weak self] in
             guard let self, self.presentedViewController == nil else { return }
             let alert = UIAlertController(
                 title: L10n.Settings.restartRequiredTitle,
-                message: L10n.Settings.restartRequiredMessage(selection: L10n.Settings.localhostBackend),
+                message: L10n.Settings.restartRequiredMessage(selection: selection),
                 preferredStyle: .alert
             )
             alert.addAction(UIAlertAction(title: L10n.Settings.alertAction, style: .default))

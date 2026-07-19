@@ -17,6 +17,7 @@ class HomeScreenVisualStateTestCase: XCTestCase {
         UserDefaults.standard.set(AppDesignStyle.classic.rawValue, forKey: AppAppearanceStore.Keys.designStyle)
         UserDefaults.standard.set(AppBackgroundStyle.defaultStyle.rawValue, forKey: AppAppearanceStore.Keys.backgroundStyle)
 #if DEBUG
+        UserDefaults.standard.removeObject(forKey: DebugBackendSettings.useLocalContentOnlyKey)
         UserDefaults.standard.removeObject(forKey: DebugBackendSettings.useLocalhostKey)
 #endif
     }
@@ -30,6 +31,7 @@ class HomeScreenVisualStateTestCase: XCTestCase {
         UserDefaults.standard.removeObject(forKey: AppAppearanceStore.Keys.backgroundStyle)
         UserDefaults.standard.removeObject(forKey: AppLocalizationStore.Keys.language)
 #if DEBUG
+        UserDefaults.standard.removeObject(forKey: DebugBackendSettings.useLocalContentOnlyKey)
         UserDefaults.standard.removeObject(forKey: DebugBackendSettings.useLocalhostKey)
 #endif
         super.tearDown()

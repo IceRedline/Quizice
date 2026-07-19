@@ -137,6 +137,8 @@
 "settings.section.developer" = "Разработка";
 "settings.backend.localhost" = "Локальный backend";
 "settings.backend.localhost.subtitle" = "Симулятор: localhost:8000 · нужен перезапуск";
+"settings.backend.local_content_only" = "Только локальный контент";
+"settings.backend.local_content_only.subtitle" = "Без backend: темы и вопросы из приложения · нужен перезапуск";
 "statistics.accessibility_label" = "Общая статистика";
 "statistics.best_result" = "Лучший результат";
 "statistics.correct_answers" = "Правильных ответов";

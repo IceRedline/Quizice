@@ -35,6 +35,7 @@ final class HomeSettingsVisualStateTests: HomeScreenVisualStateTestCase {
         let menu = try XCTUnwrap(settingsButton.menu)
         let interfaceAction = try XCTUnwrap(menu.children.first as? UIAction)
         let localhostAction = try XCTUnwrap(menu.children.dropFirst().first as? UIAction)
+        let localContentOnlyAction = try XCTUnwrap(menu.children.dropFirst(2).first as? UIAction)
         let backgroundMenu = try XCTUnwrap(menu.children.last as? UIMenu)
         let backgroundActions = backgroundMenu.children.compactMap { $0 as? UIAction }
 
@@ -42,6 +43,9 @@ final class HomeSettingsVisualStateTests: HomeScreenVisualStateTestCase {
         XCTAssertEqual(localhostAction.title, L10n.Settings.localhostBackend)
         XCTAssertEqual(localhostAction.subtitle, L10n.Settings.localhostBackendSubtitle)
         XCTAssertEqual(localhostAction.state, .off)
+        XCTAssertEqual(localContentOnlyAction.title, L10n.Settings.localContentOnly)
+        XCTAssertEqual(localContentOnlyAction.subtitle, L10n.Settings.localContentOnlySubtitle)
+        XCTAssertEqual(localContentOnlyAction.state, .off)
         XCTAssertEqual(backgroundMenu.title, L10n.Home.backgroundStyleSwitcher)
         XCTAssertEqual(backgroundActions.count, AppBackgroundStyle.allCases.count)
         XCTAssertEqual(backgroundActions.map(\.title), AppBackgroundStyle.allCases.map(\.title))
@@ -67,6 +71,7 @@ final class HomeSettingsVisualStateTests: HomeScreenVisualStateTestCase {
     func testHomeSettingsDebugMenuTogglesLocalhostBackend() throws {
 #if DEBUG
         QuizFactory.shared.themes = [makeTheme(name: "Музыка")]
+        UserDefaults.standard.set(true, forKey: DebugBackendSettings.useLocalContentOnlyKey)
 
         let viewController = makeHomeViewController(in: CGRect(x: 0, y: 0, width: 390, height: 844))
         let settingsButton = try XCTUnwrap(
@@ -80,8 +85,30 @@ final class HomeSettingsVisualStateTests: HomeScreenVisualStateTestCase {
         viewController.toggleDebugLocalhostBackend()
 
         XCTAssertTrue(UserDefaults.standard.bool(forKey: DebugBackendSettings.useLocalhostKey))
+        XCTAssertFalse(UserDefaults.standard.bool(forKey: DebugBackendSettings.useLocalContentOnlyKey))
         let updatedAction = try XCTUnwrap(settingsButton.menu?.children.dropFirst().first as? UIAction)
         XCTAssertEqual(updatedAction.state, .on)
+#endif
+    }
+
+    func testHomeSettingsDebugMenuTogglesLocalContentOnlyAndDisablesLocalhost() throws {
+#if DEBUG
+        QuizFactory.shared.themes = [makeTheme(name: "Музыка")]
+        UserDefaults.standard.set(true, forKey: DebugBackendSettings.useLocalhostKey)
+
+        let viewController = makeHomeViewController(in: CGRect(x: 0, y: 0, width: 390, height: 844))
+        let settingsButton = try XCTUnwrap(
+            viewController.view.descendant(withAccessibilityIdentifier: "homeSettingsButton") as? UIButton
+        )
+
+        viewController.toggleDebugLocalContentOnly()
+
+        XCTAssertTrue(UserDefaults.standard.bool(forKey: DebugBackendSettings.useLocalContentOnlyKey))
+        XCTAssertFalse(UserDefaults.standard.bool(forKey: DebugBackendSettings.useLocalhostKey))
+        let localhostAction = try XCTUnwrap(settingsButton.menu?.children.dropFirst().first as? UIAction)
+        let localContentOnlyAction = try XCTUnwrap(settingsButton.menu?.children.dropFirst(2).first as? UIAction)
+        XCTAssertEqual(localhostAction.state, .off)
+        XCTAssertEqual(localContentOnlyAction.state, .on)
 #endif
     }
 
