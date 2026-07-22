@@ -105,8 +105,7 @@ final class ThemeCardCollectionViewCell: UICollectionViewCell {
 
         let isSymbolIcon = appearance.designStyle != .radar
         let logoImage = ThemeVisualCatalog.logoImage(
-            for: themeID,
-            designStyle: appearance.designStyle
+            sfSymbolName: theme.sfSymbolName
         )
         themeImageView.image = logoImage
         themeImageView.tintColor = appearance.designStyle == .classic

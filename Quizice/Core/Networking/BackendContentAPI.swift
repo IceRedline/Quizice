@@ -47,6 +47,7 @@ struct BackendThemeDTO: Decodable, Equatable {
     let id: String
     let name: String
     let description: String
+    let sfSymbol: String
 }
 
 struct BackendThemeCatalogResponse: Decodable, Equatable {
@@ -362,9 +363,11 @@ final class HTTPBackendContentAPI: BackendContentAPI {
             let id = theme.id.trimmingCharacters(in: .whitespacesAndNewlines)
             let name = theme.name.trimmingCharacters(in: .whitespacesAndNewlines)
             let description = theme.description.trimmingCharacters(in: .whitespacesAndNewlines)
+            let sfSymbol = theme.sfSymbol.trimmingCharacters(in: .whitespacesAndNewlines)
             return !id.isEmpty
                 && !name.isEmpty
                 && !description.isEmpty
+                && !sfSymbol.isEmpty
                 && identifiers.insert(id).inserted
         }
     }

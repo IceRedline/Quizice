@@ -17,7 +17,7 @@ final class BackendClientTests: XCTestCase {
             XCTAssertEqual(request.cachePolicy, .reloadIgnoringLocalCacheData)
 #endif
             let body = Data(
-                #"{"locale":"ru","themes":[{"id":"music","name":"Музыка","description":"Описание"}]}"#.utf8
+                #"{"locale":"ru","themes":[{"id":"music","name":"Музыка","description":"Описание","sfSymbol":"music.note.list"}]}"#.utf8
             )
             return Self.response(for: request, data: body)
         }
@@ -26,6 +26,7 @@ final class BackendClientTests: XCTestCase {
 
         XCTAssertEqual(response.locale, "ru")
         XCTAssertEqual(response.themes.map(\.id), ["music"])
+        XCTAssertEqual(response.themes.map(\.sfSymbol), ["music.note.list"])
         XCTAssertEqual(metrics.values.count, 1)
         XCTAssertEqual(metrics.values.first?.operation, .themes)
         XCTAssertEqual(metrics.values.first?.result, .success)
@@ -158,8 +159,18 @@ final class BackendClientTests: XCTestCase {
     func testBackendCatalogPublishesNewThemesAndPreparesTheirQuestionsRemotely() async throws {
         let backend = RecordingBackendContentAPI(
             catalogThemes: [
-                BackendThemeDTO(id: "music", name: "Remote Music", description: "Known theme"),
-                BackendThemeDTO(id: "space", name: "Space", description: "Backend-only theme")
+                BackendThemeDTO(
+                    id: "music",
+                    name: "Remote Music",
+                    description: "Known theme",
+                    sfSymbol: "music.note.list"
+                ),
+                BackendThemeDTO(
+                    id: "space",
+                    name: "Space",
+                    description: "Backend-only theme",
+                    sfSymbol: "globe"
+                )
             ]
         )
         let repository = ThemeCatalogRepository(backendContentAPI: backend)
@@ -174,6 +185,7 @@ final class BackendClientTests: XCTestCase {
         XCTAssertEqual(themes[0].questions.count, 15)
         XCTAssertTrue(themes[1].questions.isEmpty)
         XCTAssertEqual(themes[1].questionOrigin, .backend)
+        XCTAssertEqual(themes[1].sfSymbolName, "globe")
 
         let prepared = try await repository.prepareQuiz(
             themeID: "space",

@@ -347,7 +347,6 @@ private final class PhysicsTopicCardView: UIControl {
 
     private let iconView = UIImageView()
     private let titleLabel = UILabel()
-    private let selectionView = UIImageView()
 
     init(theme: OnboardingTheme) {
         self.theme = theme
@@ -364,10 +363,6 @@ private final class PhysicsTopicCardView: UIControl {
         titleLabel.minimumScaleFactor = 0.76
         titleLabel.isUserInteractionEnabled = false
         addSubview(titleLabel)
-
-        selectionView.contentMode = .scaleAspectFit
-        selectionView.isUserInteractionEnabled = false
-        addSubview(selectionView)
 
         isAccessibilityElement = true
         accessibilityTraits = .button
@@ -388,24 +383,17 @@ private final class PhysicsTopicCardView: UIControl {
         super.layoutSubviews()
         let inset: CGFloat = 13
         let iconSize: CGFloat = 25
-        let selectionSize: CGFloat = 20
         iconView.frame = CGRect(
             x: inset,
             y: (bounds.height - iconSize) / 2,
             width: iconSize,
             height: iconSize
         )
-        selectionView.frame = CGRect(
-            x: bounds.width - inset - selectionSize,
-            y: (bounds.height - selectionSize) / 2,
-            width: selectionSize,
-            height: selectionSize
-        )
         let labelX = iconView.frame.maxX + 10
         titleLabel.frame = CGRect(
             x: labelX,
             y: 7,
-            width: max(0, selectionView.frame.minX - 9 - labelX),
+            width: max(0, bounds.width - inset - labelX),
             height: bounds.height - 14
         )
         layer.shadowPath = UIBezierPath(roundedRect: bounds, cornerRadius: 22).cgPath
@@ -420,8 +408,7 @@ private final class PhysicsTopicCardView: UIControl {
         applyShadow(appearance.themeCardShadow)
 
         iconView.image = ThemeVisualCatalog.logoImage(
-            for: themeID,
-            designStyle: appearance.designStyle
+            sfSymbolName: theme.sfSymbolName
         ) ?? UIImage(systemName: "questionmark.square.dashed")
         iconView.tintColor = textColor
         iconView.image = iconView.image?.withRenderingMode(.alwaysTemplate)
@@ -429,12 +416,6 @@ private final class PhysicsTopicCardView: UIControl {
         titleLabel.text = theme.title
         titleLabel.font = appearance.typography.font(size: 15, weight: .semibold)
         titleLabel.textColor = textColor
-
-        selectionView.image = UIImage(
-            systemName: isSelected ? "checkmark.circle.fill" : "circle",
-            withConfiguration: UIImage.SymbolConfiguration(pointSize: 19, weight: .semibold)
-        )
-        selectionView.tintColor = textColor.withAlphaComponent(isSelected ? 1 : 0.5)
 
         accessibilityLabel = theme.title
         accessibilityValue = isSelected ? L10n.Onboarding.topicsSelected : ""

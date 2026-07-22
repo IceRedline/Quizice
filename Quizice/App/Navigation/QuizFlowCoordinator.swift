@@ -195,7 +195,11 @@ final class QuizFlowCoordinator: NSObject, QuizRouting, UIViewControllerTransiti
 
     private var onboardingThemes: [OnboardingTheme] {
         (themeRepository.themes ?? themeRepository.fetchQuizThemes()).map {
-            OnboardingTheme(id: $0.stableID, title: $0.theme)
+            OnboardingTheme(
+                id: $0.stableID,
+                title: $0.theme,
+                sfSymbolName: $0.sfSymbolName
+            )
         }
     }
 

@@ -111,6 +111,7 @@ final class ThemeCatalogRepository: ThemeRepository {
                     theme: remoteTheme.name,
                     themeDescription: remoteTheme.description,
                     questions: localTheme?.questions ?? [],
+                    sfSymbolName: remoteTheme.sfSymbol,
                     source: .catalog,
                     questionOrigin: localTheme?.questionOrigin ?? .backend
                 )
@@ -176,6 +177,7 @@ final class ThemeCatalogRepository: ThemeRepository {
                 theme: metadata.theme,
                 themeDescription: metadata.themeDescription,
                 questions: questions,
+                sfSymbolName: metadata.sfSymbolName,
                 source: .catalog,
                 questionOrigin: .backend
             )
@@ -230,6 +232,7 @@ final class ThemeCatalogRepository: ThemeRepository {
                 theme: localFallback.theme,
                 themeDescription: localFallback.themeDescription,
                 questions: questions,
+                sfSymbolName: localFallback.sfSymbolName,
                 source: .catalog,
                 questionOrigin: .backend
             )
@@ -267,6 +270,7 @@ final class ThemeCatalogRepository: ThemeRepository {
             theme: theme.theme,
             themeDescription: theme.themeDescription,
             questions: Array(usableQuestions.shuffled().prefix(questionCount)),
+            sfSymbolName: theme.sfSymbolName,
             source: theme.source,
             questionOrigin: .bundled
         )

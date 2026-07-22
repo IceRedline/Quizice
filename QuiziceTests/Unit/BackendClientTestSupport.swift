@@ -166,7 +166,8 @@ final class SequencedCatalogBackendContentAPI: BackendContentAPI {
                 BackendThemeDTO(
                     id: "music",
                     name: "Remote Music",
-                    description: "Remote Description"
+                    description: "Remote Description",
+                    sfSymbol: "music.note.list"
                 )
             ]
         )

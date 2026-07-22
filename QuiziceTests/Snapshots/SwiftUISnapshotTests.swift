@@ -6,6 +6,29 @@ import SnapshotTesting
 
 @MainActor
 final class SwiftUISnapshotTests: XCTestCase {
+    private let onboardingThemes = [
+        OnboardingTheme(
+            id: "music",
+            title: L10n.Onboarding.topicMusic,
+            sfSymbolName: "music.note.list"
+        ),
+        OnboardingTheme(
+            id: "technology",
+            title: L10n.Onboarding.topicTechnology,
+            sfSymbolName: "cpu.fill"
+        ),
+        OnboardingTheme(
+            id: "history_culture",
+            title: L10n.Onboarding.topicHistoryCulture,
+            sfSymbolName: "theatermask.and.paintbrush.fill"
+        ),
+        OnboardingTheme(
+            id: "politics_business",
+            title: L10n.Onboarding.topicPoliticsBusiness,
+            sfSymbolName: "briefcase.fill"
+        )
+    ]
+
     override func setUp() {
         super.setUp()
         SnapshotSupport.setUp(designStyle: .clean, cleanColorScheme: .light)
@@ -113,7 +136,11 @@ final class SwiftUISnapshotTests: XCTestCase {
             cleanColorScheme: .dark
         )
         let viewController = makeHostingController(
-            rootView: QuizOnboardingView(appearance: appearance, onComplete: { _ in })
+            rootView: QuizOnboardingView(
+                appearance: appearance,
+                themes: onboardingThemes,
+                onComplete: { _ in }
+            )
         )
 
         SnapshotSupport.assertScreen(
@@ -132,12 +159,7 @@ final class SwiftUISnapshotTests: XCTestCase {
         let viewController = makeHostingController(
             rootView: QuizOnboardingView(
                 appearance: appearance,
-                themes: [
-                    OnboardingTheme(id: "music", title: L10n.Onboarding.topicMusic),
-                    OnboardingTheme(id: "technology", title: L10n.Onboarding.topicTechnology),
-                    OnboardingTheme(id: "history_culture", title: L10n.Onboarding.topicHistoryCulture),
-                    OnboardingTheme(id: "politics_business", title: L10n.Onboarding.topicPoliticsBusiness)
-                ],
+                themes: onboardingThemes,
                 initialPage: .topics,
                 preferredThemeIDs: ["music", "history_culture"],
                 onComplete: { _ in }
@@ -160,6 +182,7 @@ final class SwiftUISnapshotTests: XCTestCase {
         let viewController = makeHostingController(
             rootView: QuizOnboardingView(
                 appearance: appearance,
+                themes: onboardingThemes,
                 initialPage: .tutorial,
                 onComplete: { _ in }
             )

@@ -23,9 +23,12 @@ enum QuizQuestionOrigin: String, Codable, Equatable {
 }
 
 class QuizTheme {
+    static let defaultSFSymbolName = "questionmark.square.dashed"
+
     var id: String
     var theme: String
     var themeDescription: String
+    var sfSymbolName: String
     var sourceRawValue: String?
     var questions: [QuizQuestion]
     var aiGenerationConfiguration: AIQuizGenerationConfiguration?
@@ -36,6 +39,7 @@ class QuizTheme {
         theme: String,
         themeDescription: String,
         questions: [QuizQuestion],
+        sfSymbolName: String = QuizTheme.defaultSFSymbolName,
         source: QuizThemeSource = .catalog,
         questionOrigin: QuizQuestionOrigin = .bundled,
         aiGenerationConfiguration: AIQuizGenerationConfiguration? = nil
@@ -43,6 +47,7 @@ class QuizTheme {
         self.id = id
         self.theme = theme
         self.themeDescription = themeDescription
+        self.sfSymbolName = sfSymbolName
         self.sourceRawValue = source.rawValue
         self.questions = questions
         self.questionOrigin = questionOrigin
@@ -112,6 +117,7 @@ struct QuizThemeDTO: Decodable {
     let id: String
     let theme: String
     let themeDescription: String
+    let sfSymbol: String
     let questions: [QuizQuestionDTO]
 
     func makeModel() -> QuizTheme {
@@ -119,7 +125,8 @@ struct QuizThemeDTO: Decodable {
             id: id,
             theme: theme,
             themeDescription: themeDescription,
-            questions: questions.map { $0.makeModel() }
+            questions: questions.map { $0.makeModel() },
+            sfSymbolName: sfSymbol
         )
     }
 }

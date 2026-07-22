@@ -245,7 +245,10 @@ final class ExpandedThemeCardView: UIView, UIGestureRecognizerDelegate {
         let supportedCounts = Set(Self.supportedQuestionCounts)
         self.availableQuestionCounts = Set(availableQuestionCounts).intersection(supportedCounts)
 
-        let frontArtwork = frontArtworkImage(themeID: themeID, appearance: appearance)
+        let frontArtwork = frontArtworkImage(
+            sfSymbolName: theme.sfSymbolName,
+            appearance: appearance
+        )
         let isSymbolIcon = appearance.designStyle != .radar
         frontIconShadowView.image = isSymbolIcon ? frontArtwork : nil
         frontIconShadowView.tintColor = .black

@@ -20,6 +20,7 @@ final class QuizFlowCoordinatorOnboardingTests: QuizFlowCoordinatorTestCase {
         XCTAssertEqual(hostingController.modalPresentationStyle, .fullScreen)
         XCTAssertEqual(hostingController.rootView.themes.map(\.id), ["music", "space"])
         XCTAssertEqual(hostingController.rootView.themes.map(\.title), ["Music", "Space"])
+        XCTAssertEqual(hostingController.rootView.themes.map(\.sfSymbolName), ["music.note.list", "globe"])
         XCTAssertEqual(hostingController.rootView.catalogOrigin, .backend)
         XCTAssertEqual(harness.navigationController.presentedAnimationFlags, [false])
         XCTAssertEqual(harness.analytics.onboardingScreenViewCount, 1)
@@ -92,8 +93,20 @@ final class QuizFlowCoordinatorOnboardingTests: QuizFlowCoordinatorTestCase {
         let navigationController = RoutingNavigationControllerSpy()
         let analytics = OnboardingAnalyticsSpy()
         let themes = [
-            QuizTheme(id: "music", theme: "Music", themeDescription: "", questions: []),
-            QuizTheme(id: "space", theme: "Space", themeDescription: "", questions: [])
+            QuizTheme(
+                id: "music",
+                theme: "Music",
+                themeDescription: "",
+                questions: [],
+                sfSymbolName: "music.note.list"
+            ),
+            QuizTheme(
+                id: "space",
+                theme: "Space",
+                themeDescription: "",
+                questions: [],
+                sfSymbolName: "globe"
+            )
         ]
         let coordinator = QuizFlowCoordinator(
             window: window,

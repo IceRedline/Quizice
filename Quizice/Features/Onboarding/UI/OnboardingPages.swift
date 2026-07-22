@@ -2,6 +2,7 @@ import SwiftUI
 import UIKit
 
 struct OnboardingWelcomePage: View {
+    let themes: [OnboardingTheme]
     let isActive: Bool
 
     @Environment(\.appAppearance) private var appearance
@@ -14,6 +15,7 @@ struct OnboardingWelcomePage: View {
                 Spacer(minLength: 8)
 
                 WelcomeArtwork(
+                    themes: themes,
                     isRevealed: isRevealed || reduceMotion || !UIView.areAnimationsEnabled
                 )
                     .frame(height: 232)
@@ -69,35 +71,26 @@ struct OnboardingWelcomePage: View {
 }
 
 private struct WelcomeArtwork: View {
+    let themes: [OnboardingTheme]
     let isRevealed: Bool
 
     @Environment(\.appAppearance) private var appearance
 
     var body: some View {
         ZStack {
-            decorativeCard(
-                systemImage: "music.note",
-                color: ThemeVisualCatalog.tintColor(for: "music"),
-                size: 82
-            )
-            .rotationEffect(.degrees(isRevealed ? -13 : -24))
-            .offset(x: isRevealed ? -96 : -122, y: isRevealed ? 42 : 68)
-
-            decorativeCard(
-                systemImage: "cpu.fill",
-                color: ThemeVisualCatalog.tintColor(for: "technology"),
-                size: 72
-            )
-            .rotationEffect(.degrees(isRevealed ? 12 : 24))
-            .offset(x: isRevealed ? 104 : 132, y: isRevealed ? -38 : -58)
-
-            decorativeCard(
-                systemImage: "theatermasks.fill",
-                color: ThemeVisualCatalog.tintColor(for: "history_culture"),
-                size: 62
-            )
-            .rotationEffect(.degrees(isRevealed ? 8 : 18))
-            .offset(x: isRevealed ? 108 : 136, y: isRevealed ? 72 : 98)
+            ForEach(Array(themes.prefix(3).enumerated()), id: \.element.id) { index, theme in
+                let pose = Self.decorationPoses[index]
+                decorativeCard(
+                    systemImage: theme.sfSymbolName,
+                    color: ThemeVisualCatalog.tintColor(for: theme.id),
+                    size: pose.size
+                )
+                .rotationEffect(.degrees(isRevealed ? pose.rotation : pose.hiddenRotation))
+                .offset(
+                    x: isRevealed ? pose.offset.width : pose.hiddenOffset.width,
+                    y: isRevealed ? pose.offset.height : pose.hiddenOffset.height
+                )
+            }
 
             RoundedRectangle(cornerRadius: 44, style: .continuous)
                 .fill(Color(uiColor: appearance.card.backgroundColor))
@@ -131,6 +124,38 @@ private struct WelcomeArtwork: View {
         )
         .accessibilityHidden(true)
     }
+
+    private struct DecorationPose {
+        let size: CGFloat
+        let rotation: Double
+        let hiddenRotation: Double
+        let offset: CGSize
+        let hiddenOffset: CGSize
+    }
+
+    private static let decorationPoses = [
+        DecorationPose(
+            size: 82,
+            rotation: -13,
+            hiddenRotation: -24,
+            offset: CGSize(width: -96, height: 42),
+            hiddenOffset: CGSize(width: -122, height: 68)
+        ),
+        DecorationPose(
+            size: 72,
+            rotation: 12,
+            hiddenRotation: 24,
+            offset: CGSize(width: 104, height: -38),
+            hiddenOffset: CGSize(width: 132, height: -58)
+        ),
+        DecorationPose(
+            size: 62,
+            rotation: 8,
+            hiddenRotation: 18,
+            offset: CGSize(width: 108, height: 72),
+            hiddenOffset: CGSize(width: 136, height: 98)
+        )
+    ]
 
     private func decorativeCard(systemImage: String, color: UIColor, size: CGFloat) -> some View {
         RoundedRectangle(cornerRadius: size * 0.28, style: .continuous)
@@ -242,6 +267,7 @@ private struct OnboardingCatalogSourceBadge: View {
 #endif
 
 struct OnboardingTutorialPage: View {
+    let themePreview: OnboardingTheme?
     let isActive: Bool
 
     @Environment(\.appAppearance) private var appearance
@@ -274,7 +300,7 @@ struct OnboardingTutorialPage: View {
 
                 VStack(spacing: 12) {
                     ForEach(Array(features.enumerated()), id: \.element.id) { index, feature in
-                        TutorialFeatureRow(feature: feature)
+                        TutorialFeatureRow(feature: feature, themePreview: themePreview)
                             // Keep the content readable even if the page is captured or
                             // interrupted before its reveal transaction commits.
                             .scaleEffect(showsContent ? 1 : 0.985)
@@ -356,6 +382,7 @@ private struct TutorialFeature: Identifiable {
 
 private struct TutorialFeatureRow: View {
     let feature: TutorialFeature
+    let themePreview: OnboardingTheme?
 
     @Environment(\.appAppearance) private var appearance
 
@@ -399,7 +426,8 @@ private struct TutorialFeatureRow: View {
     private var preview: some View {
         switch feature.kind {
         case .theme:
-            let tintColor = ThemeVisualCatalog.tintColor(for: "music")
+            let themeID = themePreview?.id ?? "theme-preview"
+            let tintColor = ThemeVisualCatalog.tintColor(for: themeID)
             RoundedRectangle(cornerRadius: 22, style: .continuous)
                 .fill(Color(uiColor: appearance.themeCardBackground(baseColor: tintColor)))
                 .overlay {
@@ -407,9 +435,17 @@ private struct TutorialFeatureRow: View {
                         .stroke(Color(uiColor: appearance.themeCardBorder(baseColor: tintColor)), lineWidth: 1.3)
                 }
                 .overlay {
-                    Image(systemName: "music.note")
-                        .font(.system(size: 28, weight: .semibold))
-                        .foregroundStyle(Color(uiColor: appearance.themeCardTextColor(baseColor: tintColor)))
+                    Image(
+                        uiImage: ThemeVisualCatalog.logoImage(
+                            sfSymbolName: themePreview?.sfSymbolName
+                                ?? QuizTheme.defaultSFSymbolName
+                        ) ?? UIImage()
+                    )
+                    .renderingMode(.template)
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 28, height: 28)
+                    .foregroundStyle(Color(uiColor: appearance.themeCardTextColor(baseColor: tintColor)))
                 }
 
         case .ai:
