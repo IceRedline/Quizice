@@ -19,6 +19,7 @@ class HomeScreenVisualStateTestCase: XCTestCase {
 #if DEBUG
         UserDefaults.standard.removeObject(forKey: DebugBackendSettings.useLocalContentOnlyKey)
         UserDefaults.standard.removeObject(forKey: DebugBackendSettings.useLocalhostKey)
+        UserDefaults.standard.removeObject(forKey: DebugAIRuntimeSettings.useDirectAIKey)
 #endif
     }
 
@@ -33,6 +34,7 @@ class HomeScreenVisualStateTestCase: XCTestCase {
 #if DEBUG
         UserDefaults.standard.removeObject(forKey: DebugBackendSettings.useLocalContentOnlyKey)
         UserDefaults.standard.removeObject(forKey: DebugBackendSettings.useLocalhostKey)
+        UserDefaults.standard.removeObject(forKey: DebugAIRuntimeSettings.useDirectAIKey)
 #endif
         super.tearDown()
     }
