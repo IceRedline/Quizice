@@ -112,6 +112,11 @@
 		A20000012F80000100A20001 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = A20000082F80000100A20001 /* InfoPlist.strings */; };
 		A29A6A8AA18BA6D199C2991D /* QuizQuestionFeedbackPlayer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 749D8586305ABFA3695E6518 /* QuizQuestionFeedbackPlayer.swift */; };
 		A30000012F90000100A30001 /* AIQuizRuntimeDependencies.swift in Sources */ = {isa = PBXBuildFile; fileRef = A30000022F90000100A30002 /* AIQuizRuntimeDependencies.swift */; };
+		A40000042FA0000100A40004 /* OnboardingProgressStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = A40000012FA0000100A40001 /* OnboardingProgressStore.swift */; };
+		A40000052FA0000100A40005 /* QuizOnboardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A40000022FA0000100A40002 /* QuizOnboardingView.swift */; };
+		A40000062FA0000100A40006 /* OnboardingPages.swift in Sources */ = {isa = PBXBuildFile; fileRef = A40000032FA0000100A40003 /* OnboardingPages.swift */; };
+		A400000B2FA0000100A4000B /* OnboardingProgressStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A40000092FA0000100A40009 /* OnboardingProgressStoreTests.swift */; };
+		A400000C2FA0000100A4000C /* QuizFlowCoordinatorOnboardingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A400000A2FA0000100A4000A /* QuizFlowCoordinatorOnboardingTests.swift */; };
 		A6C3E91F5B784D20C47E13A8 /* StatisticsPresentation.swift in Sources */ = {isa = PBXBuildFile; fileRef = D4B8A19C7E254F03B62A91D0 /* StatisticsPresentation.swift */; };
 		A7A6D3FE979A97DF9422E944 /* ThemeRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0184164E200DBF65F2A3318 /* ThemeRepository.swift */; };
 		A9AFF7C8ACE328BA5A3FC832 /* AnalyticsServiceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2C045F0F1F8FF8CCB7196E1B /* AnalyticsServiceTests.swift */; };
@@ -297,6 +302,11 @@
 		A20000062F80000100A20001 /* it */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = it; path = it.lproj/InfoPlist.strings; sourceTree = "<group>"; };
 		A20000072F80000100A20001 /* fr */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = fr; path = fr.lproj/InfoPlist.strings; sourceTree = "<group>"; };
 		A30000022F90000100A30002 /* AIQuizRuntimeDependencies.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AIQuizRuntimeDependencies.swift; sourceTree = "<group>"; };
+		A40000012FA0000100A40001 /* OnboardingProgressStore.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = OnboardingProgressStore.swift; sourceTree = "<group>"; };
+		A40000022FA0000100A40002 /* QuizOnboardingView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = QuizOnboardingView.swift; sourceTree = "<group>"; };
+		A40000032FA0000100A40003 /* OnboardingPages.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = OnboardingPages.swift; sourceTree = "<group>"; };
+		A40000092FA0000100A40009 /* OnboardingProgressStoreTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = OnboardingProgressStoreTests.swift; sourceTree = "<group>"; };
+		A400000A2FA0000100A4000A /* QuizFlowCoordinatorOnboardingTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = QuizFlowCoordinatorOnboardingTests.swift; sourceTree = "<group>"; };
 		A3E9F06229E7078F35E6031C /* HomeAIThemeCardTransitionTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = HomeAIThemeCardTransitionTests.swift; sourceTree = "<group>"; };
 		A897406DD3D518BF6C8DC11B /* HomeSettingsVisualStateTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = HomeSettingsVisualStateTests.swift; sourceTree = "<group>"; };
 		A9987213AF576781765D80C7 /* QuizQuestionCountPolicyTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = QuizQuestionCountPolicyTests.swift; sourceTree = "<group>"; };
@@ -530,6 +540,7 @@
 			children = (
 				249D06AB945008605582AEBF /* AIQuiz */,
 				27589C30A8D2A5E2ADE65AA9 /* Home */,
+				A40000072FA0000100A40007 /* Onboarding */,
 				8D2B59BFE1A9619184DF238B /* QuizPlay */,
 				C80AED5C04D52A58A5A8E986 /* QuizResult */,
 				6A0168D28BFB7B542C68869D /* Settings */,
@@ -642,6 +653,40 @@
 			path = Settings;
 			sourceTree = "<group>";
 		};
+		A40000072FA0000100A40007 /* Onboarding */ = {
+			isa = PBXGroup;
+			children = (
+				A40000082FA0000100A40008 /* UI */,
+			);
+			path = Onboarding;
+			sourceTree = "<group>";
+		};
+		A40000082FA0000100A40008 /* UI */ = {
+			isa = PBXGroup;
+			children = (
+				A40000032FA0000100A40003 /* OnboardingPages.swift */,
+				A40000022FA0000100A40002 /* QuizOnboardingView.swift */,
+			);
+			path = UI;
+			sourceTree = "<group>";
+		};
+		A400000D2FA0000100A4000D /* Onboarding */ = {
+			isa = PBXGroup;
+			children = (
+				A400000E2FA0000100A4000E /* Unit */,
+			);
+			path = Onboarding;
+			sourceTree = "<group>";
+		};
+		A400000E2FA0000100A4000E /* Unit */ = {
+			isa = PBXGroup;
+			children = (
+				A40000092FA0000100A40009 /* OnboardingProgressStoreTests.swift */,
+				A400000A2FA0000100A4000A /* QuizFlowCoordinatorOnboardingTests.swift */,
+			);
+			path = Unit;
+			sourceTree = "<group>";
+		};
 		6C7C70A731813F3B10AD79ED /* Quiz */ = {
 			isa = PBXGroup;
 			children = (
@@ -662,6 +707,7 @@
 				858F923EF7863A1B5FBCEE22 /* AIQuiz */,
 				9766C10B64D4622634D2C773 /* AppFlow */,
 				53E1B40DC2EB3B57381ED65C /* Home */,
+				A400000D2FA0000100A4000D /* Onboarding */,
 				63166166CCA30AABA77AC69A /* QuizPlay */,
 				33E624F1B3F5A7CC1218BADD /* QuizResult */,
 				9037F5DEE28F26DC1C013F75 /* Statistics */,
@@ -1067,6 +1113,7 @@
 			isa = PBXGroup;
 			children = (
 				1B1B9ADB5AE94077FE602F9F /* LocalizedThemeDataLoader.swift */,
+				A40000012FA0000100A40001 /* OnboardingProgressStore.swift */,
 				F7F56DA885D3B6FAAC9A7C58 /* QuizFactoryCompatibility.swift */,
 				16F873EE286CA20A0A821D9A /* StatisticsStore.swift */,
 				C7F0E643BE8C1EA92DE20246 /* SwiftDataThemeStore.swift */,
@@ -1215,6 +1262,9 @@
 			buildActionMask = 2147483647;
 			files = (
 				A30000012F90000100A30001 /* AIQuizRuntimeDependencies.swift in Sources */,
+				A40000062FA0000100A40006 /* OnboardingPages.swift in Sources */,
+				A40000042FA0000100A40004 /* OnboardingProgressStore.swift in Sources */,
+				A40000052FA0000100A40005 /* QuizOnboardingView.swift in Sources */,
 				D3B600022FE0000100D3B601 /* DebugMenuView.swift in Sources */,
 				3A8BE011ACEECD51866A1DF0 /* DebugYandexAIAPIKeyStore.swift in Sources */,
 				8872AB1B119A1A84B3BD2C60 /* FakeLaunchScreenView.swift in Sources */,
@@ -1312,6 +1362,8 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				A400000B2FA0000100A4000B /* OnboardingProgressStoreTests.swift in Sources */,
+				A400000C2FA0000100A4000C /* QuizFlowCoordinatorOnboardingTests.swift in Sources */,
 				E5A6AB6B022A2674464B20B7 /* YandexAIQuizContractValidationTests.swift in Sources */,
 				91DB1330CD71F05B4FA66E0B /* YandexAIQuizThemeErrorTests.swift in Sources */,
 				2107E228AAEA9606B1934011 /* YandexAIQuizThemeRequestTests.swift in Sources */,

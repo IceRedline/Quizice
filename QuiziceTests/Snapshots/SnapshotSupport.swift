@@ -26,6 +26,8 @@ enum SnapshotSupport {
         UserDefaults.standard.set(designStyle.rawValue, forKey: AppAppearanceStore.Keys.designStyle)
         UserDefaults.standard.set(cleanColorScheme.rawValue, forKey: AppAppearanceStore.Keys.cleanColorScheme)
         UserDefaults.standard.set(AppBackgroundStyle.defaultStyle.rawValue, forKey: AppAppearanceStore.Keys.backgroundStyle)
+        UserDefaults.standard.removeObject(forKey: OnboardingProgressStore.Keys.completedVersion)
+        UserDefaults.standard.removeObject(forKey: OnboardingProgressStore.Keys.preferredThemeIDs)
     }
 
     static func tearDown() {
@@ -34,6 +36,8 @@ enum SnapshotSupport {
         UserDefaults.standard.removeObject(forKey: AppAppearanceStore.Keys.cleanColorScheme)
         UserDefaults.standard.removeObject(forKey: AppAppearanceStore.Keys.backgroundStyle)
         UserDefaults.standard.removeObject(forKey: AppLocalizationStore.Keys.language)
+        UserDefaults.standard.removeObject(forKey: OnboardingProgressStore.Keys.completedVersion)
+        UserDefaults.standard.removeObject(forKey: OnboardingProgressStore.Keys.preferredThemeIDs)
         resetSharedQuizFactoryForTests()
     }
 

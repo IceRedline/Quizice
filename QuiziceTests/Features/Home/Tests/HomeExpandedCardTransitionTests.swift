@@ -295,6 +295,9 @@ final class HomeExpandedCardTransitionTests: HomeScreenVisualStateTestCase {
         XCTAssertTrue(
             viewController.view.descendant(withAccessibilityIdentifier: "homeSettingsButton")?.accessibilityElementsHidden == true
         )
+        XCTAssertTrue(
+            viewController.view.descendant(withAccessibilityIdentifier: "homeOnboardingHelpButton")?.accessibilityElementsHidden == true
+        )
 
         let targetCardFrame = card.convert(card.bounds, to: viewController.view)
         drainAnimations(0.08)
