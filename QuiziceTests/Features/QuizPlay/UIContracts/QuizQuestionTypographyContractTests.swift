@@ -3,6 +3,39 @@ import XCTest
 
 @MainActor
 final class QuizQuestionTypographyContractTests: CrossScreenVisualTestCase {
+    func testQuestionContentDefersLayoutUntilRootReceivesNonZeroBounds() {
+        let presenter = ExitConfirmationPresenterSpy()
+        let viewController = QuizQuestionViewController()
+        viewController.configurePresenter(presenter)
+        viewController.loadViewIfNeeded()
+
+        XCTAssertTrue(viewController.view.bounds.isEmpty)
+
+        viewController.loadQuestionToView(
+            QuizQuestionViewModel(
+                themeName: "История",
+                questionText: "Какой город был столицей?",
+                questionNumberText: "Вопрос №1",
+                answers: [
+                    QuizAnswerOption(id: "0", title: "A"),
+                    QuizAnswerOption(id: "1", title: "B"),
+                    QuizAnswerOption(id: "2", title: "C"),
+                    QuizAnswerOption(id: "3", title: "D")
+                ]
+            )
+        )
+
+        XCTAssertTrue(viewController.view.layer.needsLayout())
+        XCTAssertTrue(viewController.questionCardView.bounds.isEmpty)
+
+        viewController.view.frame = CGRect(x: 0, y: 0, width: 390, height: 844)
+        viewController.view.layoutIfNeeded()
+
+        XCTAssertFalse(viewController.view.layer.needsLayout())
+        XCTAssertGreaterThan(viewController.questionCardView.bounds.width, 0)
+        XCTAssertGreaterThan(viewController.questionCardView.bounds.height, 0)
+    }
+
     func testQuestionScreenExposesPolishedLayoutAnchorsAndAnswerControls() {
         QuizFactory.shared.chosenTheme = makeQuestionTheme()
         QuizFactory.shared.questionsCount = 1

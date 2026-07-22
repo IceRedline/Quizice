@@ -195,7 +195,12 @@ final class ScreenSnapshotTests: XCTestCase {
     }
 
     func testQuestionScreenSnapshot() {
-        SnapshotSupport.assertScreen(makeQuestionViewController(), named: "clean-question", size: portraitSize)
+        SnapshotSupport.assertScreen(
+            makeQuestionViewController(),
+            named: "clean-question",
+            size: portraitSize,
+            afterPrepare: prepareQuestionSnapshot
+        )
     }
 
     func testClassicLongAnswerModernPortraitSnapshot() {
@@ -204,7 +209,8 @@ final class ScreenSnapshotTests: XCTestCase {
         SnapshotSupport.assertScreen(
             makeLongAnswerQuestionViewController(),
             named: "classic-long-answer-iphone-17-pro",
-            device: SnapshotSupport.iPhone17Pro
+            device: SnapshotSupport.iPhone17Pro,
+            afterPrepare: prepareQuestionSnapshot
         )
     }
 
@@ -214,7 +220,8 @@ final class ScreenSnapshotTests: XCTestCase {
         SnapshotSupport.assertScreen(
             makeLongAnswerQuestionViewController(),
             named: "classic-long-answer-iphone-se",
-            device: .iPhone8
+            device: .iPhone8,
+            afterPrepare: prepareQuestionSnapshot
         )
     }
 
@@ -224,7 +231,8 @@ final class ScreenSnapshotTests: XCTestCase {
         SnapshotSupport.assertScreen(
             makeLongAnswerQuestionViewController(),
             named: "radar-long-answer-iphone-17-pro",
-            device: SnapshotSupport.iPhone17Pro
+            device: SnapshotSupport.iPhone17Pro,
+            afterPrepare: prepareQuestionSnapshot
         )
     }
 
@@ -234,7 +242,8 @@ final class ScreenSnapshotTests: XCTestCase {
         SnapshotSupport.assertScreen(
             makeLongAnswerQuestionViewController(),
             named: "radar-long-answer-iphone-se",
-            device: .iPhone8
+            device: .iPhone8,
+            afterPrepare: prepareQuestionSnapshot
         )
     }
 
@@ -244,7 +253,8 @@ final class ScreenSnapshotTests: XCTestCase {
         SnapshotSupport.assertScreen(
             makeJapanQuestionViewController(),
             named: "radar-japan-question-initial-iphone-17-pro",
-            device: SnapshotSupport.iPhone17Pro
+            device: SnapshotSupport.iPhone17Pro,
+            afterPrepare: prepareQuestionSnapshot
         )
     }
 
@@ -254,7 +264,8 @@ final class ScreenSnapshotTests: XCTestCase {
         SnapshotSupport.assertScreen(
             makeJapanQuestionViewController(),
             named: "radar-japan-question-initial-iphone-se",
-            device: .iPhone8
+            device: .iPhone8,
+            afterPrepare: prepareQuestionSnapshot
         )
     }
 
@@ -262,7 +273,8 @@ final class ScreenSnapshotTests: XCTestCase {
         SnapshotSupport.assertScreen(
             makeLongAnswerQuestionViewController(),
             named: "clean-long-answer-iphone-se",
-            device: .iPhone8
+            device: .iPhone8,
+            afterPrepare: prepareQuestionSnapshot
         )
     }
 
@@ -271,7 +283,11 @@ final class ScreenSnapshotTests: XCTestCase {
     }
 
     func testQuestionAdaptiveCanvasSnapshots() {
-        assertAdaptiveSnapshots(makeViewController: { self.makeQuestionViewController() }, screenName: "question")
+        assertAdaptiveSnapshots(
+            makeViewController: { self.makeQuestionViewController() },
+            screenName: "question",
+            afterPrepare: prepareQuestionSnapshot
+        )
     }
 
     func testResultAdaptiveCanvasSnapshots() {
@@ -280,24 +296,38 @@ final class ScreenSnapshotTests: XCTestCase {
 
     private func assertAdaptiveSnapshots(
         makeViewController: () -> UIViewController,
-        screenName: String
+        screenName: String,
+        afterPrepare: ((UIViewController) -> Void)? = nil
     ) {
         SnapshotSupport.assertScreen(
             makeViewController(),
             named: "clean-\(screenName)-landscape",
-            size: landscapeSize
+            size: landscapeSize,
+            afterPrepare: afterPrepare,
+            testName: "assertAdaptiveSnapshots(makeViewController:screenName:)"
         )
         SnapshotSupport.assertScreen(
             makeViewController(),
             named: "clean-\(screenName)-compact-portrait",
-            device: .iPhone8
+            device: .iPhone8,
+            afterPrepare: afterPrepare,
+            testName: "assertAdaptiveSnapshots(makeViewController:screenName:)"
         )
         SnapshotSupport.assertScreen(
             makeViewController(),
             named: "clean-\(screenName)-accessibility-xxxl",
             size: portraitSize,
-            contentSizeCategory: .accessibilityExtraExtraExtraLarge
+            contentSizeCategory: .accessibilityExtraExtraExtraLarge,
+            afterPrepare: afterPrepare,
+            testName: "assertAdaptiveSnapshots(makeViewController:screenName:)"
         )
+    }
+
+    private func prepareQuestionSnapshot(_ viewController: UIViewController) {
+        guard let viewController = viewController as? QuizQuestionViewController else {
+            preconditionFailure("Question snapshots require QuizQuestionViewController")
+        }
+        viewController.updateProgress(0.62)
     }
 
     private func makeHomeViewController(
@@ -511,6 +541,7 @@ final class ScreenSnapshotTests: XCTestCase {
         answerTitles: [String] = ["Гитара", "Скрипка", "Флейта", "Арфа"]
     ) -> QuizQuestionViewController {
         let viewController = QuizQuestionViewController()
+        viewController.configurePresenter(SnapshotQuestionPresenterStub())
         viewController.loadViewIfNeeded()
         viewController.loadQuestionToView(
             QuizQuestionViewModel(
@@ -522,7 +553,6 @@ final class ScreenSnapshotTests: XCTestCase {
                 }
             )
         )
-        viewController.updateProgress(0.62)
         return viewController
     }
 
@@ -563,6 +593,24 @@ final class ScreenSnapshotTests: XCTestCase {
         return viewController
     }
 
+}
+
+private final class SnapshotQuestionPresenterStub: QuizQuestionPresenterProtocol {
+    var view: QuizQuestionViewControllerProtocol?
+    var correctAnswers = 0
+    var questionsTotalCount: Int?
+    var currentProgress: Float = 0
+
+    func viewDidLoad() {}
+    func startTimer() {}
+    func pauseTimer() {}
+    func resumeTimer() {}
+    func stopTimer() {}
+    func loadQuestion() {}
+    func checkQuestionNumberAndProceed() {}
+    func answerFeedback(for optionID: String) -> QuizAnswerFeedback { .normal }
+    func checkAnswer(optionID: String) {}
+    func resetGameProgress() {}
 }
 
 @MainActor

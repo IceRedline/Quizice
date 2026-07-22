@@ -250,6 +250,7 @@ final class AppMetricaAnalyticsTracker: AnalyticsTracking {
     static let shared = AppMetricaAnalyticsTracker()
     static let apiKeyInfoPlistKey = "AppMetricaAPIKey"
     static let apiKeyPlaceholder = "YOUR_APPMETRICA_API_KEY"
+    static let verboseLogsEnvironmentKey = "QUIZICE_APPMETRICA_VERBOSE_LOGS"
 
     private(set) var isActivated = false
 
@@ -290,21 +291,16 @@ final class AppMetricaAnalyticsTracker: AnalyticsTracking {
         configuration.locationTracking = false
         configuration.revenueAutoTrackingEnabled = false
         configuration.advertisingIdentifierTrackingEnabled = false
-        #if DEBUG
-        configuration.areLogsEnabled = true
-        #else
-        configuration.areLogsEnabled = false
-        #endif
+        configuration.areLogsEnabled = Self.shouldEnableVerboseSDKLogs(environment: environment)
 
         AppMetrica.activate(with: configuration)
         isActivated = true
-        AppLog.analytics.info("AppMetrica activated")
     }
 
     func track(_ event: AnalyticsEvent) {
         guard isActivated else { return }
         #if DEBUG
-        AppLog.analytics.info("AppMetrica event queued: event=\(event.name, privacy: .public)")
+        AppLog.analytics.debug("Event → \(event.name, privacy: .public)")
         #endif
         AppMetrica.reportEvent(name: event.name, parameters: event.parameters) { error in
             AppLog.analytics.error(
@@ -343,6 +339,14 @@ final class AppMetricaAnalyticsTracker: AnalyticsTracking {
         environment["XCTestConfigurationFilePath"] != nil ||
         environment["XCODE_RUNNING_FOR_PREVIEWS"] == "1" ||
         environment["QUIZICE_XCTEST_SMOKE_HOST"] == "1"
+    }
+
+    static func shouldEnableVerboseSDKLogs(environment: [String: String]) -> Bool {
+        #if DEBUG
+        environment[verboseLogsEnvironmentKey] == "1"
+        #else
+        false
+        #endif
     }
 }
 

@@ -7,16 +7,37 @@ final class QuizQuestionFeedbackPlayer {
         case incorrect
     }
 
-    private enum Resource {
-        static let correctSoundName = "Quizice Correct"
-        static let incorrectSoundName = "Quizice Incorrect"
-        static let fileExtension = "m4a"
+    private enum Sound {
+        case correct
+        case incorrect
+
+        var resourceName: String {
+            switch self {
+            case .correct: "Quizice Correct"
+            case .incorrect: "Quizice Incorrect"
+            }
+        }
+
+        var fileName: String {
+            "\(resourceName).m4a"
+        }
+    }
+
+    private enum PlayerState {
+        case notLoaded
+        case loaded(AVAudioPlayer)
+        case unavailable
+
+        var player: AVAudioPlayer? {
+            guard case let .loaded(player) = self else { return nil }
+            return player
+        }
     }
 
     private let bundle: Bundle
     private let hapticFeedback: UINotificationFeedbackGenerator
-    private var correctAnswerPlayer: AVAudioPlayer?
-    private var incorrectAnswerPlayer: AVAudioPlayer?
+    private var correctAnswerPlayer = PlayerState.notLoaded
+    private var incorrectAnswerPlayer = PlayerState.notLoaded
 
     init(
         bundle: Bundle = .main,
@@ -32,18 +53,18 @@ final class QuizQuestionFeedbackPlayer {
     }
 
     func reset() {
-        reset(correctAnswerPlayer)
-        reset(incorrectAnswerPlayer)
+        reset(correctAnswerPlayer.player)
+        reset(incorrectAnswerPlayer.player)
     }
 
     func play(_ outcome: Outcome) {
         loadPlayersIfNeeded()
         switch outcome {
         case .correct:
-            correctAnswerPlayer?.play()
+            play(correctAnswerPlayer.player, sound: .correct)
             hapticFeedback.notificationOccurred(.success)
         case .incorrect:
-            incorrectAnswerPlayer?.play()
+            play(incorrectAnswerPlayer.player, sound: .incorrect)
             hapticFeedback.notificationOccurred(.error)
         }
     }
@@ -53,23 +74,45 @@ final class QuizQuestionFeedbackPlayer {
     }
 
     private func loadPlayersIfNeeded() {
-        guard correctAnswerPlayer == nil, incorrectAnswerPlayer == nil else { return }
-        guard
-            let correctURL = bundle.url(
-                forResource: Resource.correctSoundName,
-                withExtension: Resource.fileExtension
-            ),
-            let incorrectURL = bundle.url(
-                forResource: Resource.incorrectSoundName,
-                withExtension: Resource.fileExtension
+        correctAnswerPlayer = loadPlayerIfNeeded(correctAnswerPlayer, sound: .correct)
+        incorrectAnswerPlayer = loadPlayerIfNeeded(incorrectAnswerPlayer, sound: .incorrect)
+    }
+
+    private func loadPlayerIfNeeded(_ state: PlayerState, sound: Sound) -> PlayerState {
+        guard case .notLoaded = state else { return state }
+        guard let url = bundle.url(forResource: sound.resourceName, withExtension: "m4a") else {
+            AppLog.audio.error(
+                "\(L10n.Question.audioLoadFailure, privacy: .public): \(sound.fileName, privacy: .public) (resource missing)"
             )
-        else {
-            AppLog.audio.error("\(L10n.Question.audioLoadFailure, privacy: .public)")
-            return
+            return .unavailable
         }
 
-        correctAnswerPlayer = try? AVAudioPlayer(contentsOf: correctURL)
-        incorrectAnswerPlayer = try? AVAudioPlayer(contentsOf: incorrectURL)
+        do {
+            let player = try AVAudioPlayer(contentsOf: url)
+            guard player.prepareToPlay() else {
+                AppLog.audio.error(
+                    "Answer sound preparation failed: \(sound.fileName, privacy: .public)"
+                )
+                return .loaded(player)
+            }
+            return .loaded(player)
+        } catch {
+            let error = error as NSError
+            AppLog.audio.error(
+                "Answer sound load failed: \(sound.fileName, privacy: .public), domain=\(error.domain, privacy: .public), code=\(error.code), description=\(error.localizedDescription, privacy: .public)"
+            )
+            return .unavailable
+        }
+    }
+
+    private func play(_ player: AVAudioPlayer?, sound: Sound) {
+        guard let player else { return }
+        guard player.play() else {
+            AppLog.audio.error(
+                "Answer sound playback did not start: \(sound.fileName, privacy: .public)"
+            )
+            return
+        }
     }
 
     private func reset(_ player: AVAudioPlayer?) {
