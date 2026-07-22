@@ -40,6 +40,10 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         window.makeKeyAndVisible()
         self.window = window
 
+        if isRunningTests == false {
+            coordinator?.presentInitialOnboardingIfNeeded()
+        }
+
         if isRunningTests == false, let coordinator {
             authenticationService?.start { [weak coordinator] viewController in
                 coordinator?.presentSystemViewController(viewController)

@@ -16,6 +16,8 @@ class HomeScreenVisualStateTestCase: XCTestCase {
         UserDefaults.standard.set(CleanColorSchemePreference.light.rawValue, forKey: AppAppearanceStore.Keys.cleanColorScheme)
         UserDefaults.standard.set(AppDesignStyle.classic.rawValue, forKey: AppAppearanceStore.Keys.designStyle)
         UserDefaults.standard.set(AppBackgroundStyle.defaultStyle.rawValue, forKey: AppAppearanceStore.Keys.backgroundStyle)
+        UserDefaults.standard.removeObject(forKey: OnboardingProgressStore.Keys.completedVersion)
+        UserDefaults.standard.removeObject(forKey: OnboardingProgressStore.Keys.preferredThemeIDs)
 #if DEBUG
         UserDefaults.standard.removeObject(forKey: DebugBackendSettings.useLocalContentOnlyKey)
         UserDefaults.standard.removeObject(forKey: DebugBackendSettings.useLocalhostKey)
@@ -31,6 +33,8 @@ class HomeScreenVisualStateTestCase: XCTestCase {
         UserDefaults.standard.removeObject(forKey: AppAppearanceStore.Keys.cleanColorScheme)
         UserDefaults.standard.removeObject(forKey: AppAppearanceStore.Keys.backgroundStyle)
         UserDefaults.standard.removeObject(forKey: AppLocalizationStore.Keys.language)
+        UserDefaults.standard.removeObject(forKey: OnboardingProgressStore.Keys.completedVersion)
+        UserDefaults.standard.removeObject(forKey: OnboardingProgressStore.Keys.preferredThemeIDs)
 #if DEBUG
         UserDefaults.standard.removeObject(forKey: DebugBackendSettings.useLocalContentOnlyKey)
         UserDefaults.standard.removeObject(forKey: DebugBackendSettings.useLocalhostKey)
@@ -304,6 +308,7 @@ final class HomeRouterSpy: QuizRouting {
     private(set) var showQuestionCallCount = 0
     private(set) var showResultCallCount = 0
     private(set) var showSettingsCallCount = 0
+    private(set) var showOnboardingCallCount = 0
     private(set) var closeQuestionCallCount = 0
     private(set) var replayQuizCallCount = 0
     private(set) var returnToThemesCallCount = 0
@@ -314,6 +319,7 @@ final class HomeRouterSpy: QuizRouting {
     }
     func showResult(_ result: QuizResultState) { showResultCallCount += 1 }
     func showSettings() { showSettingsCallCount += 1 }
+    func showOnboarding() { showOnboardingCallCount += 1 }
     func closeQuestion() { closeQuestionCallCount += 1 }
     func replayQuiz() { replayQuizCallCount += 1 }
     func returnToThemes() { returnToThemesCallCount += 1 }
