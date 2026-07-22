@@ -16,6 +16,13 @@ The quiz includes themes:
 
 > Swift, UIKit + SwiftUI, Coordinator-led MVP, unidirectional state, SwiftData
 
+## SwiftLint
+
+SwiftLint is integrated as an SPM build-tool plugin for both `Quizice` and
+`QuiziceTests`. The shared rules live in `.swiftlint.yml` and run automatically
+when either target is built. On first use, Xcode may ask you to trust and enable
+the `SwiftLintBuildToolPlugin`.
+
 ## Architecture
 
 The source tree is organized by feature, with application composition in `App`,

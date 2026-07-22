@@ -38,10 +38,6 @@
 		36132641D7CF805F726C6A0B /* ExpandedAIThemeCardView+Keyboard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6E014925A2F120F6D3109CFC /* ExpandedAIThemeCardView+Keyboard.swift */; };
 		39C9C2747B883E20A25D42D1 /* SwiftUIAppearanceSupport.swift in Sources */ = {isa = PBXBuildFile; fileRef = 771B26D898DEF6B36ACCA43E /* SwiftUIAppearanceSupport.swift */; };
 		3A8BE011ACEECD51866A1DF0 /* DebugYandexAIAPIKeyStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77CBE256B382A0502199DCED /* DebugYandexAIAPIKeyStore.swift */; };
-		D3B600022FE0000100D3B601 /* DebugMenuView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3B600012FE0000100D3B601 /* DebugMenuView.swift */; };
-		D3B600122FE0000100D3B601 /* Pulse in Frameworks */ = {isa = PBXBuildFile; productRef = D3B600112FE0000100D3B601 /* Pulse */; };
-		D3B600142FE0000100D3B601 /* PulseProxy in Frameworks */ = {isa = PBXBuildFile; productRef = D3B600132FE0000100D3B601 /* PulseProxy */; };
-		D3B600162FE0000100D3B601 /* PulseUI in Frameworks */ = {isa = PBXBuildFile; productRef = D3B600152FE0000100D3B601 /* PulseUI */; };
 		3DDC472840B7385838C51F94 /* LocalizedThemeDataLoader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1B1B9ADB5AE94077FE602F9F /* LocalizedThemeDataLoader.swift */; };
 		41CA08B01A3926DA38571D37 /* HomeAIThemeCardReducerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 93C9D82E8FBBBAF1264DF5C5 /* HomeAIThemeCardReducerTests.swift */; };
 		44D96E9AACB00911BF56D648 /* QuizQuestionPresenterFailureStateTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B87163E818824EBEFD6A6605 /* QuizQuestionPresenterFailureStateTests.swift */; };
@@ -146,6 +142,10 @@
 		CCCFF30234BE609A0EA51644 /* QuizQuestion.swift in Sources */ = {isa = PBXBuildFile; fileRef = 468341D5EAF02DFEB474EA55 /* QuizQuestion.swift */; };
 		D0904F2175AF79669D5CFBA5 /* QuizQuestionViewController+Actions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1EE1DABA4ADCD35F21BAC2CA /* QuizQuestionViewController+Actions.swift */; };
 		D166E8010E80FA2754489B9A /* AppAppearanceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A7E73CC187A089F6D5215B1 /* AppAppearanceTests.swift */; };
+		D3B600022FE0000100D3B601 /* DebugMenuView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3B600012FE0000100D3B601 /* DebugMenuView.swift */; };
+		D3B600122FE0000100D3B601 /* Pulse in Frameworks */ = {isa = PBXBuildFile; productRef = D3B600112FE0000100D3B601 /* Pulse */; };
+		D3B600142FE0000100D3B601 /* PulseProxy in Frameworks */ = {isa = PBXBuildFile; productRef = D3B600132FE0000100D3B601 /* PulseProxy */; };
+		D3B600162FE0000100D3B601 /* PulseUI in Frameworks */ = {isa = PBXBuildFile; productRef = D3B600152FE0000100D3B601 /* PulseUI */; };
 		D68E063D269F0B6C2B325F60 /* QuizQuestionTypographyContractTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C6A6BA572428D6EF0638987D /* QuizQuestionTypographyContractTests.swift */; };
 		D7562B954540154E623D738C /* QuizSessionManaging.swift in Sources */ = {isa = PBXBuildFile; fileRef = 37E78F2AE970756B4E37CC32 /* QuizSessionManaging.swift */; };
 		D7E82CFA753F341CAA0395AD /* AuthModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8822A5B878D44CB82877183D /* AuthModels.swift */; };
@@ -329,8 +329,8 @@
 		D0184164E200DBF65F2A3318 /* ThemeRepository.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ThemeRepository.swift; sourceTree = "<group>"; };
 		D17C81F5F656F7DC5EA41983 /* QuizQuestionStateContractTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = QuizQuestionStateContractTests.swift; sourceTree = "<group>"; };
 		D2D585241C87207E5B21CBD4 /* GameCenterAuthenticationService.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = GameCenterAuthenticationService.swift; sourceTree = "<group>"; };
-		D3B600012FE0000100D3B601 /* DebugMenuView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = DebugMenuView.swift; sourceTree = "<group>"; };
 		D323DE3BDBE734B792B55FCD /* HomeExpandedCardTransitionTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = HomeExpandedCardTransitionTests.swift; sourceTree = "<group>"; };
+		D3B600012FE0000100D3B601 /* DebugMenuView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = DebugMenuView.swift; sourceTree = "<group>"; };
 		D48E651B445AF8608A621418 /* LaunchOverlayPresenter.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = LaunchOverlayPresenter.swift; sourceTree = "<group>"; };
 		D49927F6947B94B34C9F29BA /* ThemesCollectionService.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ThemesCollectionService.swift; sourceTree = "<group>"; };
 		D4B8A19C7E254F03B62A91D0 /* StatisticsPresentation.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = StatisticsPresentation.swift; sourceTree = "<group>"; };
@@ -1089,6 +1089,7 @@
 			buildRules = (
 			);
 			dependencies = (
+				2B34A1D130110CD900CD8FF9 /* PBXTargetDependency */,
 			);
 			name = Quizice;
 			packageProductDependencies = (
@@ -1113,6 +1114,7 @@
 			buildRules = (
 			);
 			dependencies = (
+				2B34A1D330110D0100CD8FF9 /* PBXTargetDependency */,
 				99B4000C2E20000100B40001 /* PBXTargetDependency */,
 			);
 			name = QuiziceTests;
@@ -1131,7 +1133,7 @@
 			attributes = {
 				BuildIndependentTargetsInParallel = 1;
 				LastSwiftUpdateCheck = 1620;
-				LastUpgradeCheck = 1620;
+				LastUpgradeCheck = 2660;
 				TargetAttributes = {
 					993C1BA82D8D5E8900AD9BE4 = {
 						CreatedOnToolsVersion = 16.2;
@@ -1165,6 +1167,7 @@
 				99F000302EA0000100F00001 /* XCRemoteSwiftPackageReference "swift-snapshot-testing" */,
 				2BAB26FD3002BE0300D7E4FD /* XCRemoteSwiftPackageReference "appmetrica-sdk-ios" */,
 				D3B600102FE0000100D3B601 /* XCRemoteSwiftPackageReference "Pulse" */,
+				2B34A1CF30110CAD00CD8FF9 /* XCRemoteSwiftPackageReference "SwiftLintPlugins" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 993C1BAA2D8D5E8900AD9BE4 /* Products */;
@@ -1370,6 +1373,14 @@
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
+		2B34A1D130110CD900CD8FF9 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			productRef = 2B34A1D030110CD900CD8FF9 /* SwiftLintBuildToolPlugin */;
+		};
+		2B34A1D330110D0100CD8FF9 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			productRef = 2B34A1D230110D0100CD8FF9 /* SwiftLintBuildToolPlugin */;
+		};
 		99B4000C2E20000100B40001 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			target = 993C1BA82D8D5E8900AD9BE4 /* Quizice */;
@@ -1438,7 +1449,6 @@
 				CODE_SIGN_ENTITLEMENTS = Quizice/Quizice.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = V459R55R59;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = Quizice/Info.plist;
 				INFOPLIST_KEY_NSMotionUsageDescription = "Quizice uses device motion to make theme cards respond to how you hold your iPhone.";
@@ -1474,7 +1484,6 @@
 				CODE_SIGN_ENTITLEMENTS = Quizice/Quizice.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = V459R55R59;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = Quizice/Info.plist;
 				INFOPLIST_KEY_NSMotionUsageDescription = "Quizice uses device motion to make theme cards respond to how you hold your iPhone.";
@@ -1535,6 +1544,7 @@
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
 				DEBUG_INFORMATION_FORMAT = dwarf;
+				DEVELOPMENT_TEAM = V459R55R59;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
 				ENABLE_USER_SCRIPT_SANDBOXING = YES;
@@ -1598,6 +1608,7 @@
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				DEVELOPMENT_TEAM = V459R55R59;
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_USER_SCRIPT_SANDBOXING = YES;
@@ -1622,11 +1633,9 @@
 		99B4000D2E20000100B40001 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = V459R55R59;
 				GENERATE_INFOPLIST_FILE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -1651,11 +1660,9 @@
 		99B4000F2E20000100B40001 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = V459R55R59;
 				GENERATE_INFOPLIST_FILE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -1710,6 +1717,14 @@
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
+		2B34A1CF30110CAD00CD8FF9 /* XCRemoteSwiftPackageReference "SwiftLintPlugins" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/SimplyDanny/SwiftLintPlugins";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 0.65.0;
+			};
+		};
 		2BAB26FD3002BE0300D7E4FD /* XCRemoteSwiftPackageReference "appmetrica-sdk-ios" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/appmetrica/appmetrica-sdk-ios";
@@ -1737,6 +1752,16 @@
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
+		2B34A1D030110CD900CD8FF9 /* SwiftLintBuildToolPlugin */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 2B34A1CF30110CAD00CD8FF9 /* XCRemoteSwiftPackageReference "SwiftLintPlugins" */;
+			productName = "plugin:SwiftLintBuildToolPlugin";
+		};
+		2B34A1D230110D0100CD8FF9 /* SwiftLintBuildToolPlugin */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 2B34A1CF30110CAD00CD8FF9 /* XCRemoteSwiftPackageReference "SwiftLintPlugins" */;
+			productName = "plugin:SwiftLintBuildToolPlugin";
+		};
 		2BAB27023002BE0300D7E4FD /* AppMetricaCore */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = 2BAB26FD3002BE0300D7E4FD /* XCRemoteSwiftPackageReference "appmetrica-sdk-ios" */;

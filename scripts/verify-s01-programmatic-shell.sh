@@ -75,6 +75,8 @@ done < <(find "${RUNTIME_SWIFT_ROOTS[@]}" -type f -name '*.swift' -print0)
 printf 'Static storyboard dependency checks passed. Running integration build...\n'
 xcodebuild \
   -quiet \
+  -skipPackagePluginValidation \
+  -skipMacroValidation \
   -project Quizice.xcodeproj \
   -scheme Quizice \
   -destination 'generic/platform=iOS Simulator' \
