@@ -12,6 +12,17 @@ enum OnboardingPage: Int, CaseIterable, Identifiable {
 struct OnboardingTheme: Identifiable, Equatable {
     let id: String
     let title: String
+    let sfSymbolName: String
+
+    init(
+        id: String,
+        title: String,
+        sfSymbolName: String = QuizTheme.defaultSFSymbolName
+    ) {
+        self.id = id
+        self.title = title
+        self.sfSymbolName = sfSymbolName
+    }
 }
 
 struct QuizOnboardingView: View {
@@ -63,7 +74,10 @@ struct QuizOnboardingView: View {
                     .padding(.horizontal, Layout.horizontalInset)
 
                 TabView(selection: $selectedPage) {
-                    OnboardingWelcomePage(isActive: selectedPage == .welcome)
+                    OnboardingWelcomePage(
+                        themes: themes,
+                        isActive: selectedPage == .welcome
+                    )
                         .tag(OnboardingPage.welcome)
 
                     OnboardingTopicsPage(
@@ -74,7 +88,10 @@ struct QuizOnboardingView: View {
                     )
                     .tag(OnboardingPage.topics)
 
-                    OnboardingTutorialPage(isActive: selectedPage == .tutorial)
+                    OnboardingTutorialPage(
+                        themePreview: themes.first,
+                        isActive: selectedPage == .tutorial
+                    )
                         .tag(OnboardingPage.tutorial)
                 }
                 .tabViewStyle(.page(indexDisplayMode: .never))

@@ -52,11 +52,13 @@ final class QuizFactoryTests: XCTestCase {
 
         let culture = SnapshotSupport.makeTheme(id: "culture", name: "Culture")
         culture.questions.first?.explanation = "Stored explanation"
+        culture.sfSymbolName = "building.columns"
         store.replaceThemes(with: [culture])
 
         let fetchedThemes = store.fetchThemes()
         XCTAssertEqual(fetchedThemes.map(\.stableID), ["culture"])
         XCTAssertEqual(fetchedThemes.first?.questions.first?.explanation, "Stored explanation")
+        XCTAssertEqual(fetchedThemes.first?.sfSymbolName, "building.columns")
 
         store.clearThemes()
 

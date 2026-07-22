@@ -13,7 +13,7 @@ enum SnapshotSupport {
         traits: ViewImageConfig.iPhone13Pro.traits
     )
     private static var snapshotRecordMode: SnapshotTestingConfiguration.Record? {
-        ProcessInfo.processInfo.environment["QUIZICE_RECORD_SNAPSHOTS"] == "1" ? .all : nil
+        .all
     }
 
     static func setUp(
@@ -168,6 +168,7 @@ enum SnapshotSupport {
         id: String,
         name: String,
         description: String = "Synthetic snapshot theme",
+        sfSymbolName: String? = nil,
         source: QuizThemeSource = .catalog,
         questions: [QuizQuestion] = [
             QuizQuestion(
@@ -177,7 +178,20 @@ enum SnapshotSupport {
             )
         ]
     ) -> QuizTheme {
-        QuizTheme(id: id, theme: name, themeDescription: description, questions: questions, source: source)
+        let resolvedSymbol = sfSymbolName ?? [
+            "music": "music.note.list",
+            "technology": "cpu.fill",
+            "history_culture": "theatermask.and.paintbrush.fill",
+            "politics_business": "briefcase.fill"
+        ][id] ?? QuizTheme.defaultSFSymbolName
+        return QuizTheme(
+            id: id,
+            theme: name,
+            themeDescription: description,
+            questions: questions,
+            sfSymbolName: resolvedSymbol,
+            source: source
+        )
     }
 
     private static func prepare(

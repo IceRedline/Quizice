@@ -906,7 +906,8 @@
                 "explanation": "Il riff di *Seven Nation Army*, pubblicata dai White Stripes nel 2003 su *Elephant*, è diventato un coro ricorrente negli stadi di tutto il mondo."
             }
         ],
-        "id": "music"
+        "id": "music",
+        "sfSymbol": "music.note.list"
     },
     {
         "theme": "Tecnologia",
@@ -1859,7 +1860,8 @@
                 "explanation": "Un chatbot può essere realizzato in ciascuno dei linguaggi proposti a seconda del contesto."
             }
         ],
-        "id": "technology"
+        "id": "technology",
+        "sfSymbol": "cpu.fill"
     },
     {
         "theme": "Storia e cultura",
@@ -2977,7 +2979,8 @@
                 "explanation": "I tratti indicati sono caratteristici di Barokko."
             }
         ],
-        "id": "history_culture"
+        "id": "history_culture",
+        "sfSymbol": "theatermask.and.paintbrush.fill"
     },
     {
         "theme": "Politica e affari",
@@ -4161,6 +4164,7 @@
                 "explanation": "Acquistò Instagram nel 2012 per circa 1 miliardo di dollari tra contanti e azioni."
             }
         ],
-        "id": "politics_business"
+        "id": "politics_business",
+        "sfSymbol": "briefcase.fill"
     }
 ]

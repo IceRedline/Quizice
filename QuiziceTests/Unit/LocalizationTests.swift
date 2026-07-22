@@ -1,3 +1,4 @@
+import UIKit
 import XCTest
 @testable import Quizice
 
@@ -114,6 +115,7 @@ final class LocalizationTests: XCTestCase {
         let languages = ["ru", "en", "es", "de", "it", "fr"]
         var expectedThemeIDs: [String]?
         var expectedQuestionCounts: [Int]?
+        var expectedSFSymbols: [String]?
 
         for language in languages {
             let url = root.appendingPathComponent("\(language).lproj/data.json")
@@ -122,17 +124,24 @@ final class LocalizationTests: XCTestCase {
 
             let themeIDs = themes.map(\.id)
             let questionCounts = themes.map { $0.questions.count }
+            let sfSymbols = themes.map(\.sfSymbol)
             if expectedThemeIDs == nil {
                 expectedThemeIDs = themeIDs
                 expectedQuestionCounts = questionCounts
+                expectedSFSymbols = sfSymbols
             }
 
             XCTAssertEqual(themeIDs, expectedThemeIDs, "Theme IDs must match in \(language)")
             XCTAssertEqual(questionCounts, expectedQuestionCounts, "Question counts must match in \(language)")
+            XCTAssertEqual(sfSymbols, expectedSFSymbols, "SF Symbols must match in \(language)")
 
             for theme in themes {
                 XCTAssertFalse(theme.theme.isEmpty, "Theme title must not be empty in \(language)")
                 XCTAssertFalse(theme.themeDescription.isEmpty, "Theme description must not be empty in \(language)")
+                XCTAssertNotNil(
+                    UIImage(systemName: theme.sfSymbol),
+                    "Invalid SF Symbol '\(theme.sfSymbol)' in \(language)"
+                )
                 for question in theme.questions {
                     XCTAssertFalse(question.question.isEmpty, "Question text must not be empty in \(language)")
                     XCTAssertTrue(
@@ -218,6 +227,7 @@ private struct QuizThemePayload: Decodable {
     let id: String
     let theme: String
     let themeDescription: String
+    let sfSymbol: String
     let questions: [QuizQuestionPayload]
 }
 

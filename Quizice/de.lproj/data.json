@@ -906,7 +906,8 @@
                 "explanation": "Der Gitarrenriff von „Seven Nation Army“ ist weit über die Rockmusik hinaus erkennbar."
             }
         ],
-        "id": "music"
+        "id": "music",
+        "sfSymbol": "music.note.list"
     },
     {
         "theme": "Technologie",
@@ -1859,7 +1860,8 @@
                 "explanation": "Chatbots lassen sich je nach Plattform in allen genannten Sprachen erstellen."
             }
         ],
-        "id": "technology"
+        "id": "technology",
+        "sfSymbol": "cpu.fill"
     },
     {
         "theme": "Geschichte und Kultur",
@@ -2977,7 +2979,8 @@
                 "explanation": "Die genannten Merkmale sind für Barokko charakteristisch."
             }
         ],
-        "id": "history_culture"
+        "id": "history_culture",
+        "sfSymbol": "theatermask.and.paintbrush.fill"
     },
     {
         "theme": "Politik und Wirtschaft",
@@ -4161,6 +4164,7 @@
                 "explanation": "Facebook übernahm Instagram 2012 für ungefähr eine Milliarde US-Dollar."
             }
         ],
-        "id": "politics_business"
+        "id": "politics_business",
+        "sfSymbol": "briefcase.fill"
     }
 ]
