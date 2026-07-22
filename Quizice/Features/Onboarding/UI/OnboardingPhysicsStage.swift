@@ -400,7 +400,7 @@ private final class PhysicsTopicCardView: UIControl {
     }
 
     func configure(appearance: AppAppearance, isSelected: Bool) {
-        let tint = ThemeVisualCatalog.tintColor(for: themeID)
+        let tint = ThemeVisualCatalog.tintColor(for: theme)
         let textColor = appearance.themeCardTextColor(baseColor: tint)
         backgroundColor = appearance.themeCardBackground(baseColor: tint)
         layer.borderColor = appearance.themeCardBorder(baseColor: tint).cgColor

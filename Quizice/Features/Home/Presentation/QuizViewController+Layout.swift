@@ -32,6 +32,14 @@ extension QuizViewController {
             StatisticsCardCollectionViewCell.self,
             forCellWithReuseIdentifier: StatisticsCardCollectionViewCell.reuseIdentifier
         )
+        themesCollectionView.register(
+            MoreThemesCollectionViewCell.self,
+            forCellWithReuseIdentifier: MoreThemesCollectionViewCell.reuseIdentifier
+        )
+        themesCollectionService.onThemesExpanded = { [weak self] in
+            guard let self else { return }
+            self.updateCollectionScrollAvailability()
+        }
     }
 
     func configureHeaderViews() {

@@ -167,7 +167,9 @@ final class SequencedCatalogBackendContentAPI: BackendContentAPI {
                     id: "music",
                     name: "Remote Music",
                     description: "Remote Description",
-                    sfSymbol: "music.note.list"
+                    sfSymbol: "music.note.list",
+                    emoji: "🎵",
+                    colorHex: "#FF8252"
                 )
             ]
         )

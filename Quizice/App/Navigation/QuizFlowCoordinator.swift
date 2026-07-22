@@ -198,7 +198,9 @@ final class QuizFlowCoordinator: NSObject, QuizRouting, UIViewControllerTransiti
             OnboardingTheme(
                 id: $0.stableID,
                 title: $0.theme,
-                sfSymbolName: $0.sfSymbolName
+                sfSymbolName: $0.sfSymbolName,
+                emoji: $0.emoji,
+                colorHex: $0.colorHex
             )
         }
     }

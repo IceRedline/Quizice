@@ -13,15 +13,21 @@ struct OnboardingTheme: Identifiable, Equatable {
     let id: String
     let title: String
     let sfSymbolName: String
+    let emoji: String
+    let colorHex: String?
 
     init(
         id: String,
         title: String,
-        sfSymbolName: String = QuizTheme.defaultSFSymbolName
+        sfSymbolName: String = QuizTheme.defaultSFSymbolName,
+        emoji: String = QuizTheme.defaultEmoji,
+        colorHex: String? = nil
     ) {
         self.id = id
         self.title = title
         self.sfSymbolName = sfSymbolName
+        self.emoji = emoji
+        self.colorHex = QuizThemeColor.normalizedHex(colorHex)
     }
 }
 

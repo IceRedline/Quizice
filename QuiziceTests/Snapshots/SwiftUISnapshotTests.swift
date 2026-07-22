@@ -10,22 +10,30 @@ final class SwiftUISnapshotTests: XCTestCase {
         OnboardingTheme(
             id: "music",
             title: L10n.Onboarding.topicMusic,
-            sfSymbolName: "music.note.list"
+            sfSymbolName: "music.note.list",
+            emoji: "🎵",
+            colorHex: "#FF8252"
         ),
         OnboardingTheme(
             id: "technology",
             title: L10n.Onboarding.topicTechnology,
-            sfSymbolName: "cpu.fill"
+            sfSymbolName: "cpu.fill",
+            emoji: "💻",
+            colorHex: "#62A2E6"
         ),
         OnboardingTheme(
             id: "history_culture",
             title: L10n.Onboarding.topicHistoryCulture,
-            sfSymbolName: "theatermask.and.paintbrush.fill"
+            sfSymbolName: "theatermask.and.paintbrush.fill",
+            emoji: "🏛️",
+            colorHex: "#8B5CF6"
         ),
         OnboardingTheme(
             id: "politics_business",
             title: L10n.Onboarding.topicPoliticsBusiness,
-            sfSymbolName: "briefcase.fill"
+            sfSymbolName: "briefcase.fill",
+            emoji: "💼",
+            colorHex: "#F2C94C"
         )
     ]
 

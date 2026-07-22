@@ -62,6 +62,8 @@ extension ThemeRepository {
             themeDescription: theme.themeDescription,
             questions: Array(questions.shuffled().prefix(questionCount)),
             sfSymbolName: theme.sfSymbolName,
+            emoji: theme.emoji,
+            colorHex: theme.colorHex,
             source: theme.source,
             questionOrigin: theme.questionOrigin
         )

@@ -78,3 +78,90 @@ final class GradientBorderView: UIView {
         borderMaskLayer.path = borderPath.cgPath
     }
 }
+
+final class MoreThemesCollectionViewCell: UICollectionViewCell {
+    static let reuseIdentifier = "homeMoreThemesCell"
+
+    let actionButton = UIButton(type: .system)
+
+    private let materialView = UIVisualEffectView()
+    private let materialMask = CAGradientLayer()
+
+    override init(frame: CGRect) {
+        super.init(frame: frame)
+        clipsToBounds = false
+        contentView.clipsToBounds = false
+
+        materialView.isUserInteractionEnabled = false
+        materialView.translatesAutoresizingMaskIntoConstraints = false
+        materialMask.colors = [
+            UIColor.clear.cgColor,
+            UIColor.black.withAlphaComponent(0.76).cgColor,
+            UIColor.black.cgColor
+        ]
+        materialMask.locations = [0, 0.55, 1]
+        materialView.layer.mask = materialMask
+
+        actionButton.translatesAutoresizingMaskIntoConstraints = false
+        var buttonConfiguration = UIButton.Configuration.plain()
+        buttonConfiguration.contentInsets = NSDirectionalEdgeInsets(top: 0, leading: 20, bottom: 0, trailing: 20)
+        buttonConfiguration.imagePadding = 8
+        buttonConfiguration.imagePlacement = .trailing
+        actionButton.configuration = buttonConfiguration
+        actionButton.installPressFeedback()
+
+        contentView.addSubview(materialView)
+        contentView.addSubview(actionButton)
+        NSLayoutConstraint.activate([
+            materialView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor),
+            materialView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor),
+            materialView.topAnchor.constraint(equalTo: contentView.topAnchor, constant: -64),
+            materialView.bottomAnchor.constraint(equalTo: contentView.bottomAnchor),
+
+            actionButton.centerXAnchor.constraint(equalTo: contentView.centerXAnchor),
+            actionButton.centerYAnchor.constraint(equalTo: contentView.centerYAnchor),
+            actionButton.leadingAnchor.constraint(greaterThanOrEqualTo: contentView.leadingAnchor, constant: 24),
+            actionButton.trailingAnchor.constraint(lessThanOrEqualTo: contentView.trailingAnchor, constant: -24),
+            actionButton.heightAnchor.constraint(equalToConstant: 48)
+        ])
+    }
+
+    @available(*, unavailable)
+    required init?(coder: NSCoder) {
+        nil
+    }
+
+    override func layoutSubviews() {
+        super.layoutSubviews()
+        materialMask.frame = materialView.bounds
+    }
+
+    override func prepareForReuse() {
+        super.prepareForReuse()
+        actionButton.removeTarget(nil, action: nil, for: .allEvents)
+    }
+
+    func configure(appearance: AppAppearance) {
+        if UIAccessibility.isReduceTransparencyEnabled {
+            materialView.effect = nil
+            materialView.backgroundColor = appearance.card.backgroundColor.withAlphaComponent(0.96)
+        } else {
+            materialView.effect = UIBlurEffect(style: .systemThinMaterial)
+            materialView.backgroundColor = appearance.backgroundColor.withAlphaComponent(0.72)
+        }
+
+        actionButton.accessibilityIdentifier = ThemesCollectionService.Content.moreThemesAccessibilityID
+        actionButton.accessibilityLabel = L10n.Home.moreThemes
+        actionButton.accessibilityHint = L10n.Home.moreThemesAccessibilityHint
+        actionButton.applyActionAppearance(appearance.secondaryButton, appearance: appearance)
+        actionButton.setTitle(L10n.Home.moreThemes, for: .normal)
+        actionButton.setTitleColor(appearance.screenTextColor, for: .normal)
+        actionButton.titleLabel?.font = appearance.typography.font(size: 17, weight: .semibold)
+        actionButton.titleLabel?.adjustsFontForContentSizeCategory = true
+        actionButton.setImage(
+            UIImage(systemName: "chevron.down", withConfiguration: UIImage.SymbolConfiguration(weight: .bold)),
+            for: .normal
+        )
+        actionButton.tintColor = appearance.screenTextColor
+    }
+}

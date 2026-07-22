@@ -240,7 +240,7 @@ final class ExpandedThemeCardView: UIView, UIGestureRecognizerDelegate {
         setStartLoading(false)
 
         let themeID = theme.stableID
-        let tintColor = ThemeVisualCatalog.tintColor(for: themeID)
+        let tintColor = ThemeVisualCatalog.tintColor(for: theme)
         let borderColor = appearance.themeCardBorder(baseColor: tintColor)
         let supportedCounts = Set(Self.supportedQuestionCounts)
         self.availableQuestionCounts = Set(availableQuestionCounts).intersection(supportedCounts)

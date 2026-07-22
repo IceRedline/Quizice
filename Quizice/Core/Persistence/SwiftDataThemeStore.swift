@@ -45,6 +45,8 @@ private final class StoredQuizTheme {
     var theme: String
     var themeDescription: String
     var sfSymbolName: String?
+    var emoji: String?
+    var colorHex: String?
     var sourceRawValue: String?
     @Relationship(deleteRule: .cascade) var questions: [StoredQuizQuestion]
 
@@ -53,6 +55,8 @@ private final class StoredQuizTheme {
         theme: String,
         themeDescription: String,
         sfSymbolName: String?,
+        emoji: String?,
+        colorHex: String?,
         sourceRawValue: String?,
         questions: [StoredQuizQuestion]
     ) {
@@ -60,6 +64,8 @@ private final class StoredQuizTheme {
         self.theme = theme
         self.themeDescription = themeDescription
         self.sfSymbolName = sfSymbolName
+        self.emoji = emoji
+        self.colorHex = colorHex
         self.sourceRawValue = sourceRawValue
         self.questions = questions
     }
@@ -70,6 +76,8 @@ private final class StoredQuizTheme {
             theme: model.theme,
             themeDescription: model.themeDescription,
             sfSymbolName: model.sfSymbolName,
+            emoji: model.emoji,
+            colorHex: model.colorHex,
             sourceRawValue: model.source.rawValue,
             questions: model.questions.map(StoredQuizQuestion.init(model:))
         )
@@ -82,6 +90,8 @@ private final class StoredQuizTheme {
             themeDescription: themeDescription,
             questions: questions.map { $0.makeDomainModel() },
             sfSymbolName: sfSymbolName ?? QuizTheme.defaultSFSymbolName,
+            emoji: emoji ?? QuizTheme.defaultEmoji,
+            colorHex: colorHex,
             source: QuizThemeSource(rawValue: sourceRawValue ?? "") ?? .catalog
         )
     }

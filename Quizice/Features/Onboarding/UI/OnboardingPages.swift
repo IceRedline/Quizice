@@ -82,7 +82,7 @@ private struct WelcomeArtwork: View {
                 let pose = Self.decorationPoses[index]
                 decorativeCard(
                     systemImage: theme.sfSymbolName,
-                    color: ThemeVisualCatalog.tintColor(for: theme.id),
+                    color: ThemeVisualCatalog.tintColor(for: theme),
                     size: pose.size
                 )
                 .rotationEffect(.degrees(isRevealed ? pose.rotation : pose.hiddenRotation))
@@ -426,8 +426,8 @@ private struct TutorialFeatureRow: View {
     private var preview: some View {
         switch feature.kind {
         case .theme:
-            let themeID = themePreview?.id ?? "theme-preview"
-            let tintColor = ThemeVisualCatalog.tintColor(for: themeID)
+            let tintColor = themePreview.map(ThemeVisualCatalog.tintColor(for:))
+                ?? ThemeVisualCatalog.tintColor(colorHex: nil, themeID: "theme-preview")
             RoundedRectangle(cornerRadius: 22, style: .continuous)
                 .fill(Color(uiColor: appearance.themeCardBackground(baseColor: tintColor)))
                 .overlay {
