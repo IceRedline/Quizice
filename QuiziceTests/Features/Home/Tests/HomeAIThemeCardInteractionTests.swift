@@ -4,6 +4,42 @@ import XCTest
 
 @MainActor
 final class HomeAIThemeCardInteractionTests: HomeScreenVisualStateTestCase {
+    func testGuestTapShowsAuthenticationAlertWithoutOpeningAIThemeCard() async throws {
+        QuizFactory.shared.themes = [makeTheme(name: "Музыка")]
+        let viewController = QuizViewController(
+            aiQuizAccessProvider: HomeAIQuizAccessStub(isAvailable: false)
+        )
+        let window = UIWindow(frame: CGRect(x: 0, y: 0, width: 390, height: 844))
+        window.rootViewController = viewController
+        window.makeKeyAndVisible()
+        window.layoutIfNeeded()
+        testWindows.append(window)
+        let sourceButton = try XCTUnwrap(
+            viewController.view.descendant(
+                withAccessibilityIdentifier: "homeCreateWithAIButton"
+            ) as? UIButton
+        )
+
+        sourceButton.sendActions(for: .touchUpInside)
+
+        try await waitUntil {
+            viewController.aiAlertPresenter.alertViewController != nil
+        }
+
+        XCTAssertEqual(viewController.homeCardState.phase, .grid)
+        XCTAssertNil(
+            viewController.view.descendant(
+                withAccessibilityIdentifier: "homeExpandedAIThemeCard"
+            )
+        )
+
+        let alertViewController = try XCTUnwrap(
+            viewController.aiAlertPresenter.alertViewController
+        )
+        XCTAssertTrue(alertViewController.isModalInPresentation)
+        XCTAssertTrue(alertViewController.view.accessibilityViewIsModal)
+    }
+
     func testAIThemeCardExpandsInlineAboveFullScreenBackdropAndDisablesGrid() throws {
         QuizFactory.shared.themes = [makeTheme(name: "Музыка")]
 
@@ -344,4 +380,12 @@ final class HomeAIThemeCardInteractionTests: HomeScreenVisualStateTestCase {
         drainAnimations()
     }
 
+}
+
+private final class HomeAIQuizAccessStub: AIQuizAccessProviding {
+    let isAIQuizAvailable: Bool
+
+    init(isAvailable: Bool) {
+        isAIQuizAvailable = isAvailable
+    }
 }

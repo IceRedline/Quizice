@@ -124,4 +124,32 @@ final class QuizResultViewContractTests: CrossScreenVisualTestCase {
         XCTAssertFalse(activityIndicator.isAnimating)
         XCTAssertTrue(progressLabel.isHidden)
     }
+
+    func testResultReplayShowsGenericQuestionLoadingWithoutAIPhase() throws {
+        let viewController = QuizResultViewController()
+        viewController.loadViewIfNeeded()
+        let replayButton = try XCTUnwrap(
+            viewController.view.descendant(withAccessibilityIdentifier: "resultReplayButton") as? UIButton
+        )
+        let activityIndicator = try XCTUnwrap(
+            viewController.view.descendant(withAccessibilityIdentifier: "resultReplayActivityIndicator")
+                as? UIActivityIndicatorView
+        )
+        let progressLabel = try XCTUnwrap(
+            viewController.view.descendant(withAccessibilityIdentifier: "resultReplayProgressStatus") as? UILabel
+        )
+
+        viewController.setReplayLoading(true)
+
+        XCTAssertFalse(replayButton.isEnabled)
+        XCTAssertNil(replayButton.title(for: .normal))
+        XCTAssertTrue(activityIndicator.isAnimating)
+        XCTAssertTrue(progressLabel.isHidden)
+
+        viewController.setReplayLoading(false)
+
+        XCTAssertTrue(replayButton.isEnabled)
+        XCTAssertEqual(replayButton.title(for: .normal), L10n.Result.playAgain)
+        XCTAssertFalse(activityIndicator.isAnimating)
+    }
 }

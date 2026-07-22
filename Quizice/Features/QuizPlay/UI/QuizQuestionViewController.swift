@@ -19,6 +19,9 @@ final class QuizQuestionViewController: BaseQuizViewController, QuizQuestionView
         static let answerButtonPrefix = "questionAnswerButton"
         static let nextButton = "questionNextButton"
         static let closeButton = "questionCloseButton"
+#if DEBUG
+        static let backendQuestionSource = "questionBackendSource"
+#endif
         static let exitAlertConfirmButton = "questionExitAlertConfirmButton"
         static let exitAlertCancelButton = "questionExitAlertCancelButton"
         static let scrollView = "questionScrollView"
@@ -66,6 +69,9 @@ final class QuizQuestionViewController: BaseQuizViewController, QuizQuestionView
         static let fontSearchIterations = 10
         static let maximumFontLayoutPasses = 3
         static let fontSizeComparisonTolerance: CGFloat = 0.1
+#if DEBUG
+        static let backendSourceFontSize: CGFloat = 9
+#endif
         static let unlimitedNumberOfLines = 0
         static let answerButtonNumberOfLines = 0
     }
@@ -178,6 +184,11 @@ final class QuizQuestionViewController: BaseQuizViewController, QuizQuestionView
     var answerHeightConstraints: [NSLayoutConstraint] = []
     var nextButton: UIButton!
     var closeButton: UIButton!
+#if DEBUG
+    var debugQuestionSourceLabel: UILabel!
+    var debugQuestionOrigin: QuizQuestionOrigin = .bundled
+    var debugThemeSource: QuizThemeSource = .catalog
+#endif
     
     let feedbackPlayer = QuizQuestionFeedbackPlayer()
     let fontFitter = QuestionFontFitter(searchIterations: Typography.fontSearchIterations)
@@ -198,7 +209,10 @@ final class QuizQuestionViewController: BaseQuizViewController, QuizQuestionView
     var cardSlideTransitionDestinationView: UIView { questionCardView }
     var cardSlideTransitionHorizontalInset: CGFloat { Layout.cardHorizontalInset }
     var cardSlideTransitionDestinationCompanionViews: [UIView] {
-        let views: [UIView?] = [themeNameLabel, questionNumberLabel]
+        var views: [UIView?] = [themeNameLabel, questionNumberLabel]
+#if DEBUG
+        views.append(debugQuestionSourceLabel)
+#endif
         return views.compactMap { $0 }
     }
     
@@ -207,7 +221,10 @@ final class QuizQuestionViewController: BaseQuizViewController, QuizQuestionView
     }
 
     var questionChromeViews: [UIView] {
-        let views: [UIView?] = [themeNameLabel, questionNumberLabel, nextButton, closeButton]
+        var views: [UIView?] = [themeNameLabel, questionNumberLabel, nextButton, closeButton]
+#if DEBUG
+        views.append(debugQuestionSourceLabel)
+#endif
         return views.compactMap { $0 }
     }
     
@@ -265,7 +282,47 @@ final class QuizQuestionViewController: BaseQuizViewController, QuizQuestionView
     func configurePresenter(_ presenter: QuizQuestionPresenterProtocol) {
         self.presenter = presenter
         self.presenter?.view = self
+#if DEBUG
+        configureDebugQuestionSource(
+            origin: presenter.questionOrigin,
+            themeSource: presenter.themeSource
+        )
+#endif
     }
+
+#if DEBUG
+    func configureDebugQuestionSource(
+        origin: QuizQuestionOrigin,
+        themeSource: QuizThemeSource
+    ) {
+        debugQuestionOrigin = origin
+        debugThemeSource = themeSource
+        updateDebugQuestionSourceIndicator()
+    }
+
+    func updateDebugQuestionSourceIndicator() {
+        guard let debugQuestionSourceLabel else { return }
+        let title: String
+        let color: UIColor
+        switch debugQuestionOrigin {
+        case .bundled:
+            title = "LOCAL"
+            color = .systemOrange
+        case .backend:
+            title = debugThemeSource == .ai ? "AI BACKEND" : "BACKEND"
+            color = .systemGreen
+        case .directAI:
+            title = "DIRECT AI"
+            color = .systemBlue
+        case .mock:
+            title = "MOCK"
+            color = .systemGray
+        }
+        debugQuestionSourceLabel.text = title
+        debugQuestionSourceLabel.accessibilityLabel = "Question source: \(title)"
+        debugQuestionSourceLabel.backgroundColor = color
+    }
+#endif
 
     func prepareForReplay(_ presenter: QuizQuestionPresenterProtocol) {
         loadViewIfNeeded()
@@ -303,6 +360,9 @@ final class QuizQuestionViewController: BaseQuizViewController, QuizQuestionView
         themeNameLabel?.font = appearance.typography.font(size: Typography.themeFontSize, weight: .semibold)
         questionNumberLabel?.textColor = appearance.secondaryScreenTextColor
         questionNumberLabel?.font = appearance.typography.font(size: Typography.questionNumberFontSize, weight: .medium)
+#if DEBUG
+        updateDebugQuestionSourceIndicator()
+#endif
 
         questionCardView?.applySurfaceStyle(appearance.card)
         questionLabel?.textColor = appearance.surfaceTextColor

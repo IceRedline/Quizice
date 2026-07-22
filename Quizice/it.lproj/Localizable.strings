@@ -31,6 +31,8 @@
 "ai_theme.error.service.message" = "Il servizio IA non risponde in questo momento. Riprova tra poco.";
 "ai_theme.error.invalid_quiz.title" = "Quiz non creato";
 "ai_theme.error.invalid_quiz.message" = "L’IA non è riuscita a creare un quiz valido. Modifica l’argomento o riprova.";
+"ai_theme.error.authentication.title" = "Game Center richiesto";
+"ai_theme.error.authentication.message" = "Accedi a Game Center per creare quiz con l’IA.";
 "ai_theme.error.configuration.title" = "Chiave API richiesta";
 "ai_theme.error.configuration.message" = "La chiave API manca o è stata rifiutata. Aggiorna YANDEX_AI_API_KEY nello schema “Quizice AI (Local)” e riavvia l’app.";
 "ai_theme.error.unavailable.title" = "Generazione non disponibile";
@@ -135,6 +137,10 @@
 "settings.section.developer" = "Sviluppo";
 "settings.backend.localhost" = "Backend locale";
 "settings.backend.localhost.subtitle" = "Simulatore: localhost:8000 · riavvio richiesto";
+"settings.backend.local_content_only" = "Solo contenuti locali";
+"settings.backend.local_content_only.subtitle" = "Senza backend: temi e domande dell’app · riavvio richiesto";
+"settings.ai.direct" = "IA diretta";
+"settings.ai.direct.subtitle" = "Usa la chiave API Debug del dispositivo invece del backend · riavvio richiesto";
 "statistics.accessibility_label" = "Statistiche generali";
 "statistics.best_result" = "Miglior risultato";
 "statistics.correct_answers" = "Risposte corrette";

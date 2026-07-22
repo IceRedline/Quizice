@@ -31,6 +31,8 @@
 "ai_theme.error.service.message" = "Der KI-Dienst antwortet gerade nicht. Bitte versuche es später erneut.";
 "ai_theme.error.invalid_quiz.title" = "Quiz wurde nicht erstellt";
 "ai_theme.error.invalid_quiz.message" = "Die KI konnte kein gültiges Quiz erstellen. Ändere das Thema oder versuche es erneut.";
+"ai_theme.error.authentication.title" = "Game Center erforderlich";
+"ai_theme.error.authentication.message" = "Melde dich bei Game Center an, um KI-Quizze zu erstellen.";
 "ai_theme.error.configuration.title" = "API-Schlüssel erforderlich";
 "ai_theme.error.configuration.message" = "Der API-Schlüssel fehlt oder wurde abgelehnt. Aktualisiere YANDEX_AI_API_KEY im Schema „Quizice AI (Local)“ und starte die App neu.";
 "ai_theme.error.unavailable.title" = "Erstellung nicht verfügbar";
@@ -135,6 +137,10 @@
 "settings.section.developer" = "Entwicklung";
 "settings.backend.localhost" = "Lokales Backend";
 "settings.backend.localhost.subtitle" = "Simulator: localhost:8000 · Neustart erforderlich";
+"settings.backend.local_content_only" = "Nur lokale Inhalte";
+"settings.backend.local_content_only.subtitle" = "Ohne Backend: Themen und Fragen aus der App · Neustart erforderlich";
+"settings.ai.direct" = "Direkte KI";
+"settings.ai.direct.subtitle" = "Debug-API-Schlüssel vom Gerät statt Backend verwenden · Neustart erforderlich";
 "statistics.accessibility_label" = "Gesamtstatistik";
 "statistics.best_result" = "Bestes Ergebnis";
 "statistics.correct_answers" = "Richtige Antworten";

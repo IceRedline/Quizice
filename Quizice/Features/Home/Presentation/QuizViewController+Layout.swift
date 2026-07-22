@@ -50,6 +50,24 @@ extension QuizViewController {
             motivationLabel.topAnchor.constraint(equalTo: motivationContainerView.topAnchor),
             motivationLabel.bottomAnchor.constraint(equalTo: motivationContainerView.bottomAnchor)
         ])
+
+#if DEBUG
+        debugCatalogSourceLabel = InsetLabel(
+            contentInsets: UIEdgeInsets(top: 4, left: 7, bottom: 4, right: 7)
+        )
+        debugCatalogSourceLabel.accessibilityIdentifier = AccessibilityID.backendCatalogSource
+        debugCatalogSourceLabel.font = .monospacedSystemFont(
+            ofSize: Typography.backendSourceFontSize,
+            weight: .semibold
+        )
+        debugCatalogSourceLabel.textColor = .white
+        debugCatalogSourceLabel.layer.cornerRadius = 9
+        debugCatalogSourceLabel.clipsToBounds = true
+        debugCatalogSourceLabel.isHidden = !DebugBackendSettings.shouldShowSourceIndicators
+        debugCatalogSourceLabel.setContentHuggingPriority(.required, for: .horizontal)
+        debugCatalogSourceLabel.setContentCompressionResistancePriority(.required, for: .horizontal)
+        updateDebugCatalogSourceIndicator()
+#endif
     }
 
     func configureSettingsButton() {
@@ -83,7 +101,11 @@ extension QuizViewController {
     }
 
     func configureHeaderStack() {
-        headerStackView = UIStackView(arrangedSubviews: [motivationContainerView])
+        var arrangedSubviews: [UIView] = [motivationContainerView]
+#if DEBUG
+        arrangedSubviews.append(debugCatalogSourceLabel)
+#endif
+        headerStackView = UIStackView(arrangedSubviews: arrangedSubviews)
         headerStackView.accessibilityIdentifier = AccessibilityID.headerStackView
         headerStackView.axis = .vertical
         headerStackView.alignment = .leading
@@ -93,6 +115,24 @@ extension QuizViewController {
         headerStackView.isUserInteractionEnabled = false
         headerStackView.translatesAutoresizingMaskIntoConstraints = false
     }
+
+#if DEBUG
+    func updateDebugCatalogSourceIndicator() {
+        guard let debugCatalogSourceLabel else { return }
+        debugCatalogSourceLabel.text = debugCatalogSourceState.title
+        debugCatalogSourceLabel.accessibilityLabel = debugCatalogSourceState.title
+        switch debugCatalogSourceState {
+        case .loading:
+            debugCatalogSourceLabel.backgroundColor = .systemGray
+        case .backend:
+            debugCatalogSourceLabel.backgroundColor = .systemGreen
+        case .backendStale:
+            debugCatalogSourceLabel.backgroundColor = .systemYellow
+        case .local:
+            debugCatalogSourceLabel.backgroundColor = .systemOrange
+        }
+    }
+#endif
 
     func configureThemesCollectionView() {
         let layout = UICollectionViewFlowLayout()

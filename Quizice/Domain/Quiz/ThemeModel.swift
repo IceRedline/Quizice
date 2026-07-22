@@ -15,6 +15,10 @@ struct ThemeModel {
         quizTheme.aiGenerationConfiguration
     }
 
+    var questionOrigin: QuizQuestionOrigin {
+        quizTheme.questionOrigin
+    }
+
     var themeName: String {
         quizTheme.theme
     }

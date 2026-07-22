@@ -91,6 +91,27 @@ final class AnalyticsServiceTests: XCTestCase {
         XCTAssertEqual(statistics.parameters["accuracy_percent"] as? Int, 100)
     }
 
+    func testBackendLatencyEventUsesOnlyNormalizedOperationalValues() {
+        let event = AnalyticsEvent.backendRequestCompleted(
+            BackendRequestMetric(
+                operation: .statisticsSync,
+                result: .contractError,
+                durationMilliseconds: 125,
+                statusCode: 422,
+                responseBytes: 512
+            )
+        )
+
+        XCTAssertEqual(event.name, "backend_request_completed")
+        XCTAssertEqual(event.parameters["operation"] as? String, "statistics_sync")
+        XCTAssertEqual(event.parameters["result"] as? String, "contract_error")
+        XCTAssertEqual(event.parameters["duration_ms"] as? Int, 125)
+        XCTAssertEqual(event.parameters["response_bytes"] as? Int, 512)
+        XCTAssertEqual(event.parameters["status_class"] as? String, "4xx")
+        XCTAssertNil(event.parameters["url"])
+        XCTAssertNil(event.parameters["request_id"])
+    }
+
     func testEventTaxonomyUsesTheDocumentedNames() {
         let progress = AnalyticsQuizProgress(theme: .catalog(id: "music"), answeredQuestions: 2, totalQuestions: 5, correctAnswers: 1)
         let events: [AnalyticsEvent] = [
@@ -110,6 +131,15 @@ final class AnalyticsServiceTests: XCTestCase {
             .aiGenerationSucceeded(locale: "en", questionCount: 5, difficulty: .medium, durationMilliseconds: 100),
             .aiGenerationFailed(locale: "en", errorCode: "network", durationMilliseconds: 100),
             .aiGenerationCancelled(locale: "en", durationMilliseconds: 100),
+            .backendRequestCompleted(
+                BackendRequestMetric(
+                    operation: .themes,
+                    result: .success,
+                    durationMilliseconds: 100,
+                    statusCode: 200,
+                    responseBytes: 100
+                )
+            ),
             .settingChanged(setting: .language, oldValue: "system", newValue: "en"),
             .settingsAction(.feedback)
         ]
@@ -119,7 +149,8 @@ final class AnalyticsServiceTests: XCTestCase {
             "quiz_started", "quiz_answered", "quiz_exit_requested", "quiz_exit_cancelled",
             "quiz_abandoned", "quiz_completed", "quiz_result_action", "statistics_viewed",
             "ai_generation_started", "ai_generation_succeeded", "ai_generation_failed",
-            "ai_generation_cancelled", "setting_changed", "settings_action"
+            "ai_generation_cancelled", "backend_request_completed", "setting_changed",
+            "settings_action"
         ])
     }
 

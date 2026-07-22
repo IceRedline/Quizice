@@ -190,6 +190,34 @@ extension QuizViewController {
         max(Int(aiNow().timeIntervalSince(submission.startedAt) * 1_000), 0)
     }
 
+    func presentAIAuthenticationRequiredAlert() {
+        let alert = AIQuizGenerationAlert(
+            error: YandexAIQuizThemeServiceError.authenticationRequired
+        )
+        let dismissAction = QuizAlertAction(
+            title: L10n.Settings.alertAction,
+            emphasis: .primary,
+            accessibilityIdentifier: AccessibilityID.aiThemeAlertDismissButton,
+            action: { [weak self] in self?.aiAlertPresenter.dismiss() }
+        )
+        let overlay = QuizAlertOverlay(
+            title: alert.title,
+            message: alert.message,
+            systemImage: alert.kind.systemImage,
+            iconColor: alert.kind.iconColor(in: currentAppearance()),
+            primaryAction: dismissAction,
+            secondaryAction: nil,
+            onEscape: dismissAction.action
+        )
+
+        aiAlertPresenter.presentingViewController = self
+        _ = aiAlertPresenter.present(
+            overlay,
+            appearance: currentAppearance(),
+            reduceMotion: cardReduceMotionProvider()
+        )
+    }
+
     func presentAIThemeGenerationAlert(_ alert: AIQuizGenerationAlert) {
         guard homeAIThemeCardState.activeAlert == alert else { return }
 

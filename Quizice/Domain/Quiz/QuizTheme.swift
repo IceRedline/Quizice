@@ -10,9 +10,16 @@ struct AIQuizGenerationConfiguration: Equatable {
     let locale: Locale
 }
 
-enum QuizThemeSource: String, Codable {
+enum QuizThemeSource: String, Codable, Equatable {
     case catalog
     case ai
+}
+
+enum QuizQuestionOrigin: String, Codable, Equatable {
+    case bundled
+    case backend
+    case directAI = "direct_ai"
+    case mock
 }
 
 class QuizTheme {
@@ -22,6 +29,7 @@ class QuizTheme {
     var sourceRawValue: String?
     var questions: [QuizQuestion]
     var aiGenerationConfiguration: AIQuizGenerationConfiguration?
+    var questionOrigin: QuizQuestionOrigin
     
     init(
         id: String,
@@ -29,6 +37,7 @@ class QuizTheme {
         themeDescription: String,
         questions: [QuizQuestion],
         source: QuizThemeSource = .catalog,
+        questionOrigin: QuizQuestionOrigin = .bundled,
         aiGenerationConfiguration: AIQuizGenerationConfiguration? = nil
     ) {
         self.id = id
@@ -36,6 +45,7 @@ class QuizTheme {
         self.themeDescription = themeDescription
         self.sourceRawValue = source.rawValue
         self.questions = questions
+        self.questionOrigin = questionOrigin
         self.aiGenerationConfiguration = aiGenerationConfiguration
     }
 

@@ -31,6 +31,8 @@
 "ai_theme.error.service.message" = "ИИ-сервис сейчас не отвечает. Попробуйте ещё раз немного позже.";
 "ai_theme.error.invalid_quiz.title" = "Квиз не получился";
 "ai_theme.error.invalid_quiz.message" = "ИИ не смог собрать корректный квиз. Измените формулировку темы или попробуйте снова.";
+"ai_theme.error.authentication.title" = "Нужен Game Center";
+"ai_theme.error.authentication.message" = "Войдите в Game Center, чтобы создавать квизы с ИИ.";
 "ai_theme.error.configuration.title" = "Нужен API-ключ";
 "ai_theme.error.configuration.message" = "API-ключ отсутствует или отклонён. Обновите YANDEX_AI_API_KEY в схеме «Quizice AI (Local)» и перезапустите приложение.";
 "ai_theme.error.unavailable.title" = "Генерация недоступна";
@@ -135,6 +137,10 @@
 "settings.section.developer" = "Разработка";
 "settings.backend.localhost" = "Локальный backend";
 "settings.backend.localhost.subtitle" = "Симулятор: localhost:8000 · нужен перезапуск";
+"settings.backend.local_content_only" = "Только локальный контент";
+"settings.backend.local_content_only.subtitle" = "Без backend: темы и вопросы из приложения · нужен перезапуск";
+"settings.ai.direct" = "ИИ напрямую";
+"settings.ai.direct.subtitle" = "Debug API-ключ с устройства вместо backend · нужен перезапуск";
 "statistics.accessibility_label" = "Общая статистика";
 "statistics.best_result" = "Лучший результат";
 "statistics.correct_answers" = "Правильных ответов";

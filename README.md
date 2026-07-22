@@ -55,30 +55,26 @@ answers should still declare the diagnostics and other analytics data collected
 by the SDK. Because `AppMetricaAdSupport` is not linked, the app does not use
 AppMetrica cross-app tracking and does not request ATT permission.
 
-## Yandex AI Studio (Debug only)
+## Production backend
 
-The AI quiz generator calls the saved Yandex AI Studio agent only in Debug builds.
+The app reads `BackendBaseURL` from the `BACKEND_BASE_URL` build setting. Debug
+can still opt into `http://localhost:8000/api` from the developer menu; normal
+Debug and Release builds use the deployed HTTPS API.
 
-1. In Agent Atelier, set the agent response format to JSON Schema using
-   [`docs/yandex-ai-quiz-schema.json`](docs/yandex-ai-quiz-schema.json).
-   Use [`docs/yandex-ai-quiz-prompt.md`](docs/yandex-ai-quiz-prompt.md) as the
-   agent instruction prompt.
-   The agent input is a JSON string with `theme`, `locale`, `questionCount`, and
-   `difficulty`. Supported question counts are 5, 10, and 15. Difficulty values
-   are `easy` (common facts and direct wording), `medium` (moderate knowledge and
-   plausible distractors), and `hard` (specialized details without trick
-   questions). A successful response uses `status: "success"` and returns exactly
-   `questionCount` questions. A policy refusal uses `status: "refused"`, a safe
-   diagnostic `message`, empty theme fields, and an empty `questions` array.
-2. [Create an AI Studio API key](https://aistudio.yandex.ru/docs/ru/ai-studio/operations/get-api-key.html)
-   and keep it outside the repository.
-3. In Xcode, open **Product → Scheme → Manage Schemes…**, duplicate `Quizice`
-   as `Quizice Local`, and make sure the duplicate is not shared. Its file will
-   live under the git-ignored `xcuserdata` directory.
-4. Edit the local scheme, open **Run → Arguments**, and add the enabled
-   environment variable `YANDEX_AI_API_KEY` with the API-key secret as its value.
+Bundled localized quiz data remains the immediate offline fallback. The client
+refreshes localized theme metadata in the background and requests a seeded
+question batch when a quiz starts. Remote content is accepted only when the
+backend echoes the requested locale and seed and the complete response passes
+contract validation; otherwise the app starts from its bundled question pool.
 
-The first Debug launch reads the key from the Xcode environment and stores it in
-the device Keychain, so later Debug launches work without Xcode. The key is never
-stored in source control. Release builds do not perform direct AI Studio calls;
-use an authenticated backend proxy before enabling this feature in production.
+AI generation always goes through the backend. It requires a valid Game Center
+session and sends the bearer token stored in Keychain; guests never call the AI
+provider. Provider credentials must remain server-side. The required server
+contract, rollout order, tests, and performance targets are documented in
+[`docs/backend-production-readiness-plan.md`](docs/backend-production-readiness-plan.md).
+
+`LiveBackendContractTests` are opt-in so ordinary unit-test runs never depend on
+the network. Set `QUIZICE_RUN_LIVE_BACKEND_TESTS=1` in the test scheme to run
+them. The latency smoke reports first/median/p95/max timings without using an
+unstable developer connection as a release threshold; the two `testFuture...`
+cases are rollout gates for the new response envelopes and guest AI `401`.

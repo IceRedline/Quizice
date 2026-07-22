@@ -95,6 +95,11 @@ extension QuizViewController {
     }
 
     func removeExpandedThemeCardViews() {
+        quizPreparationTask?.cancel()
+        quizPreparationTask = nil
+        quizPreparationProgressTask?.cancel()
+        quizPreparationProgressTask = nil
+        expandedThemeCardView?.setStartLoading(false)
         aiAlertPresentationTask?.cancel()
         aiAlertPresentationTask = nil
         aiAlertPresenter.dismiss()
@@ -225,7 +230,8 @@ extension QuizViewController {
             self?.toggleDebugInterfaceVisibility()
         }
 
-        let usesLocalhostBackend = UserDefaults.standard.bool(forKey: DebugBackendSettings.useLocalhostKey)
+        let defaults = UserDefaults.standard
+        let usesLocalhostBackend = defaults.bool(forKey: DebugBackendSettings.useLocalhostKey)
         let localhostAction = UIAction(
             title: L10n.Settings.localhostBackend,
             subtitle: L10n.Settings.localhostBackendSubtitle,
@@ -235,7 +241,32 @@ extension QuizViewController {
             self?.toggleDebugLocalhostBackend()
         }
 
-        var menuElements: [UIMenuElement] = [interfaceAction, localhostAction]
+        let usesLocalContentOnly = defaults.bool(forKey: DebugBackendSettings.useLocalContentOnlyKey)
+        let localContentOnlyAction = UIAction(
+            title: L10n.Settings.localContentOnly,
+            subtitle: L10n.Settings.localContentOnlySubtitle,
+            image: UIImage(systemName: "externaldrive.fill"),
+            state: usesLocalContentOnly ? .on : .off
+        ) { [weak self] _ in
+            self?.toggleDebugLocalContentOnly()
+        }
+
+        let usesDirectAI = defaults.bool(forKey: DebugAIRuntimeSettings.useDirectAIKey)
+        let directAIAction = UIAction(
+            title: L10n.Settings.directAI,
+            subtitle: L10n.Settings.directAISubtitle,
+            image: UIImage(systemName: "key.fill"),
+            state: usesDirectAI ? .on : .off
+        ) { [weak self] _ in
+            self?.toggleDebugDirectAI()
+        }
+
+        var menuElements: [UIMenuElement] = [
+            interfaceAction,
+            localhostAction,
+            localContentOnlyAction,
+            directAIAction
+        ]
         if appearance.designStyle == .classic {
             let backgroundMenu = UIMenu(
                 title: L10n.Home.backgroundStyleSwitcher,
@@ -271,17 +302,69 @@ extension QuizViewController {
         let defaults = UserDefaults.standard
         let usesLocalhostBackend = !defaults.bool(forKey: DebugBackendSettings.useLocalhostKey)
         defaults.set(usesLocalhostBackend, forKey: DebugBackendSettings.useLocalhostKey)
+        if usesLocalhostBackend {
+            defaults.set(false, forKey: DebugBackendSettings.useLocalContentOnlyKey)
+        }
 
         let feedback = UISelectionFeedbackGenerator()
         feedback.prepare()
         feedback.selectionChanged()
         updateSettingsDebugMenu(appearance: currentAppearance())
+        presentDebugBackendRestartAlert(selection: L10n.Settings.localhostBackend)
+    }
 
+    func toggleDebugLocalContentOnly() {
+        let defaults = UserDefaults.standard
+        let usesLocalContentOnly = !defaults.bool(forKey: DebugBackendSettings.useLocalContentOnlyKey)
+        defaults.set(usesLocalContentOnly, forKey: DebugBackendSettings.useLocalContentOnlyKey)
+        if usesLocalContentOnly {
+            defaults.set(false, forKey: DebugBackendSettings.useLocalhostKey)
+        }
+
+        let feedback = UISelectionFeedbackGenerator()
+        feedback.prepare()
+        feedback.selectionChanged()
+        updateSettingsDebugMenu(appearance: currentAppearance())
+        presentDebugBackendRestartAlert(selection: L10n.Settings.localContentOnly)
+    }
+
+    func toggleDebugDirectAI(
+        prepareAPIKey: () -> Bool = { DebugYandexAIAPIKeyStore.resolveAPIKey() != nil }
+    ) {
+        let defaults = UserDefaults.standard
+        let usesDirectAI = !defaults.bool(forKey: DebugAIRuntimeSettings.useDirectAIKey)
+        guard !usesDirectAI || prepareAPIKey() else {
+            presentDebugDirectAIMissingKeyAlert()
+            return
+        }
+        defaults.set(usesDirectAI, forKey: DebugAIRuntimeSettings.useDirectAIKey)
+
+        let feedback = UISelectionFeedbackGenerator()
+        feedback.prepare()
+        feedback.selectionChanged()
+        updateSettingsDebugMenu(appearance: currentAppearance())
+        presentDebugBackendRestartAlert(selection: L10n.Settings.directAI)
+    }
+
+    private func presentDebugDirectAIMissingKeyAlert() {
+        DispatchQueue.main.async { [weak self] in
+            guard let self, self.presentedViewController == nil else { return }
+            let alert = UIAlertController(
+                title: L10n.AITheme.Error.Configuration.title,
+                message: L10n.AITheme.Error.Configuration.message,
+                preferredStyle: .alert
+            )
+            alert.addAction(UIAlertAction(title: L10n.Settings.alertAction, style: .default))
+            self.present(alert, animated: true)
+        }
+    }
+
+    private func presentDebugBackendRestartAlert(selection: String) {
         DispatchQueue.main.async { [weak self] in
             guard let self, self.presentedViewController == nil else { return }
             let alert = UIAlertController(
                 title: L10n.Settings.restartRequiredTitle,
-                message: L10n.Settings.restartRequiredMessage(selection: L10n.Settings.localhostBackend),
+                message: L10n.Settings.restartRequiredMessage(selection: selection),
                 preferredStyle: .alert
             )
             alert.addAction(UIAlertAction(title: L10n.Settings.alertAction, style: .default))

@@ -9,6 +9,7 @@ class QuizFlowCoordinatorTestCase: XCTestCase {
 
     override func setUp() {
         super.setUp()
+        AIQuizAccessStore.shared.update(isAuthenticated: true)
         animationsWereEnabled = UIView.areAnimationsEnabled
         UIView.setAnimationsEnabled(true)
         AppLocalizationStore.shared.languagePreference = .russian
@@ -23,6 +24,7 @@ class QuizFlowCoordinatorTestCase: XCTestCase {
     }
 
     override func tearDown() {
+        AIQuizAccessStore.shared.update(isAuthenticated: false)
         resetSharedQuizFactoryForTests()
         UserDefaults.standard.removeObject(forKey: AppLocalizationStore.Keys.language)
         UserDefaults.standard.removeObject(forKey: AppAppearanceStore.Keys.designStyle)
@@ -332,6 +334,34 @@ final class RoutingThemeRepository: ThemeRepository {
 
     func fetchQuizThemes() -> [QuizTheme] {
         themes ?? []
+    }
+}
+
+final class HangingRoutingThemeRepository: ThemeRepository {
+    var themes: [QuizTheme]?
+    private(set) var prepareQuizCallCount = 0
+
+    init(themes: [QuizTheme]) {
+        self.themes = themes
+    }
+
+    func loadData(forceReload: Bool) {}
+
+    func fetchQuizThemes() -> [QuizTheme] {
+        themes ?? []
+    }
+
+    func prepareQuiz(
+        themeID: String,
+        questionCount: Int,
+        locale: String
+    ) async throws -> QuizTheme {
+        prepareQuizCallCount += 1
+        try await Task.sleep(nanoseconds: 60_000_000_000)
+        guard let theme = themes?.first(where: { $0.stableID == themeID }) else {
+            throw QuizPreparationError.unavailable
+        }
+        return theme
     }
 }
 

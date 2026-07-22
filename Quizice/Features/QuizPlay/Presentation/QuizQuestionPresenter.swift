@@ -29,6 +29,14 @@ final class QuizQuestionPresenter: QuizQuestionPresenterProtocol {
     var analyticsTheme: AnalyticsTheme {
         session.chosenTheme?.analyticsTheme ?? .unknown
     }
+#if DEBUG
+    var questionOrigin: QuizQuestionOrigin {
+        session.chosenTheme?.questionOrigin ?? .bundled
+    }
+    var themeSource: QuizThemeSource {
+        session.chosenTheme?.quizTheme.source ?? .catalog
+    }
+#endif
     
     init(
         session: QuizSessionManaging = QuizSessionStore.shared,

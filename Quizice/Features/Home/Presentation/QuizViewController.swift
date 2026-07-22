@@ -1,6 +1,24 @@
 import UIKit
 
 final class QuizViewController: BaseQuizViewController, ThemeCollectionDelegate, QuizCardSlideTransitionSource, QuizHomeReturnHandling {
+#if DEBUG
+    enum DebugCatalogSourceState: Equatable {
+        case loading
+        case backend
+        case backendStale
+        case local
+
+        var title: String {
+            switch self {
+            case .loading: "CATALOG: LOADING"
+            case .backend: "CATALOG: BACKEND"
+            case .backendStale: "CATALOG: BACKEND STALE"
+            case .local: "CATALOG: LOCAL"
+            }
+        }
+    }
+#endif
+
     enum Content {
 #if DEBUG
         static let backgroundStyleIconName = "circle.grid.3x3.fill"
@@ -19,6 +37,9 @@ final class QuizViewController: BaseQuizViewController, ThemeCollectionDelegate,
         static let screenStackView = "homeScreenStackView"
         static let settingsButton = "homeSettingsButton"
         static let settingsVisualSurface = "homeSettingsVisualSurface"
+#if DEBUG
+        static let backendCatalogSource = "homeBackendCatalogSource"
+#endif
         static let expandedCard = "homeExpandedThemeCard"
         static let expandedStatisticsCard = "homeExpandedStatisticsCard"
         static let expandedAIThemeCard = "homeExpandedAIThemeCard"
@@ -85,6 +106,9 @@ final class QuizViewController: BaseQuizViewController, ThemeCollectionDelegate,
         static let motivationFontSize: CGFloat = 26
         static let actionButtonFontSize: CGFloat = 19
         static let settingsIconPointSize: CGFloat = 14
+#if DEBUG
+        static let backendSourceFontSize: CGFloat = 10
+#endif
         static let unlimitedNumberOfLines = 0
     }
 
@@ -139,6 +163,10 @@ final class QuizViewController: BaseQuizViewController, ThemeCollectionDelegate,
     var settingsButtonVisualSurface: UIView!
 #if DEBUG
     var isDebugInterfaceHidden = false
+    var debugCatalogSourceLabel: InsetLabel!
+    var debugCatalogSourceState: DebugCatalogSourceState = .loading {
+        didSet { updateDebugCatalogSourceIndicator() }
+    }
 #endif
 
     var themesCollectionView: UICollectionView!
@@ -147,10 +175,12 @@ final class QuizViewController: BaseQuizViewController, ThemeCollectionDelegate,
     let session: QuizSessionManaging
     let statisticsStore: StatisticsStore
     let aiQuizThemeService: AIQuizThemeServiceProtocol
+    let aiQuizAccessProvider: AIQuizAccessProviding
     let analytics: AnalyticsTracking
     let themesCollectionService: ThemesCollectionService
     let motivationPromptProvider: (String?) -> String
     let randomQuestionsProvider: ([QuizQuestion]) -> [QuizQuestion]
+    let randomQuestionSelectionModeProvider: () -> CrossThemeQuestionSelectionMode
     let cardReduceMotionProvider: () -> Bool
     let cardReduceTransparencyProvider: () -> Bool
     let cardDeviceParallaxEnabledProvider: () -> Bool
@@ -158,6 +188,7 @@ final class QuizViewController: BaseQuizViewController, ThemeCollectionDelegate,
     let aiNow: () -> Date
     let aiRequestIDProvider: () -> UUID
     let feelingLuckyMinimumFeedbackDelay: () async -> Void
+    let quizPreparationProgressDelay: () async -> Void
     let animationsEngine = Animations()
     let sourceSnapshotFactory = HomeCardSourceSnapshotFactory()
     let homeStore = HomeFeatureStore()
@@ -184,6 +215,10 @@ final class QuizViewController: BaseQuizViewController, ThemeCollectionDelegate,
     let aiAlertPresenter = QuizAlertPresenter()
     var feelingLuckyTask: Task<Void, Never>?
     var feelingLuckyRequestID: UUID?
+    var backendCatalogRefreshTask: Task<Void, Never>?
+    var backendCatalogRefreshRequestID: UUID?
+    var quizPreparationTask: Task<Void, Never>?
+    var quizPreparationProgressTask: Task<Void, Never>?
     weak var quizTransitionSourceView: UIView?
     var isQuizLaunchPending = false
     var hasQuizLaunchStarted = false
@@ -219,9 +254,13 @@ final class QuizViewController: BaseQuizViewController, ThemeCollectionDelegate,
         session: QuizSessionManaging = QuizSessionStore.shared,
         statisticsStore: StatisticsStore = StatisticsStore(),
         aiQuizThemeService: AIQuizThemeServiceProtocol = MockAIQuizThemeService(),
+        aiQuizAccessProvider: AIQuizAccessProviding = AIQuizAccessStore.shared,
         analytics: AnalyticsTracking = AppMetricaAnalyticsTracker.shared,
         motivationPromptProvider: @escaping (String?) -> String = QuizViewController.randomMotivationPrompt,
         randomQuestionsProvider: @escaping ([QuizQuestion]) -> [QuizQuestion] = { $0.shuffled() },
+        randomQuestionSelectionModeProvider: @escaping () -> CrossThemeQuestionSelectionMode = {
+            CrossThemeQuestionSelectionMode.allCases.randomElement() ?? .random
+        },
         cardReduceMotionProvider: @escaping () -> Bool = { UIAccessibility.isReduceMotionEnabled },
         cardReduceTransparencyProvider: @escaping () -> Bool = { UIAccessibility.isReduceTransparencyEnabled },
         cardDeviceParallaxEnabledProvider: @escaping () -> Bool = { true },
@@ -230,15 +269,20 @@ final class QuizViewController: BaseQuizViewController, ThemeCollectionDelegate,
         aiRequestIDProvider: @escaping () -> UUID = UUID.init,
         feelingLuckyMinimumFeedbackDelay: @escaping () async -> Void = {
             try? await Task.sleep(nanoseconds: 500_000_000)
+        },
+        quizPreparationProgressDelay: @escaping () async -> Void = {
+            try? await Task.sleep(nanoseconds: 750_000_000)
         }
     ) {
         self.themeRepository = themeRepository
         self.session = session
         self.statisticsStore = statisticsStore
         self.aiQuizThemeService = aiQuizThemeService
+        self.aiQuizAccessProvider = aiQuizAccessProvider
         self.analytics = analytics
         self.motivationPromptProvider = motivationPromptProvider
         self.randomQuestionsProvider = randomQuestionsProvider
+        self.randomQuestionSelectionModeProvider = randomQuestionSelectionModeProvider
         self.themesCollectionService = ThemesCollectionService(
             themeRepository: themeRepository,
             statisticsStore: statisticsStore
@@ -250,6 +294,7 @@ final class QuizViewController: BaseQuizViewController, ThemeCollectionDelegate,
         self.aiNow = aiNow
         self.aiRequestIDProvider = aiRequestIDProvider
         self.feelingLuckyMinimumFeedbackDelay = feelingLuckyMinimumFeedbackDelay
+        self.quizPreparationProgressDelay = quizPreparationProgressDelay
         super.init(nibName: nil, bundle: nil)
     }
 
@@ -258,6 +303,9 @@ final class QuizViewController: BaseQuizViewController, ThemeCollectionDelegate,
         aiProgressTask?.cancel()
         aiAlertPresentationTask?.cancel()
         feelingLuckyTask?.cancel()
+        backendCatalogRefreshTask?.cancel()
+        quizPreparationTask?.cancel()
+        quizPreparationProgressTask?.cancel()
     }
 
     @available(*, unavailable)
@@ -286,6 +334,7 @@ final class QuizViewController: BaseQuizViewController, ThemeCollectionDelegate,
         configureThemesCollectionService()
         installLocalizationObserver()
         updateThemeAvailabilityMessage()
+        refreshBackendCatalog()
     }
 
     override func viewDidLayoutSubviews() {
@@ -350,6 +399,7 @@ final class QuizViewController: BaseQuizViewController, ThemeCollectionDelegate,
 
 #if DEBUG
         updateSettingsDebugMenu(appearance: appearance)
+        updateDebugCatalogSourceIndicator()
 #endif
 
         themesCollectionView?.backgroundColor = .clear
@@ -368,5 +418,6 @@ final class QuizViewController: BaseQuizViewController, ThemeCollectionDelegate,
         updateThemeAvailabilityMessage()
         themesCollectionView.reloadData()
         refreshExpandedThemeCardAppearance()
+        refreshBackendCatalog()
     }
 }
