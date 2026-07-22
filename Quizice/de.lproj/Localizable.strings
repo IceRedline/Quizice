@@ -99,6 +99,14 @@
 "result.play_again" = "Nochmal spielen";
 "result.to_themes" = "Thema wählen";
 "result.text_format" = "Dein Ergebnis:\n %d/%d";
+"debug_menu.title" = "Debug-Menü";
+"debug_menu.section.interface" = "Oberfläche";
+"debug_menu.section.backend" = "Backend und Inhalte";
+"debug_menu.section.tools" = "Werkzeuge";
+"debug_menu.hide_interface" = "App-Oberfläche ausblenden";
+"debug_menu.hide_interface.subtitle" = "Die Einstellungstaste bleibt verfügbar";
+"debug_menu.pulse" = "Pulse";
+"debug_menu.pulse.subtitle" = "URLSession-Anfragen und -Antworten prüfen";
 "settings.alert.action" = "Verstanden";
 "settings.close" = "Schließen";
 "settings.done" = "Fertig";

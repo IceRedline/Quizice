@@ -99,6 +99,14 @@
 "result.play_again" = "Сыграть ещё раз";
 "result.to_themes" = "К выбору темы";
 "result.text_format" = "Твой результат:\n %d/%d";
+"debug_menu.title" = "Дебаг-меню";
+"debug_menu.section.interface" = "Интерфейс";
+"debug_menu.section.backend" = "Backend и контент";
+"debug_menu.section.tools" = "Инструменты";
+"debug_menu.hide_interface" = "Скрыть интерфейс приложения";
+"debug_menu.hide_interface.subtitle" = "Кнопка настроек останется доступной";
+"debug_menu.pulse" = "Пульс";
+"debug_menu.pulse.subtitle" = "Лог запросов и ответов URLSession";
 "settings.alert.action" = "Понятно";
 "settings.close" = "Закрыть";
 "settings.done" = "Готово";

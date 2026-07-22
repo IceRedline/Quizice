@@ -20,11 +20,6 @@ final class QuizViewController: BaseQuizViewController, ThemeCollectionDelegate,
 #endif
 
     enum Content {
-#if DEBUG
-        static let backgroundStyleIconName = "circle.grid.3x3.fill"
-        static let hideInterfaceIconName = "eye.slash"
-        static let showInterfaceIconName = "eye"
-#endif
         static let settingsIconName = "gear"
         static let themeCellReuseIdentifier = "themeCell"
     }
@@ -398,7 +393,6 @@ final class QuizViewController: BaseQuizViewController, ThemeCollectionDelegate,
         settingsButton?.tintColor = appearance.screenTextColor
 
 #if DEBUG
-        updateSettingsDebugMenu(appearance: appearance)
         updateDebugCatalogSourceIndicator()
 #endif
 
@@ -410,9 +404,6 @@ final class QuizViewController: BaseQuizViewController, ThemeCollectionDelegate,
     override func applyLocalizedStrings() {
         guard isViewLoaded else { return }
         refreshMotivationPrompt()
-#if DEBUG
-        updateSettingsDebugMenu(appearance: currentAppearance())
-#endif
         settingsButton.accessibilityLabel = L10n.Settings.title
         themesCollectionView.accessibilityLabel = L10n.Home.themesCollectionAccessibilityLabel
         updateThemeAvailabilityMessage()

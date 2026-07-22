@@ -1,5 +1,5 @@
 {
-  "originHash" : "b4cc6d4abe71a481189f717b580209ca263481a333535d108780cb98a489e66b",
+  "originHash" : "9248c388bb8e1907ba4aaa695149ce66529b323bd6632c14221b70842d4e25a7",
   "pins" : [
     {
       "identity" : "appmetrica-sdk-ios",
@@ -17,6 +17,15 @@
       "state" : {
         "revision" : "95a8895d75f3c22aa9ad9f2a15d2fbd97b0a55e2",
         "version" : "2.5.1"
+      }
+    },
+    {
+      "identity" : "pulse",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/kean/Pulse",
+      "state" : {
+        "revision" : "94b92731d370c129bb771e9c18f69b0a44ccca5c",
+        "version" : "5.2.3"
       }
     },
     {

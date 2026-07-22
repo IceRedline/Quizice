@@ -15,7 +15,11 @@ final class HomeSettingsVisualStateTests: HomeScreenVisualStateTestCase {
         XCTAssertNotNil(settingsButton.image(for: .normal))
 #if DEBUG
         XCTAssertFalse(settingsButton.showsMenuAsPrimaryAction)
-        XCTAssertNotNil(settingsButton.menu)
+        XCTAssertNil(settingsButton.menu)
+        let debugGesture = try XCTUnwrap(
+            settingsButton.gestureRecognizers?.compactMap { $0 as? UILongPressGestureRecognizer }.first
+        )
+        XCTAssertEqual(debugGesture.minimumPressDuration, 0.5, accuracy: 0.001)
 #endif
 
         settingsButton.sendActions(for: .touchUpInside)
@@ -23,7 +27,7 @@ final class HomeSettingsVisualStateTests: HomeScreenVisualStateTestCase {
         XCTAssertEqual(router.showSettingsCallCount, 1)
     }
 
-    func testHomeSettingsDebugMenuContainsBackgroundPresets() throws {
+    func testHomeSettingsDebugSheetContainsExistingSettingsAndBackgroundPresets() throws {
         QuizFactory.shared.themes = [makeTheme(name: "Музыка")]
 
         let viewController = makeHomeViewController(in: CGRect(x: 0, y: 0, width: 390, height: 844))
@@ -32,41 +36,32 @@ final class HomeSettingsVisualStateTests: HomeScreenVisualStateTestCase {
         )
 
 #if DEBUG
-        let menu = try XCTUnwrap(settingsButton.menu)
-        let interfaceAction = try XCTUnwrap(menu.children.first as? UIAction)
-        let localhostAction = try XCTUnwrap(menu.children.dropFirst().first as? UIAction)
-        let localContentOnlyAction = try XCTUnwrap(menu.children.dropFirst(2).first as? UIAction)
-        let directAIAction = try XCTUnwrap(menu.children.dropFirst(3).first as? UIAction)
-        let backgroundMenu = try XCTUnwrap(menu.children.last as? UIMenu)
-        let backgroundActions = backgroundMenu.children.compactMap { $0 as? UIAction }
-
-        XCTAssertEqual(interfaceAction.title, "Hide UI")
-        XCTAssertEqual(localhostAction.title, L10n.Settings.localhostBackend)
-        XCTAssertEqual(localhostAction.subtitle, L10n.Settings.localhostBackendSubtitle)
-        XCTAssertEqual(localhostAction.state, .off)
-        XCTAssertEqual(localContentOnlyAction.title, L10n.Settings.localContentOnly)
-        XCTAssertEqual(localContentOnlyAction.subtitle, L10n.Settings.localContentOnlySubtitle)
-        XCTAssertEqual(localContentOnlyAction.state, .off)
-        XCTAssertEqual(directAIAction.title, L10n.Settings.directAI)
-        XCTAssertEqual(directAIAction.subtitle, L10n.Settings.directAISubtitle)
-        XCTAssertEqual(directAIAction.state, .off)
-        XCTAssertEqual(backgroundMenu.title, L10n.Home.backgroundStyleSwitcher)
-        XCTAssertEqual(backgroundActions.count, AppBackgroundStyle.allCases.count)
-        XCTAssertEqual(backgroundActions.map(\.title), AppBackgroundStyle.allCases.map(\.title))
-        XCTAssertEqual(AppAppearanceStore.shared.backgroundStyle, .slate5x5)
-        XCTAssertEqual(backgroundActions.filter { $0.state == .on }.map(\.title), [AppBackgroundStyle.slate5x5.title])
+        XCTAssertNil(settingsButton.menu)
+        let viewModel = viewController.makeDebugMenuViewModel()
+        XCTAssertFalse(viewModel.isInterfaceHidden)
+        XCTAssertFalse(viewModel.usesLocalhostBackend)
+        XCTAssertFalse(viewModel.usesLocalContentOnly)
+        XCTAssertFalse(viewModel.usesDirectAI)
+        XCTAssertTrue(viewModel.showsBackgroundStyles)
+        XCTAssertEqual(viewModel.backgroundStyle, .slate5x5)
+        XCTAssertEqual(DebugMenuView.AccessibilityID.pulse, "debugMenuPulse")
         XCTAssertNotNil(viewController.view.descendant(withAccessibilityIdentifier: "appBackgroundView"))
 
-        XCTAssertNotNil(backgroundActions.first { $0.title == AppBackgroundStyle.slate4x4.title })
-        viewController.selectBackgroundStyle(.slate4x4)
+        viewModel.selectBackgroundStyle(.slate4x4)
 
         XCTAssertEqual(AppAppearanceStore.shared.backgroundStyle, .slate4x4)
-        let updatedBackgroundMenu = try XCTUnwrap(settingsButton.menu?.children.last as? UIMenu)
-        let updatedBackgroundActions = updatedBackgroundMenu.children.compactMap { $0 as? UIAction }
-        XCTAssertEqual(
-            updatedBackgroundActions.filter { $0.state == .on }.map(\.title),
-            [AppBackgroundStyle.slate4x4.title]
+        XCTAssertEqual(viewModel.backgroundStyle, .slate4x4)
+
+        viewController.presentDebugMenu()
+        drainAnimations()
+        let sheet = try XCTUnwrap(
+            viewController.presentedViewController as? UIHostingController<DebugMenuView>
         )
+        XCTAssertEqual(sheet.modalPresentationStyle, .pageSheet)
+        XCTAssertEqual(sheet.overrideUserInterfaceStyle, .dark)
+        XCTAssertEqual(sheet.sheetPresentationController?.detents.count, 2)
+        XCTAssertEqual(sheet.sheetPresentationController?.selectedDetentIdentifier, .large)
+        XCTAssertEqual(sheet.rootView.viewModel.backgroundStyle, .slate4x4)
 #else
         XCTAssertNil(settingsButton.menu)
 #endif
@@ -81,17 +76,16 @@ final class HomeSettingsVisualStateTests: HomeScreenVisualStateTestCase {
         let settingsButton = try XCTUnwrap(
             viewController.view.descendant(withAccessibilityIdentifier: "homeSettingsButton") as? UIButton
         )
-        let localhostAction = try XCTUnwrap(settingsButton.menu?.children.dropFirst().first as? UIAction)
-
-        XCTAssertEqual(localhostAction.state, .off)
         XCTAssertFalse(UserDefaults.standard.bool(forKey: DebugBackendSettings.useLocalhostKey))
 
-        viewController.toggleDebugLocalhostBackend()
+        let viewModel = viewController.makeDebugMenuViewModel()
+        viewModel.toggleLocalhostBackend()
 
         XCTAssertTrue(UserDefaults.standard.bool(forKey: DebugBackendSettings.useLocalhostKey))
         XCTAssertFalse(UserDefaults.standard.bool(forKey: DebugBackendSettings.useLocalContentOnlyKey))
-        let updatedAction = try XCTUnwrap(settingsButton.menu?.children.dropFirst().first as? UIAction)
-        XCTAssertEqual(updatedAction.state, .on)
+        XCTAssertTrue(viewModel.usesLocalhostBackend)
+        XCTAssertFalse(viewModel.usesLocalContentOnly)
+        XCTAssertNil(settingsButton.menu)
 #endif
     }
 
@@ -105,14 +99,14 @@ final class HomeSettingsVisualStateTests: HomeScreenVisualStateTestCase {
             viewController.view.descendant(withAccessibilityIdentifier: "homeSettingsButton") as? UIButton
         )
 
-        viewController.toggleDebugLocalContentOnly()
+        let viewModel = viewController.makeDebugMenuViewModel()
+        viewModel.toggleLocalContentOnly()
 
         XCTAssertTrue(UserDefaults.standard.bool(forKey: DebugBackendSettings.useLocalContentOnlyKey))
         XCTAssertFalse(UserDefaults.standard.bool(forKey: DebugBackendSettings.useLocalhostKey))
-        let localhostAction = try XCTUnwrap(settingsButton.menu?.children.dropFirst().first as? UIAction)
-        let localContentOnlyAction = try XCTUnwrap(settingsButton.menu?.children.dropFirst(2).first as? UIAction)
-        XCTAssertEqual(localhostAction.state, .off)
-        XCTAssertEqual(localContentOnlyAction.state, .on)
+        XCTAssertFalse(viewModel.usesLocalhostBackend)
+        XCTAssertTrue(viewModel.usesLocalContentOnly)
+        XCTAssertNil(settingsButton.menu)
 #endif
     }
 
@@ -132,10 +126,8 @@ final class HomeSettingsVisualStateTests: HomeScreenVisualStateTestCase {
         viewController.toggleDebugDirectAI(prepareAPIKey: { true })
 
         XCTAssertTrue(UserDefaults.standard.bool(forKey: DebugAIRuntimeSettings.useDirectAIKey))
-        let directAIAction = try XCTUnwrap(
-            settingsButton.menu?.children.dropFirst(3).first as? UIAction
-        )
-        XCTAssertEqual(directAIAction.state, .on)
+        XCTAssertTrue(viewController.makeDebugMenuViewModel().usesDirectAI)
+        XCTAssertNil(settingsButton.menu)
 #endif
     }
 
@@ -154,10 +146,8 @@ final class HomeSettingsVisualStateTests: HomeScreenVisualStateTestCase {
         viewController.toggleDebugDirectAI(prepareAPIKey: { false })
 
         XCTAssertFalse(UserDefaults.standard.bool(forKey: DebugAIRuntimeSettings.useDirectAIKey))
-        let directAIAction = try XCTUnwrap(
-            settingsButton.menu?.children.dropFirst(3).first as? UIAction
-        )
-        XCTAssertEqual(directAIAction.state, .off)
+        XCTAssertFalse(viewController.makeDebugMenuViewModel().usesDirectAI)
+        XCTAssertNil(settingsButton.menu)
 #endif
     }
 
@@ -177,23 +167,23 @@ final class HomeSettingsVisualStateTests: HomeScreenVisualStateTestCase {
         let screenStackView = try XCTUnwrap(
             viewController.view.descendant(withAccessibilityIdentifier: "homeScreenStackView")
         )
-        XCTAssertNotNil(settingsButton.menu?.children.first as? UIAction)
+        let viewModel = viewController.makeDebugMenuViewModel()
 
-        viewController.toggleDebugInterfaceVisibility()
+        viewModel.toggleInterfaceVisibility()
 
         XCTAssertTrue(headerStackView.isHidden)
         XCTAssertTrue(screenStackView.isHidden)
+        XCTAssertTrue(viewModel.isInterfaceHidden)
         XCTAssertFalse(settingsButton.isHidden)
         XCTAssertTrue(settingsButton.isEnabled)
         settingsButton.sendActions(for: .touchUpInside)
         XCTAssertEqual(router.showSettingsCallCount, 1)
 
-        let showAction = try XCTUnwrap(settingsButton.menu?.children.first as? UIAction)
-        XCTAssertEqual(showAction.title, "Show UI")
-        viewController.toggleDebugInterfaceVisibility()
+        viewModel.toggleInterfaceVisibility()
 
         XCTAssertFalse(headerStackView.isHidden)
         XCTAssertFalse(screenStackView.isHidden)
+        XCTAssertFalse(viewModel.isInterfaceHidden)
 #endif
     }
 
@@ -209,7 +199,8 @@ final class HomeSettingsVisualStateTests: HomeScreenVisualStateTestCase {
         let settingsButton = try XCTUnwrap(
             viewController.view.descendant(withAccessibilityIdentifier: "homeSettingsButton") as? UIButton
         )
-        XCTAssertTrue(settingsButton.menu?.children.compactMap { $0 as? UIMenu }.isEmpty == true)
+        XCTAssertNil(settingsButton.menu)
+        XCTAssertFalse(viewController.makeDebugMenuViewModel().showsBackgroundStyles)
 #endif
     }
 

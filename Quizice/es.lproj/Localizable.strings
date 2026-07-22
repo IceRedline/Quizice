@@ -99,6 +99,14 @@
 "result.play_again" = "Jugar de nuevo";
 "result.to_themes" = "Elegir tema";
 "result.text_format" = "Tu resultado:\n %d/%d";
+"debug_menu.title" = "Menú de depuración";
+"debug_menu.section.interface" = "Interfaz";
+"debug_menu.section.backend" = "Backend y contenido";
+"debug_menu.section.tools" = "Herramientas";
+"debug_menu.hide_interface" = "Ocultar la interfaz";
+"debug_menu.hide_interface.subtitle" = "El botón de ajustes seguirá disponible";
+"debug_menu.pulse" = "Pulse";
+"debug_menu.pulse.subtitle" = "Inspeccionar solicitudes y respuestas de URLSession";
 "settings.alert.action" = "Entendido";
 "settings.close" = "Cerrar";
 "settings.done" = "Listo";
