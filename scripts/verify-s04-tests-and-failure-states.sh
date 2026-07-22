@@ -643,7 +643,11 @@ check_project_and_test_wiring() {
   local xcodebuild_list_log
   xcodebuild_list_log="$(mktemp -t quizice-s04-xcodebuild-list.XXXXXX.log)"
   remember_temp_file "$xcodebuild_list_log"
-  xcodebuild -list -project "$PROJECT" | tee "$xcodebuild_list_log"
+  xcodebuild \
+    -skipPackagePluginValidation \
+    -skipMacroValidation \
+    -list \
+    -project "$PROJECT" | tee "$xcodebuild_list_log"
 
   require_fixed_string "$PROJECT_FILE" 'QuiziceTests' 'QuiziceTests target must be present in the Xcode project'
   require_fixed_string "$PROJECT_FILE" 'productType = "com.apple.product-type.bundle.unit-test";' 'QuiziceTests must remain an XCTest unit-test bundle'
@@ -757,6 +761,8 @@ run_app_build() {
   log_section "App build"
   xcodebuild \
     -quiet \
+    -skipPackagePluginValidation \
+    -skipMacroValidation \
     -project "$PROJECT" \
     -scheme "$SCHEME" \
     -configuration "$CONFIGURATION" \
@@ -823,6 +829,8 @@ run_unit_tests() {
   local result_bundle="$result_directory/QuiziceTests.xcresult"
 
   if ! xcodebuild \
+    -skipPackagePluginValidation \
+    -skipMacroValidation \
     -project "$PROJECT" \
     -scheme "$SCHEME" \
     -configuration "$CONFIGURATION" \
