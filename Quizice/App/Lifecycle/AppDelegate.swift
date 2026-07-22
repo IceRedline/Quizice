@@ -1,5 +1,9 @@
 import UIKit
 import SwiftData
+#if DEBUG
+import Pulse
+import PulseProxy
+#endif
 
 @main
 class AppDelegate: UIResponder, UIApplicationDelegate {
@@ -7,6 +11,29 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     var modelContainer: ModelContainer?
     
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
+#if DEBUG
+        NetworkLogger.shared = NetworkLogger {
+            $0.sensitiveHeaders = [
+                "Authorization",
+                "Cookie",
+                "Set-Cookie",
+                "X-API-Key",
+                "X-Yandex-API-Key"
+            ]
+            $0.sensitiveQueryItems = ["api_key", "access_token", "token"]
+            $0.sensitiveDataFields = [
+                "accessToken",
+                "access_token",
+                "apiKey",
+                "api_key",
+                "publicKeyUrl",
+                "salt",
+                "signature",
+                "token"
+            ]
+        }
+        NetworkLogger.enableProxy()
+#endif
         AppMetricaAnalyticsTracker.shared.activate()
         modelContainer = makeModelContainer()
         let themeRepository = ThemeCatalogRepository.shared

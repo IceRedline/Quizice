@@ -1,4 +1,7 @@
 import UIKit
+#if DEBUG
+import SwiftUI
+#endif
 
 extension QuizViewController {
     func setBackgroundAccessibilityHidden(_ isHidden: Bool) {
@@ -216,76 +219,53 @@ extension QuizViewController {
         )
     }
 
-    func updateSettingsDebugMenu(appearance: AppAppearance) {
-        guard let settingsButton else { return }
+    @objc func settingsButtonLongPressed(_ recognizer: UILongPressGestureRecognizer) {
+        guard recognizer.state == .began else { return }
+        presentDebugMenu()
+    }
 
-        let interfaceAction = UIAction(
-            title: isDebugInterfaceHidden ? "Show UI" : "Hide UI",
-            image: UIImage(
-                systemName: isDebugInterfaceHidden
-                    ? Content.showInterfaceIconName
-                    : Content.hideInterfaceIconName
-            )
-        ) { [weak self] _ in
-            self?.toggleDebugInterfaceVisibility()
+    func presentDebugMenu() {
+        guard !isQuizLaunchPending, presentedViewController == nil else { return }
+
+        let feedback = UIImpactFeedbackGenerator(style: .medium)
+        feedback.prepare()
+        feedback.impactOccurred()
+
+        let controller = UIHostingController(
+            rootView: DebugMenuView(viewModel: makeDebugMenuViewModel())
+        )
+        controller.view.accessibilityIdentifier = DebugMenuView.AccessibilityID.root
+        controller.overrideUserInterfaceStyle = .dark
+        controller.modalPresentationStyle = .pageSheet
+        if let sheet = controller.sheetPresentationController {
+            sheet.detents = [.medium(), .large()]
+            sheet.selectedDetentIdentifier = .large
+            sheet.prefersGrabberVisible = true
+            sheet.preferredCornerRadius = 28
         }
+        present(controller, animated: true)
+    }
 
-        let defaults = UserDefaults.standard
-        let usesLocalhostBackend = defaults.bool(forKey: DebugBackendSettings.useLocalhostKey)
-        let localhostAction = UIAction(
-            title: L10n.Settings.localhostBackend,
-            subtitle: L10n.Settings.localhostBackendSubtitle,
-            image: UIImage(systemName: "server.rack"),
-            state: usesLocalhostBackend ? .on : .off
-        ) { [weak self] _ in
-            self?.toggleDebugLocalhostBackend()
-        }
-
-        let usesLocalContentOnly = defaults.bool(forKey: DebugBackendSettings.useLocalContentOnlyKey)
-        let localContentOnlyAction = UIAction(
-            title: L10n.Settings.localContentOnly,
-            subtitle: L10n.Settings.localContentOnlySubtitle,
-            image: UIImage(systemName: "externaldrive.fill"),
-            state: usesLocalContentOnly ? .on : .off
-        ) { [weak self] _ in
-            self?.toggleDebugLocalContentOnly()
-        }
-
-        let usesDirectAI = defaults.bool(forKey: DebugAIRuntimeSettings.useDirectAIKey)
-        let directAIAction = UIAction(
-            title: L10n.Settings.directAI,
-            subtitle: L10n.Settings.directAISubtitle,
-            image: UIImage(systemName: "key.fill"),
-            state: usesDirectAI ? .on : .off
-        ) { [weak self] _ in
-            self?.toggleDebugDirectAI()
-        }
-
-        var menuElements: [UIMenuElement] = [
-            interfaceAction,
-            localhostAction,
-            localContentOnlyAction,
-            directAIAction
-        ]
-        if appearance.designStyle == .classic {
-            let backgroundMenu = UIMenu(
-                title: L10n.Home.backgroundStyleSwitcher,
-                image: UIImage(systemName: Content.backgroundStyleIconName),
-                options: .displayInline,
-                children: AppBackgroundStyle.allCases.map { [weak self] style in
-                    UIAction(
-                        title: style.title,
-                        image: UIImage(systemName: style.systemImageName),
-                        state: style == appearance.backgroundStyle ? .on : .off
-                    ) { _ in
-                        self?.selectBackgroundStyle(style)
-                    }
-                }
-            )
-            menuElements.append(backgroundMenu)
-        }
-
-        settingsButton.menu = UIMenu(children: menuElements)
+    func makeDebugMenuViewModel() -> DebugMenuViewModel {
+        DebugMenuViewModel(
+            isInterfaceHidden: isDebugInterfaceHidden,
+            appearance: currentAppearance(),
+            toggleInterfaceVisibility: { [weak self] in
+                self?.toggleDebugInterfaceVisibility()
+            },
+            toggleLocalhostBackend: { [weak self] in
+                self?.toggleDebugLocalhostBackend()
+            },
+            toggleLocalContentOnly: { [weak self] in
+                self?.toggleDebugLocalContentOnly()
+            },
+            toggleDirectAI: { [weak self] in
+                self?.toggleDebugDirectAI()
+            },
+            selectBackgroundStyle: { [weak self] style in
+                self?.selectBackgroundStyle(style)
+            }
+        )
     }
 
     func selectBackgroundStyle(_ style: AppBackgroundStyle) {
@@ -309,7 +289,6 @@ extension QuizViewController {
         let feedback = UISelectionFeedbackGenerator()
         feedback.prepare()
         feedback.selectionChanged()
-        updateSettingsDebugMenu(appearance: currentAppearance())
         presentDebugBackendRestartAlert(selection: L10n.Settings.localhostBackend)
     }
 
@@ -324,7 +303,6 @@ extension QuizViewController {
         let feedback = UISelectionFeedbackGenerator()
         feedback.prepare()
         feedback.selectionChanged()
-        updateSettingsDebugMenu(appearance: currentAppearance())
         presentDebugBackendRestartAlert(selection: L10n.Settings.localContentOnly)
     }
 
@@ -342,34 +320,42 @@ extension QuizViewController {
         let feedback = UISelectionFeedbackGenerator()
         feedback.prepare()
         feedback.selectionChanged()
-        updateSettingsDebugMenu(appearance: currentAppearance())
         presentDebugBackendRestartAlert(selection: L10n.Settings.directAI)
     }
 
     private func presentDebugDirectAIMissingKeyAlert() {
         DispatchQueue.main.async { [weak self] in
-            guard let self, self.presentedViewController == nil else { return }
+            guard let self, let presenter = self.debugAlertPresenter() else { return }
             let alert = UIAlertController(
                 title: L10n.AITheme.Error.Configuration.title,
                 message: L10n.AITheme.Error.Configuration.message,
                 preferredStyle: .alert
             )
             alert.addAction(UIAlertAction(title: L10n.Settings.alertAction, style: .default))
-            self.present(alert, animated: true)
+            presenter.present(alert, animated: true)
         }
     }
 
     private func presentDebugBackendRestartAlert(selection: String) {
         DispatchQueue.main.async { [weak self] in
-            guard let self, self.presentedViewController == nil else { return }
+            guard let self, let presenter = self.debugAlertPresenter() else { return }
             let alert = UIAlertController(
                 title: L10n.Settings.restartRequiredTitle,
                 message: L10n.Settings.restartRequiredMessage(selection: selection),
                 preferredStyle: .alert
             )
             alert.addAction(UIAlertAction(title: L10n.Settings.alertAction, style: .default))
-            self.present(alert, animated: true)
+            presenter.present(alert, animated: true)
         }
+    }
+
+    private func debugAlertPresenter() -> UIViewController? {
+        var presenter: UIViewController = self
+        while let presented = presenter.presentedViewController {
+            presenter = presented
+        }
+        guard !(presenter is UIAlertController) else { return nil }
+        return presenter
     }
 #endif
 
@@ -384,7 +370,6 @@ extension QuizViewController {
 
         headerStackView.isHidden = isDebugInterfaceHidden
         screenStackView.isHidden = isDebugInterfaceHidden
-        updateSettingsDebugMenu(appearance: currentAppearance())
     }
 #endif
 

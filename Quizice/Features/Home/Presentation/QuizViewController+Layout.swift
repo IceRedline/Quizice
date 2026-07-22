@@ -94,8 +94,12 @@ extension QuizViewController {
         settingsButton.translatesAutoresizingMaskIntoConstraints = false
         settingsButton.addTarget(self, action: #selector(settingsButtonTapped), for: .touchUpInside)
 #if DEBUG
-        settingsButton.showsMenuAsPrimaryAction = false
-        settingsButton.changesSelectionAsPrimaryAction = false
+        let debugMenuGesture = UILongPressGestureRecognizer(
+            target: self,
+            action: #selector(settingsButtonLongPressed(_:))
+        )
+        debugMenuGesture.minimumPressDuration = 0.5
+        settingsButton.addGestureRecognizer(debugMenuGesture)
 #endif
         settingsButton.installPressFeedback()
     }
