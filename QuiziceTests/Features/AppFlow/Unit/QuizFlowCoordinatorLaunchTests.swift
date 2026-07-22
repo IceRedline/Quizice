@@ -145,6 +145,55 @@ final class QuizFlowCoordinatorLaunchTests: QuizFlowCoordinatorTestCase {
         XCTAssertFalse(rootViewController.view.accessibilityElementsHidden)
     }
 
+    func testLaunchOverlayWaitsForCatalogPreparationBeforeRevealingContent() async throws {
+        let windowScene = try XCTUnwrap(
+            UIApplication.shared.connectedScenes.compactMap { $0 as? UIWindowScene }.first
+        )
+        let window = UIWindow(windowScene: windowScene)
+        window.rootViewController = UIViewController()
+        window.isHidden = false
+        let presenter = LaunchOverlayPresenter()
+        let preparationStarted = expectation(description: "Catalog preparation starts")
+        var preparationContinuation: CheckedContinuation<Void, Never>?
+        defer {
+            preparationContinuation?.resume()
+            presenter.dismiss(animated: false)
+            window.isHidden = true
+            window.rootViewController = nil
+        }
+
+        presenter.present(
+            in: window,
+            appearance: makeLaunchAppearance(designStyle: .classic),
+            holdDuration: 0,
+            motion: FakeLaunchMotion(logoZoomScale: 42, logoZoomDuration: 0.01),
+            preparation: {
+                preparationStarted.fulfill()
+                await withCheckedContinuation { continuation in
+                    preparationContinuation = continuation
+                }
+            }
+        )
+
+        let overlayWindow = try XCTUnwrap(
+            windowScene.windows.first {
+                $0.accessibilityIdentifier == LaunchOverlayPresenter.accessibilityIdentifier
+            }
+        )
+        await fulfillment(of: [preparationStarted], timeout: 1)
+        try await Task.sleep(nanoseconds: 100_000_000)
+        XCTAssertFalse(overlayWindow.isHidden)
+        XCTAssertNotNil(overlayWindow.rootViewController)
+
+        preparationContinuation?.resume()
+        preparationContinuation = nil
+        let dismissalExpectation = XCTNSPredicateExpectation(
+            predicate: NSPredicate { _, _ in overlayWindow.isHidden },
+            object: nil
+        )
+        await fulfillment(of: [dismissalExpectation], timeout: 2)
+    }
+
     func testFakeLaunchUsesCrossfadeCompletionWhenAnimationsAreDisabled() async throws {
         let windowScene = try XCTUnwrap(
             UIApplication.shared.connectedScenes.compactMap { $0 as? UIWindowScene }.first

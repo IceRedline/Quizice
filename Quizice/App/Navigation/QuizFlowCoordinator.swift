@@ -95,6 +95,7 @@ final class QuizFlowCoordinator: NSObject, QuizRouting, UIViewControllerTransiti
     }
 
     func start() {
+        themeRepository.loadData(forceReload: false)
         let viewController = QuizViewController(
             themeRepository: themeRepository,
             session: session,
@@ -108,6 +109,15 @@ final class QuizFlowCoordinator: NSObject, QuizRouting, UIViewControllerTransiti
         navigationController.setNavigationBarHidden(true, animated: false)
         navigationController.setViewControllers([viewController], animated: false)
         window.rootViewController = navigationController
+    }
+
+    @MainActor
+    func prepareInitialCatalog() async {
+        let locale = AppLocalizationStore.shared.resolvedLanguageCode
+        let didRefresh = await themeRepository.refreshBackendCatalog(locale: locale)
+        guard !Task.isCancelled else { return }
+        (navigationController.viewControllers.first as? QuizViewController)?
+            .applyBackendCatalogRefresh(didRefresh: didRefresh, locale: locale)
     }
 
     func showQuestion() {
@@ -167,6 +177,8 @@ final class QuizFlowCoordinator: NSObject, QuizRouting, UIViewControllerTransiti
         )
         let onboardingView = QuizOnboardingView(
             appearance: appearance,
+            themes: onboardingThemes,
+            catalogOrigin: themeRepository.catalogOrigin,
             preferredThemeIDs: onboardingProgressStore.preferredThemeIDs,
             onComplete: { [weak self] preferredThemeIDs in
                 self?.completeOnboarding(preferredThemeIDs: preferredThemeIDs)
@@ -179,6 +191,12 @@ final class QuizFlowCoordinator: NSObject, QuizRouting, UIViewControllerTransiti
         activeOnboardingViewController = viewController
         analytics.track(.screenView(screen: .onboarding))
         presentedViewController.present(viewController, animated: animated)
+    }
+
+    private var onboardingThemes: [OnboardingTheme] {
+        (themeRepository.themes ?? themeRepository.fetchQuizThemes()).map {
+            OnboardingTheme(id: $0.stableID, title: $0.theme)
+        }
     }
 
     func completeOnboarding(preferredThemeIDs: Set<String>) {

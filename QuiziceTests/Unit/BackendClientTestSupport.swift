@@ -107,9 +107,14 @@ struct SlowBackendContentAPI: BackendContentAPI {
 final class RecordingBackendContentAPI: BackendContentAPI {
     private(set) var seeds: [String] = []
     private(set) var randomSelectionModes: [CrossThemeQuestionSelectionMode] = []
+    private let catalogThemes: [BackendThemeDTO]
+
+    init(catalogThemes: [BackendThemeDTO] = []) {
+        self.catalogThemes = catalogThemes
+    }
 
     func fetchThemes(locale: String) async throws -> BackendThemeCatalogResponse {
-        BackendThemeCatalogResponse(locale: locale, themes: [])
+        BackendThemeCatalogResponse(locale: locale, themes: catalogThemes)
     }
 
     func fetchQuestions(

@@ -112,15 +112,9 @@ private struct WelcomeArtwork: View {
                 .frame(width: 160, height: 160)
                 .overlay {
                     VStack(spacing: 8) {
-                        ZStack {
-                            Image(systemName: "snowflake")
-                                .font(.system(size: 66, weight: .light))
-                                .foregroundStyle(Color(uiColor: appearance.accentColor).opacity(0.22))
-
-                            Image(systemName: "questionmark")
-                                .font(.system(size: 44, weight: .black, design: .rounded))
-                                .foregroundStyle(Color(uiColor: appearance.screenTextColor))
-                        }
+                        Image(systemName: "questionmark")
+                            .font(.system(size: 44, weight: .black, design: .rounded))
+                            .foregroundStyle(Color(uiColor: appearance.screenTextColor))
 
                         Text("QUIZICE")
                             .font(appearance.typography.swiftUIFont(size: 13, weight: .bold))
@@ -157,6 +151,8 @@ private struct WelcomeArtwork: View {
 }
 
 struct OnboardingTopicsPage: View {
+    let themes: [OnboardingTheme]
+    let catalogOrigin: QuizCatalogOrigin
     @Binding var selectedThemeIDs: Set<String>
     let isActive: Bool
 
@@ -181,14 +177,21 @@ struct OnboardingTopicsPage: View {
                         .multilineTextAlignment(.center)
                         .lineSpacing(2)
                         .fixedSize(horizontal: false, vertical: true)
+
+#if DEBUG
+                    if DebugBackendSettings.shouldShowSourceIndicators {
+                        OnboardingCatalogSourceBadge(origin: catalogOrigin)
+                    }
+#endif
                 }
                 .padding(.horizontal, 24)
 
                 FallingTopicsStage(
+                    themes: themes,
                     selectedThemeIDs: $selectedThemeIDs,
                     isActive: isActive
                 )
-                .frame(height: 330)
+                .frame(height: 350)
                 .padding(.horizontal, 10)
 
                 Label(L10n.Onboarding.topicsSelectionHint, systemImage: "hand.tap.fill")
@@ -206,202 +209,37 @@ struct OnboardingTopicsPage: View {
     }
 }
 
-private struct FallingTopicDescriptor: Identifiable {
-    let id: String
-    let themeID: String?
-    let x: CGFloat
-    let y: CGFloat
-    let width: CGFloat
-    let height: CGFloat
-    let rotation: Double
-    let delay: Double
-    let zIndex: Double
-
-    static let all: [FallingTopicDescriptor] = [
-        .init(id: "ghost-1", themeID: nil, x: 0.18, y: 0.13, width: 104, height: 46, rotation: -11, delay: 0.00, zIndex: 0),
-        .init(id: "ghost-2", themeID: nil, x: 0.76, y: 0.12, width: 128, height: 50, rotation: 8, delay: 0.05, zIndex: 0),
-        .init(id: "music", themeID: "music", x: 0.34, y: 0.27, width: 156, height: 68, rotation: -7, delay: 0.10, zIndex: 4),
-        .init(id: "ghost-3", themeID: nil, x: 0.82, y: 0.32, width: 92, height: 44, rotation: 14, delay: 0.16, zIndex: 1),
-        .init(id: "technology", themeID: "technology", x: 0.68, y: 0.43, width: 168, height: 68, rotation: 6, delay: 0.22, zIndex: 5),
-        .init(id: "ghost-4", themeID: nil, x: 0.24, y: 0.48, width: 112, height: 48, rotation: -16, delay: 0.28, zIndex: 1),
-        .init(id: "ghost-5", themeID: nil, x: 0.53, y: 0.59, width: 132, height: 52, rotation: 2, delay: 0.34, zIndex: 2),
-        .init(id: "history", themeID: "history_culture", x: 0.31, y: 0.68, width: 174, height: 68, rotation: -5, delay: 0.40, zIndex: 6),
-        .init(id: "ghost-6", themeID: nil, x: 0.83, y: 0.68, width: 98, height: 44, rotation: 11, delay: 0.46, zIndex: 2),
-        .init(id: "politics", themeID: "politics_business", x: 0.67, y: 0.83, width: 178, height: 68, rotation: 5, delay: 0.52, zIndex: 7),
-        .init(id: "ghost-7", themeID: nil, x: 0.22, y: 0.90, width: 108, height: 46, rotation: -8, delay: 0.58, zIndex: 3),
-        .init(id: "ghost-8", themeID: nil, x: 0.88, y: 0.94, width: 86, height: 42, rotation: 13, delay: 0.64, zIndex: 3)
-    ]
-}
-
-private struct FallingTopicsStage: View {
-    @Binding var selectedThemeIDs: Set<String>
-    let isActive: Bool
-
-    @Environment(\.accessibilityReduceMotion) private var reduceMotion
-    @State private var hasLanded = false
-    @State private var landingTask: Task<Void, Never>?
+#if DEBUG
+private struct OnboardingCatalogSourceBadge: View {
+    let origin: QuizCatalogOrigin
 
     var body: some View {
-        GeometryReader { geometry in
-            ZStack {
-                ForEach(FallingTopicDescriptor.all) { descriptor in
-                    fallingCard(descriptor, in: geometry.size)
-                        .zIndex(descriptor.zIndex)
-                }
-            }
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .clipped()
-        }
-        .onAppear(perform: restartAnimation)
-        .onChange(of: isActive) { _, _ in restartAnimation() }
-        .onDisappear {
-            landingTask?.cancel()
-            landingTask = nil
+        Text(title)
+            .font(.system(size: 11, weight: .semibold, design: .monospaced))
+            .foregroundStyle(.white)
+            .padding(.horizontal, 7)
+            .padding(.vertical, 4)
+            .background(Color(uiColor: backgroundColor))
+            .clipShape(RoundedRectangle(cornerRadius: 9, style: .continuous))
+            .accessibilityLabel(title)
+            .accessibilityIdentifier("onboardingBackendCatalogSource")
+    }
+
+    private var title: String {
+        switch origin {
+        case .backend: "CATALOG: BACKEND"
+        case .bundled: "CATALOG: LOCAL"
         }
     }
 
-    @ViewBuilder
-    private func fallingCard(_ descriptor: FallingTopicDescriptor, in size: CGSize) -> some View {
-        let isSettled = hasLanded || reduceMotion || !UIView.areAnimationsEnabled
-        let card = Group {
-            if let themeID = descriptor.themeID {
-                FallingThemeCard(
-                    themeID: themeID,
-                    isSelected: selectedThemeIDs.contains(themeID),
-                    action: { toggle(themeID) }
-                )
-            } else {
-                FallingPlaceholderCard()
-            }
-        }
-        .frame(width: min(descriptor.width, size.width * 0.52), height: descriptor.height)
-
-        card
-            .position(x: size.width * descriptor.x, y: size.height * descriptor.y)
-            .offset(y: isSettled ? 0 : -(size.height * descriptor.y + descriptor.height + 90))
-            .rotationEffect(.degrees(isSettled ? descriptor.rotation : descriptor.rotation * 1.8))
-            .opacity(isSettled ? 1 : descriptor.themeID == nil ? 0.12 : 0.24)
-            .animation(landingAnimation(delay: descriptor.delay), value: hasLanded)
-    }
-
-    private func restartAnimation() {
-        landingTask?.cancel()
-        landingTask = nil
-
-        var resetTransaction = Transaction()
-        resetTransaction.disablesAnimations = true
-        withTransaction(resetTransaction) {
-            hasLanded = reduceMotion || !UIView.areAnimationsEnabled ? isActive : false
-        }
-
-        guard isActive, !reduceMotion, UIView.areAnimationsEnabled else { return }
-        landingTask = Task { @MainActor in
-            await Task.yield()
-            guard !Task.isCancelled else { return }
-            hasLanded = true
-        }
-    }
-
-    private func landingAnimation(delay: Double) -> Animation? {
-        guard !reduceMotion, UIView.areAnimationsEnabled else {
-            return .easeOut(duration: 0.16)
-        }
-        return .spring(response: 0.58, dampingFraction: 0.80, blendDuration: 0.08)
-            .delay(delay)
-    }
-
-    private func toggle(_ themeID: String) {
-        if selectedThemeIDs.contains(themeID) {
-            selectedThemeIDs.remove(themeID)
-        } else {
-            selectedThemeIDs.insert(themeID)
-        }
-        UISelectionFeedbackGenerator().selectionChanged()
-    }
-}
-
-private struct FallingThemeCard: View {
-    let themeID: String
-    let isSelected: Bool
-    let action: () -> Void
-
-    @Environment(\.appAppearance) private var appearance
-
-    var body: some View {
-        let tintColor = ThemeVisualCatalog.tintColor(for: themeID)
-        let textColor = appearance.themeCardTextColor(baseColor: tintColor)
-
-        Button(action: action) {
-            HStack(spacing: 10) {
-                Image(uiImage: themeImage)
-                    .renderingMode(.template)
-                    .resizable()
-                    .scaledToFit()
-                    .foregroundStyle(Color(uiColor: textColor))
-                    .frame(width: 25, height: 25)
-
-                Text(themeTitle)
-                    .font(appearance.typography.swiftUIFont(size: 15, weight: .semibold))
-                    .foregroundStyle(Color(uiColor: textColor))
-                    .lineLimit(2)
-                    .minimumScaleFactor(0.76)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-
-                Image(systemName: isSelected ? "checkmark.circle.fill" : "circle")
-                    .font(.system(size: 19, weight: .semibold))
-                    .foregroundStyle(Color(uiColor: textColor).opacity(isSelected ? 1 : 0.50))
-            }
-            .padding(.horizontal, 13)
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .background(
-                Color(uiColor: appearance.themeCardBackground(baseColor: tintColor)),
-                in: RoundedRectangle(cornerRadius: 22, style: .continuous)
-            )
-            .overlay {
-                RoundedRectangle(cornerRadius: 22, style: .continuous)
-                    .stroke(
-                        Color(uiColor: appearance.themeCardBorder(baseColor: tintColor)),
-                        lineWidth: isSelected ? 2.4 : max(appearance.themeCardBorderWidth, 1)
-                    )
-            }
-            .onboardingShadow(appearance.themeCardShadow)
-        }
-        .buttonStyle(QuizPressButtonStyle())
-        .accessibilityLabel(themeTitle)
-        .accessibilityValue(isSelected ? L10n.Onboarding.topicsSelected : "")
-        .accessibilityHint(L10n.Onboarding.topicsSelectionHint)
-        .accessibilityIdentifier("onboardingTopic-\(themeID)")
-    }
-
-    private var themeImage: UIImage {
-        ThemeVisualCatalog.logoImage(for: themeID, designStyle: appearance.designStyle)
-            ?? UIImage(systemName: "questionmark.square.dashed")!
-    }
-
-    private var themeTitle: String {
-        switch themeID {
-        case "music": return L10n.Onboarding.topicMusic
-        case "technology": return L10n.Onboarding.topicTechnology
-        case "history_culture": return L10n.Onboarding.topicHistoryCulture
-        case "politics_business": return L10n.Onboarding.topicPoliticsBusiness
-        default: return themeID
+    private var backgroundColor: UIColor {
+        switch origin {
+        case .backend: .systemGreen
+        case .bundled: .systemOrange
         }
     }
 }
-
-private struct FallingPlaceholderCard: View {
-    @Environment(\.appAppearance) private var appearance
-
-    var body: some View {
-        RoundedRectangle(cornerRadius: 18, style: .continuous)
-            .fill(Color(uiColor: appearance.card.backgroundColor).opacity(0.34))
-            .overlay {
-                RoundedRectangle(cornerRadius: 18, style: .continuous)
-                    .stroke(Color(uiColor: appearance.screenTextColor).opacity(0.13), lineWidth: 1)
-            }
-            .accessibilityHidden(true)
-    }
-}
+#endif
 
 struct OnboardingTutorialPage: View {
     let isActive: Bool

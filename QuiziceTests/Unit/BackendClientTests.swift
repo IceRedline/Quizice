@@ -155,6 +155,37 @@ final class BackendClientTests: XCTestCase {
         XCTAssertEqual(repository.themes?.first?.theme, "Remote Music")
     }
 
+    func testBackendCatalogPublishesNewThemesAndPreparesTheirQuestionsRemotely() async throws {
+        let backend = RecordingBackendContentAPI(
+            catalogThemes: [
+                BackendThemeDTO(id: "music", name: "Remote Music", description: "Known theme"),
+                BackendThemeDTO(id: "space", name: "Space", description: "Backend-only theme")
+            ]
+        )
+        let repository = ThemeCatalogRepository(backendContentAPI: backend)
+        repository.themes = [Self.localTheme(questionCount: 15)]
+        let locale = AppLocalizationStore.shared.resolvedLanguageCode
+
+        let didRefresh = await repository.refreshBackendCatalog(locale: locale)
+        let themes = try XCTUnwrap(repository.themes)
+
+        XCTAssertTrue(didRefresh)
+        XCTAssertEqual(themes.map(\.stableID), ["music", "space"])
+        XCTAssertEqual(themes[0].questions.count, 15)
+        XCTAssertTrue(themes[1].questions.isEmpty)
+        XCTAssertEqual(themes[1].questionOrigin, .backend)
+
+        let prepared = try await repository.prepareQuiz(
+            themeID: "space",
+            questionCount: 5,
+            locale: locale
+        )
+
+        XCTAssertEqual(prepared.stableID, "space")
+        XCTAssertEqual(prepared.questions.count, 5)
+        XCTAssertEqual(prepared.questionOrigin, .backend)
+    }
+
     func testBackendAIRejectsGuestBeforeCreatingNetworkRequest() async {
         let session = makeSession()
         let staleSession = AuthSession(

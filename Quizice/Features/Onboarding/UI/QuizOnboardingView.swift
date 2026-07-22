@@ -9,6 +9,11 @@ enum OnboardingPage: Int, CaseIterable, Identifiable {
     var id: Int { rawValue }
 }
 
+struct OnboardingTheme: Identifiable, Equatable {
+    let id: String
+    let title: String
+}
+
 struct QuizOnboardingView: View {
     private enum Layout {
         static let horizontalInset: CGFloat = 20
@@ -23,6 +28,8 @@ struct QuizOnboardingView: View {
     }
 
     let appearance: AppAppearance
+    let themes: [OnboardingTheme]
+    let catalogOrigin: QuizCatalogOrigin
     let onComplete: (Set<String>) -> Void
 
     @State private var selectedPage: OnboardingPage
@@ -31,14 +38,20 @@ struct QuizOnboardingView: View {
 
     init(
         appearance: AppAppearance,
+        themes: [OnboardingTheme] = [],
+        catalogOrigin: QuizCatalogOrigin = .bundled,
         initialPage: OnboardingPage = .welcome,
         preferredThemeIDs: Set<String> = [],
         onComplete: @escaping (Set<String>) -> Void
     ) {
         self.appearance = appearance
+        self.themes = themes
+        self.catalogOrigin = catalogOrigin
         self.onComplete = onComplete
         _selectedPage = State(initialValue: initialPage)
-        _selectedThemeIDs = State(initialValue: preferredThemeIDs)
+        _selectedThemeIDs = State(
+            initialValue: preferredThemeIDs.intersection(Set(themes.map(\.id)))
+        )
     }
 
     var body: some View {
@@ -54,6 +67,8 @@ struct QuizOnboardingView: View {
                         .tag(OnboardingPage.welcome)
 
                     OnboardingTopicsPage(
+                        themes: themes,
+                        catalogOrigin: catalogOrigin,
                         selectedThemeIDs: $selectedThemeIDs,
                         isActive: selectedPage == .topics
                     )
