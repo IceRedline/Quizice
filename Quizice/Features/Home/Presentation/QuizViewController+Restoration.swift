@@ -251,7 +251,22 @@ extension QuizViewController {
             self?.toggleDebugLocalContentOnly()
         }
 
-        var menuElements: [UIMenuElement] = [interfaceAction, localhostAction, localContentOnlyAction]
+        let usesDirectAI = defaults.bool(forKey: DebugAIRuntimeSettings.useDirectAIKey)
+        let directAIAction = UIAction(
+            title: L10n.Settings.directAI,
+            subtitle: L10n.Settings.directAISubtitle,
+            image: UIImage(systemName: "key.fill"),
+            state: usesDirectAI ? .on : .off
+        ) { [weak self] _ in
+            self?.toggleDebugDirectAI()
+        }
+
+        var menuElements: [UIMenuElement] = [
+            interfaceAction,
+            localhostAction,
+            localContentOnlyAction,
+            directAIAction
+        ]
         if appearance.designStyle == .classic {
             let backgroundMenu = UIMenu(
                 title: L10n.Home.backgroundStyleSwitcher,
@@ -311,6 +326,37 @@ extension QuizViewController {
         feedback.selectionChanged()
         updateSettingsDebugMenu(appearance: currentAppearance())
         presentDebugBackendRestartAlert(selection: L10n.Settings.localContentOnly)
+    }
+
+    func toggleDebugDirectAI(
+        prepareAPIKey: () -> Bool = { DebugYandexAIAPIKeyStore.resolveAPIKey() != nil }
+    ) {
+        let defaults = UserDefaults.standard
+        let usesDirectAI = !defaults.bool(forKey: DebugAIRuntimeSettings.useDirectAIKey)
+        guard !usesDirectAI || prepareAPIKey() else {
+            presentDebugDirectAIMissingKeyAlert()
+            return
+        }
+        defaults.set(usesDirectAI, forKey: DebugAIRuntimeSettings.useDirectAIKey)
+
+        let feedback = UISelectionFeedbackGenerator()
+        feedback.prepare()
+        feedback.selectionChanged()
+        updateSettingsDebugMenu(appearance: currentAppearance())
+        presentDebugBackendRestartAlert(selection: L10n.Settings.directAI)
+    }
+
+    private func presentDebugDirectAIMissingKeyAlert() {
+        DispatchQueue.main.async { [weak self] in
+            guard let self, self.presentedViewController == nil else { return }
+            let alert = UIAlertController(
+                title: L10n.AITheme.Error.Configuration.title,
+                message: L10n.AITheme.Error.Configuration.message,
+                preferredStyle: .alert
+            )
+            alert.addAction(UIAlertAction(title: L10n.Settings.alertAction, style: .default))
+            self.present(alert, animated: true)
+        }
     }
 
     private func presentDebugBackendRestartAlert(selection: String) {

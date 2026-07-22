@@ -139,6 +139,8 @@
 "settings.backend.localhost.subtitle" = "Simulatore: localhost:8000 · riavvio richiesto";
 "settings.backend.local_content_only" = "Solo contenuti locali";
 "settings.backend.local_content_only.subtitle" = "Senza backend: temi e domande dell’app · riavvio richiesto";
+"settings.ai.direct" = "IA diretta";
+"settings.ai.direct.subtitle" = "Usa la chiave API Debug del dispositivo invece del backend · riavvio richiesto";
 "statistics.accessibility_label" = "Statistiche generali";
 "statistics.best_result" = "Miglior risultato";
 "statistics.correct_answers" = "Risposte corrette";

@@ -214,6 +214,8 @@ enum L10n {
         static var localhostBackendSubtitle: String { L10n.localized("settings.backend.localhost.subtitle", comment: "Debug localhost backend toggle subtitle") }
         static var localContentOnly: String { L10n.localized("settings.backend.local_content_only", comment: "Debug local content only toggle title") }
         static var localContentOnlySubtitle: String { L10n.localized("settings.backend.local_content_only.subtitle", comment: "Debug local content only toggle subtitle") }
+        static var directAI: String { L10n.localized("settings.ai.direct", comment: "Debug direct AI toggle title") }
+        static var directAISubtitle: String { L10n.localized("settings.ai.direct.subtitle", comment: "Debug direct AI toggle subtitle") }
 #endif
 
         static func restartRequiredMessage(selection: String) -> String {

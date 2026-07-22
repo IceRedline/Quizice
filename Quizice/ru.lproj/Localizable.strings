@@ -139,6 +139,8 @@
 "settings.backend.localhost.subtitle" = "Симулятор: localhost:8000 · нужен перезапуск";
 "settings.backend.local_content_only" = "Только локальный контент";
 "settings.backend.local_content_only.subtitle" = "Без backend: темы и вопросы из приложения · нужен перезапуск";
+"settings.ai.direct" = "ИИ напрямую";
+"settings.ai.direct.subtitle" = "Debug API-ключ с устройства вместо backend · нужен перезапуск";
 "statistics.accessibility_label" = "Общая статистика";
 "statistics.best_result" = "Лучший результат";
 "statistics.correct_answers" = "Правильных ответов";

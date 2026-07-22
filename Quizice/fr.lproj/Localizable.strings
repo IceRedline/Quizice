@@ -139,6 +139,8 @@
 "settings.backend.localhost.subtitle" = "Simulateur : localhost:8000 · redémarrage requis";
 "settings.backend.local_content_only" = "Contenu local uniquement";
 "settings.backend.local_content_only.subtitle" = "Sans backend : thèmes et questions intégrés · redémarrage requis";
+"settings.ai.direct" = "IA directe";
+"settings.ai.direct.subtitle" = "Utiliser la clé API Debug de l’appareil au lieu du backend · redémarrage requis";
 "statistics.accessibility_label" = "Statistiques globales";
 "statistics.best_result" = "Meilleur résultat";
 "statistics.correct_answers" = "Bonnes réponses";

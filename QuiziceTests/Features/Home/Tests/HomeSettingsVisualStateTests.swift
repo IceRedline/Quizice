@@ -36,6 +36,7 @@ final class HomeSettingsVisualStateTests: HomeScreenVisualStateTestCase {
         let interfaceAction = try XCTUnwrap(menu.children.first as? UIAction)
         let localhostAction = try XCTUnwrap(menu.children.dropFirst().first as? UIAction)
         let localContentOnlyAction = try XCTUnwrap(menu.children.dropFirst(2).first as? UIAction)
+        let directAIAction = try XCTUnwrap(menu.children.dropFirst(3).first as? UIAction)
         let backgroundMenu = try XCTUnwrap(menu.children.last as? UIMenu)
         let backgroundActions = backgroundMenu.children.compactMap { $0 as? UIAction }
 
@@ -46,6 +47,9 @@ final class HomeSettingsVisualStateTests: HomeScreenVisualStateTestCase {
         XCTAssertEqual(localContentOnlyAction.title, L10n.Settings.localContentOnly)
         XCTAssertEqual(localContentOnlyAction.subtitle, L10n.Settings.localContentOnlySubtitle)
         XCTAssertEqual(localContentOnlyAction.state, .off)
+        XCTAssertEqual(directAIAction.title, L10n.Settings.directAI)
+        XCTAssertEqual(directAIAction.subtitle, L10n.Settings.directAISubtitle)
+        XCTAssertEqual(directAIAction.state, .off)
         XCTAssertEqual(backgroundMenu.title, L10n.Home.backgroundStyleSwitcher)
         XCTAssertEqual(backgroundActions.count, AppBackgroundStyle.allCases.count)
         XCTAssertEqual(backgroundActions.map(\.title), AppBackgroundStyle.allCases.map(\.title))
@@ -109,6 +113,51 @@ final class HomeSettingsVisualStateTests: HomeScreenVisualStateTestCase {
         let localContentOnlyAction = try XCTUnwrap(settingsButton.menu?.children.dropFirst(2).first as? UIAction)
         XCTAssertEqual(localhostAction.state, .off)
         XCTAssertEqual(localContentOnlyAction.state, .on)
+#endif
+    }
+
+    func testHomeSettingsDebugMenuTogglesDirectAI() throws {
+#if DEBUG
+        QuizFactory.shared.themes = [makeTheme(name: "Музыка")]
+        let viewController = makeHomeViewController(
+            in: CGRect(x: 0, y: 0, width: 390, height: 844)
+        )
+        let settingsButton = try XCTUnwrap(
+            viewController.view.descendant(
+                withAccessibilityIdentifier: "homeSettingsButton"
+            ) as? UIButton
+        )
+
+        XCTAssertFalse(UserDefaults.standard.bool(forKey: DebugAIRuntimeSettings.useDirectAIKey))
+        viewController.toggleDebugDirectAI(prepareAPIKey: { true })
+
+        XCTAssertTrue(UserDefaults.standard.bool(forKey: DebugAIRuntimeSettings.useDirectAIKey))
+        let directAIAction = try XCTUnwrap(
+            settingsButton.menu?.children.dropFirst(3).first as? UIAction
+        )
+        XCTAssertEqual(directAIAction.state, .on)
+#endif
+    }
+
+    func testHomeSettingsDebugMenuDoesNotEnableDirectAIWithoutAPIKey() throws {
+#if DEBUG
+        QuizFactory.shared.themes = [makeTheme(name: "Музыка")]
+        let viewController = makeHomeViewController(
+            in: CGRect(x: 0, y: 0, width: 390, height: 844)
+        )
+        let settingsButton = try XCTUnwrap(
+            viewController.view.descendant(
+                withAccessibilityIdentifier: "homeSettingsButton"
+            ) as? UIButton
+        )
+
+        viewController.toggleDebugDirectAI(prepareAPIKey: { false })
+
+        XCTAssertFalse(UserDefaults.standard.bool(forKey: DebugAIRuntimeSettings.useDirectAIKey))
+        let directAIAction = try XCTUnwrap(
+            settingsButton.menu?.children.dropFirst(3).first as? UIAction
+        )
+        XCTAssertEqual(directAIAction.state, .off)
 #endif
     }
 

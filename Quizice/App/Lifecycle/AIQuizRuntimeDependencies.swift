@@ -9,42 +9,48 @@ struct AIQuizRuntimeDependencies {
         backendAccessProvider: AIQuizAccessProviding = AIQuizAccessStore.shared,
         metrics: BackendRequestMetricRecording = AppMetricaAnalyticsTracker.shared
     ) -> AIQuizRuntimeDependencies {
-#if DEBUG && targetEnvironment(simulator)
-        resolve(
-            isDebugSimulator: true,
+#if DEBUG
+        DebugYandexAIAPIKeyStore.cacheEnvironmentAPIKeyIfPresent()
+#if targetEnvironment(simulator)
+        let isDebugSimulator = true
+#else
+        let isDebugSimulator = false
+#endif
+        return resolve(
+            usesDirectAI: isDebugSimulator || DebugAIRuntimeSettings.isDirectAIEnabled,
             backendConfiguration: backendConfiguration,
             backendAccessProvider: backendAccessProvider,
-            simulatorAPIKeyProvider: DebugYandexAIAPIKeyStore.resolveAPIKey,
-            simulatorUnauthorizedHandler: DebugYandexAIAPIKeyStore.removeRejectedAPIKey,
+            directAPIKeyProvider: DebugYandexAIAPIKeyStore.resolveAPIKey,
+            directUnauthorizedHandler: DebugYandexAIAPIKeyStore.removeRejectedAPIKey,
             metrics: metrics
         )
 #else
-        resolve(
-            isDebugSimulator: false,
+        return resolve(
+            usesDirectAI: false,
             backendConfiguration: backendConfiguration,
             backendAccessProvider: backendAccessProvider,
-            simulatorAPIKeyProvider: { nil },
-            simulatorUnauthorizedHandler: {},
+            directAPIKeyProvider: { nil },
+            directUnauthorizedHandler: {},
             metrics: metrics
         )
 #endif
     }
 
     static func resolve(
-        isDebugSimulator: Bool,
+        usesDirectAI: Bool,
         backendConfiguration: BackendConfiguration?,
         backendAccessProvider: AIQuizAccessProviding,
-        simulatorAPIKeyProvider: () -> String?,
-        simulatorUnauthorizedHandler: @escaping () -> Void,
+        directAPIKeyProvider: () -> String?,
+        directUnauthorizedHandler: @escaping () -> Void,
         metrics: BackendRequestMetricRecording = NoopBackendRequestMetricRecorder()
     ) -> AIQuizRuntimeDependencies {
-        if isDebugSimulator {
-            AppLog.quiz.notice("🧪 AI SIMULATOR FALLBACK: direct Yandex service selected")
+        if usesDirectAI {
+            AppLog.quiz.notice("🧪 DIRECT AI: local Debug API key service selected")
             return AIQuizRuntimeDependencies(
                 accessProvider: AlwaysAvailableAIQuizAccessProvider(),
                 themeService: YandexAIQuizThemeService(
-                    apiKey: simulatorAPIKeyProvider(),
-                    onUnauthorized: simulatorUnauthorizedHandler
+                    apiKey: directAPIKeyProvider(),
+                    onUnauthorized: directUnauthorizedHandler
                 )
             )
         }
@@ -66,6 +72,16 @@ struct AIQuizRuntimeDependencies {
         )
     }
 }
+
+#if DEBUG
+enum DebugAIRuntimeSettings {
+    static let useDirectAIKey = "quizice.debug.ai.use-direct-service"
+
+    static var isDirectAIEnabled: Bool {
+        UserDefaults.standard.bool(forKey: useDirectAIKey)
+    }
+}
+#endif
 
 private final class AlwaysAvailableAIQuizAccessProvider: AIQuizAccessProviding {
     let isAIQuizAvailable = true

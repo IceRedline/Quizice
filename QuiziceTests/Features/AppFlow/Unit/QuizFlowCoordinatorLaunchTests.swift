@@ -9,13 +9,13 @@ final class QuizFlowCoordinatorLaunchTests: QuizFlowCoordinatorTestCase {
         let backendAccess = BackendAIQuizAccessStub(isAvailable: false)
 
         let dependencies = AIQuizRuntimeDependencies.resolve(
-            isDebugSimulator: true,
+            usesDirectAI: true,
             backendConfiguration: BackendConfiguration(
                 baseURL: URL(string: "https://example.com/api")!
             ),
             backendAccessProvider: backendAccess,
-            simulatorAPIKeyProvider: { "test-api-key" },
-            simulatorUnauthorizedHandler: {}
+            directAPIKeyProvider: { "test-api-key" },
+            directUnauthorizedHandler: {}
         )
 
         XCTAssertTrue(dependencies.accessProvider.isAIQuizAvailable)
@@ -27,16 +27,16 @@ final class QuizFlowCoordinatorLaunchTests: QuizFlowCoordinatorTestCase {
         let backendAccess = BackendAIQuizAccessStub(isAvailable: false)
 
         let dependencies = AIQuizRuntimeDependencies.resolve(
-            isDebugSimulator: false,
+            usesDirectAI: false,
             backendConfiguration: BackendConfiguration(
                 baseURL: URL(string: "https://example.com/api")!
             ),
             backendAccessProvider: backendAccess,
-            simulatorAPIKeyProvider: {
+            directAPIKeyProvider: {
                 XCTFail("Device path must not read a direct API key")
                 return nil
             },
-            simulatorUnauthorizedHandler: {
+            directUnauthorizedHandler: {
                 XCTFail("Device path must not manage a direct API key")
             }
         )

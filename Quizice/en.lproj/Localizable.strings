@@ -139,6 +139,8 @@
 "settings.backend.localhost.subtitle" = "Simulator: localhost:8000 · restart required";
 "settings.backend.local_content_only" = "Local content only";
 "settings.backend.local_content_only.subtitle" = "No backend: bundled themes and questions · restart required";
+"settings.ai.direct" = "Direct AI";
+"settings.ai.direct.subtitle" = "Use the on-device Debug API key instead of backend · restart required";
 "statistics.accessibility_label" = "Overall statistics";
 "statistics.best_result" = "Best result";
 "statistics.correct_answers" = "Correct answers";
