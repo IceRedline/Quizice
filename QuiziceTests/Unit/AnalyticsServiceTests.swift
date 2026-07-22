@@ -175,6 +175,23 @@ final class AnalyticsServiceTests: XCTestCase {
         XCTAssertFalse(AppMetricaAnalyticsTracker.shouldSkipActivation(environment: [:], isXCTestRuntime: false))
     }
 
+    func testVerboseSDKLogsRequireExplicitOptIn() {
+        XCTAssertFalse(AppMetricaAnalyticsTracker.shouldEnableVerboseSDKLogs(environment: [:]))
+        XCTAssertFalse(AppMetricaAnalyticsTracker.shouldEnableVerboseSDKLogs(
+            environment: [AppMetricaAnalyticsTracker.verboseLogsEnvironmentKey: "0"]
+        ))
+
+        #if DEBUG
+        XCTAssertTrue(AppMetricaAnalyticsTracker.shouldEnableVerboseSDKLogs(
+            environment: [AppMetricaAnalyticsTracker.verboseLogsEnvironmentKey: "1"]
+        ))
+        #else
+        XCTAssertFalse(AppMetricaAnalyticsTracker.shouldEnableVerboseSDKLogs(
+            environment: [AppMetricaAnalyticsTracker.verboseLogsEnvironmentKey: "1"]
+        ))
+        #endif
+    }
+
     func testPresenterTracksCorrectAnswerAndCompletesOnlyOnce() throws {
         let analytics = AnalyticsTrackerSpy()
         let session = makeSession(themeID: "culture")
