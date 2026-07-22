@@ -12,10 +12,12 @@ final class ScreenSnapshotTests: XCTestCase {
 
     override func setUp() {
         super.setUp()
+        AIQuizAccessStore.shared.update(isAuthenticated: true)
         SnapshotSupport.setUp(designStyle: .clean, cleanColorScheme: .light)
     }
 
     override func tearDown() {
+        AIQuizAccessStore.shared.update(isAuthenticated: false)
         defaultsSuiteNames.forEach { UserDefaults.standard.removePersistentDomain(forName: $0) }
         defaultsSuiteNames.removeAll()
         SnapshotSupport.tearDown()

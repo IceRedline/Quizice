@@ -20,7 +20,16 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         if isRunningTests {
             window.rootViewController = UIViewController()
         } else {
-            let coordinator = QuizFlowCoordinator(window: window)
+            let authenticationService = GameCenterAuthenticationService.live()
+            self.authenticationService = authenticationService
+            let aiRuntimeDependencies = AIQuizRuntimeDependencies.live(
+                backendAccessProvider: AIQuizAccessStore.shared
+            )
+            let coordinator = QuizFlowCoordinator(
+                window: window,
+                aiQuizThemeService: aiRuntimeDependencies.themeService,
+                aiQuizAccessProvider: aiRuntimeDependencies.accessProvider
+            )
             coordinator.start()
             self.coordinator = coordinator
             let appearance = AppAppearanceStore.shared.appearance(
@@ -32,9 +41,7 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         self.window = window
 
         if isRunningTests == false, let coordinator {
-            let authenticationService = GameCenterAuthenticationService.live()
-            self.authenticationService = authenticationService
-            authenticationService.start { [weak coordinator] viewController in
+            authenticationService?.start { [weak coordinator] viewController in
                 coordinator?.presentSystemViewController(viewController)
             }
         }

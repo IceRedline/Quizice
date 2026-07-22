@@ -7,11 +7,14 @@ enum DebugYandexAIAPIKeyStore {
     private static let service = "ru.avtabenskiy.Quizice.debug-yandex-ai"
     private static let account = environmentKey
 
-    static func resolveAPIKey() -> String? {
-        let environmentValue = ProcessInfo.processInfo.environment[environmentKey]?
-            .trimmingCharacters(in: .whitespacesAndNewlines)
+    static func cacheEnvironmentAPIKeyIfPresent() {
+        guard let environmentValue = environmentAPIKey() else { return }
+        save(environmentValue)
+        AppLog.quiz.info("Yandex AI API key cached from Xcode environment")
+    }
 
-        if let environmentValue, !environmentValue.isEmpty {
+    static func resolveAPIKey() -> String? {
+        if let environmentValue = environmentAPIKey() {
             save(environmentValue)
             AppLog.quiz.info("Yandex AI API key loaded from Xcode environment")
             return environmentValue
@@ -24,6 +27,17 @@ enum DebugYandexAIAPIKeyStore {
 
         AppLog.quiz.info("Yandex AI API key loaded from Debug Keychain")
         return storedValue
+    }
+
+    private static func environmentAPIKey() -> String? {
+        guard
+            let value = ProcessInfo.processInfo.environment[environmentKey]?
+                .trimmingCharacters(in: .whitespacesAndNewlines),
+            !value.isEmpty
+        else {
+            return nil
+        }
+        return value
     }
 
     static func removeRejectedAPIKey() {

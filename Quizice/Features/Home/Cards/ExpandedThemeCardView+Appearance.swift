@@ -69,6 +69,10 @@ extension ExpandedThemeCardView {
                 appearance: appearance
             )
         )
+        startActivityIndicator.color = QuizThemeAccentStyle.primaryButtonTextColor(
+            themeID: themeID,
+            appearance: appearance
+        )
 
         questionCountControl.backgroundColor = appearance.row.backgroundColor
         questionCountControl.selectedSegmentTintColor = primaryButtonStyle.backgroundColor
@@ -145,8 +149,22 @@ extension ExpandedThemeCardView {
         let isAvailable = resolvedSelection != nil
         unavailableLabel.isHidden = isAvailable
         unavailableLabel.accessibilityElementsHidden = isAvailable
-        startButton.isEnabled = isAvailable
+        startButton.isEnabled = isAvailable && !isStartLoading
         startButton.accessibilityHint = isAvailable ? nil : L10n.Question.unavailableMessage
+    }
+
+    func setStartLoading(_ isLoading: Bool) {
+        isStartLoading = isLoading
+        startButton.isEnabled = !isLoading && selectedQuestionCount != nil
+        startButton.setTitle(isLoading ? nil : L10n.Common.start, for: .normal)
+        startButton.accessibilityLabel = isLoading ? L10n.Home.feelingLuckyLoading : L10n.Common.start
+        if isLoading {
+            startButton.accessibilityTraits.insert(.updatesFrequently)
+            startActivityIndicator.startAnimating()
+        } else {
+            startButton.accessibilityTraits.remove(.updatesFrequently)
+            startActivityIndicator.stopAnimating()
+        }
     }
 
     func frontArtworkImage(themeID: String, appearance: AppAppearance) -> UIImage? {

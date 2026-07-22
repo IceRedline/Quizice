@@ -197,6 +197,51 @@ final class QuizQuestionPresenterTests: XCTestCase {
         XCTAssertEqual(view.results, [QuizResultState(correctAnswers: 1, totalQuestions: 1)])
     }
 
+#if DEBUG
+    func testDebugQuestionSourceReflectsPreparedTheme() {
+        let session = QuestionPresenterSession()
+        session.chosenTheme = ThemeModel(quizTheme: QuizTheme(
+            id: "remote",
+            theme: "Remote",
+            themeDescription: "",
+            questions: [],
+            source: .catalog,
+            questionOrigin: .backend
+        ))
+        let presenter = QuizQuestionPresenter(
+            session: session,
+            statisticsStore: makeStatisticsHarness().store
+        )
+
+        XCTAssertEqual(presenter.questionOrigin, .backend)
+        XCTAssertEqual(presenter.themeSource, .catalog)
+    }
+
+    func testDebugQuestionSourceIndicatorDistinguishesBackendFromLocal() {
+        let viewController = QuizQuestionViewController()
+        viewController.loadViewIfNeeded()
+
+        viewController.configureDebugQuestionSource(origin: .backend, themeSource: .catalog)
+        XCTAssertEqual(viewController.debugQuestionSourceLabel.text, "BACKEND")
+        XCTAssertEqual(viewController.debugQuestionSourceLabel.backgroundColor, .systemGreen)
+
+        viewController.configureDebugQuestionSource(origin: .bundled, themeSource: .catalog)
+        XCTAssertEqual(viewController.debugQuestionSourceLabel.text, "LOCAL")
+        XCTAssertEqual(viewController.debugQuestionSourceLabel.backgroundColor, .systemOrange)
+        XCTAssertTrue(viewController.debugQuestionSourceLabel.isHidden)
+    }
+
+    func testDebugCatalogSourceIndicatorTitlesAreUnambiguous() {
+        XCTAssertEqual(QuizViewController.DebugCatalogSourceState.loading.title, "CATALOG: LOADING")
+        XCTAssertEqual(QuizViewController.DebugCatalogSourceState.backend.title, "CATALOG: BACKEND")
+        XCTAssertEqual(
+            QuizViewController.DebugCatalogSourceState.backendStale.title,
+            "CATALOG: BACKEND STALE"
+        )
+        XCTAssertEqual(QuizViewController.DebugCatalogSourceState.local.title, "CATALOG: LOCAL")
+    }
+#endif
+
     private func makeQuestion(_ text: String, correctAnswer: String) -> QuizQuestion {
         QuizQuestion(question: text, answers: ["A", "B", "C", "D"], correctAnswer: correctAnswer)
     }

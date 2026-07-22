@@ -162,6 +162,7 @@ enum HomeThemeCardAction: Equatable {
     case collapseCompleted
     case questionCountSelected(Int)
     case startRequested
+    case launchFailed
     case reset
 }
 
@@ -322,6 +323,11 @@ enum HomeThemeCardReducer {
             }
             state.phase = .launching
             return .launch(themeID: themeID, questionCount: questionCount)
+
+        case .launchFailed:
+            guard state.phase == .launching, state.themeID != nil else { return nil }
+            state.phase = .expandedBack
+            return nil
 
         case .reset:
             state = HomeThemeCardState()

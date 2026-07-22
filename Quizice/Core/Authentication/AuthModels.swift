@@ -1,11 +1,42 @@
 import Foundation
 import UIKit
 
+extension Notification.Name {
+    static let backendAuthenticationInvalidated = Notification.Name(
+        "ru.avtabenskiy.Quizice.backendAuthenticationInvalidated"
+    )
+}
+
 enum AuthSessionState: Equatable {
     case initializing
     case guest
     case authenticating
     case authenticated(userID: String, teamPlayerID: String)
+}
+
+protocol AIQuizAccessProviding: AnyObject {
+    var isAIQuizAvailable: Bool { get }
+}
+
+protocol AIQuizAccessUpdating: AIQuizAccessProviding {
+    func update(isAuthenticated: Bool)
+}
+
+final class AIQuizAccessStore: AIQuizAccessUpdating, @unchecked Sendable {
+    static let shared = AIQuizAccessStore()
+
+    private let lock = NSLock()
+    private var isAuthenticated = false
+
+    var isAIQuizAvailable: Bool {
+        lock.withLock { isAuthenticated }
+    }
+
+    func update(isAuthenticated: Bool) {
+        lock.withLock {
+            self.isAuthenticated = isAuthenticated
+        }
+    }
 }
 
 struct AuthSession: Codable, Equatable {
@@ -31,6 +62,13 @@ struct GameCenterIdentity: Codable, Equatable {
 struct BackendErrorEnvelope: Codable, Equatable {
     let code: String
     let message: String
+    let requestId: String?
+
+    init(code: String, message: String, requestId: String? = nil) {
+        self.code = code
+        self.message = message
+        self.requestId = requestId
+    }
 }
 
 enum BackendAPIError: Error, Equatable {
@@ -39,7 +77,9 @@ enum BackendAPIError: Error, Equatable {
     case transport(URLError.Code)
     case unauthorized(BackendErrorEnvelope?)
     case httpStatus(Int, BackendErrorEnvelope?)
+    case encoding
     case decoding
+    case contractViolation
 }
 
 protocol AuthAPI {

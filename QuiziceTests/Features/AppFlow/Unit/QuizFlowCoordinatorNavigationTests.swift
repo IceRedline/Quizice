@@ -97,7 +97,68 @@ final class QuizFlowCoordinatorNavigationTests: QuizFlowCoordinatorTestCase {
         XCTAssertTrue(harness.navigationController.dismissAnimationFlags.isEmpty)
     }
 
-    func testRandomSelectionReplayChoosesAChangedFiveQuestionSetFromTheFullCatalog() throws {
+    func testSlowCatalogReplayShowsDelayedProgressAndClearsItWhenCancelled() async throws {
+        let theme = SnapshotSupport.makeTheme(
+            id: "music",
+            name: "Music",
+            questions: (0..<5).map { index in
+                QuizQuestion(
+                    question: "Question \(index)?",
+                    answers: ["A", "B", "C", "D"],
+                    correctAnswer: "A"
+                )
+            }
+        )
+        let repository = HangingRoutingThemeRepository(themes: [theme])
+        let window = UIWindow(frame: CGRect(x: 0, y: 0, width: 390, height: 844))
+        let navigationController = RoutingNavigationControllerSpy()
+        let session = RoutingSession()
+        session.chosenTheme = ThemeModel(quizTheme: theme)
+        session.questionsCount = 5
+        let coordinator = QuizFlowCoordinator(
+            window: window,
+            navigationController: navigationController,
+            themeRepository: repository,
+            session: session,
+            aiQuizThemeService: MockAIQuizThemeService(),
+            catalogReplayProgressDelay: {}
+        )
+        coordinator.start()
+        navigationController.topViewControllerOverride = navigationController
+        coordinator.showQuestion()
+        coordinator.showResult(QuizResultState(correctAnswers: 3, totalQuestions: 5))
+
+        let resultViewController = try XCTUnwrap(
+            navigationController.presentedControllers.last as? QuizResultViewController
+        )
+        resultViewController.loadViewIfNeeded()
+        let replayButton = try XCTUnwrap(
+            descendant(
+                in: resultViewController.view,
+                accessibilityIdentifier: "resultReplayButton"
+            ) as? UIButton
+        )
+        let activityIndicator = try XCTUnwrap(
+            descendant(
+                in: resultViewController.view,
+                accessibilityIdentifier: "resultReplayActivityIndicator"
+            ) as? UIActivityIndicatorView
+        )
+
+        coordinator.replayQuiz()
+        try await waitUntil {
+            repository.prepareQuizCallCount == 1 && activityIndicator.isAnimating
+        }
+
+        XCTAssertFalse(replayButton.isEnabled)
+        XCTAssertNil(replayButton.title(for: .normal))
+
+        coordinator.returnToThemes()
+
+        XCTAssertFalse(activityIndicator.isAnimating)
+    }
+
+    func testRandomSelectionReplayChoosesAChangedFiveQuestionSetFromTheFullCatalog() async throws {
         let catalogQuestions = (0..<8).map { index in
             QuizQuestion(
                 question: "Catalog question \(index)?",
@@ -131,7 +192,8 @@ final class QuizFlowCoordinatorNavigationTests: QuizFlowCoordinatorTestCase {
             themeRepository: repository,
             session: session,
             aiQuizThemeService: MockAIQuizThemeService(),
-            randomQuestionsProvider: { $0 }
+            randomQuestionsProvider: { $0 },
+            randomQuestionSelectionModeProvider: { .random }
         )
         coordinator.start()
         navigationController.topViewControllerOverride = navigationController
@@ -141,6 +203,9 @@ final class QuizFlowCoordinatorNavigationTests: QuizFlowCoordinatorTestCase {
         )
 
         coordinator.replayQuiz()
+        try await waitUntil {
+            session.chosenTheme?.quizTheme.questions.map(\.question) != initialQuestionTexts
+        }
 
         let replayedTheme = try XCTUnwrap(session.chosenTheme)
         let replayedQuestionTexts = replayedTheme.quizTheme.questions.map(\.question)

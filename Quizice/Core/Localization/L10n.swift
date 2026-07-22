@@ -106,6 +106,11 @@ enum L10n {
                 static var message: String { L10n.localized("ai_theme.error.invalid_quiz.message", comment: "Invalid generated quiz message") }
             }
 
+            enum Authentication {
+                static var title: String { L10n.localized("ai_theme.error.authentication.title", comment: "AI authentication required title") }
+                static var message: String { L10n.localized("ai_theme.error.authentication.message", comment: "AI authentication required message") }
+            }
+
             enum Configuration {
                 static var title: String { L10n.localized("ai_theme.error.configuration.title", comment: "AI debug configuration title") }
                 static var message: String { L10n.localized("ai_theme.error.configuration.message", comment: "AI debug configuration message") }
@@ -207,6 +212,10 @@ enum L10n {
         static var developerSectionTitle: String { L10n.localized("settings.section.developer", comment: "Debug settings developer section title") }
         static var localhostBackend: String { L10n.localized("settings.backend.localhost", comment: "Debug localhost backend toggle title") }
         static var localhostBackendSubtitle: String { L10n.localized("settings.backend.localhost.subtitle", comment: "Debug localhost backend toggle subtitle") }
+        static var localContentOnly: String { L10n.localized("settings.backend.local_content_only", comment: "Debug local content only toggle title") }
+        static var localContentOnlySubtitle: String { L10n.localized("settings.backend.local_content_only.subtitle", comment: "Debug local content only toggle subtitle") }
+        static var directAI: String { L10n.localized("settings.ai.direct", comment: "Debug direct AI toggle title") }
+        static var directAISubtitle: String { L10n.localized("settings.ai.direct.subtitle", comment: "Debug direct AI toggle subtitle") }
 #endif
 
         static func restartRequiredMessage(selection: String) -> String {

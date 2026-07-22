@@ -12,10 +12,14 @@ final class GameCenterAuthenticationService {
     private let bundleIdentifier: String
     private let now: () -> Date
     private let notificationCenter: NotificationCenter
+    private let aiQuizAccessStore: AIQuizAccessStore
 
     private var authenticationTask: Task<Void, Never>?
+    private var authenticationAttemptID: UUID?
     private var synchronizationTask: Task<Void, Never>?
+    private var synchronizationAttemptID: UUID?
     private var pendingSyncObserver: NSObjectProtocol?
+    private var authenticationInvalidationObserver: NSObjectProtocol?
     private var currentTeamPlayerID: String?
     private var started = false
 
@@ -26,7 +30,8 @@ final class GameCenterAuthenticationService {
         statisticsStore: StatisticsStore = StatisticsStore(),
         bundleIdentifier: String,
         now: @escaping () -> Date = Date.init,
-        notificationCenter: NotificationCenter = .default
+        notificationCenter: NotificationCenter = .default,
+        aiQuizAccessStore: AIQuizAccessStore = AIQuizAccessStore()
     ) {
         self.gameCenter = gameCenter
         self.api = api
@@ -35,6 +40,7 @@ final class GameCenterAuthenticationService {
         self.bundleIdentifier = bundleIdentifier
         self.now = now
         self.notificationCenter = notificationCenter
+        self.aiQuizAccessStore = aiQuizAccessStore
         pendingSyncObserver = notificationCenter.addObserver(
             forName: .statisticsPendingSync,
             object: nil,
@@ -44,18 +50,33 @@ final class GameCenterAuthenticationService {
                 self?.synchronizeStatistics()
             }
         }
+        authenticationInvalidationObserver = notificationCenter.addObserver(
+            forName: .backendAuthenticationInvalidated,
+            object: nil,
+            queue: .main
+        ) { [weak self] _ in
+            Task { @MainActor [weak self] in
+                self?.handleBackendAuthenticationInvalidation()
+            }
+        }
     }
 
     deinit {
         if let pendingSyncObserver {
             notificationCenter.removeObserver(pendingSyncObserver)
         }
+        if let authenticationInvalidationObserver {
+            notificationCenter.removeObserver(authenticationInvalidationObserver)
+        }
     }
 
     static func live(bundle: Bundle = .main) -> GameCenterAuthenticationService {
         let api: AuthAPI
         if let configuration = BackendConfiguration.load(bundle: bundle) {
-            api = HTTPAuthAPI(configuration: configuration)
+            api = HTTPAuthAPI(
+                configuration: configuration,
+                metrics: AppMetricaAnalyticsTracker.shared
+            )
         } else {
             api = UnavailableAuthAPI()
         }
@@ -63,7 +84,8 @@ final class GameCenterAuthenticationService {
             gameCenter: GameCenterClient(),
             api: api,
             sessionStore: KeychainSessionStore(),
-            bundleIdentifier: bundle.bundleIdentifier ?? "ru.avtabenskiy.Quizice"
+            bundleIdentifier: bundle.bundleIdentifier ?? "ru.avtabenskiy.Quizice",
+            aiQuizAccessStore: .shared
         )
     }
 
@@ -71,12 +93,20 @@ final class GameCenterAuthenticationService {
         guard started == false else { return }
         started = true
         state = .initializing
+        aiQuizAccessStore.update(isAuthenticated: false)
         gameCenter.start(present: present) { [weak self] playerState in
             self?.handle(playerState)
         }
     }
 
     func retrySynchronization() {
+        if case .guest = state, let teamPlayerID = currentTeamPlayerID {
+            forceRefreshSession(
+                for: teamPlayerID,
+                statisticsMayRefreshToken: true
+            )
+            return
+        }
         synchronizeStatistics()
     }
 
@@ -92,65 +122,148 @@ final class GameCenterAuthenticationService {
                 synchronizeStatistics()
                 return
             }
-            authenticationTask?.cancel()
-            currentTeamPlayerID = teamPlayerID
-            state = .authenticating
-            authenticationTask = Task { [weak self] in
-                await self?.restoreOrExchangeSession(for: teamPlayerID)
-            }
+            beginAuthentication(
+                for: teamPlayerID,
+                allowsCachedSession: true,
+                statisticsMayRefreshToken: true
+            )
         case .unavailable:
             enterGuestMode()
         }
     }
 
-    private func restoreOrExchangeSession(for teamPlayerID: String) async {
-        do {
-            if let cachedSession = try sessionStore.load(), cachedSession.isValid(for: teamPlayerID, now: now()) {
-                completeAuthentication(with: cachedSession)
-                return
-            }
-            try? sessionStore.clear()
-            let session = try await exchangeSession(for: teamPlayerID)
-            try Task.checkCancellation()
-            completeAuthentication(with: session)
-        } catch is CancellationError {
-            return
-        } catch {
-            guard currentTeamPlayerID == teamPlayerID else { return }
-            enterGuestMode()
+    private func beginAuthentication(
+        for teamPlayerID: String,
+        allowsCachedSession: Bool,
+        statisticsMayRefreshToken: Bool
+    ) {
+        authenticationTask?.cancel()
+        let attemptID = UUID()
+        authenticationAttemptID = attemptID
+        currentTeamPlayerID = teamPlayerID
+        state = .authenticating
+        aiQuizAccessStore.update(isAuthenticated: false)
+        authenticationTask = Task { [weak self] in
+            await self?.restoreOrExchangeSession(
+                for: teamPlayerID,
+                allowsCachedSession: allowsCachedSession,
+                statisticsMayRefreshToken: statisticsMayRefreshToken,
+                attemptID: attemptID
+            )
         }
     }
 
-    private func exchangeSession(for teamPlayerID: String) async throws -> AuthSession {
+    private func restoreOrExchangeSession(
+        for teamPlayerID: String,
+        allowsCachedSession: Bool,
+        statisticsMayRefreshToken: Bool,
+        attemptID: UUID
+    ) async {
+        do {
+            if allowsCachedSession,
+               let cachedSession = try sessionStore.load(),
+               cachedSession.isValid(for: teamPlayerID, now: now()) {
+                completeAuthentication(
+                    with: cachedSession,
+                    attemptID: attemptID,
+                    statisticsMayRefreshToken: statisticsMayRefreshToken
+                )
+                return
+            }
+            try? sessionStore.clear()
+            let session = try await exchangeSession(
+                for: teamPlayerID,
+                attemptID: attemptID
+            )
+            try Task.checkCancellation()
+            completeAuthentication(
+                with: session,
+                attemptID: attemptID,
+                statisticsMayRefreshToken: statisticsMayRefreshToken
+            )
+        } catch is CancellationError {
+            return
+        } catch is GameCenterAuthenticationError {
+            guard
+                currentTeamPlayerID == teamPlayerID,
+                authenticationAttemptID == attemptID
+            else { return }
+            enterGuestMode()
+        } catch {
+            guard
+                currentTeamPlayerID == teamPlayerID,
+                authenticationAttemptID == attemptID
+            else { return }
+            enterGuestMode(preservingGameCenterPlayer: true)
+        }
+    }
+
+    private func exchangeSession(
+        for teamPlayerID: String,
+        attemptID: UUID
+    ) async throws -> AuthSession {
         let identity = try await gameCenter.fetchIdentity(bundleIdentifier: bundleIdentifier)
-        guard identity.teamPlayerId == teamPlayerID else {
+        try Task.checkCancellation()
+        guard
+            identity.teamPlayerId == teamPlayerID,
+            currentTeamPlayerID == teamPlayerID,
+            authenticationAttemptID == attemptID
+        else {
             throw GameCenterAuthenticationError.playerChanged
         }
         let session = try await api.authenticate(identity: identity)
-        guard session.teamPlayerID == teamPlayerID else {
+        try Task.checkCancellation()
+        guard
+            session.teamPlayerID == teamPlayerID,
+            currentTeamPlayerID == teamPlayerID,
+            authenticationAttemptID == attemptID
+        else {
             throw GameCenterAuthenticationError.playerChanged
         }
         try sessionStore.save(session)
         return session
     }
 
-    private func completeAuthentication(with session: AuthSession) {
-        guard currentTeamPlayerID == session.teamPlayerID else { return }
+    private func completeAuthentication(
+        with session: AuthSession,
+        attemptID: UUID,
+        statisticsMayRefreshToken: Bool
+    ) {
+        guard
+            currentTeamPlayerID == session.teamPlayerID,
+            authenticationAttemptID == attemptID
+        else { return }
+        authenticationAttemptID = nil
+        authenticationTask = nil
         statisticsStore.activateAuthenticatedUser(session.userID)
         state = .authenticated(userID: session.userID, teamPlayerID: session.teamPlayerID)
-        synchronizeStatistics(using: session)
+        aiQuizAccessStore.update(isAuthenticated: true)
+        synchronizeStatistics(
+            using: session,
+            mayRefreshToken: statisticsMayRefreshToken
+        )
     }
 
-    private func enterGuestMode() {
+    private func enterGuestMode(preservingGameCenterPlayer: Bool = false) {
         authenticationTask?.cancel()
+        authenticationTask = nil
+        authenticationAttemptID = nil
         synchronizationTask?.cancel()
-        currentTeamPlayerID = nil
+        synchronizationTask = nil
+        synchronizationAttemptID = nil
+        if preservingGameCenterPlayer == false {
+            currentTeamPlayerID = nil
+        }
         try? sessionStore.clear()
         statisticsStore.activateGuest()
         state = .guest
+        aiQuizAccessStore.update(isAuthenticated: false)
     }
 
-    private func synchronizeStatistics(using knownSession: AuthSession? = nil) {
+    private func synchronizeStatistics(
+        using knownSession: AuthSession? = nil,
+        mayRefreshToken: Bool = true
+    ) {
         guard synchronizationTask == nil else { return }
         let storedSession = knownSession ?? (try? sessionStore.load()) ?? nil
         guard
@@ -162,10 +275,17 @@ final class GameCenterAuthenticationService {
             return
         }
 
+        let attemptID = UUID()
+        synchronizationAttemptID = attemptID
         synchronizationTask = Task { [weak self] in
             guard let self else { return }
-            let didSync = await self.performStatisticsSync(session: session, mayRefreshToken: true)
+            let didSync = await self.performStatisticsSync(
+                session: session,
+                mayRefreshToken: mayRefreshToken
+            )
+            guard self.synchronizationAttemptID == attemptID else { return }
             self.synchronizationTask = nil
+            self.synchronizationAttemptID = nil
             if didSync, self.statisticsStore.hasPendingSync(for: session.userID) {
                 self.synchronizeStatistics()
             }
@@ -182,15 +302,11 @@ final class GameCenterAuthenticationService {
             statisticsStore.applySyncResponse(response, for: session.userID)
             return true
         } catch BackendAPIError.unauthorized where mayRefreshToken {
-            do {
-                let refreshed = try await exchangeSession(for: session.teamPlayerID)
-                guard currentTeamPlayerID == refreshed.teamPlayerID else { return false }
-                state = .authenticated(userID: refreshed.userID, teamPlayerID: refreshed.teamPlayerID)
-                return await performStatisticsSync(session: refreshed, mayRefreshToken: false)
-            } catch {
-                enterGuestMode()
-                return false
-            }
+            forceRefreshSession(
+                for: session.teamPlayerID,
+                statisticsMayRefreshToken: false
+            )
+            return false
         } catch BackendAPIError.unauthorized {
             enterGuestMode()
             return false
@@ -198,6 +314,36 @@ final class GameCenterAuthenticationService {
             // Keep the local outbox intact. Foregrounding or the next completed quiz retries it.
             return false
         }
+    }
+
+    private func handleBackendAuthenticationInvalidation() {
+        guard let teamPlayerID = currentTeamPlayerID else {
+            enterGuestMode()
+            return
+        }
+        forceRefreshSession(
+            for: teamPlayerID,
+            statisticsMayRefreshToken: true
+        )
+    }
+
+    private func forceRefreshSession(
+        for teamPlayerID: String,
+        statisticsMayRefreshToken: Bool
+    ) {
+        guard currentTeamPlayerID == teamPlayerID else { return }
+        if state == .authenticating, authenticationTask != nil {
+            return
+        }
+        synchronizationTask?.cancel()
+        synchronizationTask = nil
+        synchronizationAttemptID = nil
+        try? sessionStore.clear()
+        beginAuthentication(
+            for: teamPlayerID,
+            allowsCachedSession: false,
+            statisticsMayRefreshToken: statisticsMayRefreshToken
+        )
     }
 }
 

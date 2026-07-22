@@ -30,7 +30,14 @@ final class QuizQuestionTypographyContractTests: CrossScreenVisualTestCase {
         let transitionDestination = viewController as QuizCardSlideTransitionDestination
         let companionViewIDs = transitionDestination.cardSlideTransitionDestinationCompanionViews.compactMap { $0.accessibilityIdentifier }
         XCTAssertEqual(answerButtons.count, 4)
+#if DEBUG
+        XCTAssertEqual(
+            companionViewIDs,
+            ["questionThemeLabel", "questionNumberLabel", "questionBackendSource"]
+        )
+#else
         XCTAssertEqual(companionViewIDs, ["questionThemeLabel", "questionNumberLabel"])
+#endif
         XCTAssertTrue(answerButtons.allSatisfy(\.isEnabled))
         XCTAssertTrue(answerButtons.allSatisfy { $0.layer.cornerRadius >= 16 })
         XCTAssertTrue(answerButtons.allSatisfy { $0.backgroundColor == currentAppearance().answerDefaultColor })

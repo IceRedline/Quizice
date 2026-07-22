@@ -24,6 +24,7 @@ final class ExpandedThemeCardView: UIView, UIGestureRecognizerDelegate {
         static let questionCountLabel = "descriptionPickerCaptionLabel"
         static let questionCountControl = "descriptionQuestionCountPicker"
         static let startButton = "descriptionStartButton"
+        static let startActivityIndicator = "descriptionStartActivityIndicator"
         static let backButton = "descriptionBackButton"
         static let unavailableLabel = "expandedThemeCardUnavailableLabel"
     }
@@ -123,6 +124,7 @@ final class ExpandedThemeCardView: UIView, UIGestureRecognizerDelegate {
     )
     let unavailableLabel = UILabel()
     let startButton = UIButton(type: .system)
+    let startActivityIndicator = UIActivityIndicatorView(style: .medium)
     let backControlsStack = UIStackView()
     lazy var backTapGestureRecognizer = UITapGestureRecognizer(
         target: self,
@@ -134,6 +136,7 @@ final class ExpandedThemeCardView: UIView, UIGestureRecognizerDelegate {
     )
 
     var availableQuestionCounts: Set<Int> = []
+    var isStartLoading = false
     var cardCornerRadius: CGFloat = 0
     var frontImageSizeConstraint: NSLayoutConstraint!
     var configuredShadowStyle = AppShadowStyle.none
@@ -234,6 +237,7 @@ final class ExpandedThemeCardView: UIView, UIGestureRecognizerDelegate {
         selectedQuestionCount: Int?
     ) {
         faceTransitionDriver.cancel()
+        setStartLoading(false)
 
         let themeID = theme.stableID
         let tintColor = ThemeVisualCatalog.tintColor(for: themeID)
