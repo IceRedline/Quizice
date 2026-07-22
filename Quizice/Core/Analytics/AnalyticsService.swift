@@ -9,7 +9,6 @@ protocol AnalyticsTracking: AnyObject {
 
 enum AnalyticsScreen: String {
     case home
-    case onboarding
     case themeCardDescription = "quiz_description"
     case quizQuestion = "quiz_question"
     case quizResult = "quiz_result"

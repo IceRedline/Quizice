@@ -21,7 +21,6 @@ final class QuizViewController: BaseQuizViewController, ThemeCollectionDelegate,
 
     enum Content {
         static let settingsIconName = "gear"
-        static let helpIconName = "questionmark"
         static let themeCellReuseIdentifier = "themeCell"
     }
 
@@ -33,8 +32,6 @@ final class QuizViewController: BaseQuizViewController, ThemeCollectionDelegate,
         static let screenStackView = "homeScreenStackView"
         static let settingsButton = "homeSettingsButton"
         static let settingsVisualSurface = "homeSettingsVisualSurface"
-        static let helpButton = "homeOnboardingHelpButton"
-        static let helpVisualSurface = "homeOnboardingHelpVisualSurface"
 #if DEBUG
         static let backendCatalogSource = "homeBackendCatalogSource"
 #endif
@@ -56,7 +53,6 @@ final class QuizViewController: BaseQuizViewController, ThemeCollectionDelegate,
     enum Layout {
         static let headerStackSpacing: CGFloat = 0
         static let headerHorizontalInset: CGFloat = 24
-        static let headerControlsTrailingReserve: CGFloat = 72
         static let screenTopInset: CGFloat = 28
         static let screenBottomInset: CGFloat = 0
         static let screenStackSpacing: CGFloat = 0
@@ -70,7 +66,6 @@ final class QuizViewController: BaseQuizViewController, ThemeCollectionDelegate,
         static let settingsButtonTrailingInset: CGFloat = 14
         static let settingsButtonSize: CGFloat = 44
         static let settingsButtonVisualSize: CGFloat = 36
-        static let helpButtonSpacing: CGFloat = 4
         static let visibleCellRowSortingTolerance: CGFloat = 1
         static let scrollActivationTolerance: CGFloat = 1
 
@@ -79,7 +74,7 @@ final class QuizViewController: BaseQuizViewController, ThemeCollectionDelegate,
                 top: .zero,
                 leading: headerHorizontalInset,
                 bottom: .zero,
-                trailing: headerControlsTrailingReserve
+                trailing: headerHorizontalInset
             )
         }
 
@@ -161,8 +156,6 @@ final class QuizViewController: BaseQuizViewController, ThemeCollectionDelegate,
     var screenStackView: UIStackView!
     var settingsButton: UIButton!
     var settingsButtonVisualSurface: UIView!
-    var helpButton: UIButton!
-    var helpButtonVisualSurface: UIView!
 #if DEBUG
     var isDebugInterfaceHidden = false
     var debugCatalogSourceLabel: InsetLabel!
@@ -248,7 +241,7 @@ final class QuizViewController: BaseQuizViewController, ThemeCollectionDelegate,
     }
 
     var startupAnimatedViews: [UIView] {
-        [motivationLabel, themesCollectionView, settingsButton, helpButton]
+        [motivationLabel, themesCollectionView, settingsButton]
     }
 
     init(
@@ -344,9 +337,6 @@ final class QuizViewController: BaseQuizViewController, ThemeCollectionDelegate,
         if let settingsButtonVisualSurface {
             settingsButton.sendSubviewToBack(settingsButtonVisualSurface)
         }
-        if let helpButtonVisualSurface {
-            helpButton.sendSubviewToBack(helpButtonVisualSurface)
-        }
         updateCollectionTopInset()
         updateCollectionScrollAvailability()
         expandedCardBackdropView?.frame = view.bounds
@@ -395,16 +385,6 @@ final class QuizViewController: BaseQuizViewController, ThemeCollectionDelegate,
         settingsButton?.layer.borderWidth = 0
         settingsButton?.layer.shadowOpacity = 0
         settingsButton?.tintColor = appearance.screenTextColor
-
-        helpButton?.backgroundColor = .clear
-        helpButton?.layer.borderWidth = 0
-        helpButton?.layer.shadowOpacity = 0
-        helpButton?.tintColor = appearance.screenTextColor
-        helpButtonVisualSurface?.applySurfaceStyle(appearance.iconButton)
-        if appearance.designStyle == .classic || appearance.designStyle == .clean {
-            helpButtonVisualSurface?.layer.cornerRadius = Layout.settingsButtonVisualSize / 2
-            helpButtonVisualSurface?.layer.cornerCurve = .circular
-        }
         settingsButtonVisualSurface?.applySurfaceStyle(appearance.iconButton)
         if appearance.designStyle == .classic || appearance.designStyle == .clean {
             settingsButtonVisualSurface?.layer.cornerRadius = Layout.settingsButtonVisualSize / 2
@@ -425,8 +405,6 @@ final class QuizViewController: BaseQuizViewController, ThemeCollectionDelegate,
         guard isViewLoaded else { return }
         refreshMotivationPrompt()
         settingsButton.accessibilityLabel = L10n.Settings.title
-        helpButton.accessibilityLabel = L10n.Onboarding.helpAccessibilityLabel
-        helpButton.accessibilityHint = L10n.Onboarding.helpAccessibilityHint
         themesCollectionView.accessibilityLabel = L10n.Home.themesCollectionAccessibilityLabel
         updateThemeAvailabilityMessage()
         themesCollectionView.reloadData()

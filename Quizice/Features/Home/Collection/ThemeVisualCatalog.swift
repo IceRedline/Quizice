@@ -5,13 +5,6 @@ enum ThemeIconVisualStyle {
     static let shadowAlpha: CGFloat = 0.26
 }
 
-enum AIThemeVisualStyle {
-    static let gradientStartColor = UIColor(hex: 0xFF4FD8)
-    static let gradientEndColor = UIColor(hex: 0x36A3FF)
-
-    static let gradientColors = [gradientStartColor, gradientEndColor]
-}
-
 private struct ThemeVisualDescriptor {
     let classicSymbolName: String
     let fallbackClassicSymbolName: String

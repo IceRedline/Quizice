@@ -106,66 +106,6 @@ final class SwiftUISnapshotTests: XCTestCase {
         )
     }
 
-    func testClassicOnboardingWelcomeSnapshot() {
-        SnapshotSupport.setUp(designStyle: .classic, cleanColorScheme: .dark)
-        let appearance = SnapshotSupport.appearance(
-            designStyle: .classic,
-            cleanColorScheme: .dark
-        )
-        let viewController = makeHostingController(
-            rootView: QuizOnboardingView(appearance: appearance, onComplete: { _ in })
-        )
-
-        SnapshotSupport.assertScreen(
-            viewController,
-            named: "classic-onboarding-welcome",
-            device: SnapshotSupport.iPhone17Pro
-        )
-    }
-
-    func testClassicOnboardingTopicsSnapshot() {
-        SnapshotSupport.setUp(designStyle: .classic, cleanColorScheme: .dark)
-        let appearance = SnapshotSupport.appearance(
-            designStyle: .classic,
-            cleanColorScheme: .dark
-        )
-        let viewController = makeHostingController(
-            rootView: QuizOnboardingView(
-                appearance: appearance,
-                initialPage: .topics,
-                preferredThemeIDs: ["music", "history_culture"],
-                onComplete: { _ in }
-            )
-        )
-
-        SnapshotSupport.assertScreen(
-            viewController,
-            named: "classic-onboarding-topics",
-            device: SnapshotSupport.iPhone17Pro
-        )
-    }
-
-    func testClassicOnboardingTutorialCompactSnapshot() {
-        SnapshotSupport.setUp(designStyle: .classic, cleanColorScheme: .dark)
-        let appearance = SnapshotSupport.appearance(
-            designStyle: .classic,
-            cleanColorScheme: .dark
-        )
-        let viewController = makeHostingController(
-            rootView: QuizOnboardingView(
-                appearance: appearance,
-                initialPage: .tutorial,
-                onComplete: { _ in }
-            )
-        )
-
-        SnapshotSupport.assertScreen(
-            viewController,
-            named: "classic-onboarding-tutorial-iphone-se",
-            device: .iPhone8
-        )
-    }
-
     func testClassicAIThemeServiceAlertSnapshot() async {
         SnapshotSupport.setUp(designStyle: .classic)
         let presenter = QuizAlertPresenter()
