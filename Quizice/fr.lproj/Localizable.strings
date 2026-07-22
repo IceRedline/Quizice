@@ -82,6 +82,8 @@
 "question.exit_alert.title" = "Quitter le quiz ?";
 "question.fallback_theme" = "Quiz";
 "question.number_format" = "Question n° %d";
+"question.show_explanation" = "Afficher l’explication";
+"question.show_question" = "Afficher la question";
 "question.unavailable.message" = "Ce thème n’a pas encore de questions disponibles. Revenez en arrière et choisissez un autre thème.";
 "question.unavailable_answer" = "Indisponible";
 "question.unavailable_number" = "Questions indisponibles";

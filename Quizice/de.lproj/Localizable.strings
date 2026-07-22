@@ -82,6 +82,8 @@
 "question.exit_alert.title" = "Quiz verlassen?";
 "question.fallback_theme" = "Quiz";
 "question.number_format" = "Frage Nr. %d";
+"question.show_explanation" = "Erklärung anzeigen";
+"question.show_question" = "Frage anzeigen";
 "question.unavailable.message" = "Für dieses Thema gibt es noch keine verfügbaren Fragen. Gehe zurück und wähle ein anderes Thema.";
 "question.unavailable_answer" = "Nicht verfügbar";
 "question.unavailable_number" = "Fragen nicht verfügbar";

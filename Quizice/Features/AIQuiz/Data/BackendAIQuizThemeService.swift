@@ -392,7 +392,8 @@ final class BackendAIQuizThemeService: AIQuizThemeServiceProtocol {
         return QuizQuestion(
             question: question,
             answers: answers,
-            correctAnswer: correctAnswer
+            correctAnswer: correctAnswer,
+            explanation: payload.explanation
         )
     }
 
