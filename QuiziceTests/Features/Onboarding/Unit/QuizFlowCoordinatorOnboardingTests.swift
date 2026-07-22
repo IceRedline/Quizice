@@ -18,6 +18,9 @@ final class QuizFlowCoordinatorOnboardingTests: QuizFlowCoordinatorTestCase {
                 as? UIHostingController<QuizOnboardingView>
         )
         XCTAssertEqual(hostingController.modalPresentationStyle, .fullScreen)
+        XCTAssertEqual(hostingController.rootView.themes.map(\.id), ["music", "space"])
+        XCTAssertEqual(hostingController.rootView.themes.map(\.title), ["Music", "Space"])
+        XCTAssertEqual(hostingController.rootView.catalogOrigin, .backend)
         XCTAssertEqual(harness.navigationController.presentedAnimationFlags, [false])
         XCTAssertEqual(harness.analytics.onboardingScreenViewCount, 1)
     }
@@ -88,10 +91,14 @@ final class QuizFlowCoordinatorOnboardingTests: QuizFlowCoordinatorTestCase {
         let window = UIWindow(frame: CGRect(x: 0, y: 0, width: 390, height: 844))
         let navigationController = RoutingNavigationControllerSpy()
         let analytics = OnboardingAnalyticsSpy()
+        let themes = [
+            QuizTheme(id: "music", theme: "Music", themeDescription: "", questions: []),
+            QuizTheme(id: "space", theme: "Space", themeDescription: "", questions: [])
+        ]
         let coordinator = QuizFlowCoordinator(
             window: window,
             navigationController: navigationController,
-            themeRepository: RoutingThemeRepository(themes: []),
+            themeRepository: RoutingThemeRepository(themes: themes, catalogOrigin: .backend),
             session: RoutingSession(),
             aiQuizThemeService: MockAIQuizThemeService(),
             onboardingProgressStore: store,

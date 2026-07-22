@@ -15,24 +15,28 @@ extension QuizViewController {
             guard self.backendCatalogRefreshRequestID == requestID else { return }
             self.backendCatalogRefreshTask = nil
             self.backendCatalogRefreshRequestID = nil
-#if DEBUG
-            if didRefresh {
-                self.debugCatalogSourceState = .backend
-            } else if self.themeRepository.catalogOrigin == .backend {
-                self.debugCatalogSourceState = .backendStale
-            } else {
-                self.debugCatalogSourceState = .local
-            }
-#endif
-            guard
-                didRefresh,
-                !Task.isCancelled,
-                AppLocalizationStore.shared.resolvedLanguageCode == locale
-            else { return }
-            self.updateThemeAvailabilityMessage()
-            self.themesCollectionView.reloadData()
-            self.refreshExpandedThemeCardAppearance()
+            self.applyBackendCatalogRefresh(didRefresh: didRefresh, locale: locale)
         }
+    }
+
+    func applyBackendCatalogRefresh(didRefresh: Bool, locale: String) {
+#if DEBUG
+        if didRefresh {
+            debugCatalogSourceState = .backend
+        } else if themeRepository.catalogOrigin == .backend {
+            debugCatalogSourceState = .backendStale
+        } else {
+            debugCatalogSourceState = .local
+        }
+#endif
+        guard
+            didRefresh,
+            !Task.isCancelled,
+            AppLocalizationStore.shared.resolvedLanguageCode == locale
+        else { return }
+        updateThemeAvailabilityMessage()
+        themesCollectionView.reloadData()
+        refreshExpandedThemeCardAppearance()
     }
 
     func themeButtonTouchedDown(_ sender: UIButton) {
@@ -59,9 +63,10 @@ extension QuizViewController {
         let effect = homeStore.send(
             .present(
                 themeID: themeID,
-                availableQuestionCounts: QuizQuestionCountPolicy.availableCounts(
-                    for: chosenTheme.questionsAndAnswers
-                ),
+                availableQuestionCounts: chosenTheme.questionOrigin == .backend
+                    && chosenTheme.questionsAndAnswers.isEmpty
+                    ? QuizQuestionCountPolicy.supportedCounts
+                    : QuizQuestionCountPolicy.availableCounts(for: chosenTheme.questionsAndAnswers),
                 preferredQuestionCount: session.questionsCount
             )
         )

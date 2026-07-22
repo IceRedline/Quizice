@@ -115,6 +115,7 @@
 		A40000042FA0000100A40004 /* OnboardingProgressStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = A40000012FA0000100A40001 /* OnboardingProgressStore.swift */; };
 		A40000052FA0000100A40005 /* QuizOnboardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A40000022FA0000100A40002 /* QuizOnboardingView.swift */; };
 		A40000062FA0000100A40006 /* OnboardingPages.swift in Sources */ = {isa = PBXBuildFile; fileRef = A40000032FA0000100A40003 /* OnboardingPages.swift */; };
+		A40000112FA0000100A40011 /* OnboardingPhysicsStage.swift in Sources */ = {isa = PBXBuildFile; fileRef = A40000102FA0000100A40010 /* OnboardingPhysicsStage.swift */; };
 		A400000B2FA0000100A4000B /* OnboardingProgressStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A40000092FA0000100A40009 /* OnboardingProgressStoreTests.swift */; };
 		A400000C2FA0000100A4000C /* QuizFlowCoordinatorOnboardingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A400000A2FA0000100A4000A /* QuizFlowCoordinatorOnboardingTests.swift */; };
 		A6C3E91F5B784D20C47E13A8 /* StatisticsPresentation.swift in Sources */ = {isa = PBXBuildFile; fileRef = D4B8A19C7E254F03B62A91D0 /* StatisticsPresentation.swift */; };
@@ -305,6 +306,7 @@
 		A40000012FA0000100A40001 /* OnboardingProgressStore.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = OnboardingProgressStore.swift; sourceTree = "<group>"; };
 		A40000022FA0000100A40002 /* QuizOnboardingView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = QuizOnboardingView.swift; sourceTree = "<group>"; };
 		A40000032FA0000100A40003 /* OnboardingPages.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = OnboardingPages.swift; sourceTree = "<group>"; };
+		A40000102FA0000100A40010 /* OnboardingPhysicsStage.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = OnboardingPhysicsStage.swift; sourceTree = "<group>"; };
 		A40000092FA0000100A40009 /* OnboardingProgressStoreTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = OnboardingProgressStoreTests.swift; sourceTree = "<group>"; };
 		A400000A2FA0000100A4000A /* QuizFlowCoordinatorOnboardingTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = QuizFlowCoordinatorOnboardingTests.swift; sourceTree = "<group>"; };
 		A3E9F06229E7078F35E6031C /* HomeAIThemeCardTransitionTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = HomeAIThemeCardTransitionTests.swift; sourceTree = "<group>"; };
@@ -664,6 +666,7 @@
 		A40000082FA0000100A40008 /* UI */ = {
 			isa = PBXGroup;
 			children = (
+				A40000102FA0000100A40010 /* OnboardingPhysicsStage.swift */,
 				A40000032FA0000100A40003 /* OnboardingPages.swift */,
 				A40000022FA0000100A40002 /* QuizOnboardingView.swift */,
 			);
@@ -1262,6 +1265,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				A30000012F90000100A30001 /* AIQuizRuntimeDependencies.swift in Sources */,
+				A40000112FA0000100A40011 /* OnboardingPhysicsStage.swift in Sources */,
 				A40000062FA0000100A40006 /* OnboardingPages.swift in Sources */,
 				A40000042FA0000100A40004 /* OnboardingProgressStore.swift in Sources */,
 				A40000052FA0000100A40005 /* QuizOnboardingView.swift in Sources */,

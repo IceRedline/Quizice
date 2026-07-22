@@ -132,6 +132,12 @@ final class SwiftUISnapshotTests: XCTestCase {
         let viewController = makeHostingController(
             rootView: QuizOnboardingView(
                 appearance: appearance,
+                themes: [
+                    OnboardingTheme(id: "music", title: L10n.Onboarding.topicMusic),
+                    OnboardingTheme(id: "technology", title: L10n.Onboarding.topicTechnology),
+                    OnboardingTheme(id: "history_culture", title: L10n.Onboarding.topicHistoryCulture),
+                    OnboardingTheme(id: "politics_business", title: L10n.Onboarding.topicPoliticsBusiness)
+                ],
                 initialPage: .topics,
                 preferredThemeIDs: ["music", "history_culture"],
                 onComplete: { _ in }

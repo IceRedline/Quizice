@@ -99,26 +99,24 @@ final class ThemeCatalogRepository: ThemeRepository {
             guard AppLocalizationStore.shared.resolvedLanguageCode == locale else { return false }
 
             let localThemes = themes ?? fetchQuizThemes()
-            let remoteByID = Dictionary(uniqueKeysWithValues: response.themes.map { ($0.id, $0) })
-            guard
-                !localThemes.isEmpty,
-                localThemes.allSatisfy({ remoteByID[$0.stableID] != nil })
-            else {
+            guard !response.themes.isEmpty else {
                 throw BackendContentError.contractViolation
             }
 
-            themes = localThemes.map { localTheme in
-                guard let remoteTheme = remoteByID[localTheme.stableID] else { return localTheme }
+            let localByID = Dictionary(uniqueKeysWithValues: localThemes.map { ($0.stableID, $0) })
+            themes = response.themes.map { remoteTheme in
+                let localTheme = localByID[remoteTheme.id]
                 return QuizTheme(
-                    id: localTheme.id,
+                    id: remoteTheme.id,
                     theme: remoteTheme.name,
                     themeDescription: remoteTheme.description,
-                    questions: localTheme.questions,
-                    source: localTheme.source,
-                    questionOrigin: localTheme.questionOrigin
+                    questions: localTheme?.questions ?? [],
+                    source: .catalog,
+                    questionOrigin: localTheme?.questionOrigin ?? .backend
                 )
             }
             catalogOrigin = .backend
+            onCatalogReplaced?()
             AppLog.content.info(
                 "Backend theme catalog accepted: locale=\(locale, privacy: .public) themes=\(response.themes.count, privacy: .public)"
             )
@@ -138,8 +136,9 @@ final class ThemeCatalogRepository: ThemeRepository {
         questionCount: Int,
         locale: String
     ) async throws -> QuizTheme {
-        let localFallback = try makeLocalQuiz(themeID: themeID, questionCount: questionCount)
+        let localFallback = try? makeLocalQuiz(themeID: themeID, questionCount: questionCount)
         guard let backendContentAPI else {
+            guard let localFallback else { throw QuizPreparationError.unavailable }
             AppLog.content.notice(
                 "📦 LOCAL QUESTIONS: backend disabled, using bundled content theme=\(themeID, privacy: .public) locale=\(locale, privacy: .public) count=\(questionCount, privacy: .public)"
             )
@@ -167,6 +166,7 @@ final class ThemeCatalogRepository: ThemeRepository {
             let metadata = (themes ?? fetchQuizThemes()).first {
                 $0.stableID == themeID
             } ?? localFallback
+            guard let metadata else { throw QuizPreparationError.unavailable }
             let questions = response.questions.map { $0.makeModel() }
             AppLog.content.notice(
                 "✅ BACKEND QUESTIONS: received theme=\(themeID, privacy: .public) locale=\(locale, privacy: .public) requested=\(questionCount, privacy: .public) received=\(questions.count, privacy: .public) seed=\(seed, privacy: .public) duration_ms=\(Self.durationMilliseconds(since: startedAt), privacy: .public)"
@@ -182,6 +182,7 @@ final class ThemeCatalogRepository: ThemeRepository {
         } catch is CancellationError {
             throw CancellationError()
         } catch {
+            guard let localFallback else { throw QuizPreparationError.unavailable }
             AppLog.content.error(
                 "⚠️ BACKEND QUESTIONS: failed, using bundled fallback theme=\(themeID, privacy: .public) locale=\(locale, privacy: .public) count=\(questionCount, privacy: .public) seed=\(seed, privacy: .public) duration_ms=\(Self.durationMilliseconds(since: startedAt), privacy: .public) error=\(String(describing: error), privacy: .public)"
             )

@@ -329,14 +329,9 @@ final class QuizViewController: BaseQuizViewController, ThemeCollectionDelegate,
         installAppearanceObserver()
         installAppearanceTraitObserver()
 
-        if session.startup1st {
-            themeRepository.loadData(forceReload: false)
-        }
-
         configureThemesCollectionService()
         installLocalizationObserver()
         updateThemeAvailabilityMessage()
-        refreshBackendCatalog()
     }
 
     override func viewDidLayoutSubviews() {

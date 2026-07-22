@@ -72,15 +72,46 @@ enum ThemeVisualCatalog {
     ]
 
     static func logoImage(for themeID: String, designStyle: AppDesignStyle) -> UIImage? {
-        descriptors[themeID]?.logoImage(for: designStyle) ?? UIImage(named: themeID)
+        descriptors[themeID]?.logoImage(for: designStyle)
+            ?? UIImage(named: themeID)
+            ?? UIImage(systemName: fallbackSymbolNames[paletteIndex(for: themeID)])
     }
 
     static func tintColor(for themeID: String) -> UIColor {
-        tintColorIfAvailable(for: themeID) ?? .white
+        tintColorIfAvailable(for: themeID) ?? fallbackTintColors[paletteIndex(for: themeID)]
     }
 
     static func tintColorIfAvailable(for themeID: String) -> UIColor? {
         guard let colorName = descriptors[themeID]?.tintColorName else { return nil }
         return UIColor(named: colorName)
+    }
+
+    private static let fallbackSymbolNames = [
+        "sparkles",
+        "book.closed.fill",
+        "globe.europe.africa.fill",
+        "atom",
+        "gamecontroller.fill",
+        "film.fill",
+        "leaf.fill",
+        "sportscourt.fill"
+    ]
+
+    private static let fallbackTintColors = [
+        UIColor.systemIndigo,
+        UIColor.systemTeal,
+        UIColor.systemOrange,
+        UIColor.systemPink,
+        UIColor.systemGreen,
+        UIColor.systemPurple,
+        UIColor.systemBlue,
+        UIColor.systemRed
+    ]
+
+    private static func paletteIndex(for themeID: String) -> Int {
+        let hash = themeID.utf8.reduce(UInt64(14_695_981_039_346_656_037)) { value, byte in
+            (value ^ UInt64(byte)) &* 1_099_511_628_211
+        }
+        return Int(hash % UInt64(fallbackSymbolNames.count))
     }
 }
