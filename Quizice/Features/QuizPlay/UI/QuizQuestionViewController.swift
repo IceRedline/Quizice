@@ -61,7 +61,7 @@ final class QuizQuestionViewController: BaseQuizViewController, QuizQuestionView
         static let cardIconButtonInset: CGFloat = 12
         static let timerToInfoSpacing: CGFloat = 12
         static let timerHorizontalInset = cardIconButtonInset + cardIconButtonSize + timerToInfoSpacing
-        static let cardIconSymbolPointSize: CGFloat = 14
+        static let cardIconSymbolPointSize: CGFloat = 12
         static let explanationContentVerticalInset: CGFloat = 4
         static let closeButtonTrailingInset: CGFloat = 20
         static let maximumContentWidth: CGFloat = 430
