@@ -43,12 +43,16 @@ enum SnapshotSupport {
         size: CGSize? = nil,
         device: ViewImageConfig? = nil,
         contentSizeCategory: UIContentSizeCategory? = nil,
+        afterPrepare: ((UIViewController) -> Void)? = nil,
         file: StaticString = #filePath,
         testName: String = #function,
         line: UInt = #line
     ) {
         precondition(size == nil || device == nil, "Pass either a canvas size or a device configuration, not both")
         prepare(viewController, size: device?.size ?? size, contentSizeCategory: contentSizeCategory)
+        // Some UIKit controls only render state correctly after their final bounds are known.
+        afterPrepare?(viewController)
+        viewController.view.layoutIfNeeded()
         let snapshotting: Snapshotting<UIViewController, UIImage>
         if let device {
             snapshotting = .image(on: device)
