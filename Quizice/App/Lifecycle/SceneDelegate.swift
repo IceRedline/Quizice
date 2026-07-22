@@ -22,9 +22,13 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         } else {
             let authenticationService = GameCenterAuthenticationService.live()
             self.authenticationService = authenticationService
+            let aiRuntimeDependencies = AIQuizRuntimeDependencies.live(
+                backendAccessProvider: AIQuizAccessStore.shared
+            )
             let coordinator = QuizFlowCoordinator(
                 window: window,
-                aiQuizAccessProvider: AIQuizAccessStore.shared
+                aiQuizThemeService: aiRuntimeDependencies.themeService,
+                aiQuizAccessProvider: aiRuntimeDependencies.accessProvider
             )
             coordinator.start()
             self.coordinator = coordinator

@@ -130,6 +130,7 @@
 		B55AF88819584133CB2007D9 /* BackendConfiguration.swift in Sources */ = {isa = PBXBuildFile; fileRef = 84999FAFF59131533DB4008F /* BackendConfiguration.swift */; };
 		B68A3D6A9102BC31860D8D6E /* YandexAIQuizThemeTransportTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B26BC141AF674C1BBBF166D8 /* YandexAIQuizThemeTransportTests.swift */; };
 		B740A1655C5D91EC1FE95F66 /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = C8F820A9113657A638FA15DA /* SceneDelegate.swift */; };
+		A30000012F90000100A30001 /* AIQuizRuntimeDependencies.swift in Sources */ = {isa = PBXBuildFile; fileRef = A30000022F90000100A30002 /* AIQuizRuntimeDependencies.swift */; };
 		BAD18B17E21E7B041F2CF8AF /* HomeFeatureStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8D626989A7C8B8CD6A608580 /* HomeFeatureStore.swift */; };
 		BCF1AE84D17127EB902B3253 /* QuizFlowCoordinatorNavigationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = EB6F631936510D31E8A3AA43 /* QuizFlowCoordinatorNavigationTests.swift */; };
 		C0412F0C30759BD3C122B3D5 /* HomeThemeCardGeometry.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7BCB28B41CB3A77D9197495C /* HomeThemeCardGeometry.swift */; };
@@ -321,6 +322,7 @@
 		C6A6BA572428D6EF0638987D /* QuizQuestionTypographyContractTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = QuizQuestionTypographyContractTests.swift; sourceTree = "<group>"; };
 		C7F0E643BE8C1EA92DE20246 /* SwiftDataThemeStore.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = SwiftDataThemeStore.swift; sourceTree = "<group>"; };
 		C8F820A9113657A638FA15DA /* SceneDelegate.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = SceneDelegate.swift; sourceTree = "<group>"; };
+		A30000022F90000100A30002 /* AIQuizRuntimeDependencies.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AIQuizRuntimeDependencies.swift; sourceTree = "<group>"; };
 		D0184164E200DBF65F2A3318 /* ThemeRepository.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ThemeRepository.swift; sourceTree = "<group>"; };
 		D17C81F5F656F7DC5EA41983 /* QuizQuestionStateContractTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = QuizQuestionStateContractTests.swift; sourceTree = "<group>"; };
 		D2D585241C87207E5B21CBD4 /* GameCenterAuthenticationService.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = GameCenterAuthenticationService.swift; sourceTree = "<group>"; };
@@ -562,6 +564,7 @@
 		4CC5E661048923C91791AEF3 /* Lifecycle */ = {
 			isa = PBXGroup;
 			children = (
+				A30000022F90000100A30002 /* AIQuizRuntimeDependencies.swift */,
 				C14F2A48ECEC53C698749172 /* AppDelegate.swift */,
 				C8F820A9113657A638FA15DA /* SceneDelegate.swift */,
 			);
@@ -1254,6 +1257,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				A30000012F90000100A30001 /* AIQuizRuntimeDependencies.swift in Sources */,
 				3A8BE011ACEECD51866A1DF0 /* DebugYandexAIAPIKeyStore.swift in Sources */,
 				8872AB1B119A1A84B3BD2C60 /* FakeLaunchScreenView.swift in Sources */,
 				980B202D9D50C75229DD0042 /* LaunchOverlayPresenter.swift in Sources */,
