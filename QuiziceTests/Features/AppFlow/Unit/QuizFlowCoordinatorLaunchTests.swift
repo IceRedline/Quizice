@@ -5,6 +5,47 @@ import XCTest
 
 @MainActor
 final class QuizFlowCoordinatorLaunchTests: QuizFlowCoordinatorTestCase {
+    func testDebugSimulatorAIRuntimeUsesDirectServiceWithoutBackendAccess() {
+        let backendAccess = BackendAIQuizAccessStub(isAvailable: false)
+
+        let dependencies = AIQuizRuntimeDependencies.resolve(
+            isDebugSimulator: true,
+            backendConfiguration: BackendConfiguration(
+                baseURL: URL(string: "https://example.com/api")!
+            ),
+            backendAccessProvider: backendAccess,
+            simulatorAPIKeyProvider: { "test-api-key" },
+            simulatorUnauthorizedHandler: {}
+        )
+
+        XCTAssertTrue(dependencies.accessProvider.isAIQuizAvailable)
+        XCTAssertTrue(dependencies.themeService is YandexAIQuizThemeService)
+        XCTAssertFalse(backendAccess.isAIQuizAvailable)
+    }
+
+    func testDeviceAIRuntimePreservesBackendAccessAndUsesBackendService() {
+        let backendAccess = BackendAIQuizAccessStub(isAvailable: false)
+
+        let dependencies = AIQuizRuntimeDependencies.resolve(
+            isDebugSimulator: false,
+            backendConfiguration: BackendConfiguration(
+                baseURL: URL(string: "https://example.com/api")!
+            ),
+            backendAccessProvider: backendAccess,
+            simulatorAPIKeyProvider: {
+                XCTFail("Device path must not read a direct API key")
+                return nil
+            },
+            simulatorUnauthorizedHandler: {
+                XCTFail("Device path must not manage a direct API key")
+            }
+        )
+
+        XCTAssertTrue(dependencies.accessProvider === backendAccess)
+        XCTAssertTrue(dependencies.themeService is BackendAIQuizThemeService)
+        XCTAssertFalse(dependencies.accessProvider.isAIQuizAvailable)
+    }
+
     func testStartInstallsHomeControllerAsNavigationRoot() {
         let window = UIWindow(frame: CGRect(x: 0, y: 0, width: 390, height: 844))
         let navigationController = RoutingNavigationControllerSpy()

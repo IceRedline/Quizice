@@ -4,7 +4,7 @@ import XCTest
 
 @MainActor
 final class HomeAIThemeCardInteractionTests: HomeScreenVisualStateTestCase {
-    func testGuestCannotOpenAIThemeCard() throws {
+    func testGuestTapShowsAuthenticationAlertWithoutOpeningAIThemeCard() async throws {
         QuizFactory.shared.themes = [makeTheme(name: "Музыка")]
         let viewController = QuizViewController(
             aiQuizAccessProvider: HomeAIQuizAccessStub(isAvailable: false)
@@ -22,12 +22,22 @@ final class HomeAIThemeCardInteractionTests: HomeScreenVisualStateTestCase {
 
         sourceButton.sendActions(for: .touchUpInside)
 
+        try await waitUntil {
+            viewController.aiAlertPresenter.alertViewController != nil
+        }
+
         XCTAssertEqual(viewController.homeCardState.phase, .grid)
         XCTAssertNil(
             viewController.view.descendant(
                 withAccessibilityIdentifier: "homeExpandedAIThemeCard"
             )
         )
+
+        let alertViewController = try XCTUnwrap(
+            viewController.aiAlertPresenter.alertViewController
+        )
+        XCTAssertTrue(alertViewController.isModalInPresentation)
+        XCTAssertTrue(alertViewController.view.accessibilityViewIsModal)
     }
 
     func testAIThemeCardExpandsInlineAboveFullScreenBackdropAndDisablesGrid() throws {

@@ -87,7 +87,11 @@ extension QuizViewController {
 
     func aiThemeButtonTouchedUpInside(_ sender: UIButton) {
         animationsEngine.animateUpFloat(sender)
-        guard aiQuizAccessProvider.isAIQuizAvailable else { return }
+        guard aiQuizAccessProvider.isAIQuizAvailable else {
+            AppLog.quiz.notice("🔒 AI unavailable: Game Center authentication required")
+            presentAIAuthenticationRequiredAlert()
+            return
+        }
         guard homeCardState.phase == .grid, !isQuizLaunchPending else { return }
         let effect = homeStore.send(.presentAI)
         guard let effect else { return }
