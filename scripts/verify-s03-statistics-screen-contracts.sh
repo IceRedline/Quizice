@@ -117,6 +117,8 @@ require_executable "$S02_VERIFIER"
 printf 'Checking S03 iOS build contract...\n'
 xcodebuild \
   -quiet \
+  -skipPackagePluginValidation \
+  -skipMacroValidation \
   -project Quizice.xcodeproj \
   -scheme Quizice \
   -destination 'generic/platform=iOS Simulator' \
