@@ -1,0 +1,19 @@
+included:
+  - Quizice
+  - QuiziceTests
+
+excluded:
+  - DerivedData
+  - .build
+  - QuiziceTests/Snapshots/__Snapshots__
+
+# Keep the initial adoption focused on correctness and clear Swift idioms.
+# Existing formatting is intentionally left untouched; the rule set can grow
+# as files are cleaned up in normal feature work.
+only_rules:
+  - empty_count
+  - empty_string
+  - fatal_error_message
+  - legacy_random
+  - syntactic_sugar
+  - weak_delegate
