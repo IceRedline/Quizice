@@ -4,11 +4,6 @@ import UIKit
 protocol HomeRouting: AnyObject {
     func showQuestion()
     func showSettings()
-    func showOnboarding()
-}
-
-extension HomeRouting {
-    func showOnboarding() {}
 }
 
 protocol QuizPlayRouting: AnyObject {
@@ -38,7 +33,6 @@ final class QuizFlowCoordinator: NSObject, QuizRouting, UIViewControllerTransiti
     private let session: QuizSessionManaging
     private let aiQuizThemeService: AIQuizThemeServiceProtocol
     private let aiQuizAccessProvider: AIQuizAccessProviding
-    private let onboardingProgressStore: OnboardingProgressStoring
     private let analytics: AnalyticsTracking
     private let randomQuestionsProvider: ([QuizQuestion]) -> [QuizQuestion]
     private let randomQuestionSelectionModeProvider: () -> CrossThemeQuestionSelectionMode
@@ -46,8 +40,6 @@ final class QuizFlowCoordinator: NSObject, QuizRouting, UIViewControllerTransiti
     private let aiReplayAlertPresenter = QuizAlertPresenter()
     private weak var activeQuestionViewController: QuizQuestionViewController?
     private weak var resultViewController: QuizResultViewController?
-    private weak var activeOnboardingViewController: UIViewController?
-    private var pendingSystemViewController: UIViewController?
     private var catalogReplayTask: Task<Void, Never>?
     private var catalogReplayProgressTask: Task<Void, Never>?
     private var aiReplayTask: Task<Void, Never>?
@@ -61,7 +53,6 @@ final class QuizFlowCoordinator: NSObject, QuizRouting, UIViewControllerTransiti
         session: QuizSessionManaging = QuizSessionStore.shared,
         aiQuizThemeService: AIQuizThemeServiceProtocol? = nil,
         aiQuizAccessProvider: AIQuizAccessProviding? = nil,
-        onboardingProgressStore: OnboardingProgressStoring = OnboardingProgressStore.shared,
         analytics: AnalyticsTracking = AppMetricaAnalyticsTracker.shared,
         randomQuestionsProvider: @escaping ([QuizQuestion]) -> [QuizQuestion] = { $0.shuffled() },
         randomQuestionSelectionModeProvider: @escaping () -> CrossThemeQuestionSelectionMode = {
@@ -79,7 +70,6 @@ final class QuizFlowCoordinator: NSObject, QuizRouting, UIViewControllerTransiti
         self.aiQuizThemeService = aiQuizThemeService
             ?? Self.makeDefaultAIQuizThemeService(accessProvider: resolvedAIQuizAccessProvider)
         self.aiQuizAccessProvider = resolvedAIQuizAccessProvider
-        self.onboardingProgressStore = onboardingProgressStore
         self.analytics = analytics
         self.randomQuestionsProvider = randomQuestionsProvider
         self.randomQuestionSelectionModeProvider = randomQuestionSelectionModeProvider
@@ -141,63 +131,9 @@ final class QuizFlowCoordinator: NSObject, QuizRouting, UIViewControllerTransiti
         presentedViewController.present(viewController, animated: true)
     }
 
-    func presentInitialOnboardingIfNeeded() {
-        guard onboardingProgressStore.needsOnboarding else { return }
-        presentOnboarding(animated: false)
-    }
-
-    func showOnboarding() {
-        presentOnboarding(animated: true)
-    }
-
     func presentSystemViewController(_ viewController: UIViewController) {
-        guard activeOnboardingViewController == nil else {
-            pendingSystemViewController = viewController
-            return
-        }
         guard presentedViewController !== viewController else { return }
         presentedViewController.present(viewController, animated: true)
-    }
-
-    private func presentOnboarding(animated: Bool) {
-        guard activeOnboardingViewController == nil else { return }
-
-        let appearance = AppAppearanceStore.shared.appearance(
-            compatibleWith: window.traitCollection
-        )
-        let onboardingView = QuizOnboardingView(
-            appearance: appearance,
-            preferredThemeIDs: onboardingProgressStore.preferredThemeIDs,
-            onComplete: { [weak self] preferredThemeIDs in
-                self?.completeOnboarding(preferredThemeIDs: preferredThemeIDs)
-            }
-        )
-        let viewController = UIHostingController(rootView: onboardingView)
-        viewController.modalPresentationStyle = .fullScreen
-        viewController.overrideUserInterfaceStyle = appearance.resolvedInterfaceStyle
-        viewController.view.backgroundColor = .clear
-        activeOnboardingViewController = viewController
-        analytics.track(.screenView(screen: .onboarding))
-        presentedViewController.present(viewController, animated: animated)
-    }
-
-    func completeOnboarding(preferredThemeIDs: Set<String>) {
-        onboardingProgressStore.complete(preferredThemeIDs: preferredThemeIDs)
-        let viewController = activeOnboardingViewController
-        activeOnboardingViewController = nil
-        guard let viewController else {
-            presentPendingSystemViewControllerIfNeeded()
-            return
-        }
-        viewController.dismiss(animated: true) { [weak self] in
-            self?.presentPendingSystemViewControllerIfNeeded()
-        }
-    }
-
-    private func presentPendingSystemViewControllerIfNeeded() {
-        guard let viewController = pendingSystemViewController else { return }
-        pendingSystemViewController = nil
-        presentSystemViewController(viewController)
     }
 
     func closeQuestion() {

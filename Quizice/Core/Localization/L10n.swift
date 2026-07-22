@@ -19,41 +19,6 @@ enum L10n {
         static var yes: String { L10n.localized("common.yes", comment: "Positive alert action title") }
     }
 
-    enum Onboarding {
-        static var skip: String { L10n.localized("onboarding.action.skip", comment: "Skip onboarding button title") }
-        static var getStarted: String { L10n.localized("onboarding.action.get_started", comment: "Finish onboarding button title") }
-        static var helpAccessibilityLabel: String { L10n.localized("onboarding.help.accessibility_label", comment: "Onboarding help button accessibility label") }
-        static var helpAccessibilityHint: String { L10n.localized("onboarding.help.accessibility_hint", comment: "Onboarding help button accessibility hint") }
-        static var welcomeKicker: String { L10n.localized("onboarding.welcome.kicker", comment: "Onboarding welcome page kicker") }
-        static var welcomeTitle: String { L10n.localized("onboarding.welcome.title", comment: "Onboarding welcome page title") }
-        static var welcomeSubtitle: String { L10n.localized("onboarding.welcome.subtitle", comment: "Onboarding welcome page subtitle") }
-        static var topicsTitle: String { L10n.localized("onboarding.topics.title", comment: "Onboarding topic selection page title") }
-        static var topicsSubtitle: String { L10n.localized("onboarding.topics.subtitle", comment: "Onboarding topic selection page subtitle") }
-        static var topicsSelectionHint: String { L10n.localized("onboarding.topics.selection_hint", comment: "Onboarding topic selection hint") }
-        static var topicsSelected: String { L10n.localized("onboarding.topics.selected", comment: "Selected onboarding topic badge") }
-        static var topicMusic: String { L10n.localized("onboarding.topic.music", comment: "Music onboarding topic title") }
-        static var topicTechnology: String { L10n.localized("onboarding.topic.technology", comment: "Technology onboarding topic title") }
-        static var topicHistoryCulture: String { L10n.localized("onboarding.topic.history_culture", comment: "History and culture onboarding topic title") }
-        static var topicPoliticsBusiness: String { L10n.localized("onboarding.topic.politics_business", comment: "Politics and business onboarding topic title") }
-        static var tutorialTitle: String { L10n.localized("onboarding.tutorial.title", comment: "Onboarding tutorial page title") }
-        static var tutorialSubtitle: String { L10n.localized("onboarding.tutorial.subtitle", comment: "Onboarding tutorial page subtitle") }
-        static var tutorialThemesTitle: String { L10n.localized("onboarding.tutorial.themes.title", comment: "Onboarding tutorial themes feature title") }
-        static var tutorialThemesDetail: String { L10n.localized("onboarding.tutorial.themes.detail", comment: "Onboarding tutorial themes feature detail") }
-        static var tutorialAITitle: String { L10n.localized("onboarding.tutorial.ai.title", comment: "Onboarding tutorial AI feature title") }
-        static var tutorialAIDetail: String { L10n.localized("onboarding.tutorial.ai.detail", comment: "Onboarding tutorial AI feature detail") }
-        static var tutorialStatisticsTitle: String { L10n.localized("onboarding.tutorial.statistics.title", comment: "Onboarding tutorial statistics feature title") }
-        static var tutorialStatisticsDetail: String { L10n.localized("onboarding.tutorial.statistics.detail", comment: "Onboarding tutorial statistics feature detail") }
-
-        static func progress(current: Int, total: Int) -> String {
-            L10n.formatted(
-                "onboarding.progress_format",
-                comment: "Onboarding page progress accessibility value",
-                current,
-                total
-            )
-        }
-    }
-
     enum Home {
         static var backgroundStyleSwitcher: String { L10n.localized("home.background_style.switcher", comment: "Experimental home background style switcher label") }
         static var chooseTheme: String { L10n.localized("home.choose_theme", comment: "Home screen theme selection title") }

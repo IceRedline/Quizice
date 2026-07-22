@@ -170,7 +170,6 @@ extension QuizViewController {
         themesCollectionService.isFeelingLuckyLoading = true
         themesCollectionView.isUserInteractionEnabled = false
         settingsButton.isEnabled = false
-        helpButton.isEnabled = false
         updateCollectionScrollAvailability()
 
         let requestID = UUID()
@@ -232,7 +231,6 @@ extension QuizViewController {
         feelingLuckyRequestID = nil
         themesCollectionService.isFeelingLuckyLoading = false
         settingsButton?.isEnabled = true
-        helpButton?.isEnabled = true
         if wasWaitingToLaunch, isViewLoaded {
             isQuizLaunchPending = false
             quizTransitionSourceView = nil

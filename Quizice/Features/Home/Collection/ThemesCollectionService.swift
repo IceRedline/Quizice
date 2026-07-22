@@ -56,6 +56,8 @@ final class ThemesCollectionService: NSObject, UICollectionViewDelegate, UIColle
         static let feelingLuckyButtonCornerRadius: CGFloat = 20
         static let buttonBorderWidth: CGFloat = 1
         static let aiThemeGradientBorderWidth: CGFloat = 1.6
+        static let aiThemeGradientPink = UIColor(hex: 0xFF4FD8)
+        static let aiThemeGradientBlue = UIColor(hex: 0x36A3FF)
         static let radarAIThemeGlowOpacity: Float = 0.22
         static let radarAIThemeGlowRadius: CGFloat = 10
         static let radarAIThemeGlowOffset = CGSize(width: 0, height: 0)
@@ -101,28 +103,10 @@ final class ThemesCollectionService: NSObject, UICollectionViewDelegate, UIColle
 
     private let themeRepository: ThemeRepository
     private let statisticsStore: StatisticsStore
-    private let preferredThemeIDsProvider: () -> Set<String>
     private let appearanceStore = AppAppearanceStore.shared
     private weak var observedCollectionView: UICollectionView?
 
-    private var displayedThemes: [QuizTheme] {
-        let themes = themeRepository.themes ?? []
-        let preferredThemeIDs = preferredThemeIDsProvider()
-        guard !preferredThemeIDs.isEmpty else { return themes }
-
-        return themes.enumerated()
-            .sorted { lhs, rhs in
-                let lhsIsPreferred = preferredThemeIDs.contains(lhs.element.stableID)
-                let rhsIsPreferred = preferredThemeIDs.contains(rhs.element.stableID)
-                if lhsIsPreferred != rhsIsPreferred {
-                    return lhsIsPreferred
-                }
-                return lhs.offset < rhs.offset
-            }
-            .map { $0.element }
-    }
-
-    private var themeCount: Int { displayedThemes.count }
+    private var themeCount: Int { themeRepository.themes?.count ?? 0 }
 
     private var aiThemeIndex: Int { themeCount }
 
@@ -130,16 +114,9 @@ final class ThemesCollectionService: NSObject, UICollectionViewDelegate, UIColle
 
     private var statisticsIndex: Int { themeCount + 2 }
 
-    init(
-        themeRepository: ThemeRepository = QuizFactory.shared,
-        statisticsStore: StatisticsStore = StatisticsStore(),
-        preferredThemeIDsProvider: @escaping () -> Set<String> = {
-            OnboardingProgressStore.shared.preferredThemeIDs
-        }
-    ) {
+    init(themeRepository: ThemeRepository = QuizFactory.shared, statisticsStore: StatisticsStore = StatisticsStore()) {
         self.themeRepository = themeRepository
         self.statisticsStore = statisticsStore
-        self.preferredThemeIDsProvider = preferredThemeIDsProvider
         super.init()
     }
 
@@ -153,7 +130,7 @@ final class ThemesCollectionService: NSObject, UICollectionViewDelegate, UIColle
         observedCollectionView = collectionView
         let appearance = appearanceStore.appearance(compatibleWith: collectionView.traitCollection)
 
-        if let theme = displayedThemes[safe: indexPath.item] {
+        if let theme = themeRepository.themes?[safe: indexPath.item] {
             guard let cell = collectionView.dequeueReusableCell(
                 withReuseIdentifier: ThemeCardCollectionViewCell.reuseIdentifier,
                 for: indexPath
@@ -308,7 +285,7 @@ final class ThemesCollectionService: NSObject, UICollectionViewDelegate, UIColle
             gradientBorderView = nil
         } else {
             let borderView = GradientBorderView(
-                colors: AIThemeVisualStyle.gradientColors,
+                colors: [Appearance.aiThemeGradientPink, Appearance.aiThemeGradientBlue],
                 lineWidth: Appearance.aiThemeGradientBorderWidth,
                 cornerRadius: aiThemeCornerRadius
             )
@@ -524,13 +501,14 @@ final class ThemesCollectionService: NSObject, UICollectionViewDelegate, UIColle
     private func reconfigureThemeCells(withIDs themeIDs: [String]) {
         guard
             let collectionView = observedCollectionView,
+            let themes = themeRepository.themes,
             !themeIDs.isEmpty
         else {
             return
         }
 
         let identifiers = Set(themeIDs)
-        let indexPaths = displayedThemes.enumerated().compactMap { index, theme in
+        let indexPaths = themes.enumerated().compactMap { index, theme in
             identifiers.contains(theme.stableID) ? IndexPath(item: index, section: 0) : nil
         }
         guard !indexPaths.isEmpty else { return }
