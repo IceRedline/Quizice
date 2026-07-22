@@ -45,6 +45,11 @@ The value is substituted into the `AppMetricaAPIKey` entry in `Info.plist`.
 An empty value or the placeholder leaves analytics disabled. XCTest and SwiftUI
 Previews also skip SDK activation.
 
+AppMetrica's verbose internal logging is disabled by default, including in
+Debug builds. To troubleshoot the SDK itself, set the
+`QUIZICE_APPMETRICA_VERBOSE_LOGS` environment variable to `1` in the Run scheme.
+Normal Debug runs keep only Quizice's compact per-event log.
+
 Events cover screen views, theme selection, quiz start/answers/timeouts/exit/
 completion, result actions, statistics, AI generation, and settings changes.
 Question text, answer text, AI prompts, localized error messages, and generated

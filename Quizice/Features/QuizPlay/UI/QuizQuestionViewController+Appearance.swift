@@ -9,7 +9,7 @@ extension QuizQuestionViewController {
     }
 
     func fitContentFonts() {
-        guard !isFittingContentFonts else { return }
+        guard !view.bounds.isEmpty, !isFittingContentFonts else { return }
         isFittingContentFonts = true
         defer { isFittingContentFonts = false }
 
@@ -30,6 +30,12 @@ extension QuizQuestionViewController {
             view.setNeedsLayout()
             view.layoutIfNeeded()
         }
+    }
+
+    func layoutContentIfPossible() {
+        view.setNeedsLayout()
+        guard !view.bounds.isEmpty else { return }
+        view.layoutIfNeeded()
     }
 
     @discardableResult

@@ -158,9 +158,7 @@ func colorAndDisableButtons() {
             button.setTitle(hasAnswer ? currentAnswers[index].title : L10n.Question.unavailableAnswer, for: .normal)
             button.isEnabled = hasAnswer
         }
-        view.setNeedsLayout()
-        view.layoutIfNeeded()
-        fitContentFonts()
+        layoutContentIfPossible()
     }
     
     func showQuestionUnavailable(themeName: String?, message: String) {
@@ -182,9 +180,7 @@ func colorAndDisableButtons() {
             applyAnswerFeedback(.normal, to: button, appearance: appearance)
             button.isEnabled = false
         }
-        view.setNeedsLayout()
-        view.layoutIfNeeded()
-        fitContentFonts()
+        layoutContentIfPossible()
         nextButton.isEnabled = false
     }
     
