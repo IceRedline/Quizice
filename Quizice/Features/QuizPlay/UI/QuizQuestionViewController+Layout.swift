@@ -3,13 +3,14 @@ import AVKit
 import SwiftUI
 
 extension QuizQuestionViewController {
-func configureProgrammaticSubviews(in rootView: UIView) {
+    func configureProgrammaticSubviews(in rootView: UIView) {
         configureHeaderLabels()
         configureQuestionCard()
         configureQuestionContent()
         configureTimerViews()
         configureAnswerButtons()
         configureAnswersStackView()
+        configureQuestionExplanation()
         configureActionButtons()
         addSubviews(to: rootView)
         activateLayoutConstraints(in: rootView)
@@ -24,9 +25,11 @@ func configureProgrammaticSubviews(in rootView: UIView) {
         themeNameLabel.minimumScaleFactor = Typography.themeMinimumScaleFactor
         themeNameLabel.allowsDefaultTighteningForTruncation = true
         themeNameLabel.baselineAdjustment = .alignCenters
+        themeNameLabel.setContentHuggingPriority(.required, for: .vertical)
         
         questionNumberLabel = makeLabel(font: typography.font(size: Typography.questionNumberFontSize, weight: .medium))
         questionNumberLabel.accessibilityIdentifier = AccessibilityID.questionNumberLabel
+        questionNumberLabel.setContentHuggingPriority(.required, for: .vertical)
 
 #if DEBUG
         debugQuestionSourceLabel = UILabel()
@@ -50,15 +53,33 @@ func configureProgrammaticSubviews(in rootView: UIView) {
     func configureQuestionCard() {
         questionCardView = UIView()
         questionCardView.accessibilityIdentifier = AccessibilityID.questionCardView
-        questionCardView.backgroundColor = UIColor.black.withAlphaComponent(Appearance.cardBackgroundAlpha)
-        questionCardView.layer.cornerRadius = Appearance.cardCornerRadius
-        questionCardView.layer.borderWidth = Appearance.cardBorderWidth
-        questionCardView.layer.borderColor = UIColor.white.withAlphaComponent(Appearance.cardBorderAlpha).cgColor
-        questionCardView.layer.shadowColor = UIColor.black.cgColor
-        questionCardView.layer.shadowOpacity = Appearance.cardShadowOpacity
-        questionCardView.layer.shadowRadius = Appearance.cardShadowRadius
-        questionCardView.layer.shadowOffset = Appearance.cardShadowOffset
+        questionCardView.backgroundColor = .clear
+        questionCardView.clipsToBounds = false
         questionCardView.translatesAutoresizingMaskIntoConstraints = false
+
+        questionCardShadowView = UIView()
+        questionCardShadowView.backgroundColor = .clear
+        questionCardShadowView.isUserInteractionEnabled = false
+        questionCardShadowView.translatesAutoresizingMaskIntoConstraints = false
+
+        questionCardContentView = UIView()
+        questionCardContentView.accessibilityIdentifier = AccessibilityID.questionCardContentView
+        questionCardContentView.translatesAutoresizingMaskIntoConstraints = false
+
+        questionCardView.addSubview(questionCardShadowView)
+        questionCardView.addSubview(questionCardContentView)
+
+        NSLayoutConstraint.activate([
+            questionCardShadowView.leadingAnchor.constraint(equalTo: questionCardView.leadingAnchor),
+            questionCardShadowView.trailingAnchor.constraint(equalTo: questionCardView.trailingAnchor),
+            questionCardShadowView.topAnchor.constraint(equalTo: questionCardView.topAnchor),
+            questionCardShadowView.bottomAnchor.constraint(equalTo: questionCardView.bottomAnchor),
+
+            questionCardContentView.leadingAnchor.constraint(equalTo: questionCardView.leadingAnchor),
+            questionCardContentView.trailingAnchor.constraint(equalTo: questionCardView.trailingAnchor),
+            questionCardContentView.topAnchor.constraint(equalTo: questionCardView.topAnchor),
+            questionCardContentView.bottomAnchor.constraint(equalTo: questionCardView.bottomAnchor)
+        ])
     }
     
     func configureQuestionContent() {
@@ -106,9 +127,51 @@ func configureProgrammaticSubviews(in rootView: UIView) {
         answersStackView.distribution = .fill
         answersStackView.translatesAutoresizingMaskIntoConstraints = false
     }
+
+    func configureQuestionExplanation() {
+        questionInfoButton = makeCardIconButton(
+            systemName: "info",
+            accessibilityIdentifier: AccessibilityID.questionInfoButton,
+            accessibilityLabel: L10n.Question.showExplanation
+        )
+        questionInfoButton.isHidden = true
+        questionInfoButton.addTarget(self, action: #selector(questionInfoButtonTapped), for: .touchUpInside)
+
+        questionExplanationBackButton = makeCardIconButton(
+            systemName: "chevron.left",
+            accessibilityIdentifier: AccessibilityID.questionExplanationBackButton,
+            accessibilityLabel: L10n.Question.showQuestion
+        )
+        questionExplanationBackButton.addTarget(
+            self,
+            action: #selector(questionExplanationBackButtonTapped),
+            for: .touchUpInside
+        )
+        questionExplanationBackButton.isHidden = true
+
+        questionExplanationScrollView = UIScrollView()
+        questionExplanationScrollView.accessibilityIdentifier = AccessibilityID.questionExplanationScrollView
+        questionExplanationScrollView.alwaysBounceVertical = false
+        questionExplanationScrollView.isDirectionalLockEnabled = true
+        questionExplanationScrollView.isHidden = true
+        questionExplanationScrollView.translatesAutoresizingMaskIntoConstraints = false
+
+        questionExplanationLabel = makeLabel(
+            font: currentAppearance().typography.font(
+                size: Typography.explanationFontSize,
+                weight: .regular
+            )
+        )
+        questionExplanationLabel.accessibilityIdentifier = AccessibilityID.questionExplanationLabel
+        questionExplanationLabel.numberOfLines = Typography.unlimitedNumberOfLines
+        questionExplanationLabel.lineBreakMode = .byWordWrapping
+        questionExplanationLabel.textAlignment = .center
+        questionExplanationLabel.setContentCompressionResistancePriority(.required, for: .vertical)
+    }
     
     func configureActionButtons() {
         nextButton = makeActionButton(title: L10n.Common.next, accessibilityIdentifier: AccessibilityID.nextButton, style: .primary)
+        nextButton.setContentHuggingPriority(.required, for: .vertical)
         nextButton.addTarget(self, action: #selector(nextButtonTapped), for: .touchUpInside)
 
         closeButton = UIButton(type: .system)
@@ -138,15 +201,35 @@ func configureProgrammaticSubviews(in rootView: UIView) {
 #endif
         rootSubviews.forEach(rootView.addSubview)
         scrollView.addSubview(questionCardView)
-        [timerContainerView, questionLabel, answersStackView].forEach(questionCardView.addSubview)
+        let frontContentViews: [UIView] = [
+            timerContainerView,
+            questionLabel,
+            answersStackView,
+            questionInfoButton,
+            questionExplanationBackButton,
+            questionExplanationScrollView
+        ]
+        frontContentViews.forEach {
+            questionCardContentView.addSubview($0)
+        }
         timerContainerView.addSubview(timerBar)
         questionTopSpacingGuide = UILayoutGuide()
         questionBottomSpacingGuide = UILayoutGuide()
-        questionCardView.addLayoutGuide(questionTopSpacingGuide)
-        questionCardView.addLayoutGuide(questionBottomSpacingGuide)
+        questionCardContentView.addLayoutGuide(questionTopSpacingGuide)
+        questionCardContentView.addLayoutGuide(questionBottomSpacingGuide)
+
+        questionExplanationScrollView.addSubview(questionExplanationLabel)
     }
     
     func activateLayoutConstraints(in rootView: UIView) {
+        let explanationContentHeightConstraint = questionExplanationScrollView.contentLayoutGuide.heightAnchor.constraint(
+            equalTo: questionExplanationLabel.heightAnchor,
+            constant: Layout.explanationContentVerticalInset * 2
+        )
+        explanationContentHeightConstraint.priority = UILayoutPriority(
+            rawValue: UILayoutPriority.defaultLow.rawValue - 1
+        )
+
         var debugSourceConstraints: [NSLayoutConstraint] = []
 #if DEBUG
         debugSourceConstraints = [
@@ -183,9 +266,31 @@ func configureProgrammaticSubviews(in rootView: UIView) {
             questionCardView.widthAnchor.constraint(lessThanOrEqualToConstant: Layout.maximumContentWidth),
             questionCardView.bottomAnchor.constraint(equalTo: scrollView.contentLayoutGuide.bottomAnchor, constant: -Layout.cardBottomInset),
             
-            timerContainerView.topAnchor.constraint(equalTo: questionCardView.topAnchor, constant: Layout.timerTopInset),
-            timerContainerView.leadingAnchor.constraint(equalTo: questionCardView.leadingAnchor, constant: Layout.timerHorizontalInset),
-            timerContainerView.trailingAnchor.constraint(equalTo: questionCardView.trailingAnchor, constant: -Layout.timerHorizontalInset),
+            questionInfoButton.topAnchor.constraint(
+                equalTo: questionCardContentView.topAnchor,
+                constant: Layout.cardIconButtonInset
+            ),
+            questionInfoButton.leadingAnchor.constraint(
+                equalTo: questionCardContentView.leadingAnchor,
+                constant: Layout.cardIconButtonInset
+            ),
+            questionInfoButton.widthAnchor.constraint(equalToConstant: Layout.cardIconButtonSize),
+            questionInfoButton.heightAnchor.constraint(equalToConstant: Layout.cardIconButtonSize),
+
+            questionExplanationBackButton.topAnchor.constraint(equalTo: questionInfoButton.topAnchor),
+            questionExplanationBackButton.leadingAnchor.constraint(equalTo: questionInfoButton.leadingAnchor),
+            questionExplanationBackButton.widthAnchor.constraint(equalTo: questionInfoButton.widthAnchor),
+            questionExplanationBackButton.heightAnchor.constraint(equalTo: questionInfoButton.heightAnchor),
+
+            timerContainerView.topAnchor.constraint(equalTo: questionCardContentView.topAnchor, constant: Layout.timerTopInset),
+            timerContainerView.leadingAnchor.constraint(
+                equalTo: questionCardContentView.leadingAnchor,
+                constant: Layout.timerHorizontalInset
+            ),
+            timerContainerView.trailingAnchor.constraint(
+                equalTo: questionCardContentView.trailingAnchor,
+                constant: -Layout.timerHorizontalInset
+            ),
             timerContainerView.heightAnchor.constraint(equalToConstant: Layout.timerContainerHeight),
             
             timerBar.centerYAnchor.constraint(equalTo: timerContainerView.centerYAnchor),
@@ -199,8 +304,8 @@ func configureProgrammaticSubviews(in rootView: UIView) {
                 greaterThanOrEqualToConstant: Layout.questionSurroundingMinimumSpacing
             ),
 
-            questionLabel.leadingAnchor.constraint(equalTo: questionCardView.leadingAnchor, constant: Layout.questionHorizontalInset),
-            questionLabel.trailingAnchor.constraint(equalTo: questionCardView.trailingAnchor, constant: -Layout.questionHorizontalInset),
+            questionLabel.leadingAnchor.constraint(equalTo: questionCardContentView.leadingAnchor, constant: Layout.questionHorizontalInset),
+            questionLabel.trailingAnchor.constraint(equalTo: questionCardContentView.trailingAnchor, constant: -Layout.questionHorizontalInset),
 
             questionBottomSpacingGuide.topAnchor.constraint(equalTo: questionLabel.bottomAnchor),
             questionBottomSpacingGuide.bottomAnchor.constraint(equalTo: answersStackView.topAnchor),
@@ -209,9 +314,45 @@ func configureProgrammaticSubviews(in rootView: UIView) {
             ),
             questionTopSpacingGuide.heightAnchor.constraint(equalTo: questionBottomSpacingGuide.heightAnchor),
 
-            answersStackView.leadingAnchor.constraint(equalTo: questionCardView.leadingAnchor, constant: Layout.answersHorizontalInset),
-            answersStackView.trailingAnchor.constraint(equalTo: questionCardView.trailingAnchor, constant: -Layout.answersHorizontalInset),
-            answersStackView.bottomAnchor.constraint(equalTo: questionCardView.bottomAnchor, constant: -Layout.answersBottomInset),
+            answersStackView.leadingAnchor.constraint(equalTo: questionCardContentView.leadingAnchor, constant: Layout.answersHorizontalInset),
+            answersStackView.trailingAnchor.constraint(equalTo: questionCardContentView.trailingAnchor, constant: -Layout.answersHorizontalInset),
+            answersStackView.bottomAnchor.constraint(equalTo: questionCardContentView.bottomAnchor, constant: -Layout.answersBottomInset),
+
+            questionExplanationScrollView.topAnchor.constraint(
+                equalTo: timerBar.bottomAnchor,
+                constant: Layout.questionSurroundingMinimumSpacing
+            ),
+            questionExplanationScrollView.leadingAnchor.constraint(equalTo: questionLabel.leadingAnchor),
+            questionExplanationScrollView.trailingAnchor.constraint(equalTo: questionLabel.trailingAnchor),
+            questionExplanationScrollView.bottomAnchor.constraint(
+                equalTo: answersStackView.topAnchor,
+                constant: -Layout.questionSurroundingMinimumSpacing
+            ),
+
+            questionExplanationScrollView.contentLayoutGuide.heightAnchor.constraint(
+                greaterThanOrEqualTo: questionExplanationScrollView.frameLayoutGuide.heightAnchor
+            ),
+            explanationContentHeightConstraint,
+            questionExplanationLabel.centerYAnchor.constraint(
+                equalTo: questionExplanationScrollView.contentLayoutGuide.centerYAnchor
+            ),
+            questionExplanationLabel.topAnchor.constraint(
+                greaterThanOrEqualTo: questionExplanationScrollView.contentLayoutGuide.topAnchor,
+                constant: Layout.explanationContentVerticalInset
+            ),
+            questionExplanationLabel.leadingAnchor.constraint(
+                equalTo: questionExplanationScrollView.contentLayoutGuide.leadingAnchor
+            ),
+            questionExplanationLabel.trailingAnchor.constraint(
+                equalTo: questionExplanationScrollView.contentLayoutGuide.trailingAnchor
+            ),
+            questionExplanationLabel.bottomAnchor.constraint(
+                lessThanOrEqualTo: questionExplanationScrollView.contentLayoutGuide.bottomAnchor,
+                constant: -Layout.explanationContentVerticalInset
+            ),
+            questionExplanationLabel.widthAnchor.constraint(
+                equalTo: questionExplanationScrollView.frameLayoutGuide.widthAnchor
+            ),
             
             nextButton.centerXAnchor.constraint(equalTo: rootView.centerXAnchor),
             nextButton.widthAnchor.constraint(equalToConstant: Layout.actionButtonWidth),
@@ -288,6 +429,31 @@ func configureProgrammaticSubviews(in rootView: UIView) {
         button.layer.shadowOpacity = style.shadowOpacity
         button.layer.shadowRadius = Appearance.actionButtonShadowRadius
         button.layer.shadowOffset = Appearance.actionButtonShadowOffset
+        button.translatesAutoresizingMaskIntoConstraints = false
+        button.installPressFeedback()
+        return button
+    }
+
+    func makeCardIconButton(
+        systemName: String,
+        accessibilityIdentifier: String,
+        accessibilityLabel: String
+    ) -> UIButton {
+        let button = UIButton(type: .system)
+        button.accessibilityIdentifier = accessibilityIdentifier
+        button.accessibilityLabel = accessibilityLabel
+        button.setImage(
+            UIImage(
+                systemName: systemName,
+                withConfiguration: UIImage.SymbolConfiguration(
+                    pointSize: Layout.cardIconSymbolPointSize,
+                    weight: .semibold
+                )
+            ),
+            for: .normal
+        )
+        button.layer.cornerRadius = Layout.cardIconButtonSize / 2
+        button.layer.cornerCurve = .circular
         button.translatesAutoresizingMaskIntoConstraints = false
         button.installPressFeedback()
         return button

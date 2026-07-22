@@ -186,7 +186,8 @@ class CrossScreenVisualTestCase: XCTestCase {
         let question = QuizQuestion(
             question: "Какой ответ должен подсветиться как верный?",
             answers: ["Правильный ответ", "Ошибочный ответ 1", "Ошибочный ответ 2", "Ошибочный ответ 3"],
-            correctAnswer: "Правильный ответ"
+            correctAnswer: "Правильный ответ",
+            explanation: "Правильный ответ отмечен в данных вопроса как correctAnswer."
         )
 
         return ThemeModel(

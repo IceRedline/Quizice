@@ -12,7 +12,7 @@
                     "2015"
                 ],
                 "correctAnswer": "2017",
-                "explanation": ""
+                "explanation": "La pubblicazione ufficiale di *Burger* risale al 2017, data con cui il brano compare nella sua discografia."
             },
             {
                 "question": "La migliore canzone di tutti i tempi secondo New Musical Express:",
@@ -23,7 +23,7 @@
                     "Seven Nation Army"
                 ],
                 "correctAnswer": "Smells Like Teen Spirit",
-                "explanation": ""
+                "explanation": "New Musical Express ha collocato il singolo dei Nirvana ai vertici delle sue classifiche delle più grandi canzoni di sempre."
             },
             {
                 "question": "Chi è diventato nel 2022 il primo rapper russo dichiarato agente straniero?",
@@ -34,7 +34,7 @@
                     "Noize MC"
                 ],
                 "correctAnswer": "Face",
-                "explanation": ""
+                "explanation": "Il rapper Ivan Dremin, noto come Face, fu inserito dal Ministero della giustizia russo nel registro degli agenti stranieri nell'aprile 2022."
             },
             {
                 "question": "In che anno è uscita la canzone 'Hotel California' degli Eagles?",
@@ -45,7 +45,7 @@
                     "1985"
                 ],
                 "correctAnswer": "1976",
-                "explanation": ""
+                "explanation": "*Hotel California* dà il titolo all'album degli Eagles pubblicato nel dicembre 1976; il singolo arrivò poi all'inizio del 1977."
             },
             {
                 "question": "Quale di questi singoli è stato pubblicato da The Rolling Stones nel 1965?",
@@ -56,7 +56,7 @@
                     "Stairway to Heaven"
                 ],
                 "correctAnswer": "Satisfaction",
-                "explanation": ""
+                "explanation": "*(I Can't Get No) Satisfaction* uscì nel 1965 e divenne uno dei primi grandi successi internazionali dei Rolling Stones."
             },
             {
                 "question": "Quale strumento è considerato centrale nella musica jazz?",
@@ -67,7 +67,7 @@
                     "Sassofono"
                 ],
                 "correctAnswer": "Sassofono",
-                "explanation": ""
+                "explanation": "Dal jazz tradizionale al bebop e al jazz moderno, il sassofono è uno degli strumenti solisti più riconoscibili del genere."
             },
             {
                 "question": "Quale gruppo ha pubblicato l'album 'Abbey Road'?",
@@ -78,7 +78,7 @@
                     "Pink Floyd"
                 ],
                 "correctAnswer": "The Beatles",
-                "explanation": ""
+                "explanation": "*Abbey Road* è l'album dei Beatles del 1969, celebre anche per la fotografia della band sulle strisce pedonali di Londra."
             },
             {
                 "question": "Quale genere musicale è caratterizzato da tempo veloce e ritmi energici?",
@@ -89,7 +89,7 @@
                     "Jazz"
                 ],
                 "correctAnswer": "Rock and roll",
-                "explanation": ""
+                "explanation": "Nato negli anni Cinquanta dall'incontro fra rhythm and blues, country e gospel, si distingue per il backbeat marcato e l'energia ritmica."
             },
             {
                 "question": "Quale canzone divenne un successo per Queen nel 1975?",
@@ -100,7 +100,7 @@
                     "Somebody to Love"
                 ],
                 "correctAnswer": "Bohemian Rhapsody",
-                "explanation": ""
+                "explanation": "Il singolo dei Queen uscì nel 1975 e unì ballata, hard rock e una celebre sezione operistica in un'unica composizione."
             },
             {
                 "question": "Chi scrisse il celebre brano 'Sonata al chiaro di luna'?",
@@ -111,7 +111,7 @@
                     "Johann Sebastian Bach"
                 ],
                 "correctAnswer": "Ludwig van Beethoven",
-                "explanation": ""
+                "explanation": "Beethoven compose la Sonata per pianoforte n. 14, poi soprannominata *Sonata al chiaro di luna*, all'inizio dell'Ottocento."
             },
             {
                 "question": "Quale gruppo ha scritto il successo 'Smells Like Teen Spirit'?",
@@ -122,7 +122,7 @@
                     "Red Hot Chili Peppers"
                 ],
                 "correctAnswer": "Nirvana",
-                "explanation": ""
+                "explanation": "*Smells Like Teen Spirit* fu scritta dai Nirvana, con Kurt Cobain come autore principale, e pubblicata nell'album *Nevermind* del 1991."
             },
             {
                 "question": "Quale stile musicale nacque a New York negli anni '70?",
@@ -133,7 +133,7 @@
                     "Glam rock"
                 ],
                 "correctAnswer": "Hip-hop",
-                "explanation": ""
+                "explanation": "La cultura hip-hop nacque nel Bronx negli anni Settanta attorno a DJing, MCing, breakdance e graffiti."
             },
             {
                 "question": "Quale di questi album è stato pubblicato da Michael Jackson?",
@@ -144,7 +144,7 @@
                     "Back in Black"
                 ],
                 "correctAnswer": "Thriller",
-                "explanation": ""
+                "explanation": "Pubblicato da Michael Jackson nel 1982, *Thriller* è uno degli album più venduti e influenti della storia del pop."
             },
             {
                 "question": "Quale gruppo esegue la canzone 'Hotel California'?",
@@ -155,7 +155,7 @@
                     "Pink Floyd"
                 ],
                 "correctAnswer": "The Eagles",
-                "explanation": ""
+                "explanation": "La registrazione originale di *Hotel California* è degli Eagles ed è inclusa nell'omonimo album del 1976."
             },
             {
                 "question": "Quale opera di Pëtr Il'ič Čajkovskij divenne popolare a Natale?",
@@ -166,7 +166,7 @@
                     "Manfred"
                 ],
                 "correctAnswer": "Lo schiaccianoci",
-                "explanation": ""
+                "explanation": "Il balletto di Čajkovskij racconta una storia ambientata nella vigilia di Natale, perciò viene tradizionalmente rappresentato durante le feste."
             },
             {
                 "question": "Quale cantante è noto come 'Re del pop'?",
@@ -177,7 +177,7 @@
                     "Freddie Mercury"
                 ],
                 "correctAnswer": "Michael Jackson",
-                "explanation": ""
+                "explanation": "Il titolo di Re del pop è legato alla sua enorme influenza globale, ai video innovativi e a dischi come *Off the Wall*, *Thriller* e *Bad*."
             },
             {
                 "question": "Quale canzone rese famosi gli A-ha?",
@@ -188,7 +188,7 @@
                     "Crying in the Rain"
                 ],
                 "correctAnswer": "Take On Me",
-                "explanation": ""
+                "explanation": "Il singolo degli A-ha del 1985 conquistò le classifiche mondiali anche grazie al video che mescola riprese dal vivo e animazione a matita."
             },
             {
                 "question": "Chi ha scritto la canzone 'Yesterday'?",
@@ -199,7 +199,7 @@
                     "Ringo Starr"
                 ],
                 "correctAnswer": "Paul McCartney",
-                "explanation": ""
+                "explanation": "Pur essendo accreditata alla coppia Lennon-McCartney, *Yesterday* fu composta soprattutto da Paul McCartney e registrata dai Beatles nel 1965."
             },
             {
                 "question": "Quale successo dei Pink Floyd è legato alla salute mentale?",
@@ -210,7 +210,7 @@
                     "Money"
                 ],
                 "correctAnswer": "Comfortably Numb",
-                "explanation": ""
+                "explanation": "In *The Wall* dei Pink Floyd il testo descrive l'estraniamento emotivo del protagonista, un tema legato alla sofferenza psicologica."
             },
             {
                 "question": "Quale album di Beyoncé è dedicato alla forza femminile e alla cultura afroamericana?",
@@ -221,7 +221,7 @@
                     "Dangerously in Love"
                 ],
                 "correctAnswer": "Lemonade",
-                "explanation": ""
+                "explanation": "L'album visivo di Beyoncé del 2016 affronta identità nera, memoria familiare, tradimento e resilienza femminile."
             },
             {
                 "question": "Quale musicista è noto come 'Re del rock and roll'?",
@@ -232,7 +232,7 @@
                     "Jerry Lee Lewis"
                 ],
                 "correctAnswer": "Elvis Presley",
-                "explanation": ""
+                "explanation": "Elvis fu chiamato Re del rock and roll per aver portato il genere a un pubblico di massa negli anni Cinquanta."
             },
             {
                 "question": "Quale gruppo esegue la canzone 'Sweet Child O' Mine'?",
@@ -243,7 +243,7 @@
                     "Def Leppard"
                 ],
                 "correctAnswer": "Guns N' Roses",
-                "explanation": ""
+                "explanation": "*Sweet Child o' Mine* è una canzone dei Guns N' Roses del 1987, inclusa in *Appetite for Destruction*."
             },
             {
                 "question": "Quale successo degli anni '80 inizia con 'It's nine o'clock on a Saturday'?",
@@ -254,7 +254,7 @@
                     "Sweet Child O' Mine"
                 ],
                 "correctAnswer": "Piano Man",
-                "explanation": ""
+                "explanation": "Il verso d'apertura appartiene a *Piano Man* di Billy Joel, singolo pubblicato nel 1973 e non negli anni Ottanta."
             },
             {
                 "question": "Chi ha scritto la canzone 'Imagine'?",
@@ -265,7 +265,7 @@
                     "David Bowie"
                 ],
                 "correctAnswer": "John Lennon",
-                "explanation": ""
+                "explanation": "John Lennon scrisse e pubblicò *Imagine* nel 1971 come brano solista; divenne il suo inno più celebre alla pace."
             },
             {
                 "question": "Quale album di Metallica è diventato il loro album più venduto?",
@@ -276,7 +276,7 @@
                     "And Justice for All"
                 ],
                 "correctAnswer": "Metallica (The Black Album)",
-                "explanation": ""
+                "explanation": "L'album omonimo del 1991, chiamato *The Black Album* per la copertina nera, è il disco più venduto dei Metallica."
             },
             {
                 "question": "Quale gruppo esegue la canzone 'Wonderwall'?",
@@ -287,7 +287,7 @@
                     "Oasis"
                 ],
                 "correctAnswer": "Oasis",
-                "explanation": ""
+                "explanation": "*Wonderwall* è degli Oasis e apparve nel 1995 nell'album *(What's the Story) Morning Glory?*."
             },
             {
                 "question": "Chi ha scritto la canzone 'Bohemian Rhapsody'?",
@@ -298,7 +298,7 @@
                     "John Deacon"
                 ],
                 "correctAnswer": "Freddie Mercury",
-                "explanation": ""
+                "explanation": "Freddie Mercury firmò *Bohemian Rhapsody* e ne costruì la struttura insolita, passando dal pianoforte al coro multitraccia e al rock."
             },
             {
                 "question": "Quale successo di The Prodigy è diventato un simbolo della musica elettronica degli anni '90?",
@@ -309,7 +309,7 @@
                     "No Good (Start the Dance)"
                 ],
                 "correctAnswer": "Firestarter",
-                "explanation": ""
+                "explanation": "Pubblicata dai The Prodigy nel 1996, *Firestarter* portò l'aggressività del big beat elettronico nelle classifiche internazionali."
             },
             {
                 "question": "Quale cantante è noto come 'The Boss'?",
@@ -320,7 +320,7 @@
                     "Neil Young"
                 ],
                 "correctAnswer": "Bruce Springsteen",
-                "explanation": ""
+                "explanation": "Bruce Springsteen è universalmente soprannominato *The Boss*, appellativo nato nel periodo dei suoi primi concerti con la E Street Band."
             },
             {
                 "question": "Quale gruppo esegue la canzone 'Stairway to Heaven'?",
@@ -331,7 +331,7 @@
                     "The Who"
                 ],
                 "correctAnswer": "Led Zeppelin",
-                "explanation": ""
+                "explanation": "*Stairway to Heaven* è dei Led Zeppelin e compare nel loro quarto album in studio, pubblicato nel 1971."
             },
             {
                 "question": "Quale successo di Whitney Houston è diventato la colonna sonora del film 'The Bodyguard'?",
@@ -342,7 +342,7 @@
                     "Saving All My Love for You"
                 ],
                 "correctAnswer": "I Will Always Love You",
-                "explanation": ""
+                "explanation": "Whitney Houston reinterpretò il brano di Dolly Parton per il film *The Bodyguard* del 1992, trasformandolo in un successo planetario."
             },
             {
                 "question": "Quale musicista è noto come 'Principe del pop'?",
@@ -353,7 +353,7 @@
                     "David Bowie"
                 ],
                 "correctAnswer": "Prince",
-                "explanation": ""
+                "explanation": "Prince Rogers Nelson, noto semplicemente come Prince, unì pop, funk, rock e R&B in album decisivi come *Purple Rain*."
             },
             {
                 "question": "Quale canzone dei Nirvana è diventata un simbolo del grunge?",
@@ -364,7 +364,7 @@
                     "Heart-Shaped Box"
                 ],
                 "correctAnswer": "Smells Like Teen Spirit",
-                "explanation": ""
+                "explanation": "Il singolo del 1991 rese il grunge di Seattle popolare in tutto il mondo e divenne il brano simbolo dei Nirvana."
             },
             {
                 "question": "Quale album fu il debutto degli Arctic Monkeys?",
@@ -375,7 +375,7 @@
                     "Humbug"
                 ],
                 "correctAnswer": "Whatever People Say I Am, That's What I'm Not",
-                "explanation": ""
+                "explanation": "Uscito nel 2006, è il primo album degli Arctic Monkeys e registrò vendite da record per un debutto nel Regno Unito."
             },
             {
                 "question": "Chi ha scritto la canzone 'Like a Rolling Stone'?",
@@ -386,7 +386,7 @@
                     "Bruce Springsteen"
                 ],
                 "correctAnswer": "Bob Dylan",
-                "explanation": ""
+                "explanation": "Bob Dylan scrisse *Like a Rolling Stone*, pubblicata nel 1965 e inclusa nell'album *Highway 61 Revisited*."
             },
             {
                 "question": "Quale successo di The Killers è diventato il loro brano simbolo?",
@@ -397,7 +397,7 @@
                     "Human"
                 ],
                 "correctAnswer": "Mr. Brightside",
-                "explanation": ""
+                "explanation": "Pubblicata dai The Killers nel 2003, la canzone è rimasta per anni nelle classifiche britanniche ed è il loro brano più identificativo."
             },
             {
                 "question": "Quale album dei Pink Floyd è considerato un concept album sull'assenza di Syd Barrett?",
@@ -408,7 +408,7 @@
                     "The Wall"
                 ],
                 "correctAnswer": "Wish You Were Here",
-                "explanation": ""
+                "explanation": "Il disco dei Pink Floyd del 1975 riflette sull'assenza e sul declino di Syd Barrett, ex membro e fondatore della band."
             },
             {
                 "question": "Quale cantante è noto come 'Re del soul'?",
@@ -419,7 +419,7 @@
                     "Stevie Wonder"
                 ],
                 "correctAnswer": "James Brown",
-                "explanation": ""
+                "explanation": "James Brown fu spesso chiamato *Godfather of Soul* e contribuì in modo decisivo a definire il soul con performance vocali e ritmiche travolgenti."
             },
             {
                 "question": "Quale gruppo esegue la canzone 'Don't Stop Believin'?",
@@ -430,7 +430,7 @@
                     "Foreigner"
                 ],
                 "correctAnswer": "Journey",
-                "explanation": ""
+                "explanation": "*Don't Stop Believin'* è dei Journey e fu pubblicata nel 1981 nell'album *Escape*."
             },
             {
                 "question": "Quale successo di AC/DC è diventato un inno rock?",
@@ -441,7 +441,7 @@
                     "You Shook Me All Night Long"
                 ],
                 "correctAnswer": "Highway to Hell",
-                "explanation": ""
+                "explanation": "La title track dell'album AC/DC del 1979, con Bon Scott alla voce, è diventata un classico da stadio del rock."
             },
             {
                 "question": "Quale musicista è noto come 'Re del blues'?",
@@ -452,7 +452,7 @@
                     "Howlin' Wolf"
                 ],
                 "correctAnswer": "B.B. King",
-                "explanation": ""
+                "explanation": "B.B. King è ricordato come Re del blues per il suo fraseggio di chitarra espressivo, suonato sulla sua celebre Lucille."
             },
             {
                 "question": "Quale gruppo esegue la canzone 'Another Brick in the Wall'?",
@@ -463,7 +463,7 @@
                     "Deep Purple"
                 ],
                 "correctAnswer": "Pink Floyd",
-                "explanation": ""
+                "explanation": "*Another Brick in the Wall, Part 2* è dei Pink Floyd e compare nel concept album *The Wall* del 1979."
             },
             {
                 "question": "Quale successo di The Beatles è diventato la canzone più reinterpretata della storia?",
@@ -474,7 +474,7 @@
                     "Help!"
                 ],
                 "correctAnswer": "Yesterday",
-                "explanation": ""
+                "explanation": "La ballata dei Beatles del 1965 è stata reinterpretata migliaia di volte, risultando una delle canzoni più eseguite da altri artisti."
             },
             {
                 "question": "Quale cantante è noto come 'Voce di una generazione'?",
@@ -485,7 +485,7 @@
                     "Freddie Mercury"
                 ],
                 "correctAnswer": "Bob Dylan",
-                "explanation": ""
+                "explanation": "Le sue canzoni di protesta e i suoi testi poetici degli anni Sessanta gli valsero l'immagine di voce di un'intera generazione."
             },
             {
                 "question": "Quale gruppo esegue la canzone 'Under the Bridge'?",
@@ -496,7 +496,7 @@
                     "Pearl Jam"
                 ],
                 "correctAnswer": "Red Hot Chili Peppers",
-                "explanation": ""
+                "explanation": "*Under the Bridge* è un singolo dei Red Hot Chili Peppers del 1991, tratto da *Blood Sugar Sex Magik*."
             },
             {
                 "question": "Quale successo di Queen è diventato la colonna sonora del film 'Chess Fever'?",
@@ -507,7 +507,7 @@
                     "Radio Ga Ga"
                 ],
                 "correctAnswer": "I Want to Break Free",
-                "explanation": ""
+                "explanation": "Il singolo dei Queen del 1984, scritto da John Deacon, è riconoscibile per la voce di Freddie Mercury e il celebre videoclip."
             },
             {
                 "question": "Quale musicista è noto come 'Re del pop latino'?",
@@ -518,7 +518,7 @@
                     "Marc Anthony"
                 ],
                 "correctAnswer": "Ricky Martin",
-                "explanation": ""
+                "explanation": "Con *Livin' la Vida Loca* nel 1999, Ricky Martin portò il pop latino a un'enorme diffusione nel mercato internazionale."
             },
             {
                 "question": "Quale gruppo esegue la canzone 'Zombie'?",
@@ -529,7 +529,7 @@
                     "The Cure"
                 ],
                 "correctAnswer": "The Cranberries",
-                "explanation": ""
+                "explanation": "*Zombie* è il singolo dei Cranberries del 1994 e fu scritto da Dolores O'Riordan come protesta contro la violenza del conflitto nordirlandese."
             },
             {
                 "question": "Quale successo di Coldplay è diventato una delle canzoni più popolari degli anni 2000?",
@@ -540,7 +540,7 @@
                     "Yellow"
                 ],
                 "correctAnswer": "Yellow",
-                "explanation": ""
+                "explanation": "Pubblicata nel 2000 nel debutto *Parachutes*, *Yellow* fu la prima grande hit internazionale dei Coldplay."
             },
             {
                 "question": "Quale cantante è noto come 'Re del pop punk'?",
@@ -551,7 +551,7 @@
                     "Green Day"
                 ],
                 "correctAnswer": "Billie Joe Armstrong",
-                "explanation": ""
+                "explanation": "Cantante e chitarrista dei Green Day, Armstrong è una delle figure centrali del pop punk dagli anni Novanta."
             },
             {
                 "question": "Quale gruppo esegue la canzone 'Basket Case'?",
@@ -562,7 +562,7 @@
                     "The Offspring"
                 ],
                 "correctAnswer": "Green Day",
-                "explanation": ""
+                "explanation": "*Basket Case* è un singolo dei Green Day del 1994, estratto dall'album *Dookie*."
             },
             {
                 "question": "Quale successo di Linkin Park è diventato un simbolo degli anni 2000?",
@@ -573,7 +573,7 @@
                     "What I've Done"
                 ],
                 "correctAnswer": "In the End",
-                "explanation": ""
+                "explanation": "Il brano dei Linkin Park, pubblicato nel 2000 su *Hybrid Theory*, divenne uno dei simboli del nu metal dei primi anni Duemila."
             },
             {
                 "question": "Quale musicista è noto come 'Re del funk'?",
@@ -584,7 +584,7 @@
                     "Prince"
                 ],
                 "correctAnswer": "James Brown",
-                "explanation": ""
+                "explanation": "Con brani come *Papa's Got a Brand New Bag*, James Brown impose un linguaggio musicale basato sul groove che è fondamentale per il funk."
             },
             {
                 "question": "Quale gruppo esegue la canzone 'Californication'?",
@@ -595,7 +595,7 @@
                     "Pearl Jam"
                 ],
                 "correctAnswer": "Red Hot Chili Peppers",
-                "explanation": ""
+                "explanation": "*Californication* è dei Red Hot Chili Peppers ed è la title track dell'album pubblicato nel 1999."
             },
             {
                 "question": "Quale successo di The Rolling Stones è diventato il loro brano simbolo?",
@@ -606,7 +606,7 @@
                     "Satisfaction"
                 ],
                 "correctAnswer": "Satisfaction",
-                "explanation": ""
+                "explanation": "Il riff di chitarra di Keith Richards rese *(I Can't Get No) Satisfaction* il pezzo emblematico dei Rolling Stones."
             },
             {
                 "question": "Quale cantante è noto come 'Re dell'R&B'?",
@@ -617,7 +617,7 @@
                     "Marvin Gaye"
                 ],
                 "correctAnswer": "Usher",
-                "explanation": ""
+                "explanation": "Usher dominò l'R&B commerciale dei primi anni Duemila con album come *Confessions*, da cui uscirono numerosi singoli di successo."
             },
             {
                 "question": "Quale gruppo esegue la canzone 'Smells Like Teen Spirit'?",
@@ -628,7 +628,7 @@
                     "Alice in Chains"
                 ],
                 "correctAnswer": "Nirvana",
-                "explanation": ""
+                "explanation": "La versione nota di *Smells Like Teen Spirit* è eseguita dai Nirvana, il trio di Kurt Cobain, Krist Novoselic e Dave Grohl."
             },
             {
                 "question": "Quale successo di Radiohead è diventato un brano cult degli anni '90?",
@@ -639,7 +639,7 @@
                     "No Surprises"
                 ],
                 "correctAnswer": "Creep",
-                "explanation": ""
+                "explanation": "*Creep* dei Radiohead uscì nel 1992 e, dopo una ripubblicazione, divenne un classico alternativo degli anni Novanta."
             },
             {
                 "question": "Quale musicista è noto come 'Re del reggae'?",
@@ -650,7 +650,7 @@
                     "Burning Spear"
                 ],
                 "correctAnswer": "Bob Marley",
-                "explanation": ""
+                "explanation": "Con i Wailers, Bob Marley rese il reggae giamaicano noto a livello mondiale attraverso brani come *No Woman, No Cry* e *One Love*."
             },
             {
                 "question": "Quale gruppo esegue la canzone 'Sweet Home Alabama'?",
@@ -661,7 +661,7 @@
                     "The Doobie Brothers"
                 ],
                 "correctAnswer": "Lynyrd Skynyrd",
-                "explanation": ""
+                "explanation": "*Sweet Home Alabama* è dei Lynyrd Skynyrd e fu pubblicata nel 1974 nell'album *Second Helping*."
             },
             {
                 "question": "Quale successo di U2 è diventato un simbolo degli anni '80?",
@@ -672,7 +672,7 @@
                     "One"
                 ],
                 "correctAnswer": "With or Without You",
-                "explanation": ""
+                "explanation": "Il singolo degli U2 del 1987, tratto da *The Joshua Tree*, fu il loro primo numero uno negli Stati Uniti."
             },
             {
                 "question": "Quale cantante è noto come 'Re della house'?",
@@ -683,7 +683,7 @@
                     "Daft Punk"
                 ],
                 "correctAnswer": "David Guetta",
-                "explanation": ""
+                "explanation": "David Guetta è un DJ e produttore francese che ha reso la house elettronica popolare nel mainstream con collaborazioni internazionali."
             },
             {
                 "question": "Quale gruppo esegue la canzone 'Enter Sandman'?",
@@ -694,7 +694,7 @@
                     "Anthrax"
                 ],
                 "correctAnswer": "Metallica",
-                "explanation": ""
+                "explanation": "*Enter Sandman* è il brano di apertura dell'album omonimo dei Metallica del 1991 e uno dei loro pezzi più celebri."
             },
             {
                 "question": "Quale successo di The Doors è diventato un cult?",
@@ -705,7 +705,7 @@
                     "The End"
                 ],
                 "correctAnswer": "Light My Fire",
-                "explanation": ""
+                "explanation": "I The Doors pubblicarono *Light My Fire* nel 1967; il lungo assolo d'organo di Ray Manzarek ne è un tratto distintivo."
             },
             {
                 "question": "Quale musicista è noto come 'Re dell'hip-hop'?",
@@ -716,7 +716,7 @@
                     "The Notorious B.I.G."
                 ],
                 "correctAnswer": "The Notorious B.I.G.",
-                "explanation": ""
+                "explanation": "Christopher Wallace, noto come The Notorious B.I.G., è considerato una figura capitale dell'hip-hop della East Coast degli anni Novanta."
             },
             {
                 "question": "Quale gruppo esegue la canzone 'Wonderful Tonight'?",
@@ -727,7 +727,7 @@
                     "Pink Floyd"
                 ],
                 "correctAnswer": "Eric Clapton",
-                "explanation": ""
+                "explanation": "*Wonderful Tonight* è una canzone solista di Eric Clapton, pubblicata nel 1977 nell'album *Slowhand*."
             },
             {
                 "question": "Quale successo di Oasis è diventato un simbolo del britpop?",
@@ -738,7 +738,7 @@
                     "Wonderwall"
                 ],
                 "correctAnswer": "Wonderwall",
-                "explanation": ""
+                "explanation": "Il successo degli Oasis è diventato un riferimento del britpop per la sua melodia acustica e la popolarità raggiunta a metà anni Novanta."
             },
             {
                 "question": "Quale cantante è noto come 'Re della disco'?",
@@ -749,7 +749,7 @@
                     "ABBA"
                 ],
                 "correctAnswer": "Bee Gees",
-                "explanation": ""
+                "explanation": "Le voci acute dei fratelli Gibb e la colonna sonora di *Saturday Night Fever* resero i Bee Gees un volto fondamentale dell'era disco."
             },
             {
                 "question": "Quale gruppo esegue la canzone 'November Rain'?",
@@ -760,7 +760,7 @@
                     "Def Leppard"
                 ],
                 "correctAnswer": "Guns N' Roses",
-                "explanation": ""
+                "explanation": "*November Rain* è una ballata epica dei Guns N' Roses, pubblicata nel 1991 su *Use Your Illusion I*."
             },
             {
                 "question": "Quale successo di The Police è diventato un successo mondiale?",
@@ -771,7 +771,7 @@
                     "Walking on the Moon"
                 ],
                 "correctAnswer": "Every Breath You Take",
-                "explanation": ""
+                "explanation": "Pubblicata dai The Police nel 1983 su *Synchronicity*, la canzone diventò un grande successo internazionale."
             },
             {
                 "question": "Quale musicista è noto come 'Re del jazz'?",
@@ -782,7 +782,7 @@
                     "Charlie Parker"
                 ],
                 "correctAnswer": "Louis Armstrong",
-                "explanation": ""
+                "explanation": "Tromba solista e voce inconfondibile, Louis Armstrong contribuì a trasformare il jazz in un linguaggio centrato sull'improvvisazione individuale."
             },
             {
                 "question": "Quale gruppo esegue la canzone 'Losing My Religion'?",
@@ -793,7 +793,7 @@
                     "Soundgarden"
                 ],
                 "correctAnswer": "R.E.M.",
-                "explanation": ""
+                "explanation": "*Losing My Religion* è dei R.E.M. e uscì nel 1991 nell'album *Out of Time*, con un memorabile riff di mandolino."
             },
             {
                 "question": "Quale successo di The Clash è diventato un simbolo del punk rock?",
@@ -804,7 +804,7 @@
                     "Train in Vain"
                 ],
                 "correctAnswer": "Should I Stay or Should I Go",
-                "explanation": ""
+                "explanation": "Il singolo dei The Clash, pubblicato nel 1982 su *Combat Rock*, divenne uno degli inni più noti del punk rock."
             },
             {
                 "question": "Quale cantante è noto come 'Re del country'?",
@@ -815,7 +815,7 @@
                     "Kenny Rogers"
                 ],
                 "correctAnswer": "Johnny Cash",
-                "explanation": ""
+                "explanation": "Johnny Cash è una leggenda del country, noto anche come *Man in Black* per l'immagine e i temi sociali delle sue canzoni."
             },
             {
                 "question": "Quale gruppo esegue la canzone 'Bitter Sweet Symphony'?",
@@ -826,7 +826,7 @@
                     "Radiohead"
                 ],
                 "correctAnswer": "The Verve",
-                "explanation": ""
+                "explanation": "*Bitter Sweet Symphony* è dei The Verve e fu pubblicata nel 1997 nell'album *Urban Hymns*."
             },
             {
                 "question": "Quale successo di Blur è diventato un simbolo del britpop?",
@@ -837,7 +837,7 @@
                     "Tender"
                 ],
                 "correctAnswer": "Song 2",
-                "explanation": ""
+                "explanation": "Il ritornello esplosivo con il celebre *woo-hoo* rese *Song 2* dei Blur, pubblicata nel 1997, un emblema del britpop."
             },
             {
                 "question": "Quale musicista è noto come 'Re del soul blues'?",
@@ -848,7 +848,7 @@
                     "Sam Cooke"
                 ],
                 "correctAnswer": "Ray Charles",
-                "explanation": ""
+                "explanation": "Ray Charles fuse gospel, blues, jazz e R&B in uno stile personale che gli fece guadagnare il titolo di Genio del soul."
             },
             {
                 "question": "Quale gruppo esegue la canzone 'Killer Queen'?",
@@ -859,7 +859,7 @@
                     "Elton John"
                 ],
                 "correctAnswer": "Queen",
-                "explanation": ""
+                "explanation": "*Killer Queen* è un singolo dei Queen del 1974, scritto da Freddie Mercury e incluso nell'album *Sheer Heart Attack*."
             },
             {
                 "question": "Quale successo di The Beach Boys è diventato un simbolo della surf music?",
@@ -870,7 +870,7 @@
                     "Wouldn't It Be Nice"
                 ],
                 "correctAnswer": "Surfin' USA",
-                "explanation": ""
+                "explanation": "I Beach Boys pubblicarono *Surfin' U.S.A.* nel 1963, trasformandola in un classico della musica surf californiana."
             },
             {
                 "question": "Quale cantante è noto come 'Re della musica lounge'?",
@@ -881,7 +881,7 @@
                     "Sammy Davis Jr."
                 ],
                 "correctAnswer": "Frank Sinatra",
-                "explanation": ""
+                "explanation": "Il fraseggio elegante da crooner e il repertorio con grandi orchestre resero Frank Sinatra un'icona della musica lounge e dei nightclub."
             },
             {
                 "question": "Quale gruppo esegue la canzone 'Don't Speak'?",
@@ -892,7 +892,7 @@
                     "Alanis Morissette"
                 ],
                 "correctAnswer": "No Doubt",
-                "explanation": ""
+                "explanation": "*Don't Speak* è dei No Doubt e fu uno dei singoli più ascoltati del 1996, tratto dall'album *Tragic Kingdom*."
             },
             {
                 "question": "Quale successo di The White Stripes è diventato un cult?",
@@ -903,7 +903,7 @@
                     "Icky Thump"
                 ],
                 "correctAnswer": "Seven Nation Army",
-                "explanation": ""
+                "explanation": "Il riff di *Seven Nation Army*, pubblicata dai White Stripes nel 2003 su *Elephant*, è diventato un coro ricorrente negli stadi di tutto il mondo."
             }
         ],
         "id": "music"
@@ -921,7 +921,7 @@
                     "2009"
                 ],
                 "correctAnswer": "2007",
-                "explanation": ""
+                "explanation": "Il primo iPhone è stato messo in vendita nel 2007."
             },
             {
                 "question": "Quanti core ha il processore AMD Ryzen 3990X?",
@@ -932,7 +932,7 @@
                     "12"
                 ],
                 "correctAnswer": "64",
-                "explanation": ""
+                "explanation": "Il Threadripper 3990X possiede 64 core fisici."
             },
             {
                 "question": "Gli schermi Mini-LED sono un tipo di:",
@@ -943,7 +943,7 @@
                     "AMOLED"
                 ],
                 "correctAnswer": "IPS",
-                "explanation": ""
+                "explanation": "Mini-LED indica qui la retroilluminazione a zone di un pannello IPS."
             },
             {
                 "question": "Che cos'è la memoria HBM?",
@@ -954,7 +954,7 @@
                     "AMD processor cache memory"
                 ],
                 "correctAnswer": "Memory soldered on the chip",
-                "explanation": ""
+                "explanation": "HBM impila più chip di memoria nello stesso package."
             },
             {
                 "question": "La tecnologia Thunderbolt è stata sviluppata da:",
@@ -965,7 +965,7 @@
                     "Intel and AMD"
                 ],
                 "correctAnswer": "Intel and Apple",
-                "explanation": ""
+                "explanation": "Thunderbolt nacque dalla collaborazione tra Intel e Apple."
             },
             {
                 "question": "Come si chiama la tecnologia che permette di ricaricare i dispositivi senza fili?",
@@ -976,7 +976,7 @@
                     "MagSafe"
                 ],
                 "correctAnswer": "Qi",
-                "explanation": ""
+                "explanation": "Qi è lo standard di ricarica induttiva più diffuso."
             },
             {
                 "question": "Quale processore è stato il primo a usare un processo a 5 nm?",
@@ -987,7 +987,7 @@
                     "Snapdragon 888"
                 ],
                 "correctAnswer": "Apple A14 Bionic",
-                "explanation": ""
+                "explanation": "A14 Bionic fu prodotto con processo a 5 nanometri."
             },
             {
                 "question": "Quale porta ha sostituito microUSB nella maggior parte degli smartphone moderni?",
@@ -998,7 +998,7 @@
                     "Mini-USB"
                 ],
                 "correctAnswer": "USB-C",
-                "explanation": ""
+                "explanation": "USB-C ha sostituito microUSB nei telefoni più recenti."
             },
             {
                 "question": "Come si chiama la tecnologia che aumenta temporaneamente la frequenza per migliorare le prestazioni del processore?",
@@ -1009,7 +1009,7 @@
                     "Multi-Core"
                 ],
                 "correctAnswer": "Turbo Boost",
-                "explanation": ""
+                "explanation": "Turbo Boost alza temporaneamente la frequenza quando i limiti lo consentono."
             },
             {
                 "question": "A quale azienda appartiene il marchio di schede video GeForce?",
@@ -1020,7 +1020,7 @@
                     "Qualcomm"
                 ],
                 "correctAnswer": "NVIDIA",
-                "explanation": ""
+                "explanation": "GeForce è il marchio grafico di NVIDIA."
             },
             {
                 "question": "Quale tipo di pannello è più usato nei monitor gaming per l'elevata frequenza di aggiornamento?",
@@ -1031,7 +1031,7 @@
                     "VA"
                 ],
                 "correctAnswer": "TN",
-                "explanation": ""
+                "explanation": "I pannelli TN privilegiano tempi di risposta molto rapidi."
             },
             {
                 "question": "Quale significa la abreviatura VPN?",
@@ -1042,7 +1042,7 @@
                     "Virtual Processing Network"
                 ],
                 "correctAnswer": "Virtual Private Network",
-                "explanation": ""
+                "explanation": "La sigla significa rete privata virtuale."
             },
             {
                 "question": "Quale file system viene usato sui Mac moderni?",
@@ -1053,7 +1053,7 @@
                     "FAT32"
                 ],
                 "correctAnswer": "APFS",
-                "explanation": ""
+                "explanation": "APFS è il file system moderno predefinito di macOS."
             },
             {
                 "question": "Quale di questi standard wireless offre la velocità più alta?",
@@ -1064,7 +1064,7 @@
                     "LTE"
                 ],
                 "correctAnswer": "Wi-Fi 6",
-                "explanation": ""
+                "explanation": "Wi-Fi 6 offre qui la velocità più alta fra gli standard elencati."
             },
             {
                 "question": "Quale tecnologia memorizza i dati su memoria flash senza parti mobili?",
@@ -1075,7 +1075,7 @@
                     "RAM"
                 ],
                 "correctAnswer": "SSD",
-                "explanation": ""
+                "explanation": "Un SSD conserva dati nella memoria flash senza parti mobili."
             },
             {
                 "question": "Quale linguaggio di programmazione creò Guido van Rossum?",
@@ -1086,7 +1086,7 @@
                     "Ruby"
                 ],
                 "correctAnswer": "Python",
-                "explanation": ""
+                "explanation": "Guido van Rossum ha creato Python."
             },
             {
                 "question": "Quale azienda sviluppò la prima interfaccia grafica commerciale (GUI)?",
@@ -1097,7 +1097,7 @@
                     "IBM"
                 ],
                 "correctAnswer": "Xerox",
-                "explanation": ""
+                "explanation": "Xerox PARC sviluppò interfacce grafiche pionieristiche."
             },
             {
                 "question": "Quale significa la abreviatura 'GPU'?",
@@ -1108,7 +1108,7 @@
                     "Global Processing Unit"
                 ],
                 "correctAnswer": "Graphical Processing Unit",
-                "explanation": ""
+                "explanation": "Una GPU è il processore specializzato nell’elaborazione grafica."
             },
             {
                 "question": "Quale anno è considerato l'anno di nascita di internet?",
@@ -1119,7 +1119,7 @@
                     "1975"
                 ],
                 "correctAnswer": "1983",
-                "explanation": ""
+                "explanation": "ARPANET adottò TCP/IP nel 1983."
             },
             {
                 "question": "Quale tecnologia è alla base di criptovalute come Bitcoin?",
@@ -1130,7 +1130,7 @@
                     "Servizi cloud"
                 ],
                 "correctAnswer": "Blockchain",
-                "explanation": ""
+                "explanation": "Bitcoin usa un registro distribuito di blocchi concatenati."
             },
             {
                 "question": "Come si chiama lo standard di ricarica wireless usato nella maggior parte degli smartphone?",
@@ -1141,7 +1141,7 @@
                     "WiPower"
                 ],
                 "correctAnswer": "Qi",
-                "explanation": ""
+                "explanation": "Qi è diventato lo standard comune per la ricarica wireless dei telefoni."
             },
             {
                 "question": "Quale processore fu usato nel primo Macintosh (1984)?",
@@ -1152,7 +1152,7 @@
                     "MOS 6502"
                 ],
                 "correctAnswer": "Motorola 68000",
-                "explanation": ""
+                "explanation": "Il Macintosh del 1984 usava un Motorola 68000."
             },
             {
                 "question": "Che cosa si misura in teraflop?",
@@ -1163,7 +1163,7 @@
                     "Screen refresh rate"
                 ],
                 "correctAnswer": "Processor performance",
-                "explanation": ""
+                "explanation": "Un teraflop misura mille miliardi di operazioni in virgola mobile al secondo."
             },
             {
                 "question": "Quale di questi sistemi operativi è open source?",
@@ -1174,7 +1174,7 @@
                     "iOS"
                 ],
                 "correctAnswer": "Linux",
-                "explanation": ""
+                "explanation": "Linux è aperto perché il suo codice sorgente può essere modificato."
             },
             {
                 "question": "Come si chiama la tecnologia che permette di eseguire app Windows su macOS?",
@@ -1185,7 +1185,7 @@
                     "VirtualBox"
                 ],
                 "correctAnswer": "Wine",
-                "explanation": ""
+                "explanation": "Wine riproduce le API di Windows per eseguire software compatibile su macOS."
             },
             {
                 "question": "Quale protocollo fornisce una connessione sicura ai siti web?",
@@ -1196,7 +1196,7 @@
                     "SMTP"
                 ],
                 "correctAnswer": "HTTPS",
-                "explanation": ""
+                "explanation": "HTTPS aggiunge la cifratura TLS agli scambi HTTP."
             },
             {
                 "question": "Quale dispositivo inventò Douglas Engelbart nel 1964?",
@@ -1207,7 +1207,7 @@
                     "Stampante"
                 ],
                 "correctAnswer": "Mouse del computer",
-                "explanation": ""
+                "explanation": "Douglas Engelbart realizzò la prima moderna periferica mouse."
             },
             {
                 "question": "Quale linguaggio di programmazione viene usato per creare pagine web?",
@@ -1218,7 +1218,7 @@
                     "Swift"
                 ],
                 "correctAnswer": "HTML",
-                "explanation": ""
+                "explanation": "HTML descrive la struttura di una pagina Web."
             },
             {
                 "question": "Come si chiama la memoria più veloce di un computer?",
@@ -1229,7 +1229,7 @@
                     "Memoria cache"
                 ],
                 "correctAnswer": "Memoria cache",
-                "explanation": ""
+                "explanation": "La cache è vicina alla CPU e più veloce della memoria principale."
             },
             {
                 "question": "Quale azienda sviluppò l'architettura dei processori ARM?",
@@ -1240,7 +1240,7 @@
                     "Qualcomm"
                 ],
                 "correctAnswer": "ARM Holdings",
-                "explanation": ""
+                "explanation": "ARM Holdings ha progettato l’architettura ARM concessa in licenza."
             },
             {
                 "question": "Quale standard di comunicazione viene usato per i pagamenti negli smartphone moderni?",
@@ -1251,7 +1251,7 @@
                     "LTE"
                 ],
                 "correctAnswer": "NFC",
-                "explanation": ""
+                "explanation": "NFC consente scambi a brevissima distanza, inclusi i pagamenti contactless."
             },
             {
                 "question": "Quale tipo di display non richiede retroilluminazione?",
@@ -1262,7 +1262,7 @@
                     "TN"
                 ],
                 "correctAnswer": "OLED",
-                "explanation": ""
+                "explanation": "Ogni pixel OLED emette luce propria."
             },
             {
                 "question": "Come si chiama la tecnologia che aumenta la risoluzione di un'immagine usando l'IA?",
@@ -1273,7 +1273,7 @@
                     "HDR"
                 ],
                 "correctAnswer": "DLSS",
-                "explanation": ""
+                "explanation": "DLSS ricostruisce immagini dettagliate con una rete neurale."
             },
             {
                 "question": "Quale processore viene usato nella PlayStation 5?",
@@ -1284,7 +1284,7 @@
                     "Qualcomm Snapdragon"
                 ],
                 "correctAnswer": "AMD Ryzen",
-                "explanation": ""
+                "explanation": "PS5 usa un processore AMD Zen 2 personalizzato."
             },
             {
                 "question": "Quale linguaggio di programmazione creò Microsoft nel 2000?",
@@ -1295,7 +1295,7 @@
                     "Ruby"
                 ],
                 "correctAnswer": "C#",
-                "explanation": ""
+                "explanation": "Microsoft presentò C# insieme a .NET nel 2000."
             },
             {
                 "question": "Quale tecnologia può trasferire dati fino a 40 Gbit/s?",
@@ -1306,7 +1306,7 @@
                     "Ethernet"
                 ],
                 "correctAnswer": "Thunderbolt 3",
-                "explanation": ""
+                "explanation": "Thunderbolt 3 può raggiungere 40 Gbit/s."
             },
             {
                 "question": "Come si chiama il sistema operativo degli smartwatch Apple?",
@@ -1317,7 +1317,7 @@
                     "HarmonyOS"
                 ],
                 "correctAnswer": "watchOS",
-                "explanation": ""
+                "explanation": "WatchOS è il sistema operativo progettato per Apple Watch."
             },
             {
                 "question": "Quale componente gestisce l'elaborazione grafica in un computer?",
@@ -1328,7 +1328,7 @@
                     "SSD"
                 ],
                 "correctAnswer": "GPU",
-                "explanation": ""
+                "explanation": "La GPU esegue il rendering delle immagini sullo schermo."
             },
             {
                 "question": "Quale formato di file viene usato per la stampa 3D?",
@@ -1339,7 +1339,7 @@
                     "DOCX"
                 ],
                 "correctAnswer": "STL",
-                "explanation": ""
+                "explanation": "STL rappresenta superfici triangolate per la stampa 3D."
             },
             {
                 "question": "Quale linguaggio di programmazione viene usato per creare app Android?",
@@ -1350,7 +1350,7 @@
                     "Ruby"
                 ],
                 "correctAnswer": "Kotlin",
-                "explanation": ""
+                "explanation": "Google supporta ufficialmente Kotlin per Android."
             },
             {
                 "question": "Quale azienda sviluppò il primo SSD?",
@@ -1361,7 +1361,7 @@
                     "Toshiba"
                 ],
                 "correctAnswer": "SanDisk",
-                "explanation": ""
+                "explanation": "SanDisk fu un importante pioniere dell’archiviazione flash."
             },
             {
                 "question": "Come si chiama la tecnologia che permette di usare più monitor?",
@@ -1372,7 +1372,7 @@
                     "Multi-Monitor"
                 ],
                 "correctAnswer": "Extended Desktop",
-                "explanation": ""
+                "explanation": "Il desktop esteso distribuisce le finestre su più schermi."
             },
             {
                 "question": "Quale standard Wi-Fi funziona sulla frequenza di 6 GHz?",
@@ -1383,7 +1383,7 @@
                     "Wi-Fi 7"
                 ],
                 "correctAnswer": "Wi-Fi 6E",
-                "explanation": ""
+                "explanation": "Wi-Fi 6E aggiunge la banda radio dei 6 GHz."
             },
             {
                 "question": "Quale linguaggio di markup viene usato per creare pagine web?",
@@ -1394,7 +1394,7 @@
                     "PHP"
                 ],
                 "correctAnswer": "HTML",
-                "explanation": ""
+                "explanation": "HTML definisce titoli, collegamenti e immagini di un documento."
             },
             {
                 "question": "Quale tecnologia permette di ricaricare dispositivi a distanza?",
@@ -1405,7 +1405,7 @@
                     "MagSafe"
                 ],
                 "correctAnswer": "Resonant Charging",
-                "explanation": ""
+                "explanation": "La ricarica risonante trasferisce energia tra bobine accordate."
             },
             {
                 "question": "Quale processore viene usato nell'iPhone 13?",
@@ -1416,7 +1416,7 @@
                     "Exynos 2100"
                 ],
                 "correctAnswer": "A15 Bionic",
-                "explanation": ""
+                "explanation": "IPhone 13 monta il chip A15 Bionic."
             },
             {
                 "question": "Quale linguaggio di programmazione creò Brendan Eich?",
@@ -1427,7 +1427,7 @@
                     "C#"
                 ],
                 "correctAnswer": "JavaScript",
-                "explanation": ""
+                "explanation": "Brendan Eich creò JavaScript in Netscape."
             },
             {
                 "question": "Quale azienda sviluppò il primo computer commerciale?",
@@ -1438,7 +1438,7 @@
                     "HP"
                 ],
                 "correctAnswer": "IBM",
-                "explanation": ""
+                "explanation": "IBM rappresenta qui i primi computer commerciali."
             },
             {
                 "question": "Quale standard di comunicazione viene usato nelle cuffie wireless?",
@@ -1449,7 +1449,7 @@
                     "LTE"
                 ],
                 "correctAnswer": "Bluetooth",
-                "explanation": ""
+                "explanation": "Bluetooth collega gli auricolari con poco consumo a breve distanza."
             },
             {
                 "question": "Come si chiama la tecnologia che permette di usare un computer senza mouse e tastiera?",
@@ -1460,7 +1460,7 @@
                     "Eye Tracking"
                 ],
                 "correctAnswer": "Voice Control",
-                "explanation": ""
+                "explanation": "Il controllo vocale interpreta comandi pronunciati."
             },
             {
                 "question": "Quale linguaggio di programmazione viene usato per creare app iOS?",
@@ -1471,7 +1471,7 @@
                     "Dart"
                 ],
                 "correctAnswer": "Swift",
-                "explanation": ""
+                "explanation": "Swift è il linguaggio moderno di Apple per le sue app."
             },
             {
                 "question": "Quale tecnologia permette a un computer di comprendere il linguaggio umano?",
@@ -1482,7 +1482,7 @@
                     "VR"
                 ],
                 "correctAnswer": "NLP",
-                "explanation": ""
+                "explanation": "L’elaborazione del linguaggio naturale analizza e genera lingua umana."
             },
             {
                 "question": "Quale componente del computer memorizza il BIOS?",
@@ -1493,7 +1493,7 @@
                     "ROM"
                 ],
                 "correctAnswer": "ROM",
-                "explanation": ""
+                "explanation": "Il firmware BIOS resta in memoria non volatile dopo lo spegnimento."
             },
             {
                 "question": "Quale lenguaje de programación viene usato per l'analisi dei dati?",
@@ -1504,7 +1504,7 @@
                     "Ruby"
                 ],
                 "correctAnswer": "Python",
-                "explanation": ""
+                "explanation": "Python dispone di importanti librerie per l’analisi dei dati."
             },
             {
                 "question": "Quale azienda sviluppò il primo touchscreen?",
@@ -1515,7 +1515,7 @@
                     "HP"
                 ],
                 "correctAnswer": "IBM",
-                "explanation": ""
+                "explanation": "IBM è qui associata alla storia delle interfacce tattili."
             },
             {
                 "question": "Quale standard viene usato per trasmettere video ad alta risoluzione?",
@@ -1526,7 +1526,7 @@
                     "DisplayPort"
                 ],
                 "correctAnswer": "HDMI",
-                "explanation": ""
+                "explanation": "HDMI trasporta video ad alta definizione e audio digitale."
             },
             {
                 "question": "Come si chiama la tecnologia che permette di usare un computer come telefono?",
@@ -1537,7 +1537,7 @@
                     "HTTP"
                 ],
                 "correctAnswer": "VoIP",
-                "explanation": ""
+                "explanation": "VoIP fa transitare le chiamate attraverso una rete IP."
             },
             {
                 "question": "Quale lenguaje de programación viene usato per creare igr?",
@@ -1548,7 +1548,7 @@
                     "Ruby"
                 ],
                 "correctAnswer": "C#",
-                "explanation": ""
+                "explanation": "C# è il principale linguaggio di scripting di Unity."
             },
             {
                 "question": "Quale tecnologia può aumentare la velocità di internet?",
@@ -1559,7 +1559,7 @@
                     "Tutto quanto sopra"
                 ],
                 "correctAnswer": "Tutto quanto sopra",
-                "explanation": ""
+                "explanation": "Ogni misura proposta può rimuovere un diverso collo di bottiglia della rete."
             },
             {
                 "question": "Quale componente è responsabile dell'archiviazione dei dati in un computer?",
@@ -1570,7 +1570,7 @@
                     "SSD"
                 ],
                 "correctAnswer": "SSD",
-                "explanation": ""
+                "explanation": "Un SSD archivia in modo persistente sistema, programmi e file."
             },
             {
                 "question": "Quale linguaggio di programmazione viene usato per creare siti web?",
@@ -1581,7 +1581,7 @@
                     "Tutto quanto sopra"
                 ],
                 "correctAnswer": "Tutto quanto sopra",
-                "explanation": ""
+                "explanation": "HTML, CSS e JavaScript hanno ruoli complementari in un sito."
             },
             {
                 "question": "Quale azienda sviluppò il primo laptop?",
@@ -1592,7 +1592,7 @@
                     "HP"
                 ],
                 "correctAnswer": "Toshiba",
-                "explanation": ""
+                "explanation": "Toshiba compare qui per i primi portatili diffusi su larga scala."
             },
             {
                 "question": "Quale standard viene usato per trasmettere audio di alta qualità?",
@@ -1603,7 +1603,7 @@
                     "HDMI"
                 ],
                 "correctAnswer": "HDMI",
-                "explanation": ""
+                "explanation": "HDMI trasmette anche audio digitale multicanale."
             },
             {
                 "question": "Come si chiama la tecnologia più sicura di sblocco senza password?",
@@ -1614,7 +1614,7 @@
                     "Tutto quanto sopra"
                 ],
                 "correctAnswer": "Face scanner",
-                "explanation": ""
+                "explanation": "La biometria facciale confronta i tratti del proprietario del dispositivo."
             },
             {
                 "question": "Quale linguaggio di programmazione viene usato per creare intelligenza artificiale?",
@@ -1625,7 +1625,7 @@
                     "Ruby"
                 ],
                 "correctAnswer": "Python",
-                "explanation": ""
+                "explanation": "Python è molto usato nell’IA grazie alle sue librerie."
             },
             {
                 "question": "Quale tecnologia permette di usare un computer nella realtà virtuale?",
@@ -1636,7 +1636,7 @@
                     "Tutto quanto sopra"
                 ],
                 "correctAnswer": "Tutto quanto sopra",
-                "explanation": ""
+                "explanation": "La realtà virtuale unisce visore, tracciamento e rendering della scena."
             },
             {
                 "question": "Quale componente del computer è responsabile dell'elaborazione audio?",
@@ -1647,7 +1647,7 @@
                     "SSD"
                 ],
                 "correctAnswer": "Sound Card",
-                "explanation": ""
+                "explanation": "La scheda audio elabora segnali audio in ingresso e in uscita."
             },
             {
                 "question": "Quale linguaggio di programmazione viene usato per creare applicazioni blockchain?",
@@ -1658,7 +1658,7 @@
                     "C#"
                 ],
                 "correctAnswer": "Solidity",
-                "explanation": ""
+                "explanation": "Solidity serve a scrivere smart contract per Ethereum."
             },
             {
                 "question": "Quale azienda sviluppò il primo smartphone?",
@@ -1669,7 +1669,7 @@
                     "BlackBerry"
                 ],
                 "correctAnswer": "IBM",
-                "explanation": ""
+                "explanation": "IBM Simon è spesso considerato il primo smartphone."
             },
             {
                 "question": "Quale standard viene usato per trasmettere dati solo nei dispositivi IoT?",
@@ -1680,7 +1680,7 @@
                     "Tutto quanto sopra"
                 ],
                 "correctAnswer": "Zigbee",
-                "explanation": ""
+                "explanation": "Zigbee è progettato per reti IoT a maglia a basso consumo."
             },
             {
                 "question": "Come si chiama la tecnologia che permette di usare un computer nella realtà aumentata?",
@@ -1691,7 +1691,7 @@
                     "XR"
                 ],
                 "correctAnswer": "AR",
-                "explanation": ""
+                "explanation": "La realtà aumentata sovrappone elementi digitali al mondo reale."
             },
             {
                 "question": "Quale linguaggio di programmazione viene usato per creare app mobili iOS?",
@@ -1702,7 +1702,7 @@
                     "Tutto quanto sopra"
                 ],
                 "correctAnswer": "Swift",
-                "explanation": ""
+                "explanation": "Swift serve per applicazioni native iPhone e iPad."
             },
             {
                 "question": "Quale tecnologia permette di usare un PC per il mining di criptovalute?",
@@ -1713,7 +1713,7 @@
                     "Tutto quanto sopra"
                 ],
                 "correctAnswer": "GPU mining",
-                "explanation": ""
+                "explanation": "Il mining GPU sfrutta le unità di calcolo parallele della scheda grafica."
             },
             {
                 "question": "Quale componente del computer è responsabile della connessione a internet?",
@@ -1724,7 +1724,7 @@
                     "SSD"
                 ],
                 "correctAnswer": "Network Card",
-                "explanation": ""
+                "explanation": "La scheda di rete collega il computer alla rete locale e a Internet."
             },
             {
                 "question": "Quale linguaggio di programmazione viene usato per creare sistemi operativi?",
@@ -1735,7 +1735,7 @@
                     "Ruby"
                 ],
                 "correctAnswer": "C",
-                "explanation": ""
+                "explanation": "C consente di controllare direttamente memoria e hardware nei kernel."
             },
             {
                 "question": "Quale azienda sviluppò il primo tablet?",
@@ -1746,7 +1746,7 @@
                     "HP"
                 ],
                 "correctAnswer": "Microsoft",
-                "explanation": ""
+                "explanation": "Tablet PC fu una prima iniziativa Microsoft nel settore dei tablet."
             },
             {
                 "question": "Quale standard viene usato per trasmettere dati nelle case intelligenti?",
@@ -1757,7 +1757,7 @@
                     "Tutto quanto sopra"
                 ],
                 "correctAnswer": "Tutto quanto sopra",
-                "explanation": ""
+                "explanation": "Le case intelligenti usano più standard secondo il dispositivo."
             },
             {
                 "question": "Come si chiama la tecnologia Apple per il riconoscimento facciale?",
@@ -1768,7 +1768,7 @@
                     "Tutto quanto sopra"
                 ],
                 "correctAnswer": "Face ID",
-                "explanation": ""
+                "explanation": "Face ID mappa il volto usando sensori TrueDepth."
             },
             {
                 "question": "Quale lenguaje de programación viene usato per creare igr na Unity?",
@@ -1779,7 +1779,7 @@
                     "Ruby"
                 ],
                 "correctAnswer": "C#",
-                "explanation": ""
+                "explanation": "Unity usa C# per logica e script di gioco."
             },
             {
                 "question": "Quale tecnologia permette a un computer di automatizzare attività?",
@@ -1790,7 +1790,7 @@
                     "Tutto quanto sopra"
                 ],
                 "correctAnswer": "Tutto quanto sopra",
-                "explanation": ""
+                "explanation": "Script, pianificatori e applicazioni possono automatizzare azioni ripetitive."
             },
             {
                 "question": "Quale componente del ordenador è responsabile del raffreddamento?",
@@ -1801,7 +1801,7 @@
                     "SSD"
                 ],
                 "correctAnswer": "Cooling Fan",
-                "explanation": ""
+                "explanation": "Una ventola allontana il calore attraverso il dissipatore."
             },
             {
                 "question": "Quale linguaggio di programmazione viene usato più spesso per creare applicazioni web?",
@@ -1812,7 +1812,7 @@
                     "Kotlin"
                 ],
                 "correctAnswer": "JavaScript",
-                "explanation": ""
+                "explanation": "JavaScript gira nel browser e sul server con Node.js."
             },
             {
                 "question": "Quale azienda sviluppò la prima casa intelligente?",
@@ -1823,7 +1823,7 @@
                     "Microsoft"
                 ],
                 "correctAnswer": "Microsoft",
-                "explanation": ""
+                "explanation": "Microsoft promosse primi concetti di casa connessa."
             },
             {
                 "question": "Quale standard viene usato per trasmettere dati nelle auto a guida autonoma?",
@@ -1834,7 +1834,7 @@
                     "Tutto quanto sopra"
                 ],
                 "correctAnswer": "Tutto quanto sopra",
-                "explanation": ""
+                "explanation": "I veicoli autonomi combinano diversi standard di comunicazione."
             },
             {
                 "question": "Come si chiama la tecnologia che sintetizza la voce degli assistenti vocali?",
@@ -1845,7 +1845,7 @@
                     "Tutto quanto sopra"
                 ],
                 "correctAnswer": "Tutto quanto sopra",
-                "explanation": ""
+                "explanation": "La sintesi vocale unisce analisi testuale, modelli acustici e generazione audio."
             },
             {
                 "question": "Quale linguaggio di programmazione viene usato per creare chatbot?",
@@ -1856,7 +1856,7 @@
                     "Tutto quanto sopra"
                 ],
                 "correctAnswer": "Tutto quanto sopra",
-                "explanation": ""
+                "explanation": "Un chatbot può essere realizzato in ciascuno dei linguaggi proposti a seconda del contesto."
             }
         ],
         "id": "technology"
@@ -1874,7 +1874,7 @@
                     "1811"
                 ],
                 "correctAnswer": "1801",
-                "explanation": ""
+                "explanation": "Beethoven completò la Sonata al chiaro di luna nel 1801."
             },
             {
                 "question": "Altro nome del teatro Stanislavskij e Nemirovič-Dančenko:",
@@ -1885,7 +1885,7 @@
                     "MPT"
                 ],
                 "correctAnswer": "MAMT",
-                "explanation": ""
+                "explanation": "L’enunciato storico-culturale «Altro nome del teatro Stanislavskij e Nemirovič-Dančenko» riguarda MAMT."
             },
             {
                 "question": "Quante sinfonie scrisse Čajkovskij?",
@@ -1896,7 +1896,7 @@
                     "12"
                 ],
                 "correctAnswer": "6",
-                "explanation": ""
+                "explanation": "6 È il nome identificato dall’enunciato «Quante sinfonie scrisse Čajkovskij»."
             },
             {
                 "question": "Fecha de inicio de la Segunda Guerra Mundial",
@@ -1907,7 +1907,7 @@
                     "26 iyunya 1941 g."
                 ],
                 "correctAnswer": "1 sentyabrya 1939 g.",
-                "explanation": ""
+                "explanation": "Il 1º settembre 1939 la Germania invase la Polonia, dando inizio alla Seconda guerra mondiale."
             },
             {
                 "question": "In quale città Pietro I iniziò la costruzione della flotta russa?",
@@ -1918,7 +1918,7 @@
                     "Ekaterinburg"
                 ],
                 "correctAnswer": "Voronezh",
-                "explanation": ""
+                "explanation": "L’enunciato storico-culturale «In quale città Pietro I iniziò la costruzione della flotta russa» riguarda Voronezh."
             },
             {
                 "question": "Come si chiamava il tempio più famoso dell'antica Grecia dedicato ad Atena?",
@@ -1929,7 +1929,7 @@
                     "Akropol"
                 ],
                 "correctAnswer": "Parfenon",
-                "explanation": ""
+                "explanation": "Parfenon è il nome identificato dall’enunciato «Come si chiamava il tempio più famoso dell'antica Grecia dedicato ad Atena»."
             },
             {
                 "question": "Quale artista dipinse 'L'Ultima Cena'?",
@@ -1940,7 +1940,7 @@
                     "Rembrandt"
                 ],
                 "correctAnswer": "Leonardo da Vinchi",
-                "explanation": ""
+                "explanation": "Leonardo da Vinchi è l’autore o il creatore di «L»."
             },
             {
                 "question": "Quale città antica fu sepolta dalla cenere durante l'eruzione del Vesuvio nel 79?",
@@ -1951,7 +1951,7 @@
                     "Afiny"
                 ],
                 "correctAnswer": "Pompei",
-                "explanation": ""
+                "explanation": "L’enunciato storico-culturale «Quale città antica fu sepolta dalla cenere durante l'eruzione del Vesuvio nel 79» riguarda Pompei."
             },
             {
                 "question": "Come si chiamava lo Stato esistito sul territorio russo prima della formazione della Rus'?",
@@ -1962,7 +1962,7 @@
                     "Khazarskiy kaganat"
                 ],
                 "correctAnswer": "Khazarskiy kaganat",
-                "explanation": ""
+                "explanation": "Khazarskiy kaganat è il nome identificato dall’enunciato «Come si chiamava lo Stato esistito sul territorio russo prima della formazione della Rus'»."
             },
             {
                 "question": "Chi scrisse il romanzo 'Guerra e pace'?",
@@ -1973,7 +1973,7 @@
                     "Ivan Turgenev"
                 ],
                 "correctAnswer": "Lev Tolstoy",
-                "explanation": ""
+                "explanation": "Lev Tolstoy è l’autore o il creatore di «Guerra e pace»."
             },
             {
                 "question": "Quale monumento architettonico è considerato simbolo dell'India?",
@@ -1984,7 +1984,7 @@
                     "Angkor-Vat"
                 ],
                 "correctAnswer": "Tadzh-Makhal",
-                "explanation": ""
+                "explanation": "L’enunciato storico-culturale «Quale monumento architettonico è considerato simbolo dell'India» riguarda Tadzh-Makhal."
             },
             {
                 "question": "Quale stile architettonico è caratterizzato da muri massicci, archi a tutto sesto e piccole finestre?",
@@ -1995,7 +1995,7 @@
                     "Modern"
                 ],
                 "correctAnswer": "Romanskiy",
-                "explanation": ""
+                "explanation": "Queste caratteristiche artistiche o architettoniche definiscono Romanskiy."
             },
             {
                 "question": "Quale re di Francia fu giustiziato durante la Rivoluzione francese?",
@@ -2006,7 +2006,7 @@
                     "Filipp IV"
                 ],
                 "correctAnswer": "Lyudovik XVI",
-                "explanation": ""
+                "explanation": "Il fatto storico descritto riguarda Lyudovik XVI."
             },
             {
                 "question": "Quale paese è considerato la patria dei Giochi Olimpici?",
@@ -2017,7 +2017,7 @@
                     "Francia"
                 ],
                 "correctAnswer": "Gretsiya",
-                "explanation": ""
+                "explanation": "L’enunciato storico-culturale «Quale paese è considerato la patria dei Giochi Olimpici» riguarda Gretsiya."
             },
             {
                 "question": "Come si chiamava la via commerciale che collegava Cina ed Europa nel Medioevo?",
@@ -2028,7 +2028,7 @@
                     "Spays Roud"
                 ],
                 "correctAnswer": "Shyolkovyy put",
-                "explanation": ""
+                "explanation": "Shyolkovyy put è il nome identificato dall’enunciato «Come si chiamava la via commerciale che collegava Cina ed Europa nel Medioevo»."
             },
             {
                 "question": "Chi è l'autore della scultura 'David'?",
@@ -2039,7 +2039,7 @@
                     "Roden"
                 ],
                 "correctAnswer": "Mikelandzhelo",
-                "explanation": ""
+                "explanation": "Mikelandzhelo è l’autore o il creatore di «autore della scultura »."
             },
             {
                 "question": "In che anno ebbe luogo la battaglia di Kulikovo?",
@@ -2050,7 +2050,7 @@
                     "1547"
                 ],
                 "correctAnswer": "1380",
-                "explanation": ""
+                "explanation": "Il fatto «In che anno ebbe luogo la battaglia di Kulikovo» avvenne nel 1380."
             },
             {
                 "question": "Quale zar russo riformò il calendario nel 1700?",
@@ -2061,7 +2061,7 @@
                     "Pavel I"
                 ],
                 "correctAnswer": "Pyotr I",
-                "explanation": ""
+                "explanation": "Pyotr I ebbe il ruolo indicato nella domanda."
             },
             {
                 "question": "Chi escribió 'Gore ot uma'?",
@@ -2072,7 +2072,7 @@
                     "Turgenev"
                 ],
                 "correctAnswer": "Griboedov",
-                "explanation": ""
+                "explanation": "Griboedov è l’autore o il creatore di «Gore ot uma»."
             },
             {
                 "question": "Quale artista creò 'Quadrato nero'?",
@@ -2083,7 +2083,7 @@
                     "Pikasso"
                 ],
                 "correctAnswer": "Malevich",
-                "explanation": ""
+                "explanation": "«Quadrato nero» fu realizzata da Malevich."
             },
             {
                 "question": "In quale secolo visse Shakespeare?",
@@ -2094,7 +2094,7 @@
                     "XVII"
                 ],
                 "correctAnswer": "XVI",
-                "explanation": ""
+                "explanation": "XVI è il nome identificato dall’enunciato «In quale secolo visse Shakespeare»."
             },
             {
                 "question": "Quale popolo antico costruì le piramidi di Giza?",
@@ -2105,7 +2105,7 @@
                     "Mayya"
                 ],
                 "correctAnswer": "Egiptyane",
-                "explanation": ""
+                "explanation": "La realizzazione citata è associata ai Egiptyane."
             },
             {
                 "question": "Chi fu il primo imperatore di Roma?",
@@ -2116,7 +2116,7 @@
                     "Konstantin"
                 ],
                 "correctAnswer": "Oktavian Avgust",
-                "explanation": ""
+                "explanation": "Il fatto storico descritto riguarda Oktavian Avgust."
             },
             {
                 "question": "Quale estilo pictórico rappresentava Van Gog?",
@@ -2127,7 +2127,7 @@
                     "Syurrealizm"
                 ],
                 "correctAnswer": "Postimpressionizm",
-                "explanation": ""
+                "explanation": "Queste caratteristiche artistiche o architettoniche definiscono Postimpressionizm."
             },
             {
                 "question": "Chi scrisse 'La Divina Commedia'?",
@@ -2138,7 +2138,7 @@
                     "Moler"
                 ],
                 "correctAnswer": "Dante",
-                "explanation": ""
+                "explanation": "Dante è l’autore o il creatore di «La Divina Commedia»."
             },
             {
                 "question": "Come si chiamava il primo libro stampato in Europa?",
@@ -2149,7 +2149,7 @@
                     "Odisseya"
                 ],
                 "correctAnswer": "Bibliya Gutenberga",
-                "explanation": ""
+                "explanation": "L’enunciato storico-culturale «Come si chiamava il primo libro stampato in Europa» riguarda Bibliya Gutenberga."
             },
             {
                 "question": "Chi scrisse la musica del balletto 'Il lago dei cigni'?",
@@ -2160,7 +2160,7 @@
                     "Shostakovich"
                 ],
                 "correctAnswer": "Chaykovskiy",
-                "explanation": ""
+                "explanation": "Chaykovskiy scrisse l’opera «Il lago dei cigni»."
             },
             {
                 "question": "Quale città fu la capitale dell'Impero bizantino?",
@@ -2171,7 +2171,7 @@
                     "Antiokhiya"
                 ],
                 "correctAnswer": "Konstantinopol",
-                "explanation": ""
+                "explanation": "Il centro politico di quello stato era Konstantinopol."
             },
             {
                 "question": "Chi dipinse 'L'urlo'?",
@@ -2182,7 +2182,7 @@
                     "Dali"
                 ],
                 "correctAnswer": "Munk",
-                "explanation": ""
+                "explanation": "«L» fu realizzata da Munk."
             },
             {
                 "question": "Quale scrittore russo vinse il Premio Nobel per la letteratura nel 1958?",
@@ -2193,7 +2193,7 @@
                     "Bunin"
                 ],
                 "correctAnswer": "Pasternak",
-                "explanation": ""
+                "explanation": "Pasternak ebbe il ruolo indicato nella domanda."
             },
             {
                 "question": "Quale stile architettonico è caratterizzato da archi a sesto acuto e vetrate?",
@@ -2204,7 +2204,7 @@
                     "Rokoko"
                 ],
                 "correctAnswer": "Goticheskiy",
-                "explanation": ""
+                "explanation": "I tratti indicati sono caratteristici di Goticheskiy."
             },
             {
                 "question": "Chi era la divinità principale nella mitologia greca antica?",
@@ -2215,7 +2215,7 @@
                     "Gerakl"
                 ],
                 "correctAnswer": "Zevs",
-                "explanation": ""
+                "explanation": "L’enunciato storico-culturale «Chi era la divinità principale nella mitologia greca antica» riguarda Zevs."
             },
             {
                 "question": "Quale artista russo dipinse 'Bogatyrs'?",
@@ -2226,7 +2226,7 @@
                     "Ayvazovskiy"
                 ],
                 "correctAnswer": "Vasnetsov",
-                "explanation": ""
+                "explanation": "Vasnetsov scrisse l’opera «Bogatyrs»."
             },
             {
                 "question": "In che anno fu fondata San Pietroburgo?",
@@ -2237,7 +2237,7 @@
                     "1725"
                 ],
                 "correctAnswer": "1703",
-                "explanation": ""
+                "explanation": "1703 È la data dell’evento storico citato."
             },
             {
                 "question": "Chi scrisse 'Delitto e castigo'?",
@@ -2248,7 +2248,7 @@
                     "Turgenev"
                 ],
                 "correctAnswer": "Dostoevskiy",
-                "explanation": ""
+                "explanation": "«Delitto e castigo» fu realizzata da Dostoevskiy."
             },
             {
                 "question": "Quale città antica era nota per i suoi Giardini pensili?",
@@ -2259,7 +2259,7 @@
                     "Karfagen"
                 ],
                 "correctAnswer": "Vavilon",
-                "explanation": ""
+                "explanation": "Il luogo menzionato rese celebre Vavilon."
             },
             {
                 "question": "Chi fu il primo presidente degli Stati Uniti?",
@@ -2270,7 +2270,7 @@
                     "Ruzvelt"
                 ],
                 "correctAnswer": "Vashington",
-                "explanation": ""
+                "explanation": "Il fatto storico descritto riguarda Vashington."
             },
             {
                 "question": "Quale compositore scrisse la 'Sonata al chiaro di luna'?",
@@ -2281,7 +2281,7 @@
                     "Shopen"
                 ],
                 "correctAnswer": "Betkhoven",
-                "explanation": ""
+                "explanation": "«Sonata al chiaro di luna» fu realizzata da Betkhoven."
             },
             {
                 "question": "Quale zar russo è noto come 'il Terribile'?",
@@ -2292,7 +2292,7 @@
                     "Nikolay II"
                 ],
                 "correctAnswer": "Ivan IV",
-                "explanation": ""
+                "explanation": "Il fatto storico descritto riguarda Ivan IV."
             },
             {
                 "question": "Chi scrisse 'Amleto'?",
@@ -2303,7 +2303,7 @@
                     "Dante"
                 ],
                 "correctAnswer": "Shekspir",
-                "explanation": ""
+                "explanation": "Shekspir è l’autore o il creatore di «Amleto»."
             },
             {
                 "question": "Quale città fu il centro del Rinascimento?",
@@ -2314,7 +2314,7 @@
                     "Rim"
                 ],
                 "correctAnswer": "Florentsiya",
-                "explanation": ""
+                "explanation": "L’enunciato storico-culturale «Quale città fu il centro del Rinascimento» riguarda Florentsiya."
             },
             {
                 "question": "Chi scrisse 'Evgenij Onegin'?",
@@ -2325,7 +2325,7 @@
                     "Turgenev"
                 ],
                 "correctAnswer": "Pushkin",
-                "explanation": ""
+                "explanation": "Pushkin scrisse l’opera «Evgenij Onegin»."
             },
             {
                 "question": "Quale popolo antico creò l'alfabeto?",
@@ -2336,7 +2336,7 @@
                     "Greki"
                 ],
                 "correctAnswer": "Finikiytsy",
-                "explanation": ""
+                "explanation": "I Finikiytsy crearono ciò che viene descritto nella domanda."
             },
             {
                 "question": "Chi fu l'ultimo imperatore di Russia?",
@@ -2347,7 +2347,7 @@
                     "Aleksandr III"
                 ],
                 "correctAnswer": "Nikolay II",
-                "explanation": ""
+                "explanation": "Nikolay II ebbe il ruolo indicato nella domanda."
             },
             {
                 "question": "Quale artista dipinse la 'Gioconda'?",
@@ -2358,7 +2358,7 @@
                     "Titsian"
                 ],
                 "correctAnswer": "Leonardo da Vinchi",
-                "explanation": ""
+                "explanation": "Leonardo da Vinchi scrisse l’opera «Gioconda»."
             },
             {
                 "question": "In che anno iniziò la Prima guerra mondiale?",
@@ -2369,7 +2369,7 @@
                     "1915"
                 ],
                 "correctAnswer": "1914",
-                "explanation": ""
+                "explanation": "1914 È la data dell’evento storico citato."
             },
             {
                 "question": "Chi scrisse l'Iliade e l'Odissea?",
@@ -2380,7 +2380,7 @@
                     "Ovidiy"
                 ],
                 "correctAnswer": "Gomer",
-                "explanation": ""
+                "explanation": "«Iliade e l» fu realizzata da Gomer."
             },
             {
                 "question": "Quale compositore russo scrisse 'Lo schiaccianoci'?",
@@ -2391,7 +2391,7 @@
                     "Prokofev"
                 ],
                 "correctAnswer": "Chaykovskiy",
-                "explanation": ""
+                "explanation": "Chaykovskiy scrisse l’opera «Lo schiaccianoci»."
             },
             {
                 "question": "Quale città fu la capitale dell'Antico Egitto?",
@@ -2402,7 +2402,7 @@
                     "Kair"
                 ],
                 "correctAnswer": "Memfis",
-                "explanation": ""
+                "explanation": "Memfis fu la capitale dello stato menzionato."
             },
             {
                 "question": "Chi scrisse 'Guerra e pace'?",
@@ -2413,7 +2413,7 @@
                     "Chekhov"
                 ],
                 "correctAnswer": "Tolstoy",
-                "explanation": ""
+                "explanation": "«Guerra e pace» fu realizzata da Tolstoy."
             },
             {
                 "question": "Quale stile artistico rappresentava Salvador Dalí?",
@@ -2424,7 +2424,7 @@
                     "Futurizm"
                 ],
                 "correctAnswer": "Syurrealizm",
-                "explanation": ""
+                "explanation": "I tratti indicati sono caratteristici di Syurrealizm."
             },
             {
                 "question": "In che anno ebbe luogo la Rivoluzione d'Ottobre?",
@@ -2435,7 +2435,7 @@
                     "1924"
                 ],
                 "correctAnswer": "1917",
-                "explanation": ""
+                "explanation": "1917 È la data dell’evento storico citato."
             },
             {
                 "question": "Chi scrisse 'Faust'?",
@@ -2446,7 +2446,7 @@
                     "Nitsshe"
                 ],
                 "correctAnswer": "Gyote",
-                "explanation": ""
+                "explanation": "«Faust» fu realizzata da Gyote."
             },
             {
                 "question": "Quale artista russo dipinse 'Il mattino dell'esecuzione degli strelizzi'?",
@@ -2457,7 +2457,7 @@
                     "Ayvazovskiy"
                 ],
                 "correctAnswer": "Surikov",
-                "explanation": ""
+                "explanation": "Surikov scrisse l’opera «Il mattino dell»."
             },
             {
                 "question": "Quale città antica era nota per il Colosso di Rodi?",
@@ -2468,7 +2468,7 @@
                     "Vavilon"
                 ],
                 "correctAnswer": "Rodos",
-                "explanation": ""
+                "explanation": "Rodos è legata al monumento o centro culturale citato."
             },
             {
                 "question": "Chi fu la prima persona nello spazio?",
@@ -2479,7 +2479,7 @@
                     "Leonov"
                 ],
                 "correctAnswer": "Gagarin",
-                "explanation": ""
+                "explanation": "Gagarin ebbe il ruolo indicato nella domanda."
             },
             {
                 "question": "Quale compositore scrisse la 'Sinfonia n. 5'?",
@@ -2490,7 +2490,7 @@
                     "Shubert"
                 ],
                 "correctAnswer": "Betkhoven",
-                "explanation": ""
+                "explanation": "Betkhoven scrisse l’opera «Sinfonia n. 5»."
             },
             {
                 "question": "Quale scrittore russo scrisse 'Le anime morte'?",
@@ -2501,7 +2501,7 @@
                     "Turgenev"
                 ],
                 "correctAnswer": "Gogol",
-                "explanation": ""
+                "explanation": "Gogol è l’autore o il creatore di «Le anime morte»."
             },
             {
                 "question": "Quale città fu la capitale dell'Impero ottomano?",
@@ -2512,7 +2512,7 @@
                     "Kair"
                 ],
                 "correctAnswer": "Stambul",
-                "explanation": ""
+                "explanation": "Stambul fu la capitale dello stato menzionato."
             },
             {
                 "question": "Chi scrisse 'Anna Karenina'?",
@@ -2523,7 +2523,7 @@
                     "Turgenev"
                 ],
                 "correctAnswer": "Tolstoy",
-                "explanation": ""
+                "explanation": "Tolstoy scrisse l’opera «Anna Karenina»."
             },
             {
                 "question": "Quale stile architettonico rappresenta la cattedrale di Notre-Dame?",
@@ -2534,7 +2534,7 @@
                     "Renessans"
                 ],
                 "correctAnswer": "Goticheskiy",
-                "explanation": ""
+                "explanation": "Notre-Dame è gotica, come dimostrano gli archi acuti e gli archi rampanti."
             },
             {
                 "question": "In che anno fu fondata Mosca?",
@@ -2545,7 +2545,7 @@
                     "1380"
                 ],
                 "correctAnswer": "1147",
-                "explanation": ""
+                "explanation": "Il fatto «In che anno fu fondata Mosca» avvenne nel 1147."
             },
             {
                 "question": "Chi scrisse 'Don Chisciotte'?",
@@ -2556,7 +2556,7 @@
                     "Dante"
                 ],
                 "correctAnswer": "Servantes",
-                "explanation": ""
+                "explanation": "Servantes scrisse l’opera «Don Chisciotte»."
             },
             {
                 "question": "Quale artista russo dipinse 'La nona onda'?",
@@ -2567,7 +2567,7 @@
                     "Levitan"
                 ],
                 "correctAnswer": "Ayvazovskiy",
-                "explanation": ""
+                "explanation": "Ayvazovskiy è l’autore o il creatore di «La nona onda»."
             },
             {
                 "question": "Quale città antica era nota per la Biblioteca di Alessandria?",
@@ -2578,7 +2578,7 @@
                     "Karfagen"
                 ],
                 "correctAnswer": "Aleksandriya",
-                "explanation": ""
+                "explanation": "Aleksandriya è legata al monumento o centro culturale citato."
             },
             {
                 "question": "Chi fu il primo papa?",
@@ -2589,7 +2589,7 @@
                     "Lev"
                 ],
                 "correctAnswer": "Pyotr",
-                "explanation": ""
+                "explanation": "Pyotr ebbe il ruolo indicato nella domanda."
             },
             {
                 "question": "Quale compositore scrisse 'Le quattro stagioni'?",
@@ -2600,7 +2600,7 @@
                     "Betkhoven"
                 ],
                 "correctAnswer": "Vivaldi",
-                "explanation": ""
+                "explanation": "Vivaldi è l’autore o il creatore di «Le quattro stagioni»."
             },
             {
                 "question": "Quale scrittore russo scrisse 'Padri e figli'?",
@@ -2611,7 +2611,7 @@
                     "Chekhov"
                 ],
                 "correctAnswer": "Turgenev",
-                "explanation": ""
+                "explanation": "«Padri e figli» fu realizzata da Turgenev."
             },
             {
                 "question": "Quale città fu la capitale di Bisanzio?",
@@ -2622,7 +2622,7 @@
                     "Antiokhiya"
                 ],
                 "correctAnswer": "Konstantinopol",
-                "explanation": ""
+                "explanation": "Konstantinopol fu la capitale dello stato menzionato."
             },
             {
                 "question": "Chi scrisse 'L'ispettore generale'?",
@@ -2633,7 +2633,7 @@
                     "Chekhov"
                 ],
                 "correctAnswer": "Gogol",
-                "explanation": ""
+                "explanation": "Gogol è l’autore o il creatore di «L»."
             },
             {
                 "question": "Quale estilo pictórico rappresentava Klod Mone?",
@@ -2644,7 +2644,7 @@
                     "Syurrealizm"
                 ],
                 "correctAnswer": "Impressionizm",
-                "explanation": ""
+                "explanation": "I tratti indicati sono caratteristici di Impressionizm."
             },
             {
                 "question": "In che anno ebbe luogo la battaglia di Borodino?",
@@ -2655,7 +2655,7 @@
                     "1799"
                 ],
                 "correctAnswer": "1812",
-                "explanation": ""
+                "explanation": "Le fonti datano «In che anno ebbe luogo la battaglia di Borodino» al 1812."
             },
             {
                 "question": "Chi scrisse 'I fratelli Karamazov'?",
@@ -2666,7 +2666,7 @@
                     "Chekhov"
                 ],
                 "correctAnswer": "Dostoevskiy",
-                "explanation": ""
+                "explanation": "Dostoevskiy è l’autore o il creatore di «I fratelli Karamazov»."
             },
             {
                 "question": "Quale artista russo dipinse 'I battellieri del Volga'?",
@@ -2677,7 +2677,7 @@
                     "Levitan"
                 ],
                 "correctAnswer": "Repin",
-                "explanation": ""
+                "explanation": "«I battellieri del Volga» fu realizzata da Repin."
             },
             {
                 "question": "Quale città antica era nota per il Tempio di Artemide?",
@@ -2688,7 +2688,7 @@
                     "Vavilon"
                 ],
                 "correctAnswer": "Efes",
-                "explanation": ""
+                "explanation": "Efes è legata al monumento o centro culturale citato."
             },
             {
                 "question": "Chi fu il primo re d'Inghilterra?",
@@ -2699,7 +2699,7 @@
                     "Richard Lvinoe Serdtse"
                 ],
                 "correctAnswer": "Alfred Velikiy",
-                "explanation": ""
+                "explanation": "Alfred Velikiy ebbe il ruolo indicato nella domanda."
             },
             {
                 "question": "Quale compositore scrisse il 'Requiem'?",
@@ -2710,7 +2710,7 @@
                     "Shubert"
                 ],
                 "correctAnswer": "Motsart",
-                "explanation": ""
+                "explanation": "«Requiem» fu realizzata da Motsart."
             },
             {
                 "question": "Quale scrittore russo scrisse 'Il giardino dei ciliegi'?",
@@ -2721,7 +2721,7 @@
                     "Turgenev"
                 ],
                 "correctAnswer": "Chekhov",
-                "explanation": ""
+                "explanation": "Chekhov scrisse l’opera «Il giardino dei ciliegi»."
             },
             {
                 "question": "Quale città fu la capitale dell'antica Cina?",
@@ -2732,7 +2732,7 @@
                     "Nankin"
                 ],
                 "correctAnswer": "Sian",
-                "explanation": ""
+                "explanation": "Sian fu la capitale dello stato menzionato."
             },
             {
                 "question": "Chi scrisse 'Un eroe del nostro tempo'?",
@@ -2743,7 +2743,7 @@
                     "Turgenev"
                 ],
                 "correctAnswer": "Lermontov",
-                "explanation": ""
+                "explanation": "«Un eroe del nostro tempo» fu realizzata da Lermontov."
             },
             {
                 "question": "Quale stile architettonico rappresenta il Taj Mahal?",
@@ -2754,7 +2754,7 @@
                     "Renessans"
                 ],
                 "correctAnswer": "Mogolskaya arkhitektura",
-                "explanation": ""
+                "explanation": "I tratti indicati sono caratteristici di Mogolskaya arkhitektura."
             },
             {
                 "question": "In che anno fu firmata la Magna Carta?",
@@ -2765,7 +2765,7 @@
                     "1485"
                 ],
                 "correctAnswer": "1215",
-                "explanation": ""
+                "explanation": "1215 È la data dell’evento storico citato."
             },
             {
                 "question": "Chi scrisse 'Il Decameron'?",
@@ -2776,7 +2776,7 @@
                     "Moler"
                 ],
                 "correctAnswer": "Bokkachcho",
-                "explanation": ""
+                "explanation": "«Il Decameron» fu realizzata da Bokkachcho."
             },
             {
                 "question": "Quale artista russo dipinse 'Sono arrivati i corvi'?",
@@ -2787,7 +2787,7 @@
                     "Repin"
                 ],
                 "correctAnswer": "Savrasov",
-                "explanation": ""
+                "explanation": "Savrasov scrisse l’opera «Sono arrivati i corvi»."
             },
             {
                 "question": "Quale città antica era nota per il Mausoleo di Alicarnasso?",
@@ -2798,7 +2798,7 @@
                     "Vavilon"
                 ],
                 "correctAnswer": "Galikarnas",
-                "explanation": ""
+                "explanation": "Galikarnas è legata al monumento o centro culturale citato."
             },
             {
                 "question": "Chi fu il primo imperatore della Cina?",
@@ -2809,7 +2809,7 @@
                     "Sun-tszy"
                 ],
                 "correctAnswer": "Tsin Shikhuandi",
-                "explanation": ""
+                "explanation": "Tsin Shikhuandi ebbe il ruolo indicato nella domanda."
             },
             {
                 "question": "Quale compositore scrisse 'Il lago dei cigni'?",
@@ -2820,7 +2820,7 @@
                     "Prokofev"
                 ],
                 "correctAnswer": "Chaykovskiy",
-                "explanation": ""
+                "explanation": "Čajkovskij compose la partitura del balletto Il lago dei cigni, rappresentato per la prima volta nel 1877."
             },
             {
                 "question": "Quale scrittore russo scrisse 'La figlia del capitano'?",
@@ -2831,7 +2831,7 @@
                     "Turgenev"
                 ],
                 "correctAnswer": "Pushkin",
-                "explanation": ""
+                "explanation": "Pushkin è l’autore o il creatore di «La figlia del capitano»."
             },
             {
                 "question": "Quale città fu la capitale dell'antica Roma?",
@@ -2842,7 +2842,7 @@
                     "Karfagen"
                 ],
                 "correctAnswer": "Rim",
-                "explanation": ""
+                "explanation": "Rim fu la capitale dello stato menzionato."
             },
             {
                 "question": "Chi scrisse 'Mtsyri'?",
@@ -2853,7 +2853,7 @@
                     "Turgenev"
                 ],
                 "correctAnswer": "Lermontov",
-                "explanation": ""
+                "explanation": "Lermontov scrisse l’opera «Mtsyri»."
             },
             {
                 "question": "Quale stile pittorico rappresentava Pablo Picasso?",
@@ -2864,7 +2864,7 @@
                     "Futurizm"
                 ],
                 "correctAnswer": "Kubizm",
-                "explanation": ""
+                "explanation": "I tratti indicati sono caratteristici di Kubizm."
             },
             {
                 "question": "In che anno ebbe luogo la Rivoluzione francese?",
@@ -2875,7 +2875,7 @@
                     "1812"
                 ],
                 "correctAnswer": "1789",
-                "explanation": ""
+                "explanation": "Il fatto «In che anno ebbe luogo la Rivoluzione francese» avvenne nel 1789."
             },
             {
                 "question": "Chi scrisse 'La Divina Commedia'?",
@@ -2886,7 +2886,7 @@
                     "Moler"
                 ],
                 "correctAnswer": "Dante",
-                "explanation": ""
+                "explanation": "Dante scrisse l’opera «La Divina Commedia»."
             },
             {
                 "question": "Quale artista russo dipinse 'Mattina in una pineta'?",
@@ -2897,7 +2897,7 @@
                     "Repin"
                 ],
                 "correctAnswer": "Shishkin",
-                "explanation": ""
+                "explanation": "Shishkin è l’autore o il creatore di «Mattina in una pineta»."
             },
             {
                 "question": "Quale città antica era nota per la Statua di Zeus a Olimpia?",
@@ -2908,7 +2908,7 @@
                     "Vavilon"
                 ],
                 "correctAnswer": "Olimpiya",
-                "explanation": ""
+                "explanation": "Olimpiya è legata al monumento o centro culturale citato."
             },
             {
                 "question": "Chi fu il primo presidente della Francia?",
@@ -2919,7 +2919,7 @@
                     "Lui Napoleon Bonapart"
                 ],
                 "correctAnswer": "Lui Napoleon Bonapart",
-                "explanation": ""
+                "explanation": "Lui Napoleon Bonapart ebbe il ruolo indicato nella domanda."
             },
             {
                 "question": "Quale compositore scrisse 'Carmen'?",
@@ -2930,7 +2930,7 @@
                     "Motsart"
                 ],
                 "correctAnswer": "Bize",
-                "explanation": ""
+                "explanation": "Bize è l’autore o il creatore di «Carmen»."
             },
             {
                 "question": "Quale scrittore russo scrisse 'Oblomov'?",
@@ -2941,7 +2941,7 @@
                     "Tolstoy"
                 ],
                 "correctAnswer": "Goncharov",
-                "explanation": ""
+                "explanation": "«Oblomov» fu realizzata da Goncharov."
             },
             {
                 "question": "Quale città fu la capitale dell'antica Persia?",
@@ -2952,7 +2952,7 @@
                     "Pasargady"
                 ],
                 "correctAnswer": "Persepol",
-                "explanation": ""
+                "explanation": "Persepol fu la capitale dello stato menzionato."
             },
             {
                 "question": "Chi scrisse 'Il canto della schiera di Igor'?",
@@ -2963,7 +2963,7 @@
                     "Gogol"
                 ],
                 "correctAnswer": "Neizvestnyy avtor",
-                "explanation": ""
+                "explanation": "Neizvestnyy avtor è l’oggetto, l’evento o il concetto nominato nell’enunciato «Chi scrisse 'Il canto della schiera di Igor'»."
             },
             {
                 "question": "Quale stile architettonico rappresenta la Basilica di San Pietro a Roma?",
@@ -2974,7 +2974,7 @@
                     "Romanskiy"
                 ],
                 "correctAnswer": "Barokko",
-                "explanation": ""
+                "explanation": "I tratti indicati sono caratteristici di Barokko."
             }
         ],
         "id": "history_culture"
@@ -2992,7 +2992,7 @@
                     "1991"
                 ],
                 "correctAnswer": "1999",
-                "explanation": ""
+                "explanation": "È l'anno in cui Boris El'cin nominò Vladimir Putin presidente del governo e, il 31 dicembre, questi assunse anche la presidenza ad interim."
             },
             {
                 "question": "Di quale paese è l'azienda BORK?",
@@ -3003,7 +3003,7 @@
                     "America"
                 ],
                 "correctAnswer": "Russia",
-                "explanation": ""
+                "explanation": "È il paese d'origine di BORK: il marchio di elettrodomestici fu creato e sviluppato per il mercato russo."
             },
             {
                 "question": "Quanti países forman parte de la ONU?",
@@ -3014,7 +3014,7 @@
                     "126"
                 ],
                 "correctAnswer": "193",
-                "explanation": ""
+                "explanation": "Sono gli Stati membri delle Nazioni Unite; questo totale non include gli Stati osservatori come la Santa Sede e la Palestina."
             },
             {
                 "question": "Qual è la specializzazione di WeWork?",
@@ -3025,7 +3025,7 @@
                     "Development"
                 ],
                 "correctAnswer": "Immobili commerciali",
-                "explanation": ""
+                "explanation": "Descrive l'attività di WeWork, che affitta e gestisce spazi di lavoro condivisi in edifici per uffici."
             },
             {
                 "question": "Chi possedeva la quota principale di Yukos dal 1995 al 2003?",
@@ -3036,7 +3036,7 @@
                     "B. Berezovskiy"
                 ],
                 "correctAnswer": "M. Khodorkovskiy",
-                "explanation": ""
+                "explanation": "Controllava la partecipazione dominante di Yukos attraverso il gruppo Menatep prima dell'arresto e dello smembramento della compagnia."
             },
             {
                 "question": "Quale termine economico indica la diminuzione del potere d'acquisto del denaro a causa dell'aumento generale dei prezzi?",
@@ -3047,7 +3047,7 @@
                     "Stagflazione"
                 ],
                 "correctAnswer": "Inflazione",
-                "explanation": ""
+                "explanation": "Indica l'aumento generalizzato e persistente dei prezzi, che fa diminuire ciò che si può comprare con la stessa somma."
             },
             {
                 "question": "Quale paese fu il primo nella storia a dichiarare default sui propri obblighi esterni?",
@@ -3058,7 +3058,7 @@
                     "Germania"
                 ],
                 "correctAnswer": "Spagna",
-                "explanation": ""
+                "explanation": "Sospese i pagamenti ai creditori esteri sotto Filippo II nel 1557, episodio spesso citato come il primo default sovrano della storia moderna."
             },
             {
                 "question": "Quale concetto fiscale prevede che i ricchi paghino una percentuale più alta del reddito rispetto ai poveri?",
@@ -3069,7 +3069,7 @@
                     "Indirect taxation"
                 ],
                 "correctAnswer": "Tassazione progressiva",
-                "explanation": ""
+                "explanation": "Applica aliquote che crescono con il reddito: per questo il peso percentuale aumenta per i contribuenti più ricchi."
             },
             {
                 "question": "Quale banca è stata riconosciuta come la più grande banca d'investimento al mondo per attività?",
@@ -3080,7 +3080,7 @@
                     "Bank of America"
                 ],
                 "correctAnswer": "JPMorgan Chase",
-                "explanation": ""
+                "explanation": "È regolarmente classificata tra le maggiori banche d'investimento mondiali per attività e ricavi nelle operazioni finanziarie."
             },
             {
                 "question": "Quale società fu la prima nella storia a raggiungere una capitalizzazione di mercato di 1 trilione di dollari?",
@@ -3091,7 +3091,7 @@
                     "Saudi Aramco"
                 ],
                 "correctAnswer": "Apple",
-                "explanation": ""
+                "explanation": "Superò per prima la soglia di 1.000 miliardi di dollari di valore di mercato, nell'agosto 2018."
             },
             {
                 "question": "Quale paese del G7 non fa parte del Consiglio di sicurezza dell'ONU?",
@@ -3102,7 +3102,7 @@
                     "Italia"
                 ],
                 "correctAnswer": "Canada",
-                "explanation": ""
+                "explanation": "Appartiene al G7 ma non occupa alcun seggio permanente nel Consiglio di sicurezza, a differenza di Francia e Regno Unito."
             },
             {
                 "question": "Come si chiama la situazione macroeconomica in cui disoccupazione e inflazione aumentano contemporaneamente?",
@@ -3113,7 +3113,7 @@
                     "Crisi di liquidità"
                 ],
                 "correctAnswer": "Stagflazione",
-                "explanation": ""
+                "explanation": "Combina stagnazione economica, inflazione elevata e alta disoccupazione, fenomeni che normalmente non crescono insieme."
             },
             {
                 "question": "In che anno Saudi Aramco ha realizzato la più grande IPO della storia?",
@@ -3124,7 +3124,7 @@
                     "2017"
                 ],
                 "correctAnswer": "2019",
-                "explanation": ""
+                "explanation": "Fu l'anno della quotazione di Saudi Aramco a Riad, che raccolse circa 29,4 miliardi di dollari e stabilì il record per un'IPO."
             },
             {
                 "question": "Chi è l'autore del concetto di 'mano invisibile del mercato'?",
@@ -3135,7 +3135,7 @@
                     "Milton Friedman"
                 ],
                 "correctAnswer": "Adam Smith",
-                "explanation": ""
+                "explanation": "Formulò la metafora della «mano invisibile» per spiegare come gli interessi individuali possano contribuire al coordinamento del mercato."
             },
             {
                 "question": "Quale evento portò alla crisi finanziaria globale del 2008?",
@@ -3146,7 +3146,7 @@
                     "Oil price collapse"
                 ],
                 "correctAnswer": "US subprime mortgage crisis",
-                "explanation": ""
+                "explanation": "Nacque dai mutui ad alto rischio statunitensi cartolarizzati; le insolvenze contagiarono banche e mercati globali."
             },
             {
                 "question": "Quale valuta si usa in Svizzera?",
@@ -3157,7 +3157,7 @@
                     "Pound sterling"
                 ],
                 "correctAnswer": "Swiss franc",
-                "explanation": ""
+                "explanation": "È la denominazione internazionale del franco svizzero, la moneta nazionale della Confederazione Svizzera."
             },
             {
                 "question": "Quale imprenditore russo ha fondato Wildberries?",
@@ -3168,7 +3168,7 @@
                     "Arkady Volozh"
                 ],
                 "correctAnswer": "Tatyana Bakalchuk",
-                "explanation": ""
+                "explanation": "Fondò Wildberries nel 2004, avviandola come negozio online di abbigliamento prima della sua espansione nell'e-commerce."
             },
             {
                 "question": "Come si chiama l'organizzazione internazionale che monitora il livello di corruzione nei paesi?",
@@ -3179,7 +3179,7 @@
                     "OECD"
                 ],
                 "correctAnswer": "Transparency International",
-                "explanation": ""
+                "explanation": "Pubblica il Corruption Perceptions Index, uno dei principali indicatori comparativi della corruzione percepita nei paesi."
             },
             {
                 "question": "Quale significa la abreviatura IPO?",
@@ -3190,7 +3190,7 @@
                     "Online sole proprietor"
                 ],
                 "correctAnswer": "Offerta pubblica iniziale",
-                "explanation": ""
+                "explanation": "È il significato di IPO: è la prima vendita pubblica di azioni con cui una società si quota sul mercato."
             },
             {
                 "question": "Quale gruppo automobilistico possiede il marchio Lamborghini?",
@@ -3201,7 +3201,7 @@
                     "BMW"
                 ],
                 "correctAnswer": "Volkswagen",
-                "explanation": ""
+                "explanation": "Controlla Lamborghini tramite la sua controllata Audi, che acquistò il marchio italiano nel 1998."
             },
             {
                 "question": "Chi è il fondatore del fondo d'investimento Berkshire Hathaway?",
@@ -3212,7 +3212,7 @@
                     "Benjamin Graham"
                 ],
                 "correctAnswer": "Warren Buffett",
-                "explanation": ""
+                "explanation": "Trasformò Berkshire Hathaway nella sua holding d'investimento dopo averne assunto il controllo negli anni Sessanta."
             },
             {
                 "question": "Quale delle seguenti opzioni non è una criptovaluta?",
@@ -3223,7 +3223,7 @@
                     "VISA"
                 ],
                 "correctAnswer": "VISA",
-                "explanation": ""
+                "explanation": "È una rete globale di pagamenti con carte, non un token crittografico registrato su una blockchain."
             },
             {
                 "question": "Che cos'è una zona offshore?",
@@ -3234,7 +3234,7 @@
                     "Closed economic zone"
                 ],
                 "correctAnswer": "Region with preferential taxation",
-                "explanation": ""
+                "explanation": "Definisce una giurisdizione offshore, caratterizzata da regimi fiscali agevolati per soggetti non residenti."
             },
             {
                 "question": "Chi ha scritto il libro 'Il capitale nel XXI secolo'?",
@@ -3245,7 +3245,7 @@
                     "Nuriel Rubini"
                 ],
                 "correctAnswer": "Thomas Piketty",
-                "explanation": ""
+                "explanation": "È l'economista francese autore di *Il capitale nel XXI secolo*, pubblicato originariamente nel 2013."
             },
             {
                 "question": "Quale imprenditore guidò Tesla dopo l'uscita di Martin Eberhard?",
@@ -3256,7 +3256,7 @@
                     "Jeff Bezos"
                 ],
                 "correctAnswer": "Elon Musk",
-                "explanation": ""
+                "explanation": "Assunse la guida operativa di Tesla come CEO nel 2008, dopo il periodo dei fondatori Martin Eberhard e Marc Tarpenning."
             },
             {
                 "question": "Quale azienda fu fondata come libreria online?",
@@ -3267,7 +3267,7 @@
                     "AliExpress"
                 ],
                 "correctAnswer": "Amazon",
-                "explanation": ""
+                "explanation": "Fu lanciata da Jeff Bezos nel 1994 come libreria online, per poi estendere il catalogo a quasi ogni categoria di prodotti."
             },
             {
                 "question": "In quale paese fu fondata Nestlé?",
@@ -3278,7 +3278,7 @@
                     "Germania"
                 ],
                 "correctAnswer": "Svizzera",
-                "explanation": ""
+                "explanation": "È il paese in cui Henri Nestlé fondò l'impresa a Vevey nel 1866."
             },
             {
                 "question": "Quale leader mondiale è stato sottoposto a impeachment due volte?",
@@ -3289,7 +3289,7 @@
                     "Boris Johnson"
                 ],
                 "correctAnswer": "Donald Trump",
-                "explanation": ""
+                "explanation": "Fu messo in stato d'accusa dalla Camera dei rappresentanti nel 2019 e di nuovo nel 2021."
             },
             {
                 "question": "Quale imprenditore comprò Twitter nel 2022?",
@@ -3300,7 +3300,7 @@
                     "Peter Thiel"
                 ],
                 "correctAnswer": "Elon Musk",
-                "explanation": ""
+                "explanation": "Completò l'acquisizione di Twitter nell'ottobre 2022 per circa 44 miliardi di dollari."
             },
             {
                 "question": "Che cosa sono le sanzioni nella politica internazionale?",
@@ -3311,7 +3311,7 @@
                     "Electoral reform"
                 ],
                 "correctAnswer": "Pressure measures against a country",
-                "explanation": ""
+                "explanation": "Descrive le sanzioni: restrizioni economiche, diplomatiche o finanziarie usate per influenzare il comportamento di uno Stato."
             },
             {
                 "question": "Come si chiama il sistema russo di controllo della spesa pubblica e lotta alla corruzione?",
@@ -3322,7 +3322,7 @@
                     "Rosfinmonitoring"
                 ],
                 "correctAnswer": "Federal Treasury",
-                "explanation": ""
+                "explanation": "Gestisce l'esecuzione dei bilanci pubblici russi e controlla i flussi di denaro statale, funzioni utili alla trasparenza della spesa."
             },
             {
                 "question": "Quale azienda è stata la prima al mondo per capitalizzazione di mercato nel 2023?",
@@ -3333,7 +3333,7 @@
                     "Tesla"
                 ],
                 "correctAnswer": "Apple",
-                "explanation": ""
+                "explanation": "Chiuse il 2023 ai vertici mondiali per capitalizzazione, sostenuta dal valore delle sue azioni sul mercato statunitense."
             },
             {
                 "question": "Quale banca russa fu la prima a essere esclusa da SWIFT nel 2022?",
@@ -3344,7 +3344,7 @@
                     "Alfa-Bank"
                 ],
                 "correctAnswer": "Sberbank",
-                "explanation": ""
+                "explanation": "Fu colpita dalle restrizioni dell'UE su SWIFT nel 2022, nell'ambito delle misure finanziarie adottate dopo l'invasione dell'Ucraina."
             },
             {
                 "question": "Chi è diventato il più giovane miliardario self-made della storia?",
@@ -3355,7 +3355,7 @@
                     "Evan Spiegel"
                 ],
                 "correctAnswer": "Kylie Jenner",
-                "explanation": ""
+                "explanation": "Fu indicata da Forbes come la più giovane miliardaria «self-made» nel 2019, titolo che suscitò anche un dibattito sul termine."
             },
             {
                 "question": "Come si chiama la politica che vieta l'importazione di determinati beni in un paese?",
@@ -3366,7 +3366,7 @@
                     "Sanctions"
                 ],
                 "correctAnswer": "Embargo",
-                "explanation": ""
+                "explanation": "È il divieto, totale o parziale, di importare o commerciare determinati beni con un paese."
             },
             {
                 "question": "Quale paese fu il primo a introdurre il reddito di base universale a livello nazionale?",
@@ -3377,7 +3377,7 @@
                     "Netherlands"
                 ],
                 "correctAnswer": "Finlandia",
-                "explanation": ""
+                "explanation": "Avviò nel 2017 un esperimento nazionale di reddito di base rivolto a un campione di disoccupati, il più noto programma nazionale tra le opzioni."
             },
             {
                 "question": "Quale oligarca russo fu arrestato a Londra nel 2023?",
@@ -3388,7 +3388,7 @@
                     "Viktor Vekselberg"
                 ],
                 "correctAnswer": "Mikhail Fridman",
-                "explanation": ""
+                "explanation": "Fu fermato a Londra nel 2022 nell'ambito di un'indagine e successivamente rilasciato su cauzione; la vicenda proseguì nel 2023."
             },
             {
                 "question": "Quale criptovaluta era prima per capitalizzazione nel 2023?",
@@ -3399,7 +3399,7 @@
                     "Cardano"
                 ],
                 "correctAnswer": "Bitcoin",
-                "explanation": ""
+                "explanation": "Rimase nel 2023 la criptovaluta con la maggiore capitalizzazione di mercato, davanti a Ethereum e agli altri token."
             },
             {
                 "question": "Quale indice è chiamato il 'barometro dell'economia americana'?",
@@ -3410,7 +3410,7 @@
                     "Russell 2000"
                 ],
                 "correctAnswer": "Dow Jones",
-                "explanation": ""
+                "explanation": "Industrial Average è seguito come indicatore sintetico dell'andamento delle grandi società statunitensi, da cui il soprannome di barometro economico."
             },
             {
                 "question": "Quale di questi miliardari non fa parte delle 'Big Four' tecnologiche?",
@@ -3421,7 +3421,7 @@
                     "Bill Geyts"
                 ],
                 "correctAnswer": "Elon Musk",
-                "explanation": ""
+                "explanation": "Non è associato a una delle quattro società spesso chiamate Big Tech — Alphabet, Amazon, Apple e Meta — a differenza degli altri nomi proposti."
             },
             {
                 "question": "Quale banca era chiamata 'la banca più solida della Russia' prima della crisi del 2008?",
@@ -3432,7 +3432,7 @@
                     "KIT Finans"
                 ],
                 "correctAnswer": "KIT Finans",
-                "explanation": ""
+                "explanation": "Era considerata una delle istituzioni russe più affidabili prima della crisi del 2008, ma fu poi travolta dalla crisi di liquidità."
             },
             {
                 "question": "Quale azienda realizzò la più grande IPO nella storia degli Stati Uniti nel 2014?",
@@ -3443,7 +3443,7 @@
                     "Airbnb"
                 ],
                 "correctAnswer": "Alibaba",
-                "explanation": ""
+                "explanation": "Raccolse circa 25 miliardi di dollari con la quotazione alla Borsa di New York nel 2014, record allora negli Stati Uniti."
             },
             {
                 "question": "Quale termine politico significa 'potere dei ricchi'?",
@@ -3454,7 +3454,7 @@
                     "Meritokratiya"
                 ],
                 "correctAnswer": "Plutokratiya",
-                "explanation": ""
+                "explanation": "È il termine, derivato dal greco *ploutos* («ricchezza»), per un sistema in cui il potere è esercitato dai ricchi."
             },
             {
                 "question": "Quale di questi politici non ha ricevuto il Premio Nobel per la pace?",
@@ -3465,7 +3465,7 @@
                     "Mikhail Gorbachev"
                 ],
                 "correctAnswer": "Donald Trump",
-                "explanation": ""
+                "explanation": "Non ha ricevuto il Premio Nobel per la pace; Barack Obama e Michail Gorbačëv, invece, lo hanno ottenuto."
             },
             {
                 "question": "Come si chiama la teoria economica che prevede un intervento minimo dello Stato?",
@@ -3476,7 +3476,7 @@
                     "Socialism"
                 ],
                 "correctAnswer": "Libertarismo",
-                "explanation": ""
+                "explanation": "Privilegia la libertà individuale, la proprietà privata e mercati poco regolati, quindi richiede un intervento statale limitato."
             },
             {
                 "question": "Quale paese fu il primo a legalizzare bitcoin come mezzo di pagamento?",
@@ -3487,7 +3487,7 @@
                     "Giappone"
                 ],
                 "correctAnswer": "El Salvador",
-                "explanation": ""
+                "explanation": "Rese Bitcoin moneta a corso legale nel 2021, primo Stato al mondo a farlo."
             },
             {
                 "question": "Quale imprenditore russo possiede il club calcistico Monaco?",
@@ -3498,7 +3498,7 @@
                     "Mikhail Prokhorov"
                 ],
                 "correctAnswer": "Dmitriy Rybolovlev",
-                "explanation": ""
+                "explanation": "È il proprietario di maggioranza dell'AS Monaco dal 2011 attraverso la sua società di investimento."
             },
             {
                 "question": "Quale azienda ha sviluppato la tecnologia blockchain?",
@@ -3509,7 +3509,7 @@
                     "Ripple Labs"
                 ],
                 "correctAnswer": "Satoshi Nakamoto",
-                "explanation": ""
+                "explanation": "È lo pseudonimo dell'autore del white paper di Bitcoin, che introdusse la blockchain come registro distribuito; non è un'azienda."
             },
             {
                 "question": "Come si chiama il processo in cui il management acquista la propria azienda?",
@@ -3520,7 +3520,7 @@
                     "LBO"
                 ],
                 "correctAnswer": "MBO",
-                "explanation": ""
+                "explanation": "Significa *management buyout*: l'operazione in cui i dirigenti acquistano l'impresa che già gestiscono."
             },
             {
                 "question": "Quale di questi politici non faceva parte del G7?",
@@ -3531,7 +3531,7 @@
                     "Dzho Bayden"
                 ],
                 "correctAnswer": "Vladimir Putin",
-                "explanation": ""
+                "explanation": "Rappresentava la Russia, che partecipò al G8 ma non è membro del G7; gli altri leader guidavano paesi del G7."
             },
             {
                 "question": "Quale banca russa fu la prima a essere inserita nella lista delle sanzioni statunitensi?",
@@ -3542,7 +3542,7 @@
                     "Vnesheconombank"
                 ],
                 "correctAnswer": "Bank of Moscow",
-                "explanation": ""
+                "explanation": "Fu tra le prime banche russe sottoposte a misure restrittive statunitensi, nell'ambito delle sanzioni legate alla crisi ucraina del 2014."
             },
             {
                 "question": "Quale paese è il maggiore detentore del debito pubblico statunitense?",
@@ -3553,7 +3553,7 @@
                     "Saudi Arabia"
                 ],
                 "correctAnswer": "Giappone",
-                "explanation": ""
+                "explanation": "Deteneva la più grande quota estera di titoli del Tesoro USA tra le opzioni indicate nel periodo cui fa riferimento il quiz."
             },
             {
                 "question": "Come si chiama l'indicatore economico che riflette tutti i beni e servizi finali?",
@@ -3564,7 +3564,7 @@
                     "National income"
                 ],
                 "correctAnswer": "PIL",
-                "explanation": ""
+                "explanation": "Misura il valore monetario di tutti i beni e servizi finali prodotti in un paese in un dato periodo."
             },
             {
                 "question": "Quale di questi miliardari non fa parte del consiglio di amministrazione di Facebook?",
@@ -3575,7 +3575,7 @@
                     "Elon Musk"
                 ],
                 "correctAnswer": "Elon Musk",
-                "explanation": ""
+                "explanation": "Non ha ricoperto un posto nel consiglio di amministrazione di Facebook, oggi Meta."
             },
             {
                 "question": "Quale imprenditore russo possiede i Brooklyn Nets?",
@@ -3586,7 +3586,7 @@
                     "Oleg Deripaska"
                 ],
                 "correctAnswer": "Mikhail Prokhorov",
-                "explanation": ""
+                "explanation": "Fu proprietario di maggioranza dei Brooklyn Nets dal 2010 fino alla vendita della quota di controllo nel 2019."
             },
             {
                 "question": "Quale azienda realizzò la più grande IPO nella storia della Cina?",
@@ -3597,7 +3597,7 @@
                     "Xiaomi"
                 ],
                 "correctAnswer": "Alibaba",
-                "explanation": ""
+                "explanation": "Realizzò la più grande IPO cinese con la quotazione a New York del 2014, pur essendo un gruppo fondato in Cina."
             },
             {
                 "question": "Come si chiama la politica economica di blocco di prezzi e salari?",
@@ -3608,7 +3608,7 @@
                     "Monetarnoe targetirovanie"
                 ],
                 "correctAnswer": "Politika dokhodov",
-                "explanation": ""
+                "explanation": "(«Politica dei redditi») usa limiti o linee guida su salari e prezzi per contenere l'inflazione."
             },
             {
                 "question": "Quale di questi politici non è stato ministro delle Finanze russo?",
@@ -3619,7 +3619,7 @@
                     "Elvira Nabiullina"
                 ],
                 "correctAnswer": "German Gref",
-                "explanation": ""
+                "explanation": "Fu ministro dello Sviluppo economico russo e poi dirigente di Sberbank, non ministro delle Finanze."
             },
             {
                 "question": "Quale azienda fu la prima a raggiungere una capitalizzazione di 3 trilioni di dollari?",
@@ -3630,7 +3630,7 @@
                     "Saudi Aramco"
                 ],
                 "correctAnswer": "Apple",
-                "explanation": ""
+                "explanation": "Fu la prima società quotata a oltrepassare i 3.000 miliardi di dollari di capitalizzazione, nel gennaio 2022."
             },
             {
                 "question": "Come si chiama il processo di abbassare artificialmente il tasso di cambio della valuta nazionale?",
@@ -3641,7 +3641,7 @@
                     "Default"
                 ],
                 "correctAnswer": "Svalutazione",
-                "explanation": ""
+                "explanation": "È la riduzione deliberata del valore di una valuta rispetto alle altre, tipica di un regime di cambio fisso."
             },
             {
                 "question": "Quale di questi imprenditori non è nella lista Forbes?",
@@ -3652,7 +3652,7 @@
                     "Igor Rybakov"
                 ],
                 "correctAnswer": "Yuriy Milner",
-                "explanation": ""
+                "explanation": "Non figurava nella lista Forbes richiamata dalla domanda, a differenza degli altri imprenditori elencati."
             },
             {
                 "question": "Quale paese fu il primo a introdurre una valuta digitale della banca centrale?",
@@ -3663,7 +3663,7 @@
                     "Giappone"
                 ],
                 "correctAnswer": "Cina",
-                "explanation": ""
+                "explanation": "Ha avviato tra i primi grandi progetti pilota di valuta digitale di banca centrale con l'e-CNY, emesso dalla People's Bank of China."
             },
             {
                 "question": "Come si chiama la teoria economica basata sulle idee di Milton Friedman?",
@@ -3674,7 +3674,7 @@
                     "Istituzionalismo"
                 ],
                 "correctAnswer": "Monetarismo",
-                "explanation": ""
+                "explanation": "Riprende l'idea di Milton Friedman secondo cui la quantità di moneta è decisiva per inflazione e stabilità economica."
             },
             {
                 "question": "Quale di questi politici non è stato presidente della Banca centrale russa?",
@@ -3685,7 +3685,7 @@
                     "Elvira Nabiullina"
                 ],
                 "correctAnswer": "Aleksey Ulyukaev",
-                "explanation": ""
+                "explanation": "Fu ministro dello Sviluppo economico; non fu governatore della Banca centrale russa."
             },
             {
                 "question": "Quale azienda ha acquisito LinkedIn per 26 miliardi di dollari?",
@@ -3696,7 +3696,7 @@
                     "Salesforce"
                 ],
                 "correctAnswer": "Microsoft",
-                "explanation": ""
+                "explanation": "Completò l'acquisizione di LinkedIn nel 2016 per circa 26,2 miliardi di dollari."
             },
             {
                 "question": "Come si chiama la politica di aumentare artificialmente il tasso di cambio della valuta nazionale?",
@@ -3707,7 +3707,7 @@
                     "Default"
                 ],
                 "correctAnswer": "Rivalutazione",
-                "explanation": ""
+                "explanation": "È l'aumento ufficiale del valore di una moneta rispetto a una valuta di riferimento in un sistema di cambio fisso."
             },
             {
                 "question": "Quale di questi imprenditori non fa parte del consiglio di amministrazione di Tesla?",
@@ -3718,7 +3718,7 @@
                     "Jeff Bezos"
                 ],
                 "correctAnswer": "Jeff Bezos",
-                "explanation": ""
+                "explanation": "Non ha fatto parte del consiglio di Tesla; è il fondatore di Amazon, mentre Musk, Ellison e Kimbal Musk hanno avuto ruoli legati a Tesla."
             },
             {
                 "question": "Quale paese fu il primo a introdurre tassi d'interesse negativi?",
@@ -3729,7 +3729,7 @@
                     "Danimarca"
                 ],
                 "correctAnswer": "Danimarca",
-                "explanation": ""
+                "explanation": "Fu la prima banca centrale a portare sotto zero il tasso sui depositi, nel 2012."
             },
             {
                 "question": "Come si chiama la teoria economica basata sulle idee di John Keynes?",
@@ -3740,7 +3740,7 @@
                     "Istituzionalismo"
                 ],
                 "correctAnswer": "Keynesismo",
-                "explanation": ""
+                "explanation": "Deriva dalle idee di John Maynard Keynes, che attribuivano alla domanda aggregata un ruolo centrale nel ciclo economico."
             },
             {
                 "question": "Quale di questi politici non è stato primo ministro della Russia?",
@@ -3751,7 +3751,7 @@
                     "Mikhail Kasyanov"
                 ],
                 "correctAnswer": "Aleksey Kudrin",
-                "explanation": ""
+                "explanation": "È stato ministro delle Finanze russo e presidente della Corte dei conti, ma non primo ministro."
             },
             {
                 "question": "Quale azienda ha acquisito GitHub per 7,5 miliardi di dollari?",
@@ -3762,7 +3762,7 @@
                     "Salesforce"
                 ],
                 "correctAnswer": "Microsoft",
-                "explanation": ""
+                "explanation": "Acquistò GitHub nel 2018 con una transazione azionaria valutata circa 7,5 miliardi di dollari."
             },
             {
                 "question": "Come si chiama il processo di riduzione della massa monetaria in un'economia?",
@@ -3773,7 +3773,7 @@
                     "Demonetizzazione"
                 ],
                 "correctAnswer": "Demonetizzazione",
-                "explanation": ""
+                "explanation": "Riduce o ritira moneta dalla circolazione; è quindi l'opposto dell'emissione monetaria."
             },
             {
                 "question": "Quale di questi imprenditori non fa parte del consiglio di amministrazione di Google?",
@@ -3784,7 +3784,7 @@
                     "Elon Musk"
                 ],
                 "correctAnswer": "Elon Musk",
-                "explanation": ""
+                "explanation": "Non è stato membro del consiglio di Google/Alphabet, mentre Pichai, Page e Brin sono stati figure di vertice del gruppo."
             },
             {
                 "question": "Quale paese fu il primo a introdurre una tassa sul lusso?",
@@ -3795,7 +3795,7 @@
                     "Regno Unito"
                 ],
                 "correctAnswer": "Francia",
-                "explanation": ""
+                "explanation": "È indicata storicamente come il primo paese ad avere introdotto una tassa specifica sui beni di lusso."
             },
             {
                 "question": "Come si chiama la teoria economica basata sulle idee di Karl Marx?",
@@ -3806,7 +3806,7 @@
                     "Istituzionalismo"
                 ],
                 "correctAnswer": "Marxismo",
-                "explanation": ""
+                "explanation": "Si fonda sull'analisi di Karl Marx dei rapporti di classe, del capitale e della trasformazione storica dei sistemi economici."
             },
             {
                 "question": "Quale di questi politici non è stato ministro dell'Economia russo?",
@@ -3817,7 +3817,7 @@
                     "Aleksey Kudrin"
                 ],
                 "correctAnswer": "Aleksey Kudrin",
-                "explanation": ""
+                "explanation": "Non è stato ministro dello Sviluppo economico della Russia; il suo incarico di governo principale fu alle Finanze."
             },
             {
                 "question": "Quale azienda ha acquisito WhatsApp per 19 miliardi di dollari?",
@@ -3828,7 +3828,7 @@
                     "Tencent"
                 ],
                 "correctAnswer": "Facebook",
-                "explanation": ""
+                "explanation": "Annunciò nel 2014 l'acquisto di WhatsApp per circa 19 miliardi di dollari tra contanti, azioni e altri corrispettivi."
             },
             {
                 "question": "Come si chiama il processo di aumento della massa monetaria in un'economia?",
@@ -3839,7 +3839,7 @@
                     "Demonetizzazione"
                 ],
                 "correctAnswer": "Emissione monetaria",
-                "explanation": ""
+                "explanation": "È l'immissione di nuova moneta nell'economia da parte dell'autorità monetaria o del sistema bancario."
             },
             {
                 "question": "Quale di questi imprenditori non fa parte del consiglio di amministrazione di Amazon?",
@@ -3850,7 +3850,7 @@
                     "Rozalind Bryuer"
                 ],
                 "correctAnswer": "Warren Buffett",
-                "explanation": ""
+                "explanation": "Guida Berkshire Hathaway e non siede nel consiglio di Amazon; Bezos e Jassy, invece, hanno ricoperto ruoli nel gruppo Amazon."
             },
             {
                 "question": "Quale paese fu il primo a introdurre il reddito di base universale a livello nazionale?",
@@ -3861,7 +3861,7 @@
                     "Netherlands"
                 ],
                 "correctAnswer": "Finlandia",
-                "explanation": ""
+                "explanation": "Sperimentò il reddito di base su scala nazionale fra 2017 e 2018 con 2.000 disoccupati selezionati casualmente."
             },
             {
                 "question": "Come si chiama la teoria economica basata sulle idee di Friedrich Hayek?",
@@ -3872,7 +3872,7 @@
                     "Stockholm school"
                 ],
                 "correctAnswer": "Austrian school",
-                "explanation": ""
+                "explanation": "Identifica la tradizione economica alla quale Friedrich Hayek è legato, centrata su prezzi, imprenditorialità e ordine spontaneo."
             },
             {
                 "question": "Quale di questi politici non è stato segretario al Tesoro degli Stati Uniti?",
@@ -3883,7 +3883,7 @@
                     "Dzhanet Yellen"
                 ],
                 "correctAnswer": "Dzhanet Yellen",
-                "explanation": ""
+                "explanation": "È stata segretaria al Tesoro degli Stati Uniti dal 2021; la formulazione della domanda contiene quindi un'incongruenza."
             },
             {
                 "question": "Quale azienda ha acquisito Nokia per 7,2 miliardi di dollari?",
@@ -3894,7 +3894,7 @@
                     "Huawei"
                 ],
                 "correctAnswer": "Microsoft",
-                "explanation": ""
+                "explanation": "Acquistò nel 2014 l'attività Devices & Services di Nokia per circa 7,2 miliardi di dollari."
             },
             {
                 "question": "Come si chiama il processo di sostituzione delle vecchie banconote con nuove?",
@@ -3905,7 +3905,7 @@
                     "Demonetizzazione"
                 ],
                 "correctAnswer": "Ridenominazione",
-                "explanation": ""
+                "explanation": "Sostituisce le banconote e modifica l'unità nominale, spesso eliminando zeri senza cambiare il valore reale."
             },
             {
                 "question": "Quale di questi imprenditori non fa parte del consiglio di amministrazione di Berkshire Hathaway?",
@@ -3916,7 +3916,7 @@
                     "Jeff Bezos"
                 ],
                 "correctAnswer": "Jeff Bezos",
-                "explanation": ""
+                "explanation": "Non ha fatto parte del consiglio di Berkshire Hathaway, a differenza di Buffett, Munger e Gates."
             },
             {
                 "question": "Quale paese fu il primo a introdurre una tassa sulle emissioni di CO2?",
@@ -3927,7 +3927,7 @@
                     "Danimarca"
                 ],
                 "correctAnswer": "Finlandia",
-                "explanation": ""
+                "explanation": "Introdusse nel 1990 una carbon tax, generalmente riconosciuta come la prima imposta nazionale sulle emissioni di CO₂."
             },
             {
                 "question": "Come si chiama la teoria economica basata sulle idee di Thorstein Veblen?",
@@ -3938,7 +3938,7 @@
                     "Marxismo"
                 ],
                 "correctAnswer": "Istituzionalismo",
-                "explanation": ""
+                "explanation": "Riprende l'analisi di Thorstein Veblen sul modo in cui abitudini e istituzioni modellano l'economia."
             },
             {
                 "question": "Quale di questi politici non è stato presidente della Federal Reserve statunitense?",
@@ -3949,7 +3949,7 @@
                     "Stiven Mnuchin"
                 ],
                 "correctAnswer": "Stiven Mnuchin",
-                "explanation": ""
+                "explanation": "È stato segretario al Tesoro degli Stati Uniti, non presidente della Federal Reserve."
             },
             {
                 "question": "Quale azienda ha acquisito Motorola Mobility per 12,5 miliardi di dollari?",
@@ -3960,7 +3960,7 @@
                     "Samsung"
                 ],
                 "correctAnswer": "Google",
-                "explanation": ""
+                "explanation": "Acquistò Motorola Mobility nel 2012 per circa 12,5 miliardi di dollari, soprattutto per il suo portafoglio di brevetti."
             },
             {
                 "question": "Come si chiama il processo in cui uno Stato rifiuta di adempiere ai propri obblighi di debito?",
@@ -3971,7 +3971,7 @@
                     "Default"
                 ],
                 "correctAnswer": "Default",
-                "explanation": ""
+                "explanation": "È l'inadempimento di un debitore sovrano: lo Stato non paga capitale o interessi alle scadenze previste."
             },
             {
                 "question": "Quale di questi imprenditori non fa parte del consiglio di amministrazione di Alibaba?",
@@ -3982,7 +3982,7 @@
                     "Elon Musk"
                 ],
                 "correctAnswer": "Elon Musk",
-                "explanation": ""
+                "explanation": "Non ha fatto parte del consiglio di Alibaba; Jack Ma, Joseph Tsai e Masayoshi Son sono invece legati alla storia societaria del gruppo."
             },
             {
                 "question": "Quale paese fu il primo a introdurre un'aliquota progressiva dell'imposta sul reddito?",
@@ -3993,7 +3993,7 @@
                     "USA"
                 ],
                 "correctAnswer": "Regno Unito",
-                "explanation": ""
+                "explanation": "Introdusse un'imposta sul reddito con struttura progressiva nel 1799, durante le guerre napoleoniche."
             },
             {
                 "question": "Come si chiama la teoria economica basata sulle idee di Joseph Schumpeter?",
@@ -4004,7 +4004,7 @@
                     "Competition theory"
                 ],
                 "correctAnswer": "Innovation theory",
-                "explanation": ""
+                "explanation": "Riassume l'idea di Joseph Schumpeter che innovazioni e «distruzione creatrice» guidino lo sviluppo capitalistico."
             },
             {
                 "question": "Quale di questi politici non è stato presidente della Banca Mondiale?",
@@ -4015,7 +4015,7 @@
                     "Pol Vulfovits"
                 ],
                 "correctAnswer": "Kristin Lagard",
-                "explanation": ""
+                "explanation": "Ha diretto il FMI e poi la BCE, ma non la Banca Mondiale; il suo nome è traslitterato in modo impreciso nelle opzioni."
             },
             {
                 "question": "Quale azienda ha acquisito Skype per 8,5 miliardi di dollari?",
@@ -4026,7 +4026,7 @@
                     "Yahoo"
                 ],
                 "correctAnswer": "Microsoft",
-                "explanation": ""
+                "explanation": "Acquisì Skype nel 2011 per 8,5 miliardi di dollari, superando le offerte concorrenti."
             },
             {
                 "question": "Come si chiama il processo di calo generale dei prezzi in un'economia?",
@@ -4037,7 +4037,7 @@
                     "Recessione"
                 ],
                 "correctAnswer": "Deflazione",
-                "explanation": ""
+                "explanation": "È un calo generalizzato e durevole del livello dei prezzi, non la semplice riduzione del prezzo di un singolo bene."
             },
             {
                 "question": "Quale di questi imprenditori non fa parte del consiglio di amministrazione di Twitter?",
@@ -4048,7 +4048,7 @@
                     "Piter Fenton"
                 ],
                 "correctAnswer": "Elon Musk",
-                "explanation": ""
+                "explanation": "È entrato nel consiglio di Twitter solo dopo averne acquistato il controllo nel 2022; nel contesto storico del quiz non ne faceva parte."
             },
             {
                 "question": "Quale paese fu il primo a introdurre l'imposta sul valore aggiunto (IVA)?",
@@ -4059,7 +4059,7 @@
                     "USA"
                 ],
                 "correctAnswer": "Francia",
-                "explanation": ""
+                "explanation": "Introdusse la TVA nel 1954, modello da cui deriva l'IVA moderna adottata successivamente in molti paesi."
             },
             {
                 "question": "Come si chiama la teoria economica basata sulle idee di Ronald Coase?",
@@ -4070,7 +4070,7 @@
                     "Contract theory"
                 ],
                 "correctAnswer": "Transaction cost theory",
-                "explanation": ""
+                "explanation": "Deriva da Ronald Coase: imprese e mercati si organizzano per ridurre i costi di ricerca, contrattazione e controllo."
             },
             {
                 "question": "Quale di questi politici non è stato capo del FMI?",
@@ -4081,7 +4081,7 @@
                     "Kristalina Georgieva"
                 ],
                 "correctAnswer": "Robert Zellik",
-                "explanation": ""
+                "explanation": "Fu presidente della Banca Mondiale dal 2007 al 2012, non direttore generale del FMI."
             },
             {
                 "question": "Quale azienda ha acquisito YouTube per 1,65 miliardi di dollari?",
@@ -4092,7 +4092,7 @@
                     "Facebook"
                 ],
                 "correctAnswer": "Google",
-                "explanation": ""
+                "explanation": "Acquistò YouTube nel 2006 per 1,65 miliardi di dollari in azioni."
             },
             {
                 "question": "Come si chiama il processo di crescita simultanea di inflazione e disoccupazione?",
@@ -4103,7 +4103,7 @@
                     "Deflazione"
                 ],
                 "correctAnswer": "Stagflazione",
-                "explanation": ""
+                "explanation": "È proprio la coesistenza di inflazione e disoccupazione elevate con una crescita debole o assente."
             },
             {
                 "question": "Quale di questi imprenditori non fa parte del consiglio di amministrazione di Netflix?",
@@ -4114,7 +4114,7 @@
                     "Enn Miner"
                 ],
                 "correctAnswer": "Warren Buffett",
-                "explanation": ""
+                "explanation": "Non è nel consiglio di Netflix; Reed Hastings e Ted Sarandos, invece, hanno ricoperto ruoli di vertice nella società."
             },
             {
                 "question": "Quale paese fu il primo a introdurre l'imposta di successione?",
@@ -4125,7 +4125,7 @@
                     "Germania"
                 ],
                 "correctAnswer": "Regno Unito",
-                "explanation": ""
+                "explanation": "Introdusse una moderna imposta di successione con il Finance Act del 1894."
             },
             {
                 "question": "Come si chiama la teoria economica basata sulle idee di James Buchanan?",
@@ -4136,7 +4136,7 @@
                     "Auction theory"
                 ],
                 "correctAnswer": "Public choice theory",
-                "explanation": ""
+                "explanation": "Applica gli strumenti dell'economia alle decisioni politiche ed è associata al lavoro di James Buchanan."
             },
             {
                 "question": "Quale di questi politici non è stato presidente della BCE?",
@@ -4147,7 +4147,7 @@
                     "Angela Merkel"
                 ],
                 "correctAnswer": "Angela Merkel",
-                "explanation": ""
+                "explanation": "È stata cancelliera tedesca, non presidente della Banca centrale europea."
             },
             {
                 "question": "Quale azienda ha acquisito Instagram per 1 miliardo di dollari?",
@@ -4158,7 +4158,7 @@
                     "Twitter"
                 ],
                 "correctAnswer": "Facebook",
-                "explanation": ""
+                "explanation": "Acquistò Instagram nel 2012 per circa 1 miliardo di dollari tra contanti e azioni."
             }
         ],
         "id": "politics_business"

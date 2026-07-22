@@ -22,6 +22,100 @@ extension QuizQuestionViewController {
         guard !isQuestionTransitionInProgress else { return }
         presenter?.checkQuestionNumberAndProceed()
     }
+
+    @objc func questionInfoButtonTapped() {
+        guard
+            isQuestionInfoAvailable,
+            !isQuestionExplanationVisible,
+            !isQuestionTransitionInProgress
+        else { return }
+        setQuestionExplanationVisible(true, animated: true)
+    }
+
+    @objc func questionExplanationBackButtonTapped() {
+        guard isQuestionExplanationVisible, !isQuestionTransitionInProgress else { return }
+        setQuestionExplanationVisible(false, animated: true)
+    }
+
+    func setQuestionExplanationVisible(_ isVisible: Bool, animated: Bool) {
+        guard questionLabel != nil else { return }
+
+        guard isQuestionExplanationVisible != isVisible else {
+            applyQuestionExplanationVisibility()
+            return
+        }
+
+        isQuestionExplanationVisible = isVisible
+        if isVisible {
+            questionExplanationScrollView.setContentOffset(.zero, animated: false)
+        }
+
+        let outgoingViews: [UIView]
+        let incomingViews: [UIView]
+        if isVisible {
+            outgoingViews = [questionLabel, questionInfoButton]
+            incomingViews = [questionExplanationScrollView, questionExplanationBackButton]
+        } else {
+            outgoingViews = [questionExplanationScrollView, questionExplanationBackButton]
+            incomingViews = isQuestionInfoAvailable
+                ? [questionLabel, questionInfoButton]
+                : [questionLabel]
+        }
+
+        let shouldAnimate = animated
+            && UIView.areAnimationsEnabled
+            && !UIAccessibility.isReduceMotionEnabled
+            && view.window != nil
+        guard shouldAnimate else {
+            applyQuestionExplanationVisibility()
+            postQuestionContentAccessibilityFocus()
+            return
+        }
+
+        incomingViews.forEach {
+            $0.alpha = 0
+            $0.isHidden = false
+        }
+        outgoingViews.forEach {
+            $0.alpha = 1
+            $0.isHidden = false
+        }
+
+        UIView.animate(
+            withDuration: AnimationTiming.explanationTransitionDuration,
+            delay: 0,
+            options: [.curveEaseInOut, .allowUserInteraction],
+            animations: {
+                outgoingViews.forEach { $0.alpha = 0 }
+                incomingViews.forEach { $0.alpha = 1 }
+            },
+            completion: { [weak self] _ in
+                guard let self else { return }
+                self.applyQuestionExplanationVisibility()
+                self.postQuestionContentAccessibilityFocus()
+            }
+        )
+    }
+
+    func applyQuestionExplanationVisibility() {
+        questionLabel.isHidden = isQuestionExplanationVisible
+        questionExplanationScrollView.isHidden = !isQuestionExplanationVisible
+        questionInfoButton.isHidden = !isQuestionInfoAvailable || isQuestionExplanationVisible
+        questionExplanationBackButton.isHidden = !isQuestionExplanationVisible
+        [
+            questionLabel,
+            questionExplanationScrollView,
+            questionInfoButton,
+            questionExplanationBackButton
+        ].forEach { $0?.alpha = 1 }
+    }
+
+    func postQuestionContentAccessibilityFocus() {
+        UIAccessibility.post(
+            notification: .layoutChanged,
+            argument: isQuestionExplanationVisible ? questionExplanationLabel : questionLabel
+        )
+    }
     
     @objc func closeButtonTapped() {
         guard presentedViewController == nil, activeExitAlertID == nil else { return }

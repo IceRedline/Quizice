@@ -247,6 +247,7 @@ final class BackendRandomQuestionTests: XCTestCase {
             XCTAssertEqual(prepared.stableID, RandomQuizSelection.themeID)
             XCTAssertEqual(prepared.questionOrigin, .backend)
             XCTAssertEqual(prepared.questions.count, 5)
+            XCTAssertTrue(prepared.questions.allSatisfy { $0.explanation == "Explanation" })
         }
 
         XCTAssertEqual(backend.randomSelectionModes, [.random, .randomBalanced])

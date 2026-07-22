@@ -489,7 +489,12 @@ final class YandexAIQuizThemeService: AIQuizThemeServiceProtocol {
             throw YandexAIQuizThemeServiceError.invalidContract(.invalidCorrectAnswer(questionIndex: index))
         }
 
-        return QuizQuestion(question: question, answers: answers, correctAnswer: correctAnswer)
+        return QuizQuestion(
+            question: question,
+            answers: answers,
+            correctAnswer: correctAnswer,
+            explanation: payload.explanation
+        )
     }
 
     private static func languageCode(for locale: Locale) -> String {

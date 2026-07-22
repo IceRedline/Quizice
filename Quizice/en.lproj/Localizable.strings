@@ -82,6 +82,8 @@
 "question.exit_alert.title" = "Leave quiz?";
 "question.fallback_theme" = "Quiz";
 "question.number_format" = "Question #%d";
+"question.show_explanation" = "Show explanation";
+"question.show_question" = "Show question";
 "question.unavailable.message" = "This theme has no available questions yet. Go back and choose another theme.";
 "question.unavailable_answer" = "Unavailable";
 "question.unavailable_number" = "Questions unavailable";
