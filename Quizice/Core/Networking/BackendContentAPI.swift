@@ -61,7 +61,12 @@ struct BackendQuestionDTO: Decodable, Equatable {
     let explanation: String?
 
     func makeModel() -> QuizQuestion {
-        QuizQuestion(question: question, answers: answers, correctAnswer: correctAnswer)
+        QuizQuestion(
+            question: question,
+            answers: answers,
+            correctAnswer: correctAnswer,
+            explanation: explanation
+        )
     }
 }
 

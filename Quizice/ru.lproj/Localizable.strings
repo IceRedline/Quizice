@@ -82,6 +82,8 @@
 "question.exit_alert.title" = "Выйти из викторины?";
 "question.fallback_theme" = "Викторина";
 "question.number_format" = "Вопрос №%d";
+"question.show_explanation" = "Показать объяснение";
+"question.show_question" = "Показать вопрос";
 "question.unavailable.message" = "В этой теме пока нет доступных вопросов. Вернитесь назад и выберите другую тему.";
 "question.unavailable_answer" = "Недоступно";
 "question.unavailable_number" = "Вопросы недоступны";

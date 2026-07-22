@@ -164,7 +164,8 @@ final class QuizQuestionPresenter: QuizQuestionPresenterProtocol {
                 themeName: themeName,
                 questionText: question.questionText,
                 questionNumberText: questionNumberText,
-                answers: currentAnswerOptions
+                answers: currentAnswerOptions,
+                explanation: question.explanation
             )
         )
     }

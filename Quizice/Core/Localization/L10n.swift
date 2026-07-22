@@ -168,6 +168,8 @@ enum L10n {
         static var exitAlertMessage: String { L10n.localized("question.exit_alert.message", comment: "Message shown before discarding current quiz progress") }
         static var exitAlertTitle: String { L10n.localized("question.exit_alert.title", comment: "Title shown before discarding current quiz progress") }
         static var fallbackTheme: String { L10n.localized("question.fallback_theme", comment: "Fallback quiz theme name") }
+        static var showExplanation: String { L10n.localized("question.show_explanation", comment: "Show the answer explanation on the back of the question card") }
+        static var showQuestion: String { L10n.localized("question.show_question", comment: "Return to the question side of the card") }
         static var timeRemaining: String { L10n.localized("question.time_remaining", comment: "Quiz timer accessibility label") }
         static var unavailableAnswer: String { L10n.localized("question.unavailable_answer", comment: "Unavailable answer placeholder") }
         static var unavailableMessage: String { L10n.localized("question.unavailable.message", comment: "Message when selected theme has no usable questions") }

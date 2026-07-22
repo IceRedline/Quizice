@@ -3,7 +3,7 @@ import AVKit
 import SwiftUI
 
 extension QuizQuestionViewController {
-func colorAndDisableButtons() {
+    func colorAndDisableButtons() {
         let appearance = currentAppearance()
         for (index, button) in answerButtons.enumerated() {
             button.isEnabled = false
@@ -20,6 +20,7 @@ func colorAndDisableButtons() {
                 applyAnswerFeedback(.normal, to: button, appearance: appearance, animated: true)
             }
         }
+        revealQuestionInfoButton()
     }
     
     func resetAllColors() {
@@ -55,6 +56,11 @@ func colorAndDisableButtons() {
 
     func applyQuestion(_ viewModel: QuizQuestionViewModel, updatesQuestionNumber: Bool) {
         resetQuestionScrollPosition()
+        setQuestionInfoButtonVisible(false)
+        setQuestionExplanationVisible(false, animated: false)
+        questionInfoButton.alpha = 1
+        questionExplanationLabel.text = viewModel.explanation
+        questionExplanationScrollView.setContentOffset(.zero, animated: false)
         resetAllColors()
         
         // The incoming card is prepared off-screen. Put its timer in the initial
@@ -168,6 +174,9 @@ func colorAndDisableButtons() {
         outgoingQuestionCardSnapshot = nil
         questionCardView.transform = .identity
         questionCardView.isUserInteractionEnabled = true
+        setQuestionInfoButtonVisible(false)
+        setQuestionExplanationVisible(false, animated: false)
+        questionExplanationLabel.text = nil
         themeNameLabel.text = themeName ?? L10n.Question.fallbackTheme
         questionNumberLabel.text = L10n.Question.unavailableNumber
         questionLabel.text = message
@@ -182,6 +191,36 @@ func colorAndDisableButtons() {
         }
         layoutContentIfPossible()
         nextButton.isEnabled = false
+    }
+
+    func revealQuestionInfoButton() {
+        guard !isQuestionInfoAvailable else { return }
+        questionCardContentView.layoutIfNeeded()
+        setQuestionInfoButtonVisible(true)
+
+        guard !UIAccessibility.isReduceMotionEnabled else {
+            questionInfoButton.alpha = 1
+            questionCardContentView.layoutIfNeeded()
+            return
+        }
+
+        questionInfoButton.alpha = 0
+        UIView.animate(
+            withDuration: AnimationTiming.answerFeedbackDuration,
+            delay: 0,
+            options: AnimationTiming.answerFeedbackOptions,
+            animations: {
+                self.questionInfoButton.alpha = 1
+                self.questionCardContentView.layoutIfNeeded()
+            }
+        )
+    }
+
+    func setQuestionInfoButtonVisible(_ isVisible: Bool) {
+        guard questionInfoButton != nil else { return }
+
+        isQuestionInfoAvailable = isVisible
+        applyQuestionExplanationVisibility()
     }
     
     func correctAnswerTapped(isTrue: Bool) {

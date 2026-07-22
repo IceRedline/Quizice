@@ -36,7 +36,11 @@ final class QuizQuestionPresenterTests: XCTestCase {
         session.chosenTheme = ThemeModel(quizTheme: SnapshotSupport.makeTheme(
             id: "music",
             name: "Music",
-            questions: [makeQuestion("Which answer is correct?", correctAnswer: "C")]
+            questions: [makeQuestion(
+                "Which answer is correct?",
+                correctAnswer: "C",
+                explanation: "C is the only correct answer."
+            )]
         ))
         let view = QuestionPresenterViewSpy()
         let presenter = QuizQuestionPresenter(session: session, statisticsStore: makeStatisticsHarness().store)
@@ -53,6 +57,7 @@ final class QuizQuestionPresenterTests: XCTestCase {
         XCTAssertEqual(viewModel.questionText, "Which answer is correct?")
         XCTAssertEqual(viewModel.questionNumberText, L10n.Question.number(1))
         XCTAssertEqual(viewModel.answers.count, 4)
+        XCTAssertEqual(viewModel.explanation, "C is the only correct answer.")
         XCTAssertEqual(presenter.answerFeedback(for: correctOption.id), .correct)
         XCTAssertEqual(presenter.answerFeedback(for: wrongOption.id), .wrong)
     }
@@ -242,8 +247,17 @@ final class QuizQuestionPresenterTests: XCTestCase {
     }
 #endif
 
-    private func makeQuestion(_ text: String, correctAnswer: String) -> QuizQuestion {
-        QuizQuestion(question: text, answers: ["A", "B", "C", "D"], correctAnswer: correctAnswer)
+    private func makeQuestion(
+        _ text: String,
+        correctAnswer: String,
+        explanation: String? = nil
+    ) -> QuizQuestion {
+        QuizQuestion(
+            question: text,
+            answers: ["A", "B", "C", "D"],
+            correctAnswer: correctAnswer,
+            explanation: explanation
+        )
     }
 
     private func makeStatisticsHarness() -> (store: StatisticsStore, defaults: UserDefaults) {
