@@ -63,6 +63,8 @@ final class LocalizationTests: XCTestCase {
             "ai_theme.prompt_too_long",
             "question.exit_alert.title",
             "question.exit_alert.message",
+            "question.show_explanation",
+            "question.show_question",
             "question.time_remaining",
             "result.play_again",
             "result.to_themes"

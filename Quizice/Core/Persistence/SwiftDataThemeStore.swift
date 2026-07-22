@@ -6,18 +6,26 @@ private final class StoredQuizQuestion {
     var question: String
     var answers: [String]
     var correctAnswer: String
+    var explanation: String?
 
-    init(question: String, answers: [String], correctAnswer: String) {
+    init(
+        question: String,
+        answers: [String],
+        correctAnswer: String,
+        explanation: String? = nil
+    ) {
         self.question = question
         self.answers = answers
         self.correctAnswer = correctAnswer
+        self.explanation = explanation
     }
 
     convenience init(model: QuizQuestion) {
         self.init(
             question: model.question,
             answers: model.answers,
-            correctAnswer: model.correctAnswer
+            correctAnswer: model.correctAnswer,
+            explanation: model.explanation
         )
     }
 
@@ -25,7 +33,8 @@ private final class StoredQuizQuestion {
         QuizQuestion(
             question: question,
             answers: answers,
-            correctAnswer: correctAnswer
+            correctAnswer: correctAnswer,
+            explanation: explanation
         )
     }
 }

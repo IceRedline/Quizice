@@ -254,6 +254,81 @@ final class QuizQuestionStateContractTests: CrossScreenVisualTestCase {
 
         let nextButton = try XCTUnwrap(viewController.view.descendant(withAccessibilityIdentifier: "questionNextButton") as? UIButton)
         XCTAssertTrue(nextButton.isEnabled)
+
+        let infoButton = try XCTUnwrap(
+            viewController.view.descendant(withAccessibilityIdentifier: "questionInfoButton") as? UIButton
+        )
+        XCTAssertFalse(infoButton.isHidden)
+        viewController.view.layoutIfNeeded()
+
+        let timerContainer = try XCTUnwrap(
+            viewController.view.descendant(
+                withAccessibilityIdentifier: "questionTimerContainerView"
+            )
+        )
+        XCTAssertLessThanOrEqual(infoButton.frame.maxX, timerContainer.frame.minX)
+        XCTAssertEqual(
+            infoButton.layer.cornerRadius,
+            infoButton.bounds.height / 2,
+            accuracy: 0.001
+        )
+
+        let expectedInfoImage = UIImage(
+            systemName: "info",
+            withConfiguration: UIImage.SymbolConfiguration(pointSize: 16, weight: .semibold)
+        )
+        XCTAssertEqual(infoButton.image(for: .normal)?.pngData(), expectedInfoImage?.pngData())
+    }
+
+    func testQuestionExplanationAppearsOnBackOfSharedTwoSidedCardAfterAnswer() throws {
+        QuizFactory.shared.chosenTheme = makeQuestionTheme()
+        QuizFactory.shared.questionsCount = 1
+
+        let viewController = QuizQuestionViewController()
+        viewController.loadViewIfNeeded()
+        defer { viewController.presenter?.stopTimer() }
+
+        let infoButton = try XCTUnwrap(
+            viewController.view.descendant(withAccessibilityIdentifier: "questionInfoButton") as? UIButton
+        )
+        XCTAssertTrue(infoButton.isHidden)
+
+        let correctButton = try XCTUnwrap(
+            questionAnswerButtons(in: viewController).first {
+                $0.title(for: .normal) == "Правильный ответ"
+            }
+        )
+        correctButton.sendActions(for: .touchUpInside)
+
+        XCTAssertFalse(infoButton.isHidden)
+        XCTAssertEqual(viewController.questionCardFace, .front)
+
+        viewController.setQuestionCardFace(.back, animated: false)
+        viewController.questionCardBackView.layoutIfNeeded()
+
+        let explanationLabel = try XCTUnwrap(
+            viewController.view.descendant(
+                withAccessibilityIdentifier: "questionExplanationLabel"
+            ) as? UILabel
+        )
+        XCTAssertEqual(
+            explanationLabel.text,
+            "Правильный ответ отмечен в данных вопроса как correctAnswer."
+        )
+        XCTAssertEqual(viewController.questionCardFace, .back)
+        XCTAssertTrue(viewController.questionCardFrontView.isHidden)
+        XCTAssertFalse(viewController.questionCardBackView.isHidden)
+
+        let backButton = try XCTUnwrap(
+            viewController.view.descendant(
+                withAccessibilityIdentifier: "questionExplanationBackButton"
+            ) as? UIButton
+        )
+        XCTAssertEqual(
+            backButton.layer.cornerRadius,
+            backButton.bounds.height / 2,
+            accuracy: 0.001
+        )
     }
 
     func testQuestionScreenTimeExpiredStateDisablesAnswersAndKeepsNextActionAvailable() throws {

@@ -50,9 +50,13 @@ final class QuizFactoryTests: XCTestCase {
 
         XCTAssertEqual(store.fetchThemes().map(\.stableID).sorted(), ["music", "technology"])
 
-        store.replaceThemes(with: [SnapshotSupport.makeTheme(id: "culture", name: "Culture")])
+        let culture = SnapshotSupport.makeTheme(id: "culture", name: "Culture")
+        culture.questions.first?.explanation = "Stored explanation"
+        store.replaceThemes(with: [culture])
 
-        XCTAssertEqual(store.fetchThemes().map(\.stableID), ["culture"])
+        let fetchedThemes = store.fetchThemes()
+        XCTAssertEqual(fetchedThemes.map(\.stableID), ["culture"])
+        XCTAssertEqual(fetchedThemes.first?.questions.first?.explanation, "Stored explanation")
 
         store.clearThemes()
 

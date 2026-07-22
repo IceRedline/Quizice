@@ -22,6 +22,20 @@ extension QuizQuestionViewController {
         guard !isQuestionTransitionInProgress else { return }
         presenter?.checkQuestionNumberAndProceed()
     }
+
+    @objc func questionInfoButtonTapped() {
+        guard !questionInfoButton.isHidden, !isQuestionTransitionInProgress else { return }
+        setQuestionCardFace(.back, animated: true)
+    }
+
+    @objc func questionExplanationBackButtonTapped() {
+        guard !isQuestionTransitionInProgress else { return }
+        setQuestionCardFace(.front, animated: true)
+    }
+
+    func setQuestionCardFace(_ face: HomeThemeCardFace, animated: Bool) {
+        questionCardFaceTransitionDriver.setFace(face, animated: animated)
+    }
     
     @objc func closeButtonTapped() {
         guard presentedViewController == nil, activeExitAlertID == nil else { return }

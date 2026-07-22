@@ -12,6 +12,11 @@ final class QuizQuestionViewController: BaseQuizViewController, QuizQuestionView
         static let themeLabel = "questionThemeLabel"
         static let questionNumberLabel = "questionNumberLabel"
         static let questionCardView = "questionCardView"
+        static let questionCardFrontView = "questionCardFrontView"
+        static let questionCardBackView = "questionCardBackView"
+        static let questionInfoButton = "questionInfoButton"
+        static let questionExplanationBackButton = "questionExplanationBackButton"
+        static let questionExplanationLabel = "questionExplanationLabel"
         static let questionTextLabel = "questionTextLabel"
         static let timerContainerView = "questionTimerContainerView"
         static let timerProgressView = "questionTimerProgressView"
@@ -53,6 +58,11 @@ final class QuizQuestionViewController: BaseQuizViewController, QuizQuestionView
         static let bottomMaximumInset: CGFloat = 22
         static let answersStackSpacing: CGFloat = 14
         static let closeButtonSize: CGFloat = 44
+        static let cardIconButtonSize: CGFloat = 36
+        static let cardIconButtonInset: CGFloat = 12
+        static let timerToInfoSpacing: CGFloat = 12
+        static let explanationHorizontalInset: CGFloat = 24
+        static let explanationVerticalSpacing: CGFloat = 16
         static let closeButtonTrailingInset: CGFloat = 20
         static let maximumContentWidth: CGFloat = 430
     }
@@ -63,6 +73,7 @@ final class QuizQuestionViewController: BaseQuizViewController, QuizQuestionView
         static let questionFontSize: CGFloat = 26
         static let answerButtonFontSize: CGFloat = 18
         static let actionButtonFontSize: CGFloat = 20
+        static let explanationFontSize: CGFloat = 20
         static let themeMinimumScaleFactor: CGFloat = 0.70
         static let questionMinimumScaleFactor: CGFloat = 0.72
         static let answerMinimumScaleFactor: CGFloat = 0.72
@@ -118,6 +129,9 @@ final class QuizQuestionViewController: BaseQuizViewController, QuizQuestionView
         static let answerFeedbackDuration: Double = 0.15
         static let answerFeedbackOptions: UIView.AnimationOptions = [.curveEaseInOut, .allowUserInteraction]
         static let questionNumberTransitionDuration: TimeInterval = 0.18
+        static let cardFlipDuration: TimeInterval = 0.28
+        static let reducedMotionCardFlipDuration: TimeInterval = 0.18
+        static let cardPerspectiveDistance: CGFloat = 760
     }
     
     enum ActionButtonStyle {
@@ -171,9 +185,22 @@ final class QuizQuestionViewController: BaseQuizViewController, QuizQuestionView
     var questionNumberLabel: UILabel!
     var questionLabel: UILabel!
     var questionCardView: UIView!
+    var questionCardShadowView: UIView!
+    var questionCardRotatingView: TwoSidedCardTransformCarrierView!
+    var questionCardFrontPlaneView: UIView!
+    var questionCardBackPlaneView: UIView!
+    var questionCardFrontView: UIView!
+    var questionCardBackView: UIView!
+    var questionCardFlipInteractionButton: UIButton!
+    var questionInfoButton: UIButton!
+    var questionExplanationBackButton: UIButton!
+    var questionExplanationScrollView: UIScrollView!
+    var questionExplanationLabel: UILabel!
     var scrollView: UIScrollView!
     var timerContainerView: UIView!
     var timerBar: UIProgressView!
+    var timerLeadingToCardConstraint: NSLayoutConstraint!
+    var timerLeadingToInfoConstraint: NSLayoutConstraint!
     var questionTopSpacingGuide: UILayoutGuide!
     var questionBottomSpacingGuide: UILayoutGuide!
     var answersStackView: UIStackView!
@@ -202,8 +229,45 @@ final class QuizQuestionViewController: BaseQuizViewController, QuizQuestionView
     var isQuestionTransitionInProgress = false
     var isFittingContentFonts = false
     weak var outgoingQuestionCardSnapshot: UIView?
+
+    lazy var questionCardFaceTransitionDriver = TwoSidedCardTransitionDriver(
+        surfaces: TwoSidedCardTransitionDriver.Surfaces(
+            perspectiveStageView: questionCardView,
+            shadowProxyView: questionCardShadowView,
+            rotatingCardView: questionCardRotatingView,
+            frontPlaneView: questionCardFrontPlaneView,
+            backPlaneView: questionCardBackPlaneView,
+            frontFaceView: questionCardFrontView,
+            backFaceView: questionCardBackView,
+            interactionOverlayView: questionCardFlipInteractionButton,
+            containerLayerToReset: nil,
+            normalizesFacePresentation: true
+        ),
+        perspectiveDistance: AnimationTiming.cardPerspectiveDistance,
+        configuration: {
+            let reducesMotion = UIAccessibility.isReduceMotionEnabled
+            return TwoSidedCardTransitionConfiguration(
+                duration: reducesMotion
+                    ? AnimationTiming.reducedMotionCardFlipDuration
+                    : AnimationTiming.cardFlipDuration,
+                curve: reducesMotion ? .easeInOut : .linear,
+                reducesMotion: reducesMotion
+            )
+        },
+        didSettle: { [weak self] face in
+            guard let self else { return }
+            UIAccessibility.post(
+                notification: .layoutChanged,
+                argument: face == .front ? self.questionLabel : self.questionExplanationLabel
+            )
+        }
+    )
     
     var presenter: QuizQuestionPresenterProtocol?
+
+    var questionCardFace: HomeThemeCardFace {
+        questionCardFaceTransitionDriver.face
+    }
 
     var cardSlideTransitionSourceView: UIView { questionCardView }
     var cardSlideTransitionDestinationView: UIView { questionCardView }
@@ -334,6 +398,9 @@ final class QuizQuestionViewController: BaseQuizViewController, QuizQuestionView
         isQuestionTransitionInProgress = false
         hasLoadedQuestion = false
         currentAnswerOptions = []
+        questionCardFaceTransitionDriver.reset(to: .front)
+        setQuestionInfoButtonVisible(false)
+        questionExplanationLabel?.text = nil
 
         questionCardView?.layer.removeAllAnimations()
         questionCardView?.transform = .identity
@@ -364,9 +431,23 @@ final class QuizQuestionViewController: BaseQuizViewController, QuizQuestionView
         updateDebugQuestionSourceIndicator()
 #endif
 
-        questionCardView?.applySurfaceStyle(appearance.card)
+        questionCardView?.backgroundColor = .clear
+        questionCardShadowView?.applySurfaceStyle(appearance.card)
+        [questionCardFrontView, questionCardBackView].forEach { faceView in
+            faceView?.backgroundColor = appearance.card.backgroundColor
+            faceView?.layer.cornerRadius = appearance.card.cornerRadius
+            faceView?.layer.cornerCurve = .continuous
+            faceView?.layer.borderWidth = appearance.card.borderWidth
+            faceView?.layer.borderColor = appearance.card.borderColor.cgColor
+            faceView?.layer.masksToBounds = true
+        }
         questionLabel?.textColor = appearance.surfaceTextColor
         questionLabel?.font = appearance.typography.font(size: Typography.questionFontSize, weight: .bold)
+        questionExplanationLabel?.textColor = appearance.surfaceTextColor
+        questionExplanationLabel?.font = appearance.typography.font(
+            size: Typography.explanationFontSize,
+            weight: .regular
+        )
 
         timerContainerView?.backgroundColor = appearance.progressTrackColor
         timerContainerView?.layer.cornerRadius = min(appearance.card.cornerRadius, Appearance.timerContainerCornerRadius)
@@ -394,6 +475,15 @@ final class QuizQuestionViewController: BaseQuizViewController, QuizQuestionView
             appearance: appearance,
             textColor: appearance.screenTextColor
         )
+        [questionInfoButton, questionExplanationBackButton].forEach { button in
+            button?.applyActionAppearance(
+                appearance.iconButton,
+                appearance: appearance,
+                textColor: appearance.surfaceTextColor
+            )
+            button?.layer.cornerRadius = Layout.cardIconButtonSize / 2
+            button?.layer.cornerCurve = .circular
+        }
     }
 
     override func applyLocalizedStrings() {
@@ -401,6 +491,8 @@ final class QuizQuestionViewController: BaseQuizViewController, QuizQuestionView
         nextButton.setTitle(L10n.Common.next, for: .normal)
         closeButton.accessibilityLabel = L10n.Common.exit
         timerBar.accessibilityLabel = L10n.Question.timeRemaining
+        questionInfoButton.accessibilityLabel = L10n.Question.showExplanation
+        questionExplanationBackButton.accessibilityLabel = L10n.Question.showQuestion
     }
 }
 
@@ -427,7 +519,8 @@ extension AnalyticsQuizProgress {
                 QuizAnswerOption(id: "1", title: "Санкт-Петербург"),
                 QuizAnswerOption(id: "2", title: "Казань"),
                 QuizAnswerOption(id: "3", title: "Новгород")
-            ]
+            ],
+            explanation: "Санкт-Петербург был столицей Российской империи большую часть XVIII века."
         )
     )
     viewController.updateProgress(0.62)
