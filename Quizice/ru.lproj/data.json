@@ -12,7 +12,7 @@
                     "2015"
                 ],
                 "correctAnswer": "2017",
-                "explanation": "2017 — сингл «Burger» вышел в 2017 году."
+                "explanation": "Сингл «Burger» вышел в 2017 году."
             },
             {
                 "question": "Лучшая песня всех времен по версии журнала New Musical Express:",
@@ -23,7 +23,7 @@
                     "Seven Nation Army"
                 ],
                 "correctAnswer": "Smells Like Teen Spirit",
-                "explanation": "Smells Like Teen Spirit — песня Nirvana заняла первое место в рейтинге величайших песен журнала NME."
+                "explanation": "Песня Nirvana заняла первое место в рейтинге величайших песен журнала NME."
             },
             {
                 "question": "Кто в 2022 году стал первым в России рэпером-иноагентом?",
@@ -34,7 +34,7 @@
                     "Noize MC"
                 ],
                 "correctAnswer": "Face",
-                "explanation": "Face — Минюст России включил Face в реестр иностранных агентов в 2022 году."
+                "explanation": "Минюст России включил Face в реестр иностранных агентов в 2022 году."
             },
             {
                 "question": "В каком году вышла песня 'Hotel California' группы Eagles?",
@@ -45,7 +45,7 @@
                     "1985"
                 ],
                 "correctAnswer": "1976",
-                "explanation": "1976 — сингл «Hotel California» вышел в 1976 году."
+                "explanation": "Сингл «Hotel California» вышел в 1976 году."
             },
             {
                 "question": "Какой из этих синглов был выпущен группой The Rolling Stones в 1965 году?",
@@ -56,7 +56,7 @@
                     "Stairway to Heaven"
                 ],
                 "correctAnswer": "Satisfaction",
-                "explanation": "Satisfaction — сингл «(I Can't Get No) Satisfaction» вышел в Satisfaction году."
+                "explanation": "Сингл «(I Can't Get No) Satisfaction» вышел в Satisfaction году."
             },
             {
                 "question": "Какой инструмент считается основным в джазовой музыке?",
@@ -67,7 +67,7 @@
                     "Саксофон"
                 ],
                 "correctAnswer": "Саксофон",
-                "explanation": "Саксофон — саксофон — один из ведущих инструментов джаза: его тембр и гибкость сделали его главным голосом импровизации."
+                "explanation": "Саксофон — один из ведущих инструментов джаза: его тембр и гибкость сделали его главным голосом импровизации."
             },
             {
                 "question": "Какая группа выпустила альбом 'Abbey Road'?",
@@ -78,7 +78,7 @@
                     "Pink Floyd"
                 ],
                 "correctAnswer": "The Beatles",
-                "explanation": "The Beatles — The Beatles выпустили «Abbey Road» в 1969 году; это их последний записанный студийный альбом."
+                "explanation": "The Beatles выпустили «Abbey Road» в 1969 году; это их последний записанный студийный альбом."
             },
             {
                 "question": "Какой жанр музыки характеризуется быстрым темпом и энергичными ритмами?",
@@ -89,7 +89,7 @@
                     "Джаз"
                 ],
                 "correctAnswer": "Рок-н-ролл",
-                "explanation": "Рок-н-ролл — рок-н-ролл построен на быстром темпе и акцентированном бите."
+                "explanation": "Рок-н-ролл построен на быстром темпе и акцентированном бите."
             },
             {
                 "question": "Какая песня стала хитом для группы Queen в 1975 году?",
@@ -100,7 +100,7 @@
                     "Somebody to Love"
                 ],
                 "correctAnswer": "Bohemian Rhapsody",
-                "explanation": "Bohemian Rhapsody — сингл «Bohemian Rhapsody» вышел в Bohemian Rhapsody году."
+                "explanation": "Сингл «Bohemian Rhapsody» вышел в Bohemian Rhapsody году."
             },
             {
                 "question": "Кто написал знаменитую симфонию 'Лунная соната'?",
@@ -111,7 +111,7 @@
                     "Иоганн Себастьян Бах"
                 ],
                 "correctAnswer": "Людвиг ван Бетховен",
-                "explanation": "Людвиг ван Бетховен — Людвиг ван Бетховен является автором произведения «Лунная соната»."
+                "explanation": "Людвиг ван Бетховен является автором произведения «Лунная соната»."
             },
             {
                 "question": "Какая группа является автором хита 'Smells Like Teen Spirit'?",
@@ -122,7 +122,7 @@
                     "Red Hot Chili Peppers"
                 ],
                 "correctAnswer": "Nirvana",
-                "explanation": "Nirvana — «Smells Like Teen Spirit» записали и исполняют Nirvana."
+                "explanation": "«Smells Like Teen Spirit» записали и исполняют Nirvana."
             },
             {
                 "question": "Какой музыкальный стиль родился в Нью-Йорке в 1970-х годах?",
@@ -133,7 +133,7 @@
                     "Глэм-рок"
                 ],
                 "correctAnswer": "Хип-хоп",
-                "explanation": "Хип-хоп — хип-хоп сформировался в Бронксе Нью-Йорка в 1970-х вокруг диджеинга, рэпа и брейкинга."
+                "explanation": "Хип-хоп сформировался в Бронксе Нью-Йорка в 1970-х вокруг диджеинга, рэпа и брейкинга."
             },
             {
                 "question": "Какой из этих альбомов был выпущен Michael Jackson?",
@@ -144,7 +144,7 @@
                     "Back in Black"
                 ],
                 "correctAnswer": "Thriller",
-                "explanation": "Thriller — «Thriller» — студийный альбом Майкла Джексона 1982 года."
+                "explanation": "«Thriller» — студийный альбом Майкла Джексона 1982 года."
             },
             {
                 "question": "Какая группа исполнила песню 'Hotel California'?",
@@ -155,7 +155,7 @@
                     "Pink Floyd"
                 ],
                 "correctAnswer": "The Eagles",
-                "explanation": "The Eagles — «Hotel California» записали и исполняют The Eagles."
+                "explanation": "«Hotel California» записали и исполняют The Eagles."
             },
             {
                 "question": "Какое произведение Петра Ильича Чайковского стало популярным на Рождество?",
@@ -166,7 +166,7 @@
                     "Манфред"
                 ],
                 "correctAnswer": "Щелкунчик",
-                "explanation": "Щелкунчик — балет Чайковского «Щелкунчик» традиционно ставят в рождественско-новогодний сезон."
+                "explanation": "Балет Чайковского «Щелкунчик» традиционно ставят в рождественско-новогодний сезон."
             },
             {
                 "question": "Какой певец известен как 'Король поп-музыки'?",
@@ -177,7 +177,7 @@
                     "Freddie Mercury"
                 ],
                 "correctAnswer": "Michael Jackson",
-                "explanation": "Michael Jackson — это прозвище закрепилось за Michael Jackson благодаря заметному влиянию на соответствующий жанр."
+                "explanation": "Это прозвище закрепилось за Michael Jackson благодаря заметному влиянию на соответствующий жанр."
             },
             {
                 "question": "Какая песня сделала группу A-ha знаменитой?",
@@ -188,7 +188,7 @@
                     "Crying in the Rain"
                 ],
                 "correctAnswer": "Take On Me",
-                "explanation": "Take On Me — клип с карандашной анимацией сделал «Take On Me» мировым прорывом A-ha."
+                "explanation": "Клип с карандашной анимацией сделал «Take On Me» мировым прорывом A-ha."
             },
             {
                 "question": "Кто написал песню 'Yesterday'?",
@@ -199,7 +199,7 @@
                     "Ringo Starr"
                 ],
                 "correctAnswer": "Paul McCartney",
-                "explanation": "Paul McCartney — Paul McCartney является автором произведения «Yesterday»."
+                "explanation": "Paul McCartney является автором произведения «Yesterday»."
             },
             {
                 "question": "Какой хит группы Pink Floyd связан с темой психического здоровья?",
@@ -210,7 +210,7 @@
                     "Money"
                 ],
                 "correctAnswer": "Comfortably Numb",
-                "explanation": "Comfortably Numb — тема эмоционального онемения в песне Pink Floyd связана с психическим состоянием её героя."
+                "explanation": "Тема эмоционального онемения в песне Pink Floyd связана с психическим состоянием её героя."
             },
             {
                 "question": "Какой альбом Beyoncé посвящён женской силе и афроамериканской культуре?",
@@ -221,7 +221,7 @@
                     "Dangerously in Love"
                 ],
                 "correctAnswer": "Lemonade",
-                "explanation": "Lemonade — «Lemonade» посвящён опыту темнокожих женщин, отношениям и самоутверждению."
+                "explanation": "«Lemonade» посвящён опыту темнокожих женщин, отношениям и самоутверждению."
             },
             {
                 "question": "Какой музыкант известен под прозвищем 'Король рок-н-ролла'?",
@@ -232,7 +232,7 @@
                     "Jerry Lee Lewis"
                 ],
                 "correctAnswer": "Elvis Presley",
-                "explanation": "Elvis Presley — это прозвище закрепилось за Elvis Presley благодаря заметному влиянию на соответствующий жанр."
+                "explanation": "Это прозвище закрепилось за Elvis Presley благодаря заметному влиянию на соответствующий жанр."
             },
             {
                 "question": "Какая группа исполняет песню 'Sweet Child O' Mine'?",
@@ -243,7 +243,7 @@
                     "Def Leppard"
                 ],
                 "correctAnswer": "Guns N' Roses",
-                "explanation": "Guns N' Roses — «Sweet Child O» записали и исполняют Guns N' Roses."
+                "explanation": "«Sweet Child O» записали и исполняют Guns N' Roses."
             },
             {
                 "question": "Какой хит 1980-х начинается со слов 'It's nine o'clock on a Saturday'?",
@@ -254,7 +254,7 @@
                     "Sweet Child O' Mine"
                 ],
                 "correctAnswer": "Piano Man",
-                "explanation": "Piano Man — «Piano Man» открывается строкой «It's nine o'clock on a Saturday»."
+                "explanation": "«Piano Man» открывается строкой «It's nine o'clock on a Saturday»."
             },
             {
                 "question": "Кто является автором песни 'Imagine'?",
@@ -265,7 +265,7 @@
                     "David Bowie"
                 ],
                 "correctAnswer": "John Lennon",
-                "explanation": "John Lennon — John Lennon является автором произведения «Imagine»."
+                "explanation": "John Lennon является автором произведения «Imagine»."
             },
             {
                 "question": "Какой альбом группы Metallica стал самым продаваемым?",
@@ -276,7 +276,7 @@
                     "And Justice for All"
                 ],
                 "correctAnswer": "Metallica (The Black Album)",
-                "explanation": "Metallica (The Black Album) — пятый студийный альбом Metallica, известный как The Black Album, остаётся самым продаваемым релизом группы."
+                "explanation": "Пятый студийный альбом Metallica, известный как The Black Album, остаётся самым продаваемым релизом группы."
             },
             {
                 "question": "Какой музыкальный коллектив исполняет песню 'Wonderwall'?",
@@ -287,7 +287,7 @@
                     "Oasis"
                 ],
                 "correctAnswer": "Oasis",
-                "explanation": "Oasis — «Wonderwall» записали и исполняют Oasis."
+                "explanation": "«Wonderwall» записали и исполняют Oasis."
             },
             {
                 "question": "Кто является автором песни 'Bohemian Rhapsody'?",
@@ -298,7 +298,7 @@
                     "John Deacon"
                 ],
                 "correctAnswer": "Freddie Mercury",
-                "explanation": "Freddie Mercury — Freddie Mercury является автором произведения «Bohemian Rhapsody»."
+                "explanation": "Freddie Mercury является автором произведения «Bohemian Rhapsody»."
             },
             {
                 "question": "Какой хит группы The Prodigy стал символом электронной музыки 1990-х?",
@@ -309,7 +309,7 @@
                     "No Good (Start the Dance)"
                 ],
                 "correctAnswer": "Firestarter",
-                "explanation": "Firestarter — «Firestarter» стал крупным хитом The Prodigy 1996 года и символом эпохи big beat."
+                "explanation": "«Firestarter» стал крупным хитом The Prodigy 1996 года и символом эпохи big beat."
             },
             {
                 "question": "Какой певец известен как 'The Boss'?",
@@ -320,7 +320,7 @@
                     "Neil Young"
                 ],
                 "correctAnswer": "Bruce Springsteen",
-                "explanation": "Bruce Springsteen — это прозвище закрепилось за Bruce Springsteen благодаря заметному влиянию на соответствующий жанр."
+                "explanation": "Это прозвище закрепилось за Bruce Springsteen благодаря заметному влиянию на соответствующий жанр."
             },
             {
                 "question": "Какая группа исполняет песню 'Stairway to Heaven'?",
@@ -331,7 +331,7 @@
                     "The Who"
                 ],
                 "correctAnswer": "Led Zeppelin",
-                "explanation": "Led Zeppelin — «Stairway to Heaven» записали и исполняют Led Zeppelin."
+                "explanation": "«Stairway to Heaven» записали и исполняют Led Zeppelin."
             },
             {
                 "question": "Какой хит Whitney Houston стал саундтреком к фильму 'The Bodyguard'?",
@@ -342,7 +342,7 @@
                     "Saving All My Love for You"
                 ],
                 "correctAnswer": "I Will Always Love You",
-                "explanation": "I Will Always Love You — версия Уитни Хьюстон стала центральной песней саундтрека «Телохранителя»."
+                "explanation": "Версия Уитни Хьюстон стала центральной песней саундтрека «Телохранителя»."
             },
             {
                 "question": "Какой музыкант известен как 'Принц поп-музыки'?",
@@ -353,7 +353,7 @@
                     "David Bowie"
                 ],
                 "correctAnswer": "Prince",
-                "explanation": "Prince — это прозвище закрепилось за Prince благодаря заметному влиянию на соответствующий жанр."
+                "explanation": "Это прозвище закрепилось за Prince благодаря заметному влиянию на соответствующий жанр."
             },
             {
                 "question": "Какая песня группы Nirvana стала символом гранжа?",
@@ -364,7 +364,7 @@
                     "Heart-Shaped Box"
                 ],
                 "correctAnswer": "Smells Like Teen Spirit",
-                "explanation": "Smells Like Teen Spirit — эта композиция стала песней, с которой Nirvana и гранж ассоциируют прежде всего."
+                "explanation": "Эта композиция стала песней, с которой Nirvana и гранж ассоциируют прежде всего."
             },
             {
                 "question": "Какой альбом стал дебютным для группы Arctic Monkeys?",
@@ -375,7 +375,7 @@
                     "Humbug"
                 ],
                 "correctAnswer": "Whatever People Say I Am, That's What I'm Not",
-                "explanation": "Whatever People Say I Am, That's What I'm Not — это дебютный альбом Arctic Monkeys, выпущенный в 2006 году."
+                "explanation": "Это дебютный альбом Arctic Monkeys, выпущенный в 2006 году."
             },
             {
                 "question": "Кто является автором песни 'Like a Rolling Stone'?",
@@ -386,7 +386,7 @@
                     "Bruce Springsteen"
                 ],
                 "correctAnswer": "Bob Dylan",
-                "explanation": "Bob Dylan — Bob Dylan является автором произведения «Like a Rolling Stone»."
+                "explanation": "Bob Dylan является автором произведения «Like a Rolling Stone»."
             },
             {
                 "question": "Какой хит группы The Killers стал их визитной карточкой?",
@@ -397,7 +397,7 @@
                     "Human"
                 ],
                 "correctAnswer": "Mr. Brightside",
-                "explanation": "Mr. Brightside — «Mr. Brightside» — самый узнаваемый и долгоиграющий хит The Killers."
+                "explanation": "«Mr. Brightside» — самый узнаваемый и долгоиграющий хит The Killers."
             },
             {
                 "question": "Какой альбом группы Pink Floyd считается концептуальным и посвящён отсутствию фронтмена Сида Барретта?",
@@ -408,7 +408,7 @@
                     "The Wall"
                 ],
                 "correctAnswer": "Wish You Were Here",
-                "explanation": "Wish You Were Here — альбом посвящён, в частности, бывшему участнику Pink Floyd Сиду Барретту."
+                "explanation": "Альбом посвящён, в частности, бывшему участнику Pink Floyd Сиду Барретту."
             },
             {
                 "question": "Какой певец известен как 'Король соула'?",
@@ -419,7 +419,7 @@
                     "Stevie Wonder"
                 ],
                 "correctAnswer": "James Brown",
-                "explanation": "James Brown — это прозвище закрепилось за James Brown благодаря заметному влиянию на соответствующий жанр."
+                "explanation": "Это прозвище закрепилось за James Brown благодаря заметному влиянию на соответствующий жанр."
             },
             {
                 "question": "Какая группа исполняет песню 'Don't Stop Believin'?",
@@ -430,7 +430,7 @@
                     "Foreigner"
                 ],
                 "correctAnswer": "Journey",
-                "explanation": "Journey — «Don» записали и исполняют Journey."
+                "explanation": "«Don» записали и исполняют Journey."
             },
             {
                 "question": "Какой хит группы AC/DC стал гимном рока?",
@@ -441,7 +441,7 @@
                     "You Shook Me All Night Long"
                 ],
                 "correctAnswer": "Highway to Hell",
-                "explanation": "Highway to Hell — «Highway to Hell» — заглавная песня альбома AC/DC 1979 года и один из их главных рок-хитов."
+                "explanation": "«Highway to Hell» — заглавная песня альбома AC/DC 1979 года и один из их главных рок-хитов."
             },
             {
                 "question": "Какой музыкант известен как 'Король блюза'?",
@@ -452,7 +452,7 @@
                     "Howlin' Wolf"
                 ],
                 "correctAnswer": "B.B. King",
-                "explanation": "B.B. King — это прозвище закрепилось за B.B. King благодаря заметному влиянию на соответствующий жанр."
+                "explanation": "Это прозвище закрепилось за B.B. King благодаря заметному влиянию на соответствующий жанр."
             },
             {
                 "question": "Какая группа исполняет песню 'Another Brick in the Wall'?",
@@ -463,7 +463,7 @@
                     "Deep Purple"
                 ],
                 "correctAnswer": "Pink Floyd",
-                "explanation": "Pink Floyd — «Another Brick in the Wall» записали и исполняют Pink Floyd."
+                "explanation": "«Another Brick in the Wall» записали и исполняют Pink Floyd."
             },
             {
                 "question": "Какой хит группы The Beatles стал самой кавер-версируемой песней в истории?",
@@ -474,7 +474,7 @@
                     "Help!"
                 ],
                 "correctAnswer": "Yesterday",
-                "explanation": "Yesterday — песня The Beatles стала одной из самых перепеваемых композиций в истории."
+                "explanation": "Песня The Beatles стала одной из самых перепеваемых композиций в истории."
             },
             {
                 "question": "Какой певец известен как 'Голос поколения'?",
@@ -485,7 +485,7 @@
                     "Freddie Mercury"
                 ],
                 "correctAnswer": "Bob Dylan",
-                "explanation": "Bob Dylan — это прозвище закрепилось за Bob Dylan благодаря заметному влиянию на соответствующий жанр."
+                "explanation": "Это прозвище закрепилось за Bob Dylan благодаря заметному влиянию на соответствующий жанр."
             },
             {
                 "question": "Какая группа исполняет песню 'Under the Bridge'?",
@@ -496,7 +496,7 @@
                     "Pearl Jam"
                 ],
                 "correctAnswer": "Red Hot Chili Peppers",
-                "explanation": "Red Hot Chili Peppers — «Under the Bridge» записали и исполняют Red Hot Chili Peppers."
+                "explanation": "«Under the Bridge» записали и исполняют Red Hot Chili Peppers."
             },
             {
                 "question": "Какой хит группы Queen стал саундтреком к фильму 'Шахматная горячка'?",
@@ -507,7 +507,7 @@
                     "Radio Ga Ga"
                 ],
                 "correctAnswer": "I Want to Break Free",
-                "explanation": "I Want to Break Free — «I Want to Break Free» — сингл Queen 1984 года, исполненный Фредди Меркьюри."
+                "explanation": "«I Want to Break Free» — сингл Queen 1984 года, исполненный Фредди Меркьюри."
             },
             {
                 "question": "Какой музыкант известен как 'Король латиноамериканской поп-музыки'?",
@@ -518,7 +518,7 @@
                     "Marc Anthony"
                 ],
                 "correctAnswer": "Ricky Martin",
-                "explanation": "Ricky Martin — это прозвище закрепилось за Ricky Martin благодаря заметному влиянию на соответствующий жанр."
+                "explanation": "Это прозвище закрепилось за Ricky Martin благодаря заметному влиянию на соответствующий жанр."
             },
             {
                 "question": "Какая группа исполняет песню 'Zombie'?",
@@ -529,7 +529,7 @@
                     "The Cure"
                 ],
                 "correctAnswer": "The Cranberries",
-                "explanation": "The Cranberries — «Zombie» записали и исполняют The Cranberries."
+                "explanation": "«Zombie» записали и исполняют The Cranberries."
             },
             {
                 "question": "Какой хит группы Coldplay стал одним из самых популярных в 2000-х?",
@@ -540,7 +540,7 @@
                     "Yellow"
                 ],
                 "correctAnswer": "Yellow",
-                "explanation": "Yellow — «Yellow» был прорывным синглом Coldplay в начале 2000-х."
+                "explanation": "«Yellow» был прорывным синглом Coldplay в начале 2000-х."
             },
             {
                 "question": "Какой певец известен как 'Король поп-панка'?",
@@ -551,7 +551,7 @@
                     "Green Day"
                 ],
                 "correctAnswer": "Billie Joe Armstrong",
-                "explanation": "Billie Joe Armstrong — это прозвище закрепилось за Billie Joe Armstrong благодаря заметному влиянию на соответствующий жанр."
+                "explanation": "Это прозвище закрепилось за Billie Joe Armstrong благодаря заметному влиянию на соответствующий жанр."
             },
             {
                 "question": "Какая группа исполняет песню 'Basket Case'?",
@@ -562,7 +562,7 @@
                     "The Offspring"
                 ],
                 "correctAnswer": "Green Day",
-                "explanation": "Green Day — «Basket Case» записали и исполняют Green Day."
+                "explanation": "«Basket Case» записали и исполняют Green Day."
             },
             {
                 "question": "Какой хит группы Linkin Park стал символом нулевых?",
@@ -573,7 +573,7 @@
                     "What I've Done"
                 ],
                 "correctAnswer": "In the End",
-                "explanation": "In the End — «In the End» — один из главных синглов Linkin Park с дебютного альбома «Hybrid Theory»."
+                "explanation": "«In the End» — один из главных синглов Linkin Park с дебютного альбома «Hybrid Theory»."
             },
             {
                 "question": "Какой музыкант известен как 'Король фанка'?",
@@ -584,7 +584,7 @@
                     "Prince"
                 ],
                 "correctAnswer": "James Brown",
-                "explanation": "James Brown заслужил прозвище «Король фанка»: его ритмический стиль и сценическая манера во многом определили развитие фанка."
+                "explanation": "Заслужил прозвище «Король фанка»: его ритмический стиль и сценическая манера во многом определили развитие фанка."
             },
             {
                 "question": "Какая группа исполняет песню 'Californication'?",
@@ -595,7 +595,7 @@
                     "Pearl Jam"
                 ],
                 "correctAnswer": "Red Hot Chili Peppers",
-                "explanation": "Red Hot Chili Peppers — «Californication» записали и исполняют Red Hot Chili Peppers."
+                "explanation": "«Californication» записали и исполняют Red Hot Chili Peppers."
             },
             {
                 "question": "Какой хит группы The Rolling Stones стал их визитной карточкой?",
@@ -606,7 +606,7 @@
                     "Satisfaction"
                 ],
                 "correctAnswer": "Satisfaction",
-                "explanation": "Satisfaction — «(I Can't Get No) Satisfaction» — визитная карточка The Rolling Stones, выпущенная в 1965 году."
+                "explanation": "«(I Can't Get No) Satisfaction» — визитная карточка The Rolling Stones, выпущенная в 1965 году."
             },
             {
                 "question": "Какой певец известен как 'Король R&B'?",
@@ -617,7 +617,7 @@
                     "Marvin Gaye"
                 ],
                 "correctAnswer": "Usher",
-                "explanation": "Usher — это прозвище закрепилось за Usher благодаря заметному влиянию на соответствующий жанр."
+                "explanation": "Это прозвище закрепилось за Usher благодаря заметному влиянию на соответствующий жанр."
             },
             {
                 "question": "Какая группа исполняет песню 'Smells Like Teen Spirit'?",
@@ -628,7 +628,7 @@
                     "Alice in Chains"
                 ],
                 "correctAnswer": "Nirvana",
-                "explanation": "Nirvana выпустила «Smells Like Teen Spirit» как ведущий сингл альбома *Nevermind* в 1991 году."
+                "explanation": "Выпустила «Smells Like Teen Spirit» как ведущий сингл альбома *Nevermind* в 1991 году."
             },
             {
                 "question": "Какой хит группы Radiohead стал культовым в 1990-х?",
@@ -639,7 +639,7 @@
                     "No Surprises"
                 ],
                 "correctAnswer": "Creep",
-                "explanation": "Creep — «Creep» — ранний хит Radiohead, получивший культовый статус в 1990-х."
+                "explanation": "«Creep» — ранний хит Radiohead, получивший культовый статус в 1990-х."
             },
             {
                 "question": "Какой музыкант известен как 'Король регги'?",
@@ -650,7 +650,7 @@
                     "Burning Spear"
                 ],
                 "correctAnswer": "Bob Marley",
-                "explanation": "Bob Marley — это прозвище закрепилось за Bob Marley благодаря заметному влиянию на соответствующий жанр."
+                "explanation": "Это прозвище закрепилось за Bob Marley благодаря заметному влиянию на соответствующий жанр."
             },
             {
                 "question": "Какая группа исполняет песню 'Sweet Home Alabama'?",
@@ -661,7 +661,7 @@
                     "The Doobie Brothers"
                 ],
                 "correctAnswer": "Lynyrd Skynyrd",
-                "explanation": "Lynyrd Skynyrd — «Sweet Home Alabama» записали и исполняют Lynyrd Skynyrd."
+                "explanation": "«Sweet Home Alabama» записали и исполняют Lynyrd Skynyrd."
             },
             {
                 "question": "Какой хит группы U2 стал символом 1980-х?",
@@ -672,7 +672,7 @@
                     "One"
                 ],
                 "correctAnswer": "With or Without You",
-                "explanation": "With or Without You — «With or Without You» — международный хит U2 с альбома «The Joshua Tree»."
+                "explanation": "«With or Without You» — международный хит U2 с альбома «The Joshua Tree»."
             },
             {
                 "question": "Какой певец известен как 'Король хауса'?",
@@ -683,7 +683,7 @@
                     "Daft Punk"
                 ],
                 "correctAnswer": "David Guetta",
-                "explanation": "David Guetta — это прозвище закрепилось за David Guetta благодаря заметному влиянию на соответствующий жанр."
+                "explanation": "Это прозвище закрепилось за David Guetta благодаря заметному влиянию на соответствующий жанр."
             },
             {
                 "question": "Какая группа исполняет песню 'Enter Sandman'?",
@@ -694,7 +694,7 @@
                     "Anthrax"
                 ],
                 "correctAnswer": "Metallica",
-                "explanation": "Metallica — «Enter Sandman» записали и исполняют Metallica."
+                "explanation": "«Enter Sandman» записали и исполняют Metallica."
             },
             {
                 "question": "Какой хит группы The Doors стал культовым?",
@@ -705,7 +705,7 @@
                     "The End"
                 ],
                 "correctAnswer": "Light My Fire",
-                "explanation": "Light My Fire — «Light My Fire» — классическая песня The Doors с дебютного альбома группы."
+                "explanation": "«Light My Fire» — классическая песня The Doors с дебютного альбома группы."
             },
             {
                 "question": "Какой музыкант известен как 'Король хип-хопа'?",
@@ -716,7 +716,7 @@
                     "The Notorious B.I.G."
                 ],
                 "correctAnswer": "The Notorious B.I.G.",
-                "explanation": "The Notorious B.I.G. — это прозвище закрепилось за The Notorious B.I.G. благодаря заметному влиянию на соответствующий жанр."
+                "explanation": "Это прозвище закрепилось за The Notorious B.I.G. благодаря заметному влиянию на соответствующий жанр."
             },
             {
                 "question": "Какая группа исполняет песню 'Wonderful Tonight'?",
@@ -727,7 +727,7 @@
                     "Pink Floyd"
                 ],
                 "correctAnswer": "Eric Clapton",
-                "explanation": "Eric Clapton — «Wonderful Tonight» записали и исполняют Eric Clapton."
+                "explanation": "«Wonderful Tonight» записали и исполняют Eric Clapton."
             },
             {
                 "question": "Какой хит группы Oasis стал символом брит-попа?",
@@ -738,7 +738,7 @@
                     "Wonderwall"
                 ],
                 "correctAnswer": "Wonderwall",
-                "explanation": "Wonderwall — «Wonderwall» стала одной из определяющих песен брит-попа в исполнении Oasis."
+                "explanation": "«Wonderwall» стала одной из определяющих песен брит-попа в исполнении Oasis."
             },
             {
                 "question": "Какой певец известен как 'Король диско'?",
@@ -749,7 +749,7 @@
                     "ABBA"
                 ],
                 "correctAnswer": "Bee Gees",
-                "explanation": "Bee Gees — это прозвище закрепилось за Bee Gees благодаря заметному влиянию на соответствующий жанр."
+                "explanation": "Это прозвище закрепилось за Bee Gees благодаря заметному влиянию на соответствующий жанр."
             },
             {
                 "question": "Какая группа исполняет песню 'November Rain'?",
@@ -760,7 +760,7 @@
                     "Def Leppard"
                 ],
                 "correctAnswer": "Guns N' Roses",
-                "explanation": "Guns N' Roses — «November Rain» записали и исполняют Guns N' Roses."
+                "explanation": "«November Rain» записали и исполняют Guns N' Roses."
             },
             {
                 "question": "Какой хит группы The Police стал мировым хитом?",
@@ -771,7 +771,7 @@
                     "Walking on the Moon"
                 ],
                 "correctAnswer": "Every Breath You Take",
-                "explanation": "Every Breath You Take — «Every Breath You Take» стал мировым хитом The Police в 1983 году."
+                "explanation": "«Every Breath You Take» стал мировым хитом The Police в 1983 году."
             },
             {
                 "question": "Какой музыкант известен как 'Король джаза'?",
@@ -782,7 +782,7 @@
                     "Charlie Parker"
                 ],
                 "correctAnswer": "Louis Armstrong",
-                "explanation": "Louis Armstrong — это прозвище закрепилось за Louis Armstrong благодаря заметному влиянию на соответствующий жанр."
+                "explanation": "Это прозвище закрепилось за Louis Armstrong благодаря заметному влиянию на соответствующий жанр."
             },
             {
                 "question": "Какая группа исполняет песню 'Losing My Religion'?",
@@ -793,7 +793,7 @@
                     "Soundgarden"
                 ],
                 "correctAnswer": "R.E.M.",
-                "explanation": "R.E.M. — «Losing My Religion» записали и исполняют R.E.M.."
+                "explanation": "«Losing My Religion» записали и исполняют R.E.M.."
             },
             {
                 "question": "Какой хит группы The Clash стал символом панк-рока?",
@@ -804,7 +804,7 @@
                     "Train in Vain"
                 ],
                 "correctAnswer": "Should I Stay or Should I Go",
-                "explanation": "Should I Stay or Should I Go — The Clash выпустили «Should I Stay or Should I Go» в 1982 году; песня стала классикой панк-рока."
+                "explanation": "The Clash выпустили «Should I Stay or Should I Go» в 1982 году; песня стала классикой панк-рока."
             },
             {
                 "question": "Какой певец известен как 'Король кантри'?",
@@ -815,7 +815,7 @@
                     "Kenny Rogers"
                 ],
                 "correctAnswer": "Johnny Cash",
-                "explanation": "Johnny Cash — это прозвище закрепилось за Johnny Cash благодаря заметному влиянию на соответствующий жанр."
+                "explanation": "Это прозвище закрепилось за Johnny Cash благодаря заметному влиянию на соответствующий жанр."
             },
             {
                 "question": "Какая группа исполняет песню 'Bitter Sweet Symphony'?",
@@ -826,7 +826,7 @@
                     "Radiohead"
                 ],
                 "correctAnswer": "The Verve",
-                "explanation": "The Verve — «Bitter Sweet Symphony» записали и исполняют The Verve."
+                "explanation": "«Bitter Sweet Symphony» записали и исполняют The Verve."
             },
             {
                 "question": "Какой хит группы Blur стал символом брит-попа?",
@@ -837,7 +837,7 @@
                     "Tender"
                 ],
                 "correctAnswer": "Song 2",
-                "explanation": "Song 2 — «Song 2» — один из самых узнаваемых гимнов брит-попа группы Blur."
+                "explanation": "«Song 2» — один из самых узнаваемых гимнов брит-попа группы Blur."
             },
             {
                 "question": "Какой музыкант известен как 'Король соул-блюза'?",
@@ -848,7 +848,7 @@
                     "Sam Cooke"
                 ],
                 "correctAnswer": "Ray Charles",
-                "explanation": "Ray Charles — это прозвище закрепилось за Ray Charles благодаря заметному влиянию на соответствующий жанр."
+                "explanation": "Это прозвище закрепилось за Ray Charles благодаря заметному влиянию на соответствующий жанр."
             },
             {
                 "question": "Какая группа исполняет песню 'Killer Queen'?",
@@ -859,7 +859,7 @@
                     "Elton John"
                 ],
                 "correctAnswer": "Queen",
-                "explanation": "Queen — «Killer Queen» записали и исполняют Queen."
+                "explanation": "«Killer Queen» записали и исполняют Queen."
             },
             {
                 "question": "Какой хит группы The Beach Boys стал символом серфинговой музыки?",
@@ -870,7 +870,7 @@
                     "Wouldn't It Be Nice"
                 ],
                 "correctAnswer": "Surfin' USA",
-                "explanation": "Surfin' USA — «Surfin' U.S.A.» помогла сформировать звучание и образ серф-рока."
+                "explanation": "«Surfin' U.S.A.» помогла сформировать звучание и образ серф-рока."
             },
             {
                 "question": "Какой певец известен как 'Король лаунж-музыки'?",
@@ -881,7 +881,7 @@
                     "Sammy Davis Jr."
                 ],
                 "correctAnswer": "Frank Sinatra",
-                "explanation": "Frank Sinatra — это прозвище закрепилось за Frank Sinatra благодаря заметному влиянию на соответствующий жанр."
+                "explanation": "Это прозвище закрепилось за Frank Sinatra благодаря заметному влиянию на соответствующий жанр."
             },
             {
                 "question": "Какая группа исполняет песню 'Don't Speak'?",
@@ -892,7 +892,7 @@
                     "Alanis Morissette"
                 ],
                 "correctAnswer": "No Doubt",
-                "explanation": "No Doubt — «Don» записали и исполняют No Doubt."
+                "explanation": "«Don» записали и исполняют No Doubt."
             },
             {
                 "question": "Какой хит группы The White Stripes стал культовым?",
@@ -903,7 +903,7 @@
                     "Icky Thump"
                 ],
                 "correctAnswer": "Seven Nation Army",
-                "explanation": "Seven Nation Army — гитарный рифф «Seven Nation Army» стал узнаваемым далеко за пределами рок-сцены."
+                "explanation": "Гитарный рифф «Seven Nation Army» стал узнаваемым далеко за пределами рок-сцены."
             }
         ],
         "id": "music"
@@ -921,7 +921,7 @@
                     "2009"
                 ],
                 "correctAnswer": "2007",
-                "explanation": "2007 — первый iPhone поступил в продажу в 2007 году."
+                "explanation": "Первый iPhone поступил в продажу в 2007 году."
             },
             {
                 "question": "Сколько ядер имеет процессор AMD Ryzen 3990X?",
@@ -932,7 +932,7 @@
                     "12"
                 ],
                 "correctAnswer": "64",
-                "explanation": "64 — Threadripper 3990X содержит 64 физических ядра."
+                "explanation": "Threadripper 3990X содержит 64 физических ядра."
             },
             {
                 "question": "Mini-LED экраны являются разновидностью:",
@@ -943,7 +943,7 @@
                     "AMOLED"
                 ],
                 "correctAnswer": "IPS",
-                "explanation": "IPS — Mini-LED здесь означает многозонную подсветку IPS-панели."
+                "explanation": "Mini-LED здесь означает многозонную подсветку IPS-панели."
             },
             {
                 "question": "Что такое HBM память?",
@@ -954,7 +954,7 @@
                     "Кэш-память процессоров AMD"
                 ],
                 "correctAnswer": "Память распаянная на чипе",
-                "explanation": "Память распаянная на чипе — HBM объединяет вертикально уложенные кристаллы памяти в одном корпусе."
+                "explanation": "HBM объединяет вертикально уложенные кристаллы памяти в одном корпусе."
             },
             {
                 "question": "Технология Thunderbolt была разработана:",
@@ -965,7 +965,7 @@
                     "Intel и AMD"
                 ],
                 "correctAnswer": "Intel и Apple",
-                "explanation": "Intel и Apple — Thunderbolt появился благодаря совместной работе Intel и Apple."
+                "explanation": "Thunderbolt появился благодаря совместной работе Intel и Apple."
             },
             {
                 "question": "Как называется технология, позволяющая заряжать устройства без проводов?",
@@ -976,7 +976,7 @@
                     "MagSafe"
                 ],
                 "correctAnswer": "Qi",
-                "explanation": "Qi — Qi является распространённым стандартом индуктивной зарядки."
+                "explanation": "Qi является распространённым стандартом индуктивной зарядки."
             },
             {
                 "question": "Какой процессор первым использовал 5-нм техпроцесс?",
@@ -987,7 +987,7 @@
                     "Snapdragon 888"
                 ],
                 "correctAnswer": "Apple A14 Bionic",
-                "explanation": "Apple A14 Bionic — A14 Bionic выпускался по 5-нм техпроцессу."
+                "explanation": "A14 Bionic выпускался по 5-нм техпроцессу."
             },
             {
                 "question": "Какой порт пришел на замену microUSB в большинстве современных смартфонов?",
@@ -998,7 +998,7 @@
                     "Mini-USB"
                 ],
                 "correctAnswer": "USB-C",
-                "explanation": "USB-C — USB-C передаёт питание и данные и вытеснил microUSB."
+                "explanation": "USB-C передаёт питание и данные и вытеснил microUSB."
             },
             {
                 "question": "Как называется технология, позволяющая увеличить производительность процессора за счет временного повышения тактовой частоты?",
@@ -1009,7 +1009,7 @@
                     "Multi-Core"
                 ],
                 "correctAnswer": "Turbo Boost",
-                "explanation": "Turbo Boost — Turbo Boost временно повышает частоту процессорных ядер."
+                "explanation": "Turbo Boost временно повышает частоту процессорных ядер."
             },
             {
                 "question": "Какой компании принадлежит бренд видеокарт GeForce?",
@@ -1020,7 +1020,7 @@
                     "Qualcomm"
                 ],
                 "correctAnswer": "NVIDIA",
-                "explanation": "NVIDIA — GeForce — потребительский графический бренд NVIDIA."
+                "explanation": "GeForce — потребительский графический бренд NVIDIA."
             },
             {
                 "question": "Какой тип матрицы чаще всего используется в игровых мониторах из-за высокой частоты обновления?",
@@ -1031,7 +1031,7 @@
                     "VA"
                 ],
                 "correctAnswer": "TN",
-                "explanation": "TN — TN-матрицы известны быстрым откликом для игровых мониторов."
+                "explanation": "TN-матрицы известны быстрым откликом для игровых мониторов."
             },
             {
                 "question": "Что означает аббревиатура VPN?",
@@ -1042,7 +1042,7 @@
                     "Virtual Processing Network"
                 ],
                 "correctAnswer": "Virtual Private Network",
-                "explanation": "Virtual Private Network — VPN расшифровывается как виртуальная частная сеть."
+                "explanation": "VPN расшифровывается как виртуальная частная сеть."
             },
             {
                 "question": "Какая файловая система используется на современных Mac?",
@@ -1053,7 +1053,7 @@
                     "FAT32"
                 ],
                 "correctAnswer": "APFS",
-                "explanation": "APFS — APFS — современная штатная файловая система macOS."
+                "explanation": "APFS — современная штатная файловая система macOS."
             },
             {
                 "question": "Какой из этих стандартов беспроводной связи обеспечивает самую высокую скорость?",
@@ -1064,7 +1064,7 @@
                     "LTE"
                 ],
                 "correctAnswer": "Wi-Fi 6",
-                "explanation": "Wi-Fi 6 — Wi-Fi 6 обеспечивает наибольшую скорость среди указанных поколений."
+                "explanation": "Wi-Fi 6 обеспечивает наибольшую скорость среди указанных поколений."
             },
             {
                 "question": "Какая технология позволяет хранить данные на флеш-памяти без движущихся частей?",
@@ -1075,7 +1075,7 @@
                     "RAM"
                 ],
                 "correctAnswer": "SSD",
-                "explanation": "SSD — SSD хранит данные во флеш-памяти без механических деталей."
+                "explanation": "SSD хранит данные во флеш-памяти без механических деталей."
             },
             {
                 "question": "Какой язык программирования создал Гвидо ван Россум?",
@@ -1086,7 +1086,7 @@
                     "Ruby"
                 ],
                 "correctAnswer": "Python",
-                "explanation": "Python — Python создал Гвидо ван Россум."
+                "explanation": "Python создал Гвидо ван Россум."
             },
             {
                 "question": "Какая компания разработала первый коммерческий графический пользовательский интерфейс (GUI)?",
@@ -1097,7 +1097,7 @@
                     "IBM"
                 ],
                 "correctAnswer": "Xerox",
-                "explanation": "Xerox — Xerox PARC разработал ранние влиятельные графические интерфейсы."
+                "explanation": "Xerox PARC разработал ранние влиятельные графические интерфейсы."
             },
             {
                 "question": "Что означает аббревиатура 'GPU'?",
@@ -1108,7 +1108,7 @@
                     "Global Processing Unit"
                 ],
                 "correctAnswer": "Graphical Processing Unit",
-                "explanation": "Graphical Processing Unit — GPU — специализированный процессор для графических вычислений."
+                "explanation": "GPU — специализированный процессор для графических вычислений."
             },
             {
                 "question": "Какой год считается годом рождения интернета?",
@@ -1119,7 +1119,7 @@
                     "1975"
                 ],
                 "correctAnswer": "1983",
-                "explanation": "1983 — ARPANET перешла на TCP/IP в 1983 году."
+                "explanation": "ARPANET перешла на TCP/IP в 1983 году."
             },
             {
                 "question": "Какая технология лежит в основе криптовалют, таких как Bitcoin?",
@@ -1130,7 +1130,7 @@
                     "Облачные сервисы"
                 ],
                 "correctAnswer": "Блокчейн",
-                "explanation": "Блокчейн — Bitcoin использует распределённую цепочку криптографически связанных блоков."
+                "explanation": "Bitcoin использует распределённую цепочку криптографически связанных блоков."
             },
             {
                 "question": "Как называется стандарт беспроводной зарядки, используемый в большинстве смартфонов?",
@@ -1141,7 +1141,7 @@
                     "WiPower"
                 ],
                 "correctAnswer": "Qi",
-                "explanation": "Qi — Qi стал типичным стандартом беспроводной зарядки смартфонов."
+                "explanation": "Qi стал типичным стандартом беспроводной зарядки смартфонов."
             },
             {
                 "question": "Какой процессор использовался в первом Macintosh (1984)?",
@@ -1152,7 +1152,7 @@
                     "MOS 6502"
                 ],
                 "correctAnswer": "Motorola 68000",
-                "explanation": "Motorola 68000 — Оригинальный Macintosh 1984 года работал на Motorola 68000."
+                "explanation": "Оригинальный Macintosh 1984 года работал на Motorola 68000."
             },
             {
                 "question": "Что измеряется в терафлопсах?",
@@ -1163,7 +1163,7 @@
                     "Частота обновления экрана"
                 ],
                 "correctAnswer": "Производительность процессора",
-                "explanation": "Производительность процессора — Терафлопс измеряет триллион операций с плавающей запятой в секунду."
+                "explanation": "Терафлопс измеряет триллион операций с плавающей запятой в секунду."
             },
             {
                 "question": "Какая из этих ОС является открытой?",
@@ -1174,7 +1174,7 @@
                     "iOS"
                 ],
                 "correctAnswer": "Linux",
-                "explanation": "Linux — Исходный код Linux открыт для изучения и изменения."
+                "explanation": "Исходный код Linux открыт для изучения и изменения."
             },
             {
                 "question": "Как называется технология, позволяющая запускать Windows-приложения на macOS?",
@@ -1185,7 +1185,7 @@
                     "VirtualBox"
                 ],
                 "correctAnswer": "Wine",
-                "explanation": "Wine — Wine реализует совместимость с API Windows на macOS."
+                "explanation": "Wine реализует совместимость с API Windows на macOS."
             },
             {
                 "question": "Какой протокол обеспечивает безопасное соединение с веб-сайтами?",
@@ -1196,7 +1196,7 @@
                     "SMTP"
                 ],
                 "correctAnswer": "HTTPS",
-                "explanation": "HTTPS — HTTPS добавляет TLS-шифрование к протоколу HTTP."
+                "explanation": "HTTPS добавляет TLS-шифрование к протоколу HTTP."
             },
             {
                 "question": "Какое устройство изобрел Дуглас Энгельбарт в 1964 году?",
@@ -1207,7 +1207,7 @@
                     "Принтер"
                 ],
                 "correctAnswer": "Компьютерная мышь",
-                "explanation": "Компьютерная мышь — Дуглас Энгельбарт создал раннюю компьютерную мышь."
+                "explanation": "Дуглас Энгельбарт создал раннюю компьютерную мышь."
             },
             {
                 "question": "Какой язык программирования используется для создания веб-страниц?",
@@ -1218,7 +1218,7 @@
                     "Swift"
                 ],
                 "correctAnswer": "HTML",
-                "explanation": "HTML — HTML описывает структуру содержимого веб-страницы."
+                "explanation": "HTML описывает структуру содержимого веб-страницы."
             },
             {
                 "question": "Как называется самая быстрая память в компьютере?",
@@ -1229,7 +1229,7 @@
                     "Кэш-память"
                 ],
                 "correctAnswer": "Кэш-память",
-                "explanation": "Кэш-память — Кэш находится рядом с ядрами и быстрее оперативной памяти."
+                "explanation": "Кэш находится рядом с ядрами и быстрее оперативной памяти."
             },
             {
                 "question": "Какая компания разработала ARM-архитектуру процессоров?",
@@ -1240,7 +1240,7 @@
                     "Qualcomm"
                 ],
                 "correctAnswer": "ARM Holdings",
-                "explanation": "ARM Holdings — ARM Holdings разработала и лицензирует архитектуру ARM."
+                "explanation": "ARM Holdings разработала и лицензирует архитектуру ARM."
             },
             {
                 "question": "Какой стандарт связи используется в современных смартфонах для оплаты?",
@@ -1251,7 +1251,7 @@
                     "LTE"
                 ],
                 "correctAnswer": "NFC",
-                "explanation": "NFC — NFC работает на малом расстоянии и обеспечивает бесконтактную оплату."
+                "explanation": "NFC работает на малом расстоянии и обеспечивает бесконтактную оплату."
             },
             {
                 "question": "Какой тип дисплея не требует подсветки?",
@@ -1262,7 +1262,7 @@
                     "TN"
                 ],
                 "correctAnswer": "OLED",
-                "explanation": "OLED — Пиксели OLED светятся сами, поэтому отдельная подсветка не нужна."
+                "explanation": "Пиксели OLED светятся сами, поэтому отдельная подсветка не нужна."
             },
             {
                 "question": "Как называется технология, позволяющая увеличить разрешение изображения с помощью ИИ?",
@@ -1273,7 +1273,7 @@
                     "HDR"
                 ],
                 "correctAnswer": "DLSS",
-                "explanation": "DLSS — DLSS восстанавливает более детальный кадр с помощью нейросети."
+                "explanation": "DLSS восстанавливает более детальный кадр с помощью нейросети."
             },
             {
                 "question": "Какой процессор используется в PlayStation 5?",
@@ -1284,7 +1284,7 @@
                     "Qualcomm Snapdragon"
                 ],
                 "correctAnswer": "AMD Ryzen",
-                "explanation": "AMD Ryzen — PlayStation 5 использует настроенный процессор AMD Zen 2."
+                "explanation": "PlayStation 5 использует настроенный процессор AMD Zen 2."
             },
             {
                 "question": "Какой язык программирования создала Microsoft в 2000 году?",
@@ -1295,7 +1295,7 @@
                     "Ruby"
                 ],
                 "correctAnswer": "C#",
-                "explanation": "C# — Microsoft представила C# вместе с платформой .NET в 2000 году."
+                "explanation": "Microsoft представила C# вместе с платформой .NET в 2000 году."
             },
             {
                 "question": "Какая технология позволяет передавать данные со скоростью до 40 Гбит/с?",
@@ -1306,7 +1306,7 @@
                     "Ethernet"
                 ],
                 "correctAnswer": "Thunderbolt 3",
-                "explanation": "Thunderbolt 3 — Thunderbolt 3 поддерживает скорость передачи до 40 Гбит/с."
+                "explanation": "Thunderbolt 3 поддерживает скорость передачи до 40 Гбит/с."
             },
             {
                 "question": "Как называется операционная система для умных часов Apple?",
@@ -1317,7 +1317,7 @@
                     "HarmonyOS"
                 ],
                 "correctAnswer": "watchOS",
-                "explanation": "watchOS — watchOS создана Apple специально для Apple Watch."
+                "explanation": "WatchOS создана Apple специально для Apple Watch."
             },
             {
                 "question": "Какой компонент отвечает за обработку графики в компьютере?",
@@ -1328,7 +1328,7 @@
                     "SSD"
                 ],
                 "correctAnswer": "GPU",
-                "explanation": "GPU — GPU выполняет рендеринг изображения и параллельные графические расчёты."
+                "explanation": "GPU выполняет рендеринг изображения и параллельные графические расчёты."
             },
             {
                 "question": "Какой формат файлов используется для 3D-печати?",
@@ -1339,7 +1339,7 @@
                     "DOCX"
                 ],
                 "correctAnswer": "STL",
-                "explanation": "STL — STL хранит поверхность модели в виде треугольников для 3D-печати."
+                "explanation": "STL хранит поверхность модели в виде треугольников для 3D-печати."
             },
             {
                 "question": "Какой язык программирования используется для создания приложений под Android?",
@@ -1350,7 +1350,7 @@
                     "Ruby"
                 ],
                 "correctAnswer": "Kotlin",
-                "explanation": "Kotlin — Google официально поддерживает Kotlin для разработки Android."
+                "explanation": "Google официально поддерживает Kotlin для разработки Android."
             },
             {
                 "question": "Какая компания разработала первый SSD?",
@@ -1361,7 +1361,7 @@
                     "Toshiba"
                 ],
                 "correctAnswer": "SanDisk",
-                "explanation": "SanDisk — SanDisk была одним из важных пионеров флеш-накопителей."
+                "explanation": "SanDisk была одним из важных пионеров флеш-накопителей."
             },
             {
                 "question": "Как называется технология, позволяющая использовать несколько мониторов?",
@@ -1372,7 +1372,7 @@
                     "Multi-Monitor"
                 ],
                 "correctAnswer": "Extended Desktop",
-                "explanation": "Extended Desktop — Расширенный рабочий стол распределяет окна между несколькими дисплеями."
+                "explanation": "Расширенный рабочий стол распределяет окна между несколькими дисплеями."
             },
             {
                 "question": "Какой стандарт Wi-Fi работает на частоте 6 ГГц?",
@@ -1383,7 +1383,7 @@
                     "Wi-Fi 7"
                 ],
                 "correctAnswer": "Wi-Fi 6E",
-                "explanation": "Wi-Fi 6E — Wi-Fi 6E добавляет к Wi-Fi 6 диапазон 6 ГГц."
+                "explanation": "Wi-Fi 6E добавляет к Wi-Fi 6 диапазон 6 ГГц."
             },
             {
                 "question": "Какой язык разметки используется для создания веб-страниц?",
@@ -1394,7 +1394,7 @@
                     "PHP"
                 ],
                 "correctAnswer": "HTML",
-                "explanation": "HTML — HTML задаёт заголовки, ссылки, изображения и другие элементы документа."
+                "explanation": "HTML задаёт заголовки, ссылки, изображения и другие элементы документа."
             },
             {
                 "question": "Какая технология позволяет заряжать устройства на расстоянии?",
@@ -1405,7 +1405,7 @@
                     "MagSafe"
                 ],
                 "correctAnswer": "Resonant Charging",
-                "explanation": "Resonant Charging — Резонансные катушки передают энергию через больший зазор."
+                "explanation": "Резонансные катушки передают энергию через больший зазор."
             },
             {
                 "question": "Какой процессор используется в iPhone 13?",
@@ -1416,7 +1416,7 @@
                     "Exynos 2100"
                 ],
                 "correctAnswer": "A15 Bionic",
-                "explanation": "A15 Bionic — В iPhone 13 установлен процессор Apple A15 Bionic."
+                "explanation": "В iPhone 13 установлен процессор Apple A15 Bionic."
             },
             {
                 "question": "Какой язык программирования создал Брендан Эйх?",
@@ -1427,7 +1427,7 @@
                     "C#"
                 ],
                 "correctAnswer": "JavaScript",
-                "explanation": "JavaScript — Брендан Эйх создал JavaScript в компании Netscape."
+                "explanation": "Брендан Эйх создал JavaScript в компании Netscape."
             },
             {
                 "question": "Какая компания разработала первый коммерческий компьютер?",
@@ -1438,7 +1438,7 @@
                     "HP"
                 ],
                 "correctAnswer": "IBM",
-                "explanation": "IBM — В викторине IBM представлена как производитель ранних коммерческих компьютеров."
+                "explanation": "В викторине IBM представлена как производитель ранних коммерческих компьютеров."
             },
             {
                 "question": "Какой стандарт связи используется в беспроводных наушниках?",
@@ -1449,7 +1449,7 @@
                     "LTE"
                 ],
                 "correctAnswer": "Bluetooth",
-                "explanation": "Bluetooth — Bluetooth рассчитан на маломощную связь на коротком расстоянии."
+                "explanation": "Bluetooth рассчитан на маломощную связь на коротком расстоянии."
             },
             {
                 "question": "Как называется технология, позволяющая использовать компьютер без мыши и клавиатуры?",
@@ -1460,7 +1460,7 @@
                     "Eye Tracking"
                 ],
                 "correctAnswer": "Voice Control",
-                "explanation": "Voice Control — Голосовое управление преобразует произнесённые команды в действия."
+                "explanation": "Голосовое управление преобразует произнесённые команды в действия."
             },
             {
                 "question": "Какой язык программирования используется для создания iOS-приложений?",
@@ -1471,7 +1471,7 @@
                     "Dart"
                 ],
                 "correctAnswer": "Swift",
-                "explanation": "Swift — Swift — современный язык Apple для её платформ."
+                "explanation": "Swift — современный язык Apple для её платформ."
             },
             {
                 "question": "Какая технология позволяет компьютеру понимать человеческую речь?",
@@ -1482,7 +1482,7 @@
                     "VR"
                 ],
                 "correctAnswer": "NLP",
-                "explanation": "NLP — NLP распознаёт, анализирует и генерирует человеческую речь."
+                "explanation": "NLP распознаёт, анализирует и генерирует человеческую речь."
             },
             {
                 "question": "Какой компонент компьютера хранит BIOS?",
@@ -1493,7 +1493,7 @@
                     "ROM"
                 ],
                 "correctAnswer": "ROM",
-                "explanation": "ROM — Прошивка BIOS сохраняется в энергонезависимой ROM-памяти."
+                "explanation": "Прошивка BIOS сохраняется в энергонезависимой ROM-памяти."
             },
             {
                 "question": "Какой язык программирования используется для анализа данных?",
@@ -1504,7 +1504,7 @@
                     "Ruby"
                 ],
                 "correctAnswer": "Python",
-                "explanation": "Python — Python имеет развитые библиотеки NumPy и pandas для анализа данных."
+                "explanation": "Python имеет развитые библиотеки NumPy и pandas для анализа данных."
             },
             {
                 "question": "Какая компания разработала первый сенсорный экран?",
@@ -1515,7 +1515,7 @@
                     "HP"
                 ],
                 "correctAnswer": "IBM",
-                "explanation": "IBM — В вопросе IBM связывается с ранней историей сенсорных интерфейсов."
+                "explanation": "В вопросе IBM связывается с ранней историей сенсорных интерфейсов."
             },
             {
                 "question": "Какой стандарт используется для передачи видео в высоком разрешении?",
@@ -1526,7 +1526,7 @@
                     "DisplayPort"
                 ],
                 "correctAnswer": "HDMI",
-                "explanation": "HDMI — HDMI передаёт цифровое видео высокой чёткости вместе со звуком."
+                "explanation": "HDMI передаёт цифровое видео высокой чёткости вместе со звуком."
             },
             {
                 "question": "Как называется технология, позволяющая использовать компьютер в качестве телефона?",
@@ -1537,7 +1537,7 @@
                     "HTTP"
                 ],
                 "correctAnswer": "VoIP",
-                "explanation": "VoIP — VoIP передаёт телефонные разговоры через IP-сети."
+                "explanation": "VoIP передаёт телефонные разговоры через IP-сети."
             },
             {
                 "question": "Какой язык программирования используется для создания игр?",
@@ -1548,7 +1548,7 @@
                     "Ruby"
                 ],
                 "correctAnswer": "C#",
-                "explanation": "C# — C# служит основным языком сценариев в Unity."
+                "explanation": "C# служит основным языком сценариев в Unity."
             },
             {
                 "question": "Какая технология позволяет увеличить скорость интернета?",
@@ -1559,7 +1559,7 @@
                     "Всё перечисленное"
                 ],
                 "correctAnswer": "Всё перечисленное",
-                "explanation": "Всё перечисленное — Каждый из перечисленных способов способен устранить своё ограничение скорости."
+                "explanation": "Каждый из перечисленных способов способен устранить своё ограничение скорости."
             },
             {
                 "question": "Какой компонент отвечает за хранение данных в компьютере?",
@@ -1570,7 +1570,7 @@
                     "SSD"
                 ],
                 "correctAnswer": "SSD",
-                "explanation": "SSD — SSD является постоянным хранилищем системы, программ и файлов."
+                "explanation": "SSD является постоянным хранилищем системы, программ и файлов."
             },
             {
                 "question": "Какой язык программирования используется для создания веб-сайтов?",
@@ -1581,7 +1581,7 @@
                     "Всё перечисленное"
                 ],
                 "correctAnswer": "Всё перечисленное",
-                "explanation": "Всё перечисленное — HTML формирует структуру, CSS — оформление, JavaScript — интерактивность сайта."
+                "explanation": "HTML формирует структуру, CSS — оформление, JavaScript — интерактивность сайта."
             },
             {
                 "question": "Какая компания разработала первый ноутбук?",
@@ -1592,7 +1592,7 @@
                     "HP"
                 ],
                 "correctAnswer": "Toshiba",
-                "explanation": "Toshiba — Toshiba фигурирует как один из ранних массовых производителей ноутбуков."
+                "explanation": "Toshiba фигурирует как один из ранних массовых производителей ноутбуков."
             },
             {
                 "question": "Какой стандарт используется для передачи аудио в высоком качестве?",
@@ -1603,7 +1603,7 @@
                     "HDMI"
                 ],
                 "correctAnswer": "HDMI",
-                "explanation": "HDMI — HDMI поддерживает многоканальный цифровой звук одновременно с видео."
+                "explanation": "HDMI поддерживает многоканальный цифровой звук одновременно с видео."
             },
             {
                 "question": "Как называется самая безопасная технология, разблокировки без пароля?",
@@ -1614,7 +1614,7 @@
                     "Всё перечисленное"
                 ],
                 "correctAnswer": "Сканер лица",
-                "explanation": "Сканер лица — Сканер лица сверяет биометрические признаки владельца."
+                "explanation": "Сканер лица сверяет биометрические признаки владельца."
             },
             {
                 "question": "Какой язык программирования используется для создания искусственного интеллекта?",
@@ -1625,7 +1625,7 @@
                     "Ruby"
                 ],
                 "correctAnswer": "Python",
-                "explanation": "Python — Python популярен в ИИ благодаря PyTorch, TensorFlow и scikit-learn."
+                "explanation": "Python популярен в ИИ благодаря PyTorch, TensorFlow и scikit-learn."
             },
             {
                 "question": "Какая технология позволяет использовать компьютер в виртуальной реальности?",
@@ -1636,7 +1636,7 @@
                     "Всё перечисленное"
                 ],
                 "correctAnswer": "Всё перечисленное",
-                "explanation": "Всё перечисленное — Для VR одновременно нужны гарнитура, отслеживание и рендеринг сцены."
+                "explanation": "Для VR одновременно нужны гарнитура, отслеживание и рендеринг сцены."
             },
             {
                 "question": "Какой компонент компьютера отвечает за обработку звука?",
@@ -1647,7 +1647,7 @@
                     "SSD"
                 ],
                 "correctAnswer": "Sound Card",
-                "explanation": "Sound Card — Звуковая карта обрабатывает входные и выходные аудиосигналы."
+                "explanation": "Звуковая карта обрабатывает входные и выходные аудиосигналы."
             },
             {
                 "question": "Какой язык программирования используется для создания блокчейн-приложений?",
@@ -1658,7 +1658,7 @@
                     "C#"
                 ],
                 "correctAnswer": "Solidity",
-                "explanation": "Solidity — Solidity предназначен для смарт-контрактов Ethereum."
+                "explanation": "Solidity предназначен для смарт-контрактов Ethereum."
             },
             {
                 "question": "Какая компания разработала первый смартфон?",
@@ -1669,7 +1669,7 @@
                     "BlackBerry"
                 ],
                 "correctAnswer": "IBM",
-                "explanation": "IBM — IBM Simon 1994 года обычно называют первым смартфоном."
+                "explanation": "IBM Simon 1994 года обычно называют первым смартфоном."
             },
             {
                 "question": "Какой стандарт используется для передачи данных только в IoT-устройствах?",
@@ -1680,7 +1680,7 @@
                     "Всё перечисленное"
                 ],
                 "correctAnswer": "Zigbee",
-                "explanation": "Zigbee — Zigbee создан для маломощных IoT-устройств и mesh-сетей."
+                "explanation": "Zigbee создан для маломощных IoT-устройств и mesh-сетей."
             },
             {
                 "question": "Как называется технология, позволяющая использовать компьютер в дополненной реальности?",
@@ -1691,7 +1691,7 @@
                     "XR"
                 ],
                 "correctAnswer": "AR",
-                "explanation": "AR — AR накладывает цифровые объекты на изображение реального мира."
+                "explanation": "AR накладывает цифровые объекты на изображение реального мира."
             },
             {
                 "question": "Какой язык программирования используется для создания мобильных iOS-приложений?",
@@ -1702,7 +1702,7 @@
                     "Всё перечисленное"
                 ],
                 "correctAnswer": "Swift",
-                "explanation": "Swift — Swift используется для нативных приложений iPhone и iPad."
+                "explanation": "Swift используется для нативных приложений iPhone и iPad."
             },
             {
                 "question": "Какая технология позволяет использовать персональный компьютер для майнинга криптовалют?",
@@ -1713,7 +1713,7 @@
                     "Всё перечисленное"
                 ],
                 "correctAnswer": "GPU Майнинг",
-                "explanation": "GPU Майнинг — GPU-майнинг задействует параллельные вычислительные блоки видеокарты."
+                "explanation": "GPU-майнинг задействует параллельные вычислительные блоки видеокарты."
             },
             {
                 "question": "Какой компонент компьютера отвечает за подключение к интернету?",
@@ -1724,7 +1724,7 @@
                     "SSD"
                 ],
                 "correctAnswer": "Network Card",
-                "explanation": "Network Card — Сетевая карта обеспечивает проводное или беспроводное подключение к интернету."
+                "explanation": "Сетевая карта обеспечивает проводное или беспроводное подключение к интернету."
             },
             {
                 "question": "Какой язык программирования используется для создания операционных систем?",
@@ -1735,7 +1735,7 @@
                     "Ruby"
                 ],
                 "correctAnswer": "C",
-                "explanation": "C — На C пишут ядра ОС из-за прямого управления памятью и оборудованием."
+                "explanation": "На C пишут ядра ОС из-за прямого управления памятью и оборудованием."
             },
             {
                 "question": "Какая компания разработала первый планшет?",
@@ -1746,7 +1746,7 @@
                     "HP"
                 ],
                 "correctAnswer": "Microsoft",
-                "explanation": "Microsoft — Tablet PC была ранней инициативой Microsoft на рынке планшетов."
+                "explanation": "Tablet PC была ранней инициативой Microsoft на рынке планшетов."
             },
             {
                 "question": "Какой стандарт используется для передачи данных в умных домах?",
@@ -1757,7 +1757,7 @@
                     "Всё перечисленное"
                 ],
                 "correctAnswer": "Всё перечисленное",
-                "explanation": "Всё перечисленное — Умные дома используют разные стандарты связи в зависимости от устройств."
+                "explanation": "Умные дома используют разные стандарты связи в зависимости от устройств."
             },
             {
                 "question": "Как называется технология Apple, позволяющая использовать компьютер для распознавания лиц?",
@@ -1768,7 +1768,7 @@
                     "Всё перечисленное"
                 ],
                 "correctAnswer": "Face ID",
-                "explanation": "Face ID — Face ID строит карту лица с помощью датчиков TrueDepth."
+                "explanation": "Face ID строит карту лица с помощью датчиков TrueDepth."
             },
             {
                 "question": "Какой язык программирования используется для создания игр на Unity?",
@@ -1779,7 +1779,7 @@
                     "Ruby"
                 ],
                 "correctAnswer": "C#",
-                "explanation": "C# — Unity использует C# для игровой логики и скриптов."
+                "explanation": "Unity использует C# для игровой логики и скриптов."
             },
             {
                 "question": "Какая технология позволяет использовать компьютер для автоматизации задач?",
@@ -1790,7 +1790,7 @@
                     "Всё перечисленное"
                 ],
                 "correctAnswer": "Всё перечисленное",
-                "explanation": "Всё перечисленное — Скрипты, планировщики и программы автоматизируют повторяющиеся действия."
+                "explanation": "Скрипты, планировщики и программы автоматизируют повторяющиеся действия."
             },
             {
                 "question": "Какой компонент компьютера отвечает за охлаждение?",
@@ -1801,7 +1801,7 @@
                     "SSD"
                 ],
                 "correctAnswer": "Cooling Fan",
-                "explanation": "Cooling Fan — Вентилятор отводит тепло через радиатор от компонентов компьютера."
+                "explanation": "Вентилятор отводит тепло через радиатор от компонентов компьютера."
             },
             {
                 "question": "Какой язык программирования чаще всех используется для создания веб-приложений?",
@@ -1812,7 +1812,7 @@
                     "Kotlin"
                 ],
                 "correctAnswer": "JavaScript",
-                "explanation": "JavaScript — JavaScript работает в браузере и на сервере через Node.js."
+                "explanation": "JavaScript работает в браузере и на сервере через Node.js."
             },
             {
                 "question": "Какая компания разработала первый умный дом?",
@@ -1823,7 +1823,7 @@
                     "Microsoft"
                 ],
                 "correctAnswer": "Microsoft",
-                "explanation": "Microsoft — Microsoft продвигала ранние концепции подключённого умного дома."
+                "explanation": "Microsoft продвигала ранние концепции подключённого умного дома."
             },
             {
                 "question": "Какой стандарт используется для передачи данных в беспилотных автомобилях?",
@@ -1834,7 +1834,7 @@
                     "Всё перечисленное"
                 ],
                 "correctAnswer": "Всё перечисленное",
-                "explanation": "Всё перечисленное — Беспилотные системы применяют несколько стандартов обмена данными."
+                "explanation": "Беспилотные системы применяют несколько стандартов обмена данными."
             },
             {
                 "question": "Как называется технология, обеспечивающая синтез голоса голосовых помощников?",
@@ -1845,7 +1845,7 @@
                     "Всё перечисленное"
                 ],
                 "correctAnswer": "Всё перечисленное",
-                "explanation": "Всё перечисленное — Синтез речи сочетает обработку текста, акустические модели и генерацию звука."
+                "explanation": "Синтез речи сочетает обработку текста, акустические модели и генерацию звука."
             },
             {
                 "question": "Какой язык программирования используется для создания чат-ботов?",
@@ -1856,7 +1856,7 @@
                     "Всё перечисленное"
                 ],
                 "correctAnswer": "Всё перечисленное",
-                "explanation": "Всё перечисленное — Чат-боты можно создавать на всех перечисленных языках в зависимости от платформы."
+                "explanation": "Чат-боты можно создавать на всех перечисленных языках в зависимости от платформы."
             }
         ],
         "id": "technology"
@@ -1874,7 +1874,7 @@
                     "1811"
                 ],
                 "correctAnswer": "1801",
-                "explanation": "1801 — Бетховен закончил «Лунную сонату» в 1801 году."
+                "explanation": "Бетховен закончил «Лунную сонату» в 1801 году."
             },
             {
                 "question": "Другое название театра Станиславского, Немировича и Данченко:",
@@ -1885,7 +1885,7 @@
                     "МПТ"
                 ],
                 "correctAnswer": "МАМТ",
-                "explanation": "МАМТ — Историко-культурное утверждение «Другое название театра Станиславского, Немировича и Данченко» связано с МАМТ."
+                "explanation": "Историко-культурное утверждение «Другое название театра Станиславского, Немировича и Данченко» связано с МАМТ."
             },
             {
                 "question": "Сколько симфоний написал Чайковский?",
@@ -1896,7 +1896,7 @@
                     "12"
                 ],
                 "correctAnswer": "6",
-                "explanation": "6 — 6 — наименование объекта, события или понятия из утверждения «Сколько симфоний написал Чайковский»."
+                "explanation": "6 — Наименование объекта, события или понятия из утверждения «Сколько симфоний написал Чайковский»."
             },
             {
                 "question": "Дата начала второй мировой войны",
@@ -1907,7 +1907,7 @@
                     "26 июня 1941 г."
                 ],
                 "correctAnswer": "1 сентября 1939 г.",
-                "explanation": "1 сентября 1939 г. — 1 сентября 1939 года Германия вторглась в Польшу, и началась Вторая мировая война."
+                "explanation": "1 Сентября 1939 года Германия вторглась в Польшу, и началась Вторая мировая война."
             },
             {
                 "question": "В каком городе Пётр I начал постройку Российского флота?",
@@ -1918,7 +1918,7 @@
                     "Екатеринбург"
                 ],
                 "correctAnswer": "Воронеж",
-                "explanation": "Воронеж — Историко-культурное утверждение «В каком городе Пётр I начал постройку Российского флота» связано с Воронеж."
+                "explanation": "Историко-культурное утверждение «В каком городе Пётр I начал постройку Российского флота» связано с Воронеж."
             },
             {
                 "question": "Как назывался самый известный храм Древней Греции, посвящённый богине Афине?",
@@ -1929,7 +1929,7 @@
                     "Акрополь"
                 ],
                 "correctAnswer": "Парфенон",
-                "explanation": "Парфенон — Парфенон — наименование объекта, события или понятия из утверждения «Как назывался самый известный храм Древней Греции, посвящённый богине Афине»."
+                "explanation": "Парфенон — наименование объекта, события или понятия из утверждения «Как назывался самый известный храм Древней Греции, посвящённый богине Афине»."
             },
             {
                 "question": "Какой художник написал картину 'Тайная вечеря'?",
@@ -1940,7 +1940,7 @@
                     "Рембрандт"
                 ],
                 "correctAnswer": "Леонардо да Винчи",
-                "explanation": "Леонардо да Винчи — Леонардо да Винчи — автор произведения «Тайная вечеря»."
+                "explanation": "Леонардо да Винчи — автор произведения «Тайная вечеря»."
             },
             {
                 "question": "Какой древний город был погребён под пеплом во время извержения Везувия в 79 году?",
@@ -1951,7 +1951,7 @@
                     "Афины"
                 ],
                 "correctAnswer": "Помпеи",
-                "explanation": "Помпеи — Историко-культурное утверждение «Какой древний город был погребён под пеплом во время извержения Везувия в 79 году» связано с Помпеи."
+                "explanation": "Историко-культурное утверждение «Какой древний город был погребён под пеплом во время извержения Везувия в 79 году» связано с Помпеи."
             },
             {
                 "question": "Как называлось государство, существовавшее на территории России до образования Руси?",
@@ -1962,7 +1962,7 @@
                     "Хазарский каганат"
                 ],
                 "correctAnswer": "Хазарский каганат",
-                "explanation": "Хазарский каганат — Хазарский каганат — наименование объекта, события или понятия из утверждения «Как называлось государство, существовавшее на территории России до образования Руси»."
+                "explanation": "Хазарский каганат — наименование объекта, события или понятия из утверждения «Как называлось государство, существовавшее на территории России до образования Руси»."
             },
             {
                 "question": "Кто написал роман 'Война и мир'?",
@@ -1973,7 +1973,7 @@
                     "Иван Тургенев"
                 ],
                 "correctAnswer": "Лев Толстой",
-                "explanation": "Лев Толстой — Лев Толстой — автор произведения «Война и мир»."
+                "explanation": "Лев Толстой — автор произведения «Война и мир»."
             },
             {
                 "question": "Какой памятник архитектуры считается символом Индии?",
@@ -1984,7 +1984,7 @@
                     "Ангкор-Ват"
                 ],
                 "correctAnswer": "Тадж-Махал",
-                "explanation": "Тадж-Махал — Историко-культурное утверждение «Какой памятник архитектуры считается символом Индии» связано с Тадж-Махал."
+                "explanation": "Историко-культурное утверждение «Какой памятник архитектуры считается символом Индии» связано с Тадж-Махал."
             },
             {
                 "question": "Какой стиль архитектуры характеризуется массивными стенами, круглыми арками и небольшими окнами?",
@@ -1995,7 +1995,7 @@
                     "Модерн"
                 ],
                 "correctAnswer": "Романский",
-                "explanation": "Романский — Названные архитектурные или художественные черты определяют Романский."
+                "explanation": "Названные архитектурные или художественные черты определяют Романский."
             },
             {
                 "question": "Какой король Франции был казнён во время Великой французской революции?",
@@ -2006,7 +2006,7 @@
                     "Филипп IV"
                 ],
                 "correctAnswer": "Людовик XVI",
-                "explanation": "Людовик XVI — Описанный исторический факт относится к Людовик XVI."
+                "explanation": "Описанный исторический факт относится к Людовик XVI."
             },
             {
                 "question": "Какая страна считается родиной Олимпийских игр?",
@@ -2017,7 +2017,7 @@
                     "Франция"
                 ],
                 "correctAnswer": "Греция",
-                "explanation": "Греция — Историко-культурное утверждение «Какая страна считается родиной Олимпийских игр» связано с Греция."
+                "explanation": "Историко-культурное утверждение «Какая страна считается родиной Олимпийских игр» связано с Греция."
             },
             {
                 "question": "Как назывался торговый путь, соединявший Китай и Европу в Средние века?",
@@ -2028,7 +2028,7 @@
                     "Спайс Роуд"
                 ],
                 "correctAnswer": "Шёлковый путь",
-                "explanation": "Шёлковый путь — Шёлковый путь — наименование объекта, события или понятия из утверждения «Как назывался торговый путь, соединявший Китай и Европу в Средние века»."
+                "explanation": "Шёлковый путь — наименование объекта, события или понятия из утверждения «Как назывался торговый путь, соединявший Китай и Европу в Средние века»."
             },
             {
                 "question": "Кто автор скульптуры 'Давид'?",
@@ -2039,7 +2039,7 @@
                     "Роден"
                 ],
                 "correctAnswer": "Микеланджело",
-                "explanation": "Микеланджело — Микеланджело — автор произведения «Давид»."
+                "explanation": "Микеланджело — автор произведения «Давид»."
             },
             {
                 "question": "В каком году произошла Куликовская битва?",
@@ -2050,7 +2050,7 @@
                     "1547"
                 ],
                 "correctAnswer": "1380",
-                "explanation": "1380 — Событие «В каком году произошла Куликовская битва» относится к 1380."
+                "explanation": "Событие «В каком году произошла Куликовская битва» относится к 1380."
             },
             {
                 "question": "Какой русский царь провёл реформу календаря в 1700 году?",
@@ -2061,7 +2061,7 @@
                     "Павел I"
                 ],
                 "correctAnswer": "Пётр I",
-                "explanation": "Пётр I — Именно Пётр I сыграл роль, указанную в вопросе."
+                "explanation": "Именно Пётр I сыграл роль, указанную в вопросе."
             },
             {
                 "question": "Кто написал 'Горе от ума'?",
@@ -2072,7 +2072,7 @@
                     "Тургенев"
                 ],
                 "correctAnswer": "Грибоедов",
-                "explanation": "Грибоедов — Грибоедов — автор произведения «Горе от ума»."
+                "explanation": "Грибоедов — автор произведения «Горе от ума»."
             },
             {
                 "question": "Какой художник создал 'Чёрный квадрат'?",
@@ -2083,7 +2083,7 @@
                     "Пикассо"
                 ],
                 "correctAnswer": "Малевич",
-                "explanation": "Малевич — Именно Малевич создал «Чёрный квадрат»."
+                "explanation": "Именно Малевич создал «Чёрный квадрат»."
             },
             {
                 "question": "В каком веке жил Шекспир?",
@@ -2094,7 +2094,7 @@
                     "XVII"
                 ],
                 "correctAnswer": "XVI",
-                "explanation": "XVI — XVI — наименование объекта, события или понятия из утверждения «В каком веке жил Шекспир»."
+                "explanation": "XVI — наименование объекта, события или понятия из утверждения «В каком веке жил Шекспир»."
             },
             {
                 "question": "Какой древний народ построил пирамиды в Гизе?",
@@ -2105,7 +2105,7 @@
                     "Майя"
                 ],
                 "correctAnswer": "Египтяне",
-                "explanation": "Египтяне — Достижение из вопроса связано с народом Египтяне."
+                "explanation": "Достижение из вопроса связано с народом Египтяне."
             },
             {
                 "question": "Кто был первым императором Рима?",
@@ -2116,7 +2116,7 @@
                     "Константин"
                 ],
                 "correctAnswer": "Октавиан Август",
-                "explanation": "Октавиан Август — Описанный исторический факт относится к Октавиан Август."
+                "explanation": "Описанный исторический факт относится к Октавиан Август."
             },
             {
                 "question": "Какой стиль живописи представлял Ван Гог?",
@@ -2127,7 +2127,7 @@
                     "Сюрреализм"
                 ],
                 "correctAnswer": "Постимпрессионизм",
-                "explanation": "Постимпрессионизм — Названные архитектурные или художественные черты определяют Постимпрессионизм."
+                "explanation": "Названные архитектурные или художественные черты определяют Постимпрессионизм."
             },
             {
                 "question": "Кто автор 'Божественной комедии'?",
@@ -2138,7 +2138,7 @@
                     "Мольер"
                 ],
                 "correctAnswer": "Данте",
-                "explanation": "Данте — Данте — автор произведения «Божественной комедии»."
+                "explanation": "Данте — автор произведения «Божественной комедии»."
             },
             {
                 "question": "Как называлась первая печатная книга в Европе?",
@@ -2149,7 +2149,7 @@
                     "Одиссея"
                 ],
                 "correctAnswer": "Библия Гутенберга",
-                "explanation": "Библия Гутенберга — Историко-культурное утверждение «Как называлась первая печатная книга в Европе» связано с Библия Гутенберга."
+                "explanation": "Историко-культурное утверждение «Как называлась первая печатная книга в Европе» связано с Библия Гутенберга."
             },
             {
                 "question": "Кто написал музыку к балету 'Лебединое озеро'?",
@@ -2160,7 +2160,7 @@
                     "Шостакович"
                 ],
                 "correctAnswer": "Чайковский",
-                "explanation": "Чайковский — Произведение «Лебединое озеро» принадлежит Чайковский."
+                "explanation": "Произведение «Лебединое озеро» принадлежит Чайковский."
             },
             {
                 "question": "Какой город был столицей Византийской империи?",
@@ -2171,7 +2171,7 @@
                     "Антиохия"
                 ],
                 "correctAnswer": "Константинополь",
-                "explanation": "Константинополь — Политическим центром этой державы был Константинополь."
+                "explanation": "Политическим центром этой державы был Константинополь."
             },
             {
                 "question": "Кто автор картины 'Крик'?",
@@ -2182,7 +2182,7 @@
                     "Дали"
                 ],
                 "correctAnswer": "Мунк",
-                "explanation": "Мунк — Именно Мунк создал «Крик»."
+                "explanation": "Именно Мунк создал «Крик»."
             },
             {
                 "question": "Какой русский писатель был лауреатом Нобелевской премии по литературе в 1958 году?",
@@ -2193,7 +2193,7 @@
                     "Бунин"
                 ],
                 "correctAnswer": "Пастернак",
-                "explanation": "Пастернак — Именно Пастернак сыграл роль, указанную в вопросе."
+                "explanation": "Именно Пастернак сыграл роль, указанную в вопросе."
             },
             {
                 "question": "Какой архитектурный стиль характеризуется остроконечными арками и витражами?",
@@ -2204,7 +2204,7 @@
                     "Рококо"
                 ],
                 "correctAnswer": "Готический",
-                "explanation": "Готический — Перечисленные в вопросе признаки характерны для Готический."
+                "explanation": "Перечисленные в вопросе признаки характерны для Готический."
             },
             {
                 "question": "Кто был главным божеством в древнегреческой мифологии?",
@@ -2215,7 +2215,7 @@
                     "Геракл"
                 ],
                 "correctAnswer": "Зевс",
-                "explanation": "Зевс — Историко-культурное утверждение «Кто был главным божеством в древнегреческой мифологии» связано с Зевс."
+                "explanation": "Историко-культурное утверждение «Кто был главным божеством в древнегреческой мифологии» связано с Зевс."
             },
             {
                 "question": "Какой русский художник написал 'Богатырей'?",
@@ -2226,7 +2226,7 @@
                     "Айвазовский"
                 ],
                 "correctAnswer": "Васнецов",
-                "explanation": "Васнецов — Произведение «Богатырей» принадлежит Васнецов."
+                "explanation": "Произведение «Богатырей» принадлежит Васнецов."
             },
             {
                 "question": "В каком году был основан Санкт-Петербург?",
@@ -2237,7 +2237,7 @@
                     "1725"
                 ],
                 "correctAnswer": "1703",
-                "explanation": "1703 — 1703 — дата исторического события: В каком году был основан Санкт-Петербург."
+                "explanation": "1703 — Дата исторического события: В каком году был основан Санкт-Петербург."
             },
             {
                 "question": "Кто написал 'Преступление и наказание'?",
@@ -2248,7 +2248,7 @@
                     "Тургенев"
                 ],
                 "correctAnswer": "Достоевский",
-                "explanation": "Достоевский — Именно Достоевский создал «Преступление и наказание»."
+                "explanation": "Именно Достоевский создал «Преступление и наказание»."
             },
             {
                 "question": "Какой древний город был известен своими Висячими садами?",
@@ -2259,7 +2259,7 @@
                     "Карфаген"
                 ],
                 "correctAnswer": "Вавилон",
-                "explanation": "Вавилон — Именно Вавилон прославился достопримечательностью, о которой идёт речь."
+                "explanation": "Именно Вавилон прославился достопримечательностью, о которой идёт речь."
             },
             {
                 "question": "Кто был первым президентом США?",
@@ -2270,7 +2270,7 @@
                     "Рузвельт"
                 ],
                 "correctAnswer": "Вашингтон",
-                "explanation": "Вашингтон — Описанный исторический факт относится к Вашингтон."
+                "explanation": "Описанный исторический факт относится к Вашингтон."
             },
             {
                 "question": "Какой композитор написал 'Лунную сонату'?",
@@ -2281,7 +2281,7 @@
                     "Шопен"
                 ],
                 "correctAnswer": "Бетховен",
-                "explanation": "Бетховен — Именно Бетховен создал «Лунную сонату»."
+                "explanation": "Именно Бетховен создал «Лунную сонату»."
             },
             {
                 "question": "Какой русский царь известен как 'Грозный'?",
@@ -2292,7 +2292,7 @@
                     "Николай II"
                 ],
                 "correctAnswer": "Иван IV",
-                "explanation": "Иван IV — Описанный исторический факт относится к Иван IV."
+                "explanation": "Описанный исторический факт относится к Иван IV."
             },
             {
                 "question": "Кто автор 'Гамлета'?",
@@ -2303,7 +2303,7 @@
                     "Данте"
                 ],
                 "correctAnswer": "Шекспир",
-                "explanation": "Шекспир — Шекспир — автор произведения «Гамлета»."
+                "explanation": "Шекспир — автор произведения «Гамлета»."
             },
             {
                 "question": "Какой город был центром Возрождения?",
@@ -2314,7 +2314,7 @@
                     "Рим"
                 ],
                 "correctAnswer": "Флоренция",
-                "explanation": "Флоренция — Историко-культурное утверждение «Какой город был центром Возрождения» связано с Флоренция."
+                "explanation": "Историко-культурное утверждение «Какой город был центром Возрождения» связано с Флоренция."
             },
             {
                 "question": "Кто написал 'Евгения Онегина'?",
@@ -2325,7 +2325,7 @@
                     "Тургенев"
                 ],
                 "correctAnswer": "Пушкин",
-                "explanation": "Пушкин — Произведение «Евгения Онегина» принадлежит Пушкин."
+                "explanation": "Произведение «Евгения Онегина» принадлежит Пушкин."
             },
             {
                 "question": "Какой древний народ создал алфавит?",
@@ -2336,7 +2336,7 @@
                     "Греки"
                 ],
                 "correctAnswer": "Финикийцы",
-                "explanation": "Финикийцы — Именно Финикийцы создали то, о чём говорится в вопросе."
+                "explanation": "Именно Финикийцы создали то, о чём говорится в вопросе."
             },
             {
                 "question": "Кто был последним императором России?",
@@ -2347,7 +2347,7 @@
                     "Александр III"
                 ],
                 "correctAnswer": "Николай II",
-                "explanation": "Николай II — Именно Николай II сыграл роль, указанную в вопросе."
+                "explanation": "Именно Николай II сыграл роль, указанную в вопросе."
             },
             {
                 "question": "Какой художник написал 'Мону Лизу'?",
@@ -2358,7 +2358,7 @@
                     "Тициан"
                 ],
                 "correctAnswer": "Леонардо да Винчи",
-                "explanation": "Леонардо да Винчи — Произведение «Мону Лизу» принадлежит Леонардо да Винчи."
+                "explanation": "Произведение «Мону Лизу» принадлежит Леонардо да Винчи."
             },
             {
                 "question": "В каком году началась Первая мировая война?",
@@ -2369,7 +2369,7 @@
                     "1915"
                 ],
                 "correctAnswer": "1914",
-                "explanation": "1914 — 1914 — дата исторического события: В каком году началась Первая мировая война."
+                "explanation": "1914 — Дата исторического события: В каком году началась Первая мировая война."
             },
             {
                 "question": "Кто автор 'Илиады' и 'Одиссеи'?",
@@ -2380,7 +2380,7 @@
                     "Овидий"
                 ],
                 "correctAnswer": "Гомер",
-                "explanation": "Гомер — Именно Гомер создал «Илиады»."
+                "explanation": "Именно Гомер создал «Илиады»."
             },
             {
                 "question": "Какой русский композитор написал 'Щелкунчика'?",
@@ -2391,7 +2391,7 @@
                     "Прокофьев"
                 ],
                 "correctAnswer": "Чайковский",
-                "explanation": "Чайковский — Произведение «Щелкунчика» принадлежит Чайковский."
+                "explanation": "Произведение «Щелкунчика» принадлежит Чайковский."
             },
             {
                 "question": "Какой город был столицей Древнего Египта?",
@@ -2402,7 +2402,7 @@
                     "Каир"
                 ],
                 "correctAnswer": "Мемфис",
-                "explanation": "Мемфис — Мемфис был столицей государства, названного в вопросе."
+                "explanation": "Мемфис был столицей государства, названного в вопросе."
             },
             {
                 "question": "Кто написал 'Войну и мир'?",
@@ -2413,7 +2413,7 @@
                     "Чехов"
                 ],
                 "correctAnswer": "Толстой",
-                "explanation": "Толстой — Именно Толстой создал «Войну и мир»."
+                "explanation": "Именно Толстой создал «Войну и мир»."
             },
             {
                 "question": "Какой стиль искусства представлял Сальвадор Дали?",
@@ -2424,7 +2424,7 @@
                     "Футуризм"
                 ],
                 "correctAnswer": "Сюрреализм",
-                "explanation": "Сюрреализм — Перечисленные в вопросе признаки характерны для Сюрреализм."
+                "explanation": "Перечисленные в вопросе признаки характерны для Сюрреализм."
             },
             {
                 "question": "В каком году произошла Октябрьская революция?",
@@ -2435,7 +2435,7 @@
                     "1924"
                 ],
                 "correctAnswer": "1917",
-                "explanation": "1917 — 1917 — дата исторического события: В каком году произошла Октябрьская революция."
+                "explanation": "1917 — Дата исторического события: В каком году произошла Октябрьская революция."
             },
             {
                 "question": "Кто автор 'Фауста'?",
@@ -2446,7 +2446,7 @@
                     "Ницше"
                 ],
                 "correctAnswer": "Гёте",
-                "explanation": "Гёте — Именно Гёте создал «Фауста»."
+                "explanation": "Именно Гёте создал «Фауста»."
             },
             {
                 "question": "Какой русский художник написал 'Утро стрелецкой казни'?",
@@ -2457,7 +2457,7 @@
                     "Айвазовский"
                 ],
                 "correctAnswer": "Суриков",
-                "explanation": "Суриков — Произведение «Утро стрелецкой казни» принадлежит Суриков."
+                "explanation": "Произведение «Утро стрелецкой казни» принадлежит Суриков."
             },
             {
                 "question": "Какой древний город был известен Колоссом Родосским?",
@@ -2468,7 +2468,7 @@
                     "Вавилон"
                 ],
                 "correctAnswer": "Родос",
-                "explanation": "Родос — С Родос связан памятник или центр культуры, указанный в вопросе."
+                "explanation": "С Родос связан памятник или центр культуры, указанный в вопросе."
             },
             {
                 "question": "Кто был первым человеком в космосе?",
@@ -2479,7 +2479,7 @@
                     "Леонов"
                 ],
                 "correctAnswer": "Гагарин",
-                "explanation": "Гагарин — Именно Гагарин сыграл роль, указанную в вопросе."
+                "explanation": "Именно Гагарин сыграл роль, указанную в вопросе."
             },
             {
                 "question": "Какой композитор написал 'Симфонию №5'?",
@@ -2490,7 +2490,7 @@
                     "Шуберт"
                 ],
                 "correctAnswer": "Бетховен",
-                "explanation": "Бетховен — Произведение «Симфонию №5» принадлежит Бетховен."
+                "explanation": "Произведение «Симфонию №5» принадлежит Бетховен."
             },
             {
                 "question": "Какой русский писатель был автором 'Мёртвых душ'?",
@@ -2501,7 +2501,7 @@
                     "Тургенев"
                 ],
                 "correctAnswer": "Гоголь",
-                "explanation": "Гоголь — Гоголь — автор произведения «Мёртвых душ»."
+                "explanation": "Гоголь — автор произведения «Мёртвых душ»."
             },
             {
                 "question": "Какой город был столицей Османской империи?",
@@ -2512,7 +2512,7 @@
                     "Каир"
                 ],
                 "correctAnswer": "Стамбул",
-                "explanation": "Стамбул — Стамбул был столицей государства, названного в вопросе."
+                "explanation": "Стамбул был столицей государства, названного в вопросе."
             },
             {
                 "question": "Кто написал 'Анну Каренину'?",
@@ -2523,7 +2523,7 @@
                     "Тургенев"
                 ],
                 "correctAnswer": "Толстой",
-                "explanation": "Толстой — Произведение «Анну Каренину» принадлежит Толстой."
+                "explanation": "Произведение «Анну Каренину» принадлежит Толстой."
             },
             {
                 "question": "Какой стиль архитектуры представляет Собор Парижской Богоматери?",
@@ -2534,7 +2534,7 @@
                     "Ренессанс"
                 ],
                 "correctAnswer": "Готический",
-                "explanation": "Готический — Собор Парижской Богоматери построен в готической традиции: это видно по стрельчатым аркам и аркбутанам."
+                "explanation": "Собор Парижской Богоматери построен в готической традиции: это видно по стрельчатым аркам и аркбутанам."
             },
             {
                 "question": "В каком году была основана Москва?",
@@ -2545,7 +2545,7 @@
                     "1380"
                 ],
                 "correctAnswer": "1147",
-                "explanation": "1147 — Событие «В каком году была основана Москва» относится к 1147."
+                "explanation": "Событие «В каком году была основана Москва» относится к 1147."
             },
             {
                 "question": "Кто автор 'Дон Кихота'?",
@@ -2556,7 +2556,7 @@
                     "Данте"
                 ],
                 "correctAnswer": "Сервантес",
-                "explanation": "Сервантес — Произведение «Дон Кихота» принадлежит Сервантес."
+                "explanation": "Произведение «Дон Кихота» принадлежит Сервантес."
             },
             {
                 "question": "Какой русский художник написал 'Девятый вал'?",
@@ -2567,7 +2567,7 @@
                     "Левитан"
                 ],
                 "correctAnswer": "Айвазовский",
-                "explanation": "Айвазовский — Айвазовский — автор произведения «Девятый вал»."
+                "explanation": "Айвазовский — автор произведения «Девятый вал»."
             },
             {
                 "question": "Какой древний город был известен Александрийской библиотекой?",
@@ -2578,7 +2578,7 @@
                     "Карфаген"
                 ],
                 "correctAnswer": "Александрия",
-                "explanation": "Александрия — С Александрия связан памятник или центр культуры, указанный в вопросе."
+                "explanation": "С Александрия связан памятник или центр культуры, указанный в вопросе."
             },
             {
                 "question": "Кто был первым римским папой?",
@@ -2589,7 +2589,7 @@
                     "Лев"
                 ],
                 "correctAnswer": "Пётр",
-                "explanation": "Пётр — Именно Пётр сыграл роль, указанную в вопросе."
+                "explanation": "Именно Пётр сыграл роль, указанную в вопросе."
             },
             {
                 "question": "Какой композитор написал 'Времена года'?",
@@ -2600,7 +2600,7 @@
                     "Бетховен"
                 ],
                 "correctAnswer": "Вивальди",
-                "explanation": "Вивальди — Вивальди — автор произведения «Времена года»."
+                "explanation": "Вивальди — автор произведения «Времена года»."
             },
             {
                 "question": "Какой русский писатель был автором 'Отцов и детей'?",
@@ -2611,7 +2611,7 @@
                     "Чехов"
                 ],
                 "correctAnswer": "Тургенев",
-                "explanation": "Тургенев — Именно Тургенев создал «Отцов и детей»."
+                "explanation": "Именно Тургенев создал «Отцов и детей»."
             },
             {
                 "question": "Какой город был столицей Византии?",
@@ -2622,7 +2622,7 @@
                     "Антиохия"
                 ],
                 "correctAnswer": "Константинополь",
-                "explanation": "Константинополь — Константинополь был столицей государства, названного в вопросе."
+                "explanation": "Константинополь был столицей государства, названного в вопросе."
             },
             {
                 "question": "Кто написал 'Ревизора'?",
@@ -2633,7 +2633,7 @@
                     "Чехов"
                 ],
                 "correctAnswer": "Гоголь",
-                "explanation": "Гоголь — Гоголь — автор произведения «Ревизора»."
+                "explanation": "Гоголь — автор произведения «Ревизора»."
             },
             {
                 "question": "Какой стиль живописи представлял Клод Моне?",
@@ -2644,7 +2644,7 @@
                     "Сюрреализм"
                 ],
                 "correctAnswer": "Импрессионизм",
-                "explanation": "Импрессионизм — Перечисленные в вопросе признаки характерны для Импрессионизм."
+                "explanation": "Перечисленные в вопросе признаки характерны для Импрессионизм."
             },
             {
                 "question": "В каком году произошла Бородинская битва?",
@@ -2655,7 +2655,7 @@
                     "1799"
                 ],
                 "correctAnswer": "1812",
-                "explanation": "1812 — Исторические источники датируют «В каком году произошла Бородинская битва» 1812."
+                "explanation": "Исторические источники датируют «В каком году произошла Бородинская битва» 1812."
             },
             {
                 "question": "Кто автор 'Братьев Карамазовых'?",
@@ -2666,7 +2666,7 @@
                     "Чехов"
                 ],
                 "correctAnswer": "Достоевский",
-                "explanation": "Достоевский — Достоевский — автор произведения «Братьев Карамазовых»."
+                "explanation": "Достоевский — автор произведения «Братьев Карамазовых»."
             },
             {
                 "question": "Какой русский художник написал 'Бурлаков на Волге'?",
@@ -2677,7 +2677,7 @@
                     "Левитан"
                 ],
                 "correctAnswer": "Репин",
-                "explanation": "Репин — Именно Репин создал «Бурлаков на Волге»."
+                "explanation": "Именно Репин создал «Бурлаков на Волге»."
             },
             {
                 "question": "Какой древний город был известен Храмом Артемиды?",
@@ -2688,7 +2688,7 @@
                     "Вавилон"
                 ],
                 "correctAnswer": "Эфес",
-                "explanation": "Эфес — С Эфес связан памятник или центр культуры, указанный в вопросе."
+                "explanation": "С Эфес связан памятник или центр культуры, указанный в вопросе."
             },
             {
                 "question": "Кто был первым королём Англии?",
@@ -2699,7 +2699,7 @@
                     "Ричард Львиное Сердце"
                 ],
                 "correctAnswer": "Альфред Великий",
-                "explanation": "Альфред Великий — Именно Альфред Великий сыграл роль, указанную в вопросе."
+                "explanation": "Именно Альфред Великий сыграл роль, указанную в вопросе."
             },
             {
                 "question": "Какой композитор написал 'Реквием'?",
@@ -2710,7 +2710,7 @@
                     "Шуберт"
                 ],
                 "correctAnswer": "Моцарт",
-                "explanation": "Моцарт — Именно Моцарт создал «Реквием»."
+                "explanation": "Именно Моцарт создал «Реквием»."
             },
             {
                 "question": "Какой русский писатель был автором 'Вишнёвого сада'?",
@@ -2721,7 +2721,7 @@
                     "Тургенев"
                 ],
                 "correctAnswer": "Чехов",
-                "explanation": "Чехов — Произведение «Вишнёвого сада» принадлежит Чехов."
+                "explanation": "Произведение «Вишнёвого сада» принадлежит Чехов."
             },
             {
                 "question": "Какой город был столицей Древнего Китая?",
@@ -2732,7 +2732,7 @@
                     "Нанкин"
                 ],
                 "correctAnswer": "Сиань",
-                "explanation": "Сиань — Сиань был столицей государства, названного в вопросе."
+                "explanation": "Сиань был столицей государства, названного в вопросе."
             },
             {
                 "question": "Кто написал 'Героя нашего времени'?",
@@ -2743,7 +2743,7 @@
                     "Тургенев"
                 ],
                 "correctAnswer": "Лермонтов",
-                "explanation": "Лермонтов — Именно Лермонтов создал «Героя нашего времени»."
+                "explanation": "Именно Лермонтов создал «Героя нашего времени»."
             },
             {
                 "question": "Какой стиль архитектуры представляет Тадж-Махал?",
@@ -2754,7 +2754,7 @@
                     "Ренессанс"
                 ],
                 "correctAnswer": "Могольская архитектура",
-                "explanation": "Могольская архитектура — Перечисленные в вопросе признаки характерны для Могольская архитектура."
+                "explanation": "Перечисленные в вопросе признаки характерны для Могольская архитектура."
             },
             {
                 "question": "В каком году была подписана Великая хартия вольностей?",
@@ -2765,7 +2765,7 @@
                     "1485"
                 ],
                 "correctAnswer": "1215",
-                "explanation": "1215 — 1215 — дата исторического события: В каком году была подписана Великая хартия вольностей."
+                "explanation": "1215 — Дата исторического события: В каком году была подписана Великая хартия вольностей."
             },
             {
                 "question": "Кто автор 'Декамерона'?",
@@ -2776,7 +2776,7 @@
                     "Мольер"
                 ],
                 "correctAnswer": "Боккаччо",
-                "explanation": "Боккаччо — Именно Боккаччо создал «Декамерона»."
+                "explanation": "Именно Боккаччо создал «Декамерона»."
             },
             {
                 "question": "Какой русский художник написал 'Грачи прилетели'?",
@@ -2787,7 +2787,7 @@
                     "Репин"
                 ],
                 "correctAnswer": "Саврасов",
-                "explanation": "Саврасов — Произведение «Грачи прилетели» принадлежит Саврасов."
+                "explanation": "Произведение «Грачи прилетели» принадлежит Саврасов."
             },
             {
                 "question": "Какой древний город был известен Мавзолеем в Галикарнасе?",
@@ -2798,7 +2798,7 @@
                     "Вавилон"
                 ],
                 "correctAnswer": "Галикарнас",
-                "explanation": "Галикарнас — С Галикарнас связан памятник или центр культуры, указанный в вопросе."
+                "explanation": "С Галикарнас связан памятник или центр культуры, указанный в вопросе."
             },
             {
                 "question": "Кто был первым императором Китая?",
@@ -2809,7 +2809,7 @@
                     "Сунь-цзы"
                 ],
                 "correctAnswer": "Цинь Шихуанди",
-                "explanation": "Цинь Шихуанди — Именно Цинь Шихуанди сыграл роль, указанную в вопросе."
+                "explanation": "Именно Цинь Шихуанди сыграл роль, указанную в вопросе."
             },
             {
                 "question": "Какой композитор написал 'Лебединое озеро'?",
@@ -2820,7 +2820,7 @@
                     "Прокофьев"
                 ],
                 "correctAnswer": "Чайковский",
-                "explanation": "Чайковский — Чайковский написал музыку к балету «Лебединое озеро», впервые поставленному в 1877 году."
+                "explanation": "Чайковский написал музыку к балету «Лебединое озеро», впервые поставленному в 1877 году."
             },
             {
                 "question": "Какой русский писатель был автором 'Капитанской дочки'?",
@@ -2831,7 +2831,7 @@
                     "Тургенев"
                 ],
                 "correctAnswer": "Пушкин",
-                "explanation": "Пушкин — Пушкин — автор произведения «Капитанской дочки»."
+                "explanation": "Пушкин — автор произведения «Капитанской дочки»."
             },
             {
                 "question": "Какой город был столицей Древнего Рима?",
@@ -2842,7 +2842,7 @@
                     "Карфаген"
                 ],
                 "correctAnswer": "Рим",
-                "explanation": "Рим — Рим был столицей государства, названного в вопросе."
+                "explanation": "Рим был столицей государства, названного в вопросе."
             },
             {
                 "question": "Кто написал 'Мцыри'?",
@@ -2853,7 +2853,7 @@
                     "Тургенев"
                 ],
                 "correctAnswer": "Лермонтов",
-                "explanation": "Лермонтов — Произведение «Мцыри» принадлежит Лермонтов."
+                "explanation": "Произведение «Мцыри» принадлежит Лермонтов."
             },
             {
                 "question": "Какой стиль живописи представлял Пабло Пикассо?",
@@ -2864,7 +2864,7 @@
                     "Футуризм"
                 ],
                 "correctAnswer": "Кубизм",
-                "explanation": "Кубизм — Перечисленные в вопросе признаки характерны для Кубизм."
+                "explanation": "Перечисленные в вопросе признаки характерны для Кубизм."
             },
             {
                 "question": "В каком году произошла Великая французская революция?",
@@ -2875,7 +2875,7 @@
                     "1812"
                 ],
                 "correctAnswer": "1789",
-                "explanation": "1789 — Событие «В каком году произошла Великая французская революция» относится к 1789."
+                "explanation": "Событие «В каком году произошла Великая французская революция» относится к 1789."
             },
             {
                 "question": "Кто автор 'Божественной комедии'?",
@@ -2886,7 +2886,7 @@
                     "Мольер"
                 ],
                 "correctAnswer": "Данте",
-                "explanation": "Данте — Произведение «Божественной комедии» принадлежит Данте."
+                "explanation": "Произведение «Божественной комедии» принадлежит Данте."
             },
             {
                 "question": "Какой русский художник написал 'Утро в сосновом лесу'?",
@@ -2897,7 +2897,7 @@
                     "Репин"
                 ],
                 "correctAnswer": "Шишкин",
-                "explanation": "Шишкин — Шишкин — автор произведения «Утро в сосновом лесу»."
+                "explanation": "Шишкин — автор произведения «Утро в сосновом лесу»."
             },
             {
                 "question": "Какой древний город был известен Статуей Зевса в Олимпии?",
@@ -2908,7 +2908,7 @@
                     "Вавилон"
                 ],
                 "correctAnswer": "Олимпия",
-                "explanation": "Олимпия — С Олимпия связан памятник или центр культуры, указанный в вопросе."
+                "explanation": "С Олимпия связан памятник или центр культуры, указанный в вопросе."
             },
             {
                 "question": "Кто был первым президентом Франции?",
@@ -2919,7 +2919,7 @@
                     "Луи Наполеон Бонапарт"
                 ],
                 "correctAnswer": "Луи Наполеон Бонапарт",
-                "explanation": "Луи Наполеон Бонапарт — Именно Луи Наполеон Бонапарт сыграл роль, указанную в вопросе."
+                "explanation": "Именно Луи Наполеон Бонапарт сыграл роль, указанную в вопросе."
             },
             {
                 "question": "Какой композитор написал 'Кармен'?",
@@ -2930,7 +2930,7 @@
                     "Моцарт"
                 ],
                 "correctAnswer": "Бизе",
-                "explanation": "Бизе — Бизе — автор произведения «Кармен»."
+                "explanation": "Бизе — автор произведения «Кармен»."
             },
             {
                 "question": "Какой русский писатель был автором 'Обломова'?",
@@ -2941,7 +2941,7 @@
                     "Толстой"
                 ],
                 "correctAnswer": "Гончаров",
-                "explanation": "Гончаров — Именно Гончаров создал «Обломова»."
+                "explanation": "Именно Гончаров создал «Обломова»."
             },
             {
                 "question": "Какой город был столицей Древней Персии?",
@@ -2952,7 +2952,7 @@
                     "Пасаргады"
                 ],
                 "correctAnswer": "Персеполь",
-                "explanation": "Персеполь — Персеполь был столицей государства, названного в вопросе."
+                "explanation": "Персеполь был столицей государства, названного в вопросе."
             },
             {
                 "question": "Кто написал 'Слово о полку Игореве'?",
@@ -2963,7 +2963,7 @@
                     "Гоголь"
                 ],
                 "correctAnswer": "Неизвестный автор",
-                "explanation": "Неизвестный автор — Неизвестный автор — объект или явление, названное в утверждении «Кто написал 'Слово о полку Игореве'»."
+                "explanation": "Неизвестный автор — объект или явление, названное в утверждении «Кто написал 'Слово о полку Игореве'»."
             },
             {
                 "question": "Какой стиль архитектуры представляет Собор Святого Петра в Риме?",
@@ -2974,7 +2974,7 @@
                     "Романский"
                 ],
                 "correctAnswer": "Барокко",
-                "explanation": "Барокко — Перечисленные в вопросе признаки характерны для Барокко."
+                "explanation": "Перечисленные в вопросе признаки характерны для Барокко."
             }
         ],
         "id": "history_culture"
@@ -2992,7 +2992,7 @@
                     "1991"
                 ],
                 "correctAnswer": "1999",
-                "explanation": "1999 — 31 декабря 1999 года Борис Ельцин назначил Владимира Путина исполняющим обязанности президента России."
+                "explanation": "31 Декабря 1999 года Борис Ельцин назначил Владимира Путина исполняющим обязанности президента России."
             },
             {
                 "question": "BORK - компания какой страны?",
@@ -3003,7 +3003,7 @@
                     "Америка"
                 ],
                 "correctAnswer": "Россия",
-                "explanation": "Россия — BORK — российский бренд бытовой техники, созданный компанией «Технопарк»."
+                "explanation": "BORK — российский бренд бытовой техники, созданный компанией «Технопарк»."
             },
             {
                 "question": "Сколько стран состоят в ООН?",
@@ -3014,7 +3014,7 @@
                     "126"
                 ],
                 "correctAnswer": "193",
-                "explanation": "193 — В ООН состоят 193 государства-члена; последним в 2011 году стал Южный Судан."
+                "explanation": "В ООН состоят 193 государства-члена; последним в 2011 году стал Южный Судан."
             },
             {
                 "question": "Специализация компании WeWork",
@@ -3025,7 +3025,7 @@
                     "Девелопмент"
                 ],
                 "correctAnswer": "Коммерческая недвижимость",
-                "explanation": "Коммерческая недвижимость — WeWork сдаёт в аренду гибкие офисы и коворкинги, то есть коммерческую недвижимость для работы."
+                "explanation": "WeWork сдаёт в аренду гибкие офисы и коворкинги, то есть коммерческую недвижимость для работы."
             },
             {
                 "question": "Кто владел основной долей акций компании ЮКОС с 1995 по 2003 гг.?",
@@ -3036,7 +3036,7 @@
                     "Б. Березовский"
                 ],
                 "correctAnswer": "М. Ходорковский",
-                "explanation": "М. Ходорковский — Михаил Ходорковский контролировал ключевой пакет ЮКОСа через группу «Менатеп» в 1995–2003 годах."
+                "explanation": "Михаил Ходорковский контролировал ключевой пакет ЮКОСа через группу «Менатеп» в 1995–2003 годах."
             },
             {
                 "question": "Какой экономический термин обозначает снижение покупательной способности денег вследствие общего роста цен?",
@@ -3047,7 +3047,7 @@
                     "Стагфляция"
                 ],
                 "correctAnswer": "Инфляция",
-                "explanation": "Инфляция — Инфляция возникает при общем росте цен: на одну и ту же сумму денег можно купить меньше товаров."
+                "explanation": "Инфляция возникает при общем росте цен: на одну и ту же сумму денег можно купить меньше товаров."
             },
             {
                 "question": "Какая страна первой в истории объявила дефолт по своим внешним обязательствам?",
@@ -3058,7 +3058,7 @@
                     "Германия"
                 ],
                 "correctAnswer": "Испания",
-                "explanation": "Испания — Испания в 1557 году при Филиппе II приостановила выплаты иностранным кредиторам; это считают первым суверенным дефолтом."
+                "explanation": "Испания в 1557 году при Филиппе II приостановила выплаты иностранным кредиторам; это считают первым суверенным дефолтом."
             },
             {
                 "question": "Какая налоговая концепция предполагает, что богатые платят более высокий процент с доходов, чем бедные?",
@@ -3069,7 +3069,7 @@
                     "Косвенное налогообложение"
                 ],
                 "correctAnswer": "Прогрессивное налогообложение",
-                "explanation": "Прогрессивное налогообложение — При прогрессивном налогообложении ставка налога увеличивается вместе с доходом налогоплательщика."
+                "explanation": "При прогрессивном налогообложении ставка налога увеличивается вместе с доходом налогоплательщика."
             },
             {
                 "question": "Какой банк был признан крупнейшим инвестиционным банком в мире по активам?",
@@ -3080,7 +3080,7 @@
                     "Bank of America"
                 ],
                 "correctAnswer": "JPMorgan Chase",
-                "explanation": "JPMorgan Chase — JPMorgan Chase традиционно относится к крупнейшим мировым инвестиционным банкам по объёму активов."
+                "explanation": "JPMorgan Chase традиционно относится к крупнейшим мировым инвестиционным банкам по объёму активов."
             },
             {
                 "question": "Какая корпорация первой в истории достигла рыночной капитализации в 1 триллион долларов?",
@@ -3091,7 +3091,7 @@
                     "Saudi Aramco"
                 ],
                 "correctAnswer": "Apple",
-                "explanation": "Apple — Apple первой из публичных компаний превысила капитализацию в 1 триллион долларов в августе 2018 года."
+                "explanation": "Apple первой из публичных компаний превысила капитализацию в 1 триллион долларов в августе 2018 года."
             },
             {
                 "question": "Какая из стран G7 не входит в Совет Безопасности ООН?",
@@ -3102,7 +3102,7 @@
                     "Италия"
                 ],
                 "correctAnswer": "Канада",
-                "explanation": "Канада — Канада входит в G7, но не является постоянным членом Совета Безопасности ООН."
+                "explanation": "Канада входит в G7, но не является постоянным членом Совета Безопасности ООН."
             },
             {
                 "question": "Как называется макроэкономическая ситуация, при которой одновременно растут безработица и инфляция?",
@@ -3113,7 +3113,7 @@
                     "Кризис ликвидности"
                 ],
                 "correctAnswer": "Стагфляция",
-                "explanation": "Стагфляция — Стагфляция объединяет экономический застой с одновременным ростом инфляции и безработицы."
+                "explanation": "Стагфляция объединяет экономический застой с одновременным ростом инфляции и безработицы."
             },
             {
                 "question": "В каком году была проведена крупнейшая в истории IPO компания Saudi Aramco?",
@@ -3124,7 +3124,7 @@
                     "2017"
                 ],
                 "correctAnswer": "2019",
-                "explanation": "2019 — Saudi Aramco разместила акции на бирже Эр-Рияда в декабре 2019 года, проведя рекордное IPO."
+                "explanation": "Saudi Aramco разместила акции на бирже Эр-Рияда в декабре 2019 года, проведя рекордное IPO."
             },
             {
                 "question": "Кто является автором концепции 'Невидимой руки рынка'?",
@@ -3135,7 +3135,7 @@
                     "Милтон Фридман"
                 ],
                 "correctAnswer": "Адам Смит",
-                "explanation": "Адам Смит — Адам Смит описал «невидимую руку» в труде «Богатство народов» как координацию рынка личными интересами."
+                "explanation": "Адам Смит описал «невидимую руку» в труде «Богатство народов» как координацию рынка личными интересами."
             },
             {
                 "question": "Какое событие привело к мировому финансовому кризису 2008 года?",
@@ -3146,7 +3146,7 @@
                     "Падение цен на нефть"
                 ],
                 "correctAnswer": "Кризис ипотечного кредитования в США",
-                "explanation": "Кризис ипотечного кредитования в США — Кризис начался с массовых неплатежей по рискованным ипотечным кредитам США и обвала связанных ценных бумаг."
+                "explanation": "Кризис начался с массовых неплатежей по рискованным ипотечным кредитам США и обвала связанных ценных бумаг."
             },
             {
                 "question": "Какая валюта используется в Швейцарии?",
@@ -3157,7 +3157,7 @@
                     "Фунт стерлингов"
                 ],
                 "correctAnswer": "Швейцарский франк",
-                "explanation": "Швейцарский франк — Национальная валюта Швейцарии — швейцарский франк, международный код CHF."
+                "explanation": "Национальная валюта Швейцарии — швейцарский франк, международный код CHF."
             },
             {
                 "question": "Какой российский бизнесмен основал компанию Wildberries?",
@@ -3168,7 +3168,7 @@
                     "Аркадий Волож"
                 ],
                 "correctAnswer": "Татьяна Бакальчук",
-                "explanation": "Татьяна Бакальчук — Татьяна Бакальчук основала Wildberries в 2004 году как интернет-магазин одежды."
+                "explanation": "Татьяна Бакальчук основала Wildberries в 2004 году как интернет-магазин одежды."
             },
             {
                 "question": "Как называется международная организация, следящая за уровнем коррупции в странах?",
@@ -3179,7 +3179,7 @@
                     "OECD"
                 ],
                 "correctAnswer": "Transparency International",
-                "explanation": "Transparency International — Transparency International известна ежегодным Индексом восприятия коррупции, сравнивающим страны."
+                "explanation": "Transparency International известна ежегодным Индексом восприятия коррупции, сравнивающим страны."
             },
             {
                 "question": "Что означает аббревиатура IPO?",
@@ -3190,7 +3190,7 @@
                     "Индивидуальный предприниматель онлайн"
                 ],
                 "correctAnswer": "Первичное публичное размещение акций",
-                "explanation": "Первичное публичное размещение акций — IPO означает первое публичное размещение: компания впервые предлагает свои акции широкому кругу инвесторов."
+                "explanation": "IPO означает первое публичное размещение: компания впервые предлагает свои акции широкому кругу инвесторов."
             },
             {
                 "question": "Какой автоконцерн владеет брендом Lamborghini?",
@@ -3201,7 +3201,7 @@
                     "BMW"
                 ],
                 "correctAnswer": "Volkswagen",
-                "explanation": "Volkswagen — Lamborghini входит в Volkswagen Group через её дочернюю структуру Audi."
+                "explanation": "Lamborghini входит в Volkswagen Group через её дочернюю структуру Audi."
             },
             {
                 "question": "Кто является основателем инвестиционного фонда Berkshire Hathaway?",
@@ -3212,7 +3212,7 @@
                     "Бенджамин Грэм"
                 ],
                 "correctAnswer": "Уоррен Баффет",
-                "explanation": "Уоррен Баффет — Уоррен Баффетт руководит Berkshire Hathaway и превратил текстильную компанию в инвестиционный холдинг."
+                "explanation": "Уоррен Баффетт руководит Berkshire Hathaway и превратил текстильную компанию в инвестиционный холдинг."
             },
             {
                 "question": "Что из перечисленного не является криптовалютой?",
@@ -3223,7 +3223,7 @@
                     "VISA"
                 ],
                 "correctAnswer": "VISA",
-                "explanation": "VISA — VISA — международная платёжная сеть, а не децентрализованная криптовалюта."
+                "explanation": "VISA — международная платёжная сеть, а не децентрализованная криптовалюта."
             },
             {
                 "question": "Что такое off-shore зона?",
@@ -3234,7 +3234,7 @@
                     "Закрытая экономическая зона"
                 ],
                 "correctAnswer": "Регион с льготным налогообложением",
-                "explanation": "Регион с льготным налогообложением — Офшорная зона предлагает нерезидентам льготный налоговый режим и специальные правила регистрации компаний."
+                "explanation": "Офшорная зона предлагает нерезидентам льготный налоговый режим и специальные правила регистрации компаний."
             },
             {
                 "question": "Кто написал книгу 'Капитал в XXI веке'?",
@@ -3245,7 +3245,7 @@
                     "Нуриэль Рубини"
                 ],
                 "correctAnswer": "Томас Пикетти",
-                "explanation": "Томас Пикетти — Томас Пикетти опубликовал «Капитал в XXI веке» в 2013 году, исследуя неравенство доходов и капитала."
+                "explanation": "Томас Пикетти опубликовал «Капитал в XXI веке» в 2013 году, исследуя неравенство доходов и капитала."
             },
             {
                 "question": "Какой бизнесмен возглавил компанию Tesla после ухода Мартина Эберхарда?",
@@ -3256,7 +3256,7 @@
                     "Джефф Безос"
                 ],
                 "correctAnswer": "Илон Маск",
-                "explanation": "Илон Маск — Илон Маск стал генеральным директором Tesla в 2008 году после ухода Мартина Эберхарда."
+                "explanation": "Илон Маск стал генеральным директором Tesla в 2008 году после ухода Мартина Эберхарда."
             },
             {
                 "question": "Какая компания была основана как интернет-магазин книг?",
@@ -3267,7 +3267,7 @@
                     "AliExpress"
                 ],
                 "correctAnswer": "Amazon",
-                "explanation": "Amazon — Amazon Джеффа Безоса начал работу в 1994 году как онлайн-магазин книг."
+                "explanation": "Amazon Джеффа Безоса начал работу в 1994 году как онлайн-магазин книг."
             },
             {
                 "question": "В какой стране была основана компания Nestlé?",
@@ -3278,7 +3278,7 @@
                     "Германия"
                 ],
                 "correctAnswer": "Швейцария",
-                "explanation": "Швейцария — Nestlé основана в швейцарском Веве в 1866 году; название происходит от швейцарской компании Анри Нестле."
+                "explanation": "Nestlé основана в швейцарском Веве в 1866 году; название происходит от швейцарской компании Анри Нестле."
             },
             {
                 "question": "Какой мировой лидер подвергся импичменту дважды?",
@@ -3289,7 +3289,7 @@
                     "Борис Джонсон"
                 ],
                 "correctAnswer": "Дональд Трамп",
-                "explanation": "Дональд Трамп — Дональд Трамп стал первым президентом США, которому Палата представителей объявляла импичмент дважды — в 2019 и 2021 годах."
+                "explanation": "Дональд Трамп стал первым президентом США, которому Палата представителей объявляла импичмент дважды — в 2019 и 2021 годах."
             },
             {
                 "question": "Какой бизнесмен купил Twitter в 2022 году?",
@@ -3300,7 +3300,7 @@
                     "Питер Тиль"
                 ],
                 "correctAnswer": "Илон Маск",
-                "explanation": "Илон Маск — Илон Маск завершил покупку Twitter в октябре 2022 года примерно за 44 миллиарда долларов."
+                "explanation": "Илон Маск завершил покупку Twitter в октябре 2022 года примерно за 44 миллиарда долларов."
             },
             {
                 "question": "Что такое санкции в международной политике?",
@@ -3311,7 +3311,7 @@
                     "Избирательная реформа"
                 ],
                 "correctAnswer": "Меры давления на страну",
-                "explanation": "Меры давления на страну — Санкции — это ограничения в торговле, финансах или дипломатии, которыми государства воздействуют на другую страну."
+                "explanation": "Санкции — это ограничения в торговле, финансах или дипломатии, которыми государства воздействуют на другую страну."
             },
             {
                 "question": "Как называется система контроля за госрасходами и борьбой с коррупцией в РФ?",
@@ -3322,7 +3322,7 @@
                     "Росфинмониторинг"
                 ],
                 "correctAnswer": "Федеральное казначейство",
-                "explanation": "Федеральное казначейство — Федеральное казначейство исполняет федеральный бюджет и контролирует движение бюджетных средств в России."
+                "explanation": "Федеральное казначейство исполняет федеральный бюджет и контролирует движение бюджетных средств в России."
             },
             {
                 "question": "Какая компания стала первой в мире по рыночной капитализации в 2023 году?",
@@ -3333,7 +3333,7 @@
                     "Tesla"
                 ],
                 "correctAnswer": "Apple",
-                "explanation": "Apple — В 2023 году Apple вновь возглавляла мировые рейтинги компаний по рыночной капитализации."
+                "explanation": "В 2023 году Apple вновь возглавляла мировые рейтинги компаний по рыночной капитализации."
             },
             {
                 "question": "Какой российский банк был отключен от системы SWIFT в 2022 году первым?",
@@ -3344,7 +3344,7 @@
                     "Альфа-Банк"
                 ],
                 "correctAnswer": "Сбербанк",
-                "explanation": "Сбербанк — Сбербанк был включён в санкционные меры 2022 года, что привело к ограничениям на использование SWIFT."
+                "explanation": "Сбербанк был включён в санкционные меры 2022 года, что привело к ограничениям на использование SWIFT."
             },
             {
                 "question": "Кто стал самым молодым миллиардером в истории, заработавшим состояние самостоятельно?",
@@ -3355,7 +3355,7 @@
                     "Эван Шпигель"
                 ],
                 "correctAnswer": "Кайли Дженнер",
-                "explanation": "Кайли Дженнер — Кайли Дженнер построила состояние на бренде Kylie Cosmetics и была названа Forbes самой молодой self-made миллиардершей."
+                "explanation": "Кайли Дженнер построила состояние на бренде Kylie Cosmetics и была названа Forbes самой молодой self-made миллиардершей."
             },
             {
                 "question": "Как называется политика запрета на ввоз определенных товаров в страну?",
@@ -3366,7 +3366,7 @@
                     "Санкции"
                 ],
                 "correctAnswer": "Эмбарго",
-                "explanation": "Эмбарго — Эмбарго запрещает или существенно ограничивает ввоз либо вывоз определённых товаров между странами."
+                "explanation": "Эмбарго запрещает или существенно ограничивает ввоз либо вывоз определённых товаров между странами."
             },
             {
                 "question": "Какая страна первой ввела безусловный базовый доход на национальном уровне?",
@@ -3377,7 +3377,7 @@
                     "Нидерланды"
                 ],
                 "correctAnswer": "Финляндия",
-                "explanation": "Финляндия — Финляндия в 2017–2018 годах провела один из первых национальных экспериментов с безусловным базовым доходом."
+                "explanation": "Финляндия в 2017–2018 годах провела один из первых национальных экспериментов с безусловным базовым доходом."
             },
             {
                 "question": "Какой российский олигарх был арестован в Лондоне в 2023 году?",
@@ -3388,7 +3388,7 @@
                     "Виктор Вексельберг"
                 ],
                 "correctAnswer": "Михаил Фридман",
-                "explanation": "Михаил Фридман — Михаил Фридман был задержан в Лондоне в 2023 году по расследованию, связанному с санкционным законодательством."
+                "explanation": "Михаил Фридман был задержан в Лондоне в 2023 году по расследованию, связанному с санкционным законодательством."
             },
             {
                 "question": "Какая криптовалюта стала первой по капитализации в 2023 году?",
@@ -3399,7 +3399,7 @@
                     "Cardano"
                 ],
                 "correctAnswer": "Bitcoin",
-                "explanation": "Bitcoin — Bitcoin остаётся крупнейшей криптовалютой по рыночной капитализации и был первой широко принятой сетью такого типа."
+                "explanation": "Bitcoin остаётся крупнейшей криптовалютой по рыночной капитализации и был первой широко принятой сетью такого типа."
             },
             {
                 "question": "Какой индекс называют 'барометром американской экономики'?",
@@ -3410,7 +3410,7 @@
                     "Russell 2000"
                 ],
                 "correctAnswer": "Dow Jones",
-                "explanation": "Dow Jones — Dow Jones Industrial Average отслеживает акции крупных американских компаний и поэтому служит индикатором рынка США."
+                "explanation": "Dow Jones Industrial Average отслеживает акции крупных американских компаний и поэтому служит индикатором рынка США."
             },
             {
                 "question": "Кто из этих миллиардеров не входит в 'Большую четверку' технологических компаний?",
@@ -3421,7 +3421,7 @@
                     "Билл Гейтс"
                 ],
                 "correctAnswer": "Илон Маск",
-                "explanation": "Илон Маск — «Большая четвёрка» технологических компаний обычно означает Alphabet, Amazon, Apple и Meta; Илон Маск не входит в этот перечень."
+                "explanation": "«Большая четвёрка» технологических компаний обычно означает Alphabet, Amazon, Apple и Meta; Илон Маск не входит в этот перечень."
             },
             {
                 "question": "Какой банк называли 'самым устойчивым банком России' до кризиса 2008 года?",
@@ -3432,7 +3432,7 @@
                     "КИТ Финанс"
                 ],
                 "correctAnswer": "КИТ Финанс",
-                "explanation": "КИТ Финанс — КИТ Финанс до кризиса 2008 года считался устойчивым банком, но затем столкнулся с серьёзными проблемами ликвидности."
+                "explanation": "КИТ Финанс до кризиса 2008 года считался устойчивым банком, но затем столкнулся с серьёзными проблемами ликвидности."
             },
             {
                 "question": "Какая компания провела крупнейшее IPO в истории США в 2014 году?",
@@ -3443,7 +3443,7 @@
                     "Airbnb"
                 ],
                 "correctAnswer": "Alibaba",
-                "explanation": "Alibaba — Alibaba привлекла около 25 миллиардов долларов на IPO в Нью-Йорке в 2014 году — крупнейшем в истории США."
+                "explanation": "Alibaba привлекла около 25 миллиардов долларов на IPO в Нью-Йорке в 2014 году — крупнейшем в истории США."
             },
             {
                 "question": "Какой политический термин означает 'власть богатых'?",
@@ -3454,7 +3454,7 @@
                     "Меритократия"
                 ],
                 "correctAnswer": "Плутократия",
-                "explanation": "Плутократия — Плутократия — политическое устройство, при котором власть сосредоточена у богатого меньшинства."
+                "explanation": "Плутократия — политическое устройство, при котором власть сосредоточена у богатого меньшинства."
             },
             {
                 "question": "Кто из этих политиков не был лауреатом Нобелевской премии мира?",
@@ -3465,7 +3465,7 @@
                     "Михаил Горбачев"
                 ],
                 "correctAnswer": "Дональд Трамп",
-                "explanation": "Дональд Трамп — Дональд Трамп не был лауреатом Нобелевской премии мира."
+                "explanation": "Дональд Трамп не был лауреатом Нобелевской премии мира."
             },
             {
                 "question": "Как называется экономическая теория, предполагающая минимальное вмешательство государства?",
@@ -3476,7 +3476,7 @@
                     "Социализм"
                 ],
                 "correctAnswer": "Либертарианство",
-                "explanation": "Либертарианство — Либертарианство выступает за широкую экономическую свободу и минимальное вмешательство государства в частную жизнь и рынок."
+                "explanation": "Либертарианство выступает за широкую экономическую свободу и минимальное вмешательство государства в частную жизнь и рынок."
             },
             {
                 "question": "Какая страна первой легализовала биткоин как платежное средство?",
@@ -3487,7 +3487,7 @@
                     "Япония"
                 ],
                 "correctAnswer": "Сальвадор",
-                "explanation": "Сальвадор — Сальвадор в 2021 году первым признал Bitcoin законным платёжным средством наряду с долларом США."
+                "explanation": "Сальвадор в 2021 году первым признал Bitcoin законным платёжным средством наряду с долларом США."
             },
             {
                 "question": "Какой российский бизнесмен владеет футбольным клубом 'Монако'?",
@@ -3498,7 +3498,7 @@
                     "Михаил Прохоров"
                 ],
                 "correctAnswer": "Дмитрий Рыболовлев",
-                "explanation": "Дмитрий Рыболовлев — Дмитрий Рыболовлев владеет футбольным клубом AS Monaco через свою инвестиционную структуру."
+                "explanation": "Дмитрий Рыболовлев владеет футбольным клубом AS Monaco через свою инвестиционную структуру."
             },
             {
                 "question": "Какая компания разработала технологию блокчейн?",
@@ -3509,7 +3509,7 @@
                     "Ripple Labs"
                 ],
                 "correctAnswer": "Satoshi Nakamoto",
-                "explanation": "Satoshi Nakamoto — Satoshi Nakamoto опубликовал белую книгу Bitcoin, описавшую цепочку блоков как основу системы."
+                "explanation": "Satoshi Nakamoto опубликовал белую книгу Bitcoin, описавшую цепочку блоков как основу системы."
             },
             {
                 "question": "Как называется процесс выкупа компании её менеджментом?",
@@ -3520,7 +3520,7 @@
                     "LBO"
                 ],
                 "correctAnswer": "MBO",
-                "explanation": "MBO — MBO означает management buyout: менеджеры выкупают компанию или контрольный пакет у её владельцев."
+                "explanation": "MBO означает management buyout: менеджеры выкупают компанию или контрольный пакет у её владельцев."
             },
             {
                 "question": "Кто из этих политиков не входил в 'Большую семерку'?",
@@ -3531,7 +3531,7 @@
                     "Джо Байден"
                 ],
                 "correctAnswer": "Владимир Путин",
-                "explanation": "Владимир Путин — Россия при Владимире Путине была в G8 до приостановки участия в 2014 году, но Путин не относится к формату G7."
+                "explanation": "Россия при Владимире Путине была в G8 до приостановки участия в 2014 году, но Путин не относится к формату G7."
             },
             {
                 "question": "Какой российский банк был первым включен в санкционный список США?",
@@ -3542,7 +3542,7 @@
                     "Внешэкономбанк"
                 ],
                 "correctAnswer": "Банк Москвы",
-                "explanation": "Банк Москвы — Банк Москвы был среди российских банков, на которые США распространили санкционные ограничения."
+                "explanation": "Банк Москвы был среди российских банков, на которые США распространили санкционные ограничения."
             },
             {
                 "question": "Какая страна является крупнейшим держателем американского госдолга?",
@@ -3553,7 +3553,7 @@
                     "Саудовская Аравия"
                 ],
                 "correctAnswer": "Япония",
-                "explanation": "Япония — Япония традиционно является одним из крупнейших иностранных держателей казначейских облигаций США."
+                "explanation": "Япония традиционно является одним из крупнейших иностранных держателей казначейских облигаций США."
             },
             {
                 "question": "Как называется экономический показатель, отражающий все конечные товары и услуги?",
@@ -3564,7 +3564,7 @@
                     "НД"
                 ],
                 "correctAnswer": "ВВП",
-                "explanation": "ВВП — ВВП измеряет рыночную стоимость всех конечных товаров и услуг, произведённых в стране за период."
+                "explanation": "ВВП измеряет рыночную стоимость всех конечных товаров и услуг, произведённых в стране за период."
             },
             {
                 "question": "Кто из этих миллиардеров не входит в совет директоров Facebook?",
@@ -3575,7 +3575,7 @@
                     "Илон Маск"
                 ],
                 "correctAnswer": "Илон Маск",
-                "explanation": "Илон Маск — Илон Маск никогда не входил в совет директоров Facebook, ныне Meta."
+                "explanation": "Илон Маск никогда не входил в совет директоров Facebook, ныне Meta."
             },
             {
                 "question": "Какой российский бизнесмен владеет Brooklyn Nets?",
@@ -3586,7 +3586,7 @@
                     "Олег Дерипаска"
                 ],
                 "correctAnswer": "Михаил Прохоров",
-                "explanation": "Михаил Прохоров был владельцем контрольного пакета Brooklyn Nets с 2010 года до продажи клуба Джозефу Цаю в 2019 году."
+                "explanation": "Был владельцем контрольного пакета Brooklyn Nets с 2010 года до продажи клуба Джозефу Цаю в 2019 году."
             },
             {
                 "question": "Какая компания провела крупнейшее IPO в истории Китая?",
@@ -3597,7 +3597,7 @@
                     "Xiaomi"
                 ],
                 "correctAnswer": "Alibaba",
-                "explanation": "Alibaba разместила акции на NYSE в 2014 году на 25 млрд долларов — это было крупнейшее IPO в мировой истории на тот момент."
+                "explanation": "Разместила акции на NYSE в 2014 году на 25 млрд долларов — это было крупнейшее IPO в мировой истории на тот момент."
             },
             {
                 "question": "Как называется экономическая политика замораживания цен и зарплат?",
@@ -3608,7 +3608,7 @@
                     "Монетарное таргетирование"
                 ],
                 "correctAnswer": "Политика доходов",
-                "explanation": "Политика доходов использует административные ограничения роста зарплат и цен, чтобы сдерживать инфляцию."
+                "explanation": "Использует административные ограничения роста зарплат и цен, чтобы сдерживать инфляцию."
             },
             {
                 "question": "Кто из этих политиков не был министром финансов России?",
@@ -3619,7 +3619,7 @@
                     "Эльвира Набиуллина"
                 ],
                 "correctAnswer": "Герман Греф",
-                "explanation": "Герман Греф руководил Минэкономразвития России в 2000–2007 годах, а пост министра финансов не занимал."
+                "explanation": "Руководил Минэкономразвития России в 2000–2007 годах, а пост министра финансов не занимал."
             },
             {
                 "question": "Какая компания первой достигла капитализации в $3 трлн?",
@@ -3630,7 +3630,7 @@
                     "Saudi Aramco"
                 ],
                 "correctAnswer": "Apple",
-                "explanation": "Apple первой превысила оценку в 3 трлн долларов: это произошло в ходе торгов в январе 2022 года."
+                "explanation": "Первой превысила оценку в 3 трлн долларов: это произошло в ходе торгов в январе 2022 года."
             },
             {
                 "question": "Как называется процесс искусственного занижения курса национальной валюты?",
@@ -3641,7 +3641,7 @@
                     "Дефолт"
                 ],
                 "correctAnswer": "Девальвация",
-                "explanation": "Девальвация — это снижение стоимости национальной валюты по отношению к иностранным валютам; её могут проводить власти или центральный банк."
+                "explanation": "Это снижение стоимости национальной валюты по отношению к иностранным валютам; её могут проводить власти или центральный банк."
             },
             {
                 "question": "Кто из этих бизнесменов не входит в список Forbes?",
@@ -3652,7 +3652,7 @@
                     "Игорь Рыбаков"
                 ],
                 "correctAnswer": "Юрий Мильнер",
-                "explanation": "Юрий Мильнер — венчурный инвестор; в рамках этой подборки он указан как не входящий в список Forbes."
+                "explanation": "Венчурный инвестор; в рамках этой подборки он указан как не входящий в список Forbes."
             },
             {
                 "question": "Какая страна первой ввела цифровую валюту центрального банка?",
@@ -3663,7 +3663,7 @@
                     "Япония"
                 ],
                 "correctAnswer": "Китай",
-                "explanation": "Китай стал одним из пионеров CBDC: Народный банк Китая начал широкие пилоты цифрового юаня e-CNY в 2020 году."
+                "explanation": "Стал одним из пионеров CBDC: Народный банк Китая начал широкие пилоты цифрового юаня e-CNY в 2020 году."
             },
             {
                 "question": "Как называется экономическая теория, основанная на идеях Милтона Фридмана?",
@@ -3674,7 +3674,7 @@
                     "Институционализм"
                 ],
                 "correctAnswer": "Монетаризм",
-                "explanation": "Монетаризм Милтона Фридмана отводит денежной массе ключевую роль в объяснении инфляции и экономических колебаний."
+                "explanation": "Милтона Фридмана отводит денежной массе ключевую роль в объяснении инфляции и экономических колебаний."
             },
             {
                 "question": "Кто из этих политиков не был председателем Центробанка России?",
@@ -3685,7 +3685,7 @@
                     "Эльвира Набиуллина"
                 ],
                 "correctAnswer": "Алексей Улюкаев",
-                "explanation": "Алексей Улюкаев был министром экономического развития России в 2013–2016 годах, но председателем Банка России не был."
+                "explanation": "Был министром экономического развития России в 2013–2016 годах, но председателем Банка России не был."
             },
             {
                 "question": "Какая компания приобрела LinkedIn за $26 млрд?",
@@ -3696,7 +3696,7 @@
                     "Salesforce"
                 ],
                 "correctAnswer": "Microsoft",
-                "explanation": "Microsoft завершила покупку LinkedIn в 2016 году; стоимость сделки составила около 26,2 млрд долларов."
+                "explanation": "Завершила покупку LinkedIn в 2016 году; стоимость сделки составила около 26,2 млрд долларов."
             },
             {
                 "question": "Как называется политика искусственного завышения курса национальной валюты?",
@@ -3707,7 +3707,7 @@
                     "Дефолт"
                 ],
                 "correctAnswer": "Ревальвация",
-                "explanation": "Ревальвация означает официальное повышение курса национальной валюты относительно других валют."
+                "explanation": "Означает официальное повышение курса национальной валюты относительно других валют."
             },
             {
                 "question": "Кто из этих бизнесменов не входит в совет директоров Tesla?",
@@ -3718,7 +3718,7 @@
                     "Джефф Безос"
                 ],
                 "correctAnswer": "Джефф Безос",
-                "explanation": "Джефф Безос не входил в совет директоров Tesla; он основал Amazon, тогда как Tesla управляется отдельным советом."
+                "explanation": "Не входил в совет директоров Tesla; он основал Amazon, тогда как Tesla управляется отдельным советом."
             },
             {
                 "question": "Какая страна первой ввела отрицательные процентные ставки?",
@@ -3729,7 +3729,7 @@
                     "Дания"
                 ],
                 "correctAnswer": "Дания",
-                "explanation": "Дания ввела отрицательную ставку по депозитным сертификатам в 2012 году; однако Швеция снизила депозитную ставку ниже нуля ещё в 2009-м, поэтому утверждение о «первой» требует уточнения."
+                "explanation": "Ввела отрицательную ставку по депозитным сертификатам в 2012 году; однако Швеция снизила депозитную ставку ниже нуля ещё в 2009-м, поэтому утверждение о «первой» требует уточнения."
             },
             {
                 "question": "Как называется экономическая теория, основанная на идеях Джона Кейнса?",
@@ -3740,7 +3740,7 @@
                     "Институционализм"
                 ],
                 "correctAnswer": "Кейнсианство",
-                "explanation": "Кейнсианство опирается на идеи Джона Мейнарда Кейнса о влиянии совокупного спроса и государственной политики на экономику."
+                "explanation": "Опирается на идеи Джона Мейнарда Кейнса о влиянии совокупного спроса и государственной политики на экономику."
             },
             {
                 "question": "Кто из этих политиков не был премьер-министром России?",
@@ -3751,7 +3751,7 @@
                     "Михаил Касьянов"
                 ],
                 "correctAnswer": "Алексей Кудрин",
-                "explanation": "Алексей Кудрин был министром финансов и вице-премьером России, но должность председателя правительства не занимал."
+                "explanation": "Был министром финансов и вице-премьером России, но должность председателя правительства не занимал."
             },
             {
                 "question": "Какая компания приобрела GitHub за $7.5 млрд?",
@@ -3762,7 +3762,7 @@
                     "Salesforce"
                 ],
                 "correctAnswer": "Microsoft",
-                "explanation": "Microsoft купила GitHub в 2018 году за 7,5 млрд долларов, сохранив платформу для разработчиков отдельным сервисом."
+                "explanation": "Купила GitHub в 2018 году за 7,5 млрд долларов, сохранив платформу для разработчиков отдельным сервисом."
             },
             {
                 "question": "Как называется процесс сокращения денежной массы в экономике?",
@@ -3773,7 +3773,7 @@
                     "Демонетизация"
                 ],
                 "correctAnswer": "Демонетизация",
-                "explanation": "Демонетизация лишает определённые денежные знаки статуса законного платёжного средства и изымает их из обращения."
+                "explanation": "Лишает определённые денежные знаки статуса законного платёжного средства и изымает их из обращения."
             },
             {
                 "question": "Кто из этих бизнесменов не входит в совет директоров Google?",
@@ -3784,7 +3784,7 @@
                     "Илон Маск"
                 ],
                 "correctAnswer": "Илон Маск",
-                "explanation": "Илон Маск не входил в совет директоров Google или Alphabet: его управленческие роли связаны прежде всего с Tesla и SpaceX."
+                "explanation": "Не входил в совет директоров Google или Alphabet: его управленческие роли связаны прежде всего с Tesla и SpaceX."
             },
             {
                 "question": "Какая страна первой ввела налог на роскошь?",
@@ -3795,7 +3795,7 @@
                     "Великобритания"
                 ],
                 "correctAnswer": "Франция",
-                "explanation": "Франция в этой формулировке связывается с ранними современными специальными налогами на предметы роскоши; историческое первенство зависит от определения такого налога."
+                "explanation": "В этой формулировке связывается с ранними современными специальными налогами на предметы роскоши; историческое первенство зависит от определения такого налога."
             },
             {
                 "question": "Как называется экономическая теория, основанная на идеях Карла Маркса?",
@@ -3806,7 +3806,7 @@
                     "Институционализм"
                 ],
                 "correctAnswer": "Марксизм",
-                "explanation": "Марксизм основан на работах Карла Маркса и объясняет развитие общества через классовые отношения и способы производства."
+                "explanation": "Основан на работах Карла Маркса и объясняет развитие общества через классовые отношения и способы производства."
             },
             {
                 "question": "Кто из этих политиков не был министром экономики России?",
@@ -3817,7 +3817,7 @@
                     "Алексей Кудрин"
                 ],
                 "correctAnswer": "Алексей Кудрин",
-                "explanation": "Алексей Кудрин возглавлял Минфин России, а министрами экономики были, в частности, Андрей Нечаев, Евгений Ясин и Герман Греф."
+                "explanation": "Возглавлял Минфин России, а министрами экономики были, в частности, Андрей Нечаев, Евгений Ясин и Герман Греф."
             },
             {
                 "question": "Какая компания приобрела WhatsApp за $19 млрд?",
@@ -3828,7 +3828,7 @@
                     "Tencent"
                 ],
                 "correctAnswer": "Facebook",
-                "explanation": "Facebook объявила о покупке WhatsApp в 2014 году; общая оценка сделки составила около 19 млрд долларов наличными и акциями."
+                "explanation": "Объявила о покупке WhatsApp в 2014 году; общая оценка сделки составила около 19 млрд долларов наличными и акциями."
             },
             {
                 "question": "Как называется процесс увеличения денежной массы в экономике?",
@@ -3839,7 +3839,7 @@
                     "Демонетизация"
                 ],
                 "correctAnswer": "Эмиссия",
-                "explanation": "Эмиссия — выпуск в обращение новых денег; при прочих равных она увеличивает объём денежной массы."
+                "explanation": "Выпуск в обращение новых денег; при прочих равных она увеличивает объём денежной массы."
             },
             {
                 "question": "Кто из этих бизнесменов не входит в совет директоров Amazon?",
@@ -3850,7 +3850,7 @@
                     "Розалинд Брюэр"
                 ],
                 "correctAnswer": "Уоррен Баффет",
-                "explanation": "Уоррен Баффет не входил в совет директоров Amazon: он руководит Berkshire Hathaway, а не Amazon."
+                "explanation": "Не входил в совет директоров Amazon: он руководит Berkshire Hathaway, а не Amazon."
             },
             {
                 "question": "Какая страна первой ввела безусловный базовый доход на национальном уровне?",
@@ -3861,7 +3861,7 @@
                     "Нидерланды"
                 ],
                 "correctAnswer": "Финляндия",
-                "explanation": "Финляндия провела в 2017–2018 годах известный эксперимент с базовым доходом для 2 000 безработных, но он не был общенациональным, поэтому формулировка вопроса неточна."
+                "explanation": "Провела в 2017–2018 годах известный эксперимент с базовым доходом для 2 000 безработных, но он не был общенациональным, поэтому формулировка вопроса неточна."
             },
             {
                 "question": "Как называется экономическая теория, основанная на идеях Фридриха Хайека?",
@@ -3872,7 +3872,7 @@
                     "Стокгольмская школа"
                 ],
                 "correctAnswer": "Австрийская школа",
-                "explanation": "Австрийская школа развивает идеи Карла Менгера и Фридриха Хайека о ценах, предпринимательстве и роли рыночного процесса."
+                "explanation": "Развивает идеи Карла Менгера и Фридриха Хайека о ценах, предпринимательстве и роли рыночного процесса."
             },
             {
                 "question": "Кто из этих политиков не был министром финансов США?",
@@ -3883,7 +3883,7 @@
                     "Джанет Йеллен"
                 ],
                 "correctAnswer": "Джанет Йеллен",
-                "explanation": "Джанет Йеллен была председателем ФРС в 2014–2018 годах, а затем министром финансов США в 2021–2025 годах, поэтому ключ в вопросе фактически неверен."
+                "explanation": "Была председателем ФРС в 2014–2018 годах, а затем министром финансов США в 2021–2025 годах, поэтому ключ в вопросе фактически неверен."
             },
             {
                 "question": "Какая компания приобрела Nokia за $7.2 млрд?",
@@ -3894,7 +3894,7 @@
                     "Huawei"
                 ],
                 "correctAnswer": "Microsoft",
-                "explanation": "Microsoft в 2014 году купила мобильное подразделение Nokia; сумма сделки составляла около 7,2 млрд евро, а не долларов."
+                "explanation": "В 2014 году купила мобильное подразделение Nokia; сумма сделки составляла около 7,2 млрд евро, а не долларов."
             },
             {
                 "question": "Как называется процесс замены старых денежных знаков на новые?",
@@ -3905,7 +3905,7 @@
                     "Демонетизация"
                 ],
                 "correctAnswer": "Деноминация",
-                "explanation": "Деноминация заменяет старые денежные знаки новыми в заданном соотношении, обычно уменьшая число нулей в номиналах."
+                "explanation": "Заменяет старые денежные знаки новыми в заданном соотношении, обычно уменьшая число нулей в номиналах."
             },
             {
                 "question": "Кто из этих бизнесменов не входит в совет директоров Berkshire Hathaway?",
@@ -3916,7 +3916,7 @@
                     "Джефф Безос"
                 ],
                 "correctAnswer": "Джефф Безос",
-                "explanation": "Джефф Безос никогда не входил в совет директоров Berkshire Hathaway, которым долгое время руководил Уоррен Баффет."
+                "explanation": "Никогда не входил в совет директоров Berkshire Hathaway, которым долгое время руководил Уоррен Баффет."
             },
             {
                 "question": "Какая страна первой ввела налог на выбросы углекислого газа?",
@@ -3927,7 +3927,7 @@
                     "Дания"
                 ],
                 "correctAnswer": "Финляндия",
-                "explanation": "Финляндия ввела один из первых в мире налогов на выбросы углекислого газа — углеродный налог начал действовать в 1990 году."
+                "explanation": "Ввела один из первых в мире налогов на выбросы углекислого газа — углеродный налог начал действовать в 1990 году."
             },
             {
                 "question": "Как называется экономическая теория, основанная на идеях Торстейна Веблена?",
@@ -3938,7 +3938,7 @@
                     "Марксизм"
                 ],
                 "correctAnswer": "Институционализм",
-                "explanation": "Институционализм Торстейна Веблена исследует, как социальные институты, привычки и правила влияют на экономическое поведение."
+                "explanation": "Торстейна Веблена исследует, как социальные институты, привычки и правила влияют на экономическое поведение."
             },
             {
                 "question": "Кто из этих политиков не был председателем ФРС США?",
@@ -3949,7 +3949,7 @@
                     "Стивен Мнучин"
                 ],
                 "correctAnswer": "Стивен Мнучин",
-                "explanation": "Стивен Мнучин был министром финансов США в 2017–2021 годах, но председателем Федеральной резервной системы не был."
+                "explanation": "Был министром финансов США в 2017–2021 годах, но председателем Федеральной резервной системы не был."
             },
             {
                 "question": "Какая компания приобрела Motorola Mobility за $12.5 млрд?",
@@ -3960,7 +3960,7 @@
                     "Samsung"
                 ],
                 "correctAnswer": "Google",
-                "explanation": "Google приобрела Motorola Mobility в 2012 году за 12,5 млрд долларов, главным образом получив её патентный портфель."
+                "explanation": "Приобрела Motorola Mobility в 2012 году за 12,5 млрд долларов, главным образом получив её патентный портфель."
             },
             {
                 "question": "Как называется процесс отказа государства от выполнения своих долговых обязательств?",
@@ -3971,7 +3971,7 @@
                     "Дефолт"
                 ],
                 "correctAnswer": "Дефолт",
-                "explanation": "Дефолт — это отказ или неспособность заёмщика, в том числе государства, выполнить долговые обязательства в установленный срок."
+                "explanation": "Это отказ или неспособность заёмщика, в том числе государства, выполнить долговые обязательства в установленный срок."
             },
             {
                 "question": "Кто из этих бизнесменов не входит в совет директоров Alibaba?",
@@ -3982,7 +3982,7 @@
                     "Илон Маск"
                 ],
                 "correctAnswer": "Илон Маск",
-                "explanation": "Илон Маск не входил в совет директоров Alibaba; Джек Ма, Джозеф Цай и Масаёши Сон в разное время в нём состояли."
+                "explanation": "Не входил в совет директоров Alibaba; Джек Ма, Джозеф Цай и Масаёши Сон в разное время в нём состояли."
             },
             {
                 "question": "Какая страна первой ввела прогрессивную шкалу подоходного налога?",
@@ -3993,7 +3993,7 @@
                     "США"
                 ],
                 "correctAnswer": "Великобритания",
-                "explanation": "Великобритания ввела одну из первых современных прогрессивных шкал подоходного налога в 1799 году по инициативе Уильяма Питта-младшего."
+                "explanation": "Ввела одну из первых современных прогрессивных шкал подоходного налога в 1799 году по инициативе Уильяма Питта-младшего."
             },
             {
                 "question": "Как называется экономическая теория, основанная на идеях Йозефа Шумпетера?",
@@ -4004,7 +4004,7 @@
                     "Теория конкуренции"
                 ],
                 "correctAnswer": "Теория инноваций",
-                "explanation": "Теория инноваций Йозефа Шумпетера связывает экономическое развитие с нововведениями предпринимателей и «созидательным разрушением»."
+                "explanation": "Йозефа Шумпетера связывает экономическое развитие с нововведениями предпринимателей и «созидательным разрушением»."
             },
             {
                 "question": "Кто из этих политиков не был президентом Всемирного банка?",
@@ -4015,7 +4015,7 @@
                     "Пол Вулфовиц"
                 ],
                 "correctAnswer": "Кристин Лагард",
-                "explanation": "Кристин Лагард возглавляла МВФ в 2011–2019 годах и затем ЕЦБ, но президентом Всемирного банка не была."
+                "explanation": "Возглавляла МВФ в 2011–2019 годах и затем ЕЦБ, но президентом Всемирного банка не была."
             },
             {
                 "question": "Какая компания приобрела Skype за $8.5 млрд?",
@@ -4026,7 +4026,7 @@
                     "Yahoo"
                 ],
                 "correctAnswer": "Microsoft",
-                "explanation": "Microsoft приобрела Skype в 2011 году за 8,5 млрд долларов, включив сервис видеосвязи в свою экосистему."
+                "explanation": "Приобрела Skype в 2011 году за 8,5 млрд долларов, включив сервис видеосвязи в свою экосистему."
             },
             {
                 "question": "Как называется процесс снижения общего уровня цен в экономике?",
@@ -4037,7 +4037,7 @@
                     "Рецессия"
                 ],
                 "correctAnswer": "Дефляция",
-                "explanation": "Дефляция — устойчивое снижение общего уровня цен, из-за которого покупательная способность денег растёт."
+                "explanation": "Устойчивое снижение общего уровня цен, из-за которого покупательная способность денег растёт."
             },
             {
                 "question": "Кто из этих бизнесменов не входит в совет директоров Twitter?",
@@ -4048,7 +4048,7 @@
                     "Питер Фентон"
                 ],
                 "correctAnswer": "Илон Маск",
-                "explanation": "Илон Маск в 2022 году отказался от места в совете директоров Twitter, а позднее купил компанию и распустил её прежний совет."
+                "explanation": "В 2022 году отказался от места в совете директоров Twitter, а позднее купил компанию и распустил её прежний совет."
             },
             {
                 "question": "Какая страна первой ввела налог на добавленную стоимость (НДС)?",
@@ -4059,7 +4059,7 @@
                     "США"
                 ],
                 "correctAnswer": "Франция",
-                "explanation": "Франция ввела налог на добавленную стоимость в 1954 году по инициативе Мориса Лоре; затем НДС получил мировое распространение."
+                "explanation": "Ввела налог на добавленную стоимость в 1954 году по инициативе Мориса Лоре; затем НДС получил мировое распространение."
             },
             {
                 "question": "Как называется экономическая теория, основанная на идеях Рональда Коуза?",
@@ -4070,7 +4070,7 @@
                     "Теория контрактов"
                 ],
                 "correctAnswer": "Теория трансакционных издержек",
-                "explanation": "Теория трансакционных издержек Рональда Коуза объясняет существование фирм и выбор контрактов затратами на поиск, переговоры и контроль сделок."
+                "explanation": "Рональда Коуза объясняет существование фирм и выбор контрактов затратами на поиск, переговоры и контроль сделок."
             },
             {
                 "question": "Кто из этих политиков не был главой МВФ?",
@@ -4081,7 +4081,7 @@
                     "Кристалина Георгиева"
                 ],
                 "correctAnswer": "Роберт Зеллик",
-                "explanation": "Роберт Зеллик был президентом Всемирного банка в 2007–2012 годах, но главой Международного валютного фонда не был."
+                "explanation": "Был президентом Всемирного банка в 2007–2012 годах, но главой Международного валютного фонда не был."
             },
             {
                 "question": "Какая компания приобрела YouTube за $1.65 млрд?",
@@ -4092,7 +4092,7 @@
                     "Facebook"
                 ],
                 "correctAnswer": "Google",
-                "explanation": "Google купила YouTube в 2006 году за 1,65 млрд долларов в акциях, когда видеоплатформа только быстро набирала аудиторию."
+                "explanation": "Купила YouTube в 2006 году за 1,65 млрд долларов в акциях, когда видеоплатформа только быстро набирала аудиторию."
             },
             {
                 "question": "Как называется процесс одновременного роста инфляции и безработицы?",
@@ -4103,7 +4103,7 @@
                     "Дефляция"
                 ],
                 "correctAnswer": "Стагфляция",
-                "explanation": "Стагфляция сочетает слабый экономический рост или застой с высокой инфляцией и безработицей."
+                "explanation": "Сочетает слабый экономический рост или застой с высокой инфляцией и безработицей."
             },
             {
                 "question": "Кто из этих бизнесменов не входит в совет директоров Netflix?",
@@ -4114,7 +4114,7 @@
                     "Энн Минер"
                 ],
                 "correctAnswer": "Уоррен Баффет",
-                "explanation": "Уоррен Баффет не входил в совет директоров Netflix: его основная управленческая должность — глава Berkshire Hathaway."
+                "explanation": "Не входил в совет директоров Netflix: его основная управленческая должность — глава Berkshire Hathaway."
             },
             {
                 "question": "Какая страна первой ввела налог на наследство?",
@@ -4125,7 +4125,7 @@
                     "Германия"
                 ],
                 "correctAnswer": "Великобритания",
-                "explanation": "Великобритания ввела пошлину на наследование, legacy duty, в 1780 году — одну из ранних современных форм такого налога."
+                "explanation": "Ввела пошлину на наследование, legacy duty, в 1780 году — одну из ранних современных форм такого налога."
             },
             {
                 "question": "Как называется экономическая теория, основанная на идеях Джеймса Бьюкенена?",
@@ -4136,7 +4136,7 @@
                     "Теория аукционов"
                 ],
                 "correctAnswer": "Теория общественного выбора",
-                "explanation": "Теория общественного выбора Джеймса Бьюкенена применяет экономический анализ к решениям избирателей, политиков и бюрократии."
+                "explanation": "Джеймса Бьюкенена применяет экономический анализ к решениям избирателей, политиков и бюрократии."
             },
             {
                 "question": "Кто из этих политиков не был главой ЕЦБ?",
@@ -4147,7 +4147,7 @@
                     "Ангела Меркель"
                 ],
                 "correctAnswer": "Ангела Меркель",
-                "explanation": "Ангела Меркель была федеральным канцлером Германии в 2005–2021 годах, но председателем Европейского центрального банка не была."
+                "explanation": "Была федеральным канцлером Германии в 2005–2021 годах, но председателем Европейского центрального банка не была."
             },
             {
                 "question": "Какая компания приобрела Instagram за $1 млрд?",
@@ -4158,7 +4158,7 @@
                     "Twitter"
                 ],
                 "correctAnswer": "Facebook",
-                "explanation": "Facebook купила Instagram в 2012 году примерно за 1 млрд долларов наличными и акциями."
+                "explanation": "Купила Instagram в 2012 году примерно за 1 млрд долларов наличными и акциями."
             }
         ],
         "id": "politics_business"
