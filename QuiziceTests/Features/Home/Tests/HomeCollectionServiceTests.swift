@@ -34,6 +34,66 @@ final class HomeCollectionServiceTests: HomeScreenVisualStateTestCase {
         XCTAssertNotNil(statisticsCell.contentView.descendant(withAccessibilityIdentifier: "homeStatisticsCard"))
     }
 
+    func testCollectionServiceMovesPreferredThemesFirstWithoutReorderingTheirPeers() {
+        QuizFactory.shared.themes = [
+            makeTheme(name: "Музыка"),
+            makeTheme(name: "Технологии"),
+            makeTheme(name: "История и культура"),
+            makeTheme(name: "Политика и бизнес")
+        ]
+        let service = ThemesCollectionService(
+            preferredThemeIDsProvider: { ["history_culture", "politics_business"] }
+        )
+        let collectionView = makeCollectionView()
+
+        let expectedThemeIDs = [
+            "history_culture",
+            "politics_business",
+            "music",
+            "technology"
+        ]
+
+        for (index, themeID) in expectedThemeIDs.enumerated() {
+            let cell = service.collectionView(
+                collectionView,
+                cellForItemAt: IndexPath(item: index, section: 0)
+            )
+            XCTAssertNotNil(
+                cell.contentView.descendant(withAccessibilityIdentifier: themeID)
+            )
+        }
+    }
+
+    func testPreferredThemeReconfigurationUsesDisplayedIndex() {
+        QuizFactory.shared.themes = [
+            makeTheme(name: "Музыка"),
+            makeTheme(name: "Технологии"),
+            makeTheme(name: "История и культура")
+        ]
+        let service = ThemesCollectionService(
+            preferredThemeIDsProvider: { ["history_culture"] }
+        )
+        let collectionView = ReconfigureTrackingCollectionView(
+            frame: CGRect(x: 0, y: 0, width: 390, height: 700),
+            collectionViewLayout: UICollectionViewFlowLayout()
+        )
+        collectionView.register(
+            ThemeCardCollectionViewCell.self,
+            forCellWithReuseIdentifier: ThemeCardCollectionViewCell.reuseIdentifier
+        )
+
+        _ = service.collectionView(
+            collectionView,
+            cellForItemAt: IndexPath(item: 0, section: 0)
+        )
+        service.presentedThemeID = "history_culture"
+
+        XCTAssertEqual(
+            collectionView.reconfiguredIndexPaths.last,
+            [IndexPath(item: 0, section: 0)]
+        )
+    }
+
     func testCollectionServiceUsesTwoColumnThemeCardsAndWideActionCards() {
         QuizFactory.shared.themes = [makeTheme(name: "Музыка"), makeTheme(name: "Технологии")]
         let service = ThemesCollectionService()
@@ -462,4 +522,12 @@ final class HomeCollectionServiceTests: HomeScreenVisualStateTestCase {
         XCTAssertNotNil(statisticsCell.contentView.descendant(withAccessibilityIdentifier: "homeStatisticsCard"))
     }
 
+}
+
+private final class ReconfigureTrackingCollectionView: UICollectionView {
+    private(set) var reconfiguredIndexPaths: [[IndexPath]] = []
+
+    override func reconfigureItems(at indexPaths: [IndexPath]) {
+        reconfiguredIndexPaths.append(indexPaths)
+    }
 }

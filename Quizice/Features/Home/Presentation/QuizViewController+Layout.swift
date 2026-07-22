@@ -4,6 +4,7 @@ extension QuizViewController {
     func configureProgrammaticSubviews(in rootView: UIView) {
         configureHeaderViews()
         configureSettingsButton()
+        configureHelpButton()
         configureHeaderStack()
         configureThemesCollectionView()
         configureScreenStack()
@@ -12,6 +13,7 @@ extension QuizViewController {
         rootView.addSubview(headerStackView)
         rootView.addSubview(screenStackView)
         rootView.addSubview(settingsButton)
+        rootView.addSubview(helpButton)
         applyLayerOrdering()
         activateLayoutConstraints(in: rootView)
     }
@@ -104,6 +106,36 @@ extension QuizViewController {
         settingsButton.installPressFeedback()
     }
 
+    func configureHelpButton() {
+        helpButton = UIButton(type: .system)
+        helpButtonVisualSurface = UIView()
+        helpButtonVisualSurface.accessibilityIdentifier = AccessibilityID.helpVisualSurface
+        helpButtonVisualSurface.isUserInteractionEnabled = false
+        helpButtonVisualSurface.translatesAutoresizingMaskIntoConstraints = false
+        helpButton.accessibilityIdentifier = AccessibilityID.helpButton
+        helpButton.accessibilityLabel = L10n.Onboarding.helpAccessibilityLabel
+        helpButton.accessibilityHint = L10n.Onboarding.helpAccessibilityHint
+        let helpIcon = UIImage(
+            systemName: Content.helpIconName,
+            withConfiguration: UIImage.SymbolConfiguration(
+                pointSize: Typography.settingsIconPointSize,
+                weight: .bold
+            )
+        )
+        helpButton.setImage(helpIcon, for: .normal)
+        helpButton.tintColor = .white
+        helpButton.insertSubview(helpButtonVisualSurface, at: 0)
+        NSLayoutConstraint.activate([
+            helpButtonVisualSurface.centerXAnchor.constraint(equalTo: helpButton.centerXAnchor),
+            helpButtonVisualSurface.centerYAnchor.constraint(equalTo: helpButton.centerYAnchor),
+            helpButtonVisualSurface.widthAnchor.constraint(equalToConstant: Layout.settingsButtonVisualSize),
+            helpButtonVisualSurface.heightAnchor.constraint(equalToConstant: Layout.settingsButtonVisualSize)
+        ])
+        helpButton.translatesAutoresizingMaskIntoConstraints = false
+        helpButton.addTarget(self, action: #selector(helpButtonTapped), for: .touchUpInside)
+        helpButton.installPressFeedback()
+    }
+
     func configureHeaderStack() {
         var arrangedSubviews: [UIView] = [motivationContainerView]
 #if DEBUG
@@ -176,6 +208,7 @@ extension QuizViewController {
         screenStackView.layer.zPosition = Appearance.collectionLayerZPosition
         themesCollectionView.layer.zPosition = Appearance.collectionLayerZPosition
         settingsButton.layer.zPosition = Appearance.controlsLayerZPosition
+        helpButton.layer.zPosition = Appearance.controlsLayerZPosition
     }
 
     func activateLayoutConstraints(in rootView: UIView) {
@@ -193,6 +226,14 @@ extension QuizViewController {
             settingsButton.trailingAnchor.constraint(equalTo: rootView.trailingAnchor, constant: -Layout.settingsButtonTrailingInset),
             settingsButton.widthAnchor.constraint(equalToConstant: Layout.settingsButtonSize),
             settingsButton.heightAnchor.constraint(equalToConstant: Layout.settingsButtonSize),
+
+            helpButton.topAnchor.constraint(
+                equalTo: settingsButton.bottomAnchor,
+                constant: Layout.helpButtonSpacing
+            ),
+            helpButton.trailingAnchor.constraint(equalTo: settingsButton.trailingAnchor),
+            helpButton.widthAnchor.constraint(equalToConstant: Layout.settingsButtonSize),
+            helpButton.heightAnchor.constraint(equalToConstant: Layout.settingsButtonSize),
 
             motivationContainerView.widthAnchor.constraint(equalTo: headerStackView.layoutMarginsGuide.widthAnchor)
         ])
@@ -236,7 +277,10 @@ extension QuizViewController {
 
     func updateCollectionTopInset() {
         let oldTopInset = themesCollectionView.contentInset.top
-        let topInset = headerStackView.bounds.height + Layout.screenTopInset + Layout.headerToCollectionSpacing
+        let safeAreaTop = view.safeAreaInsets.top
+        let headerBottom = headerStackView.frame.maxY - safeAreaTop
+        let controlsBottom = helpButton.frame.maxY - safeAreaTop
+        let topInset = max(headerBottom, controlsBottom) + Layout.headerToCollectionSpacing
         guard abs(oldTopInset - topInset) > Layout.scrollActivationTolerance else { return }
 
         let contentOffsetFromTopInset = themesCollectionView.contentOffset.y + oldTopInset
