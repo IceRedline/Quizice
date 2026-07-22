@@ -295,7 +295,6 @@ final class AppMetricaAnalyticsTracker: AnalyticsTracking {
 
         AppMetrica.activate(with: configuration)
         isActivated = true
-        AppLog.analytics.info("AppMetrica activated")
     }
 
     func track(_ event: AnalyticsEvent) {
