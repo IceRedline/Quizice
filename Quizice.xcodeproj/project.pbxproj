@@ -38,6 +38,10 @@
 		36132641D7CF805F726C6A0B /* ExpandedAIThemeCardView+Keyboard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6E014925A2F120F6D3109CFC /* ExpandedAIThemeCardView+Keyboard.swift */; };
 		39C9C2747B883E20A25D42D1 /* SwiftUIAppearanceSupport.swift in Sources */ = {isa = PBXBuildFile; fileRef = 771B26D898DEF6B36ACCA43E /* SwiftUIAppearanceSupport.swift */; };
 		3A8BE011ACEECD51866A1DF0 /* DebugYandexAIAPIKeyStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77CBE256B382A0502199DCED /* DebugYandexAIAPIKeyStore.swift */; };
+		D3B600022FE0000100D3B601 /* DebugMenuView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3B600012FE0000100D3B601 /* DebugMenuView.swift */; };
+		D3B600122FE0000100D3B601 /* Pulse in Frameworks */ = {isa = PBXBuildFile; productRef = D3B600112FE0000100D3B601 /* Pulse */; };
+		D3B600142FE0000100D3B601 /* PulseProxy in Frameworks */ = {isa = PBXBuildFile; productRef = D3B600132FE0000100D3B601 /* PulseProxy */; };
+		D3B600162FE0000100D3B601 /* PulseUI in Frameworks */ = {isa = PBXBuildFile; productRef = D3B600152FE0000100D3B601 /* PulseUI */; };
 		3DDC472840B7385838C51F94 /* LocalizedThemeDataLoader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1B1B9ADB5AE94077FE602F9F /* LocalizedThemeDataLoader.swift */; };
 		41CA08B01A3926DA38571D37 /* HomeAIThemeCardReducerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 93C9D82E8FBBBAF1264DF5C5 /* HomeAIThemeCardReducerTests.swift */; };
 		44D96E9AACB00911BF56D648 /* QuizQuestionPresenterFailureStateTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B87163E818824EBEFD6A6605 /* QuizQuestionPresenterFailureStateTests.swift */; };
@@ -325,6 +329,7 @@
 		D0184164E200DBF65F2A3318 /* ThemeRepository.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ThemeRepository.swift; sourceTree = "<group>"; };
 		D17C81F5F656F7DC5EA41983 /* QuizQuestionStateContractTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = QuizQuestionStateContractTests.swift; sourceTree = "<group>"; };
 		D2D585241C87207E5B21CBD4 /* GameCenterAuthenticationService.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = GameCenterAuthenticationService.swift; sourceTree = "<group>"; };
+		D3B600012FE0000100D3B601 /* DebugMenuView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = DebugMenuView.swift; sourceTree = "<group>"; };
 		D323DE3BDBE734B792B55FCD /* HomeExpandedCardTransitionTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = HomeExpandedCardTransitionTests.swift; sourceTree = "<group>"; };
 		D48E651B445AF8608A621418 /* LaunchOverlayPresenter.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = LaunchOverlayPresenter.swift; sourceTree = "<group>"; };
 		D49927F6947B94B34C9F29BA /* ThemesCollectionService.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ThemesCollectionService.swift; sourceTree = "<group>"; };
@@ -363,6 +368,9 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				D3B600162FE0000100D3B601 /* PulseUI in Frameworks */,
+				D3B600142FE0000100D3B601 /* PulseProxy in Frameworks */,
+				D3B600122FE0000100D3B601 /* Pulse in Frameworks */,
 				2BAB27053002BE0300D7E4FD /* AppMetricaCrashes in Frameworks */,
 				2BAB27033002BE0300D7E4FD /* AppMetricaCore in Frameworks */,
 			);
@@ -459,6 +467,7 @@
 		27966DB3EA1508F959172F4E /* Debug */ = {
 			isa = PBXGroup;
 			children = (
+				D3B600012FE0000100D3B601 /* DebugMenuView.swift */,
 				77CBE256B382A0502199DCED /* DebugYandexAIAPIKeyStore.swift */,
 			);
 			path = Debug;
@@ -1085,6 +1094,9 @@
 			packageProductDependencies = (
 				2BAB27023002BE0300D7E4FD /* AppMetricaCore */,
 				2BAB27043002BE0300D7E4FD /* AppMetricaCrashes */,
+				D3B600112FE0000100D3B601 /* Pulse */,
+				D3B600132FE0000100D3B601 /* PulseProxy */,
+				D3B600152FE0000100D3B601 /* PulseUI */,
 			);
 			productName = Quizice;
 			productReference = 993C1BA92D8D5E8900AD9BE4 /* Quizice.app */;
@@ -1152,6 +1164,7 @@
 			packageReferences = (
 				99F000302EA0000100F00001 /* XCRemoteSwiftPackageReference "swift-snapshot-testing" */,
 				2BAB26FD3002BE0300D7E4FD /* XCRemoteSwiftPackageReference "appmetrica-sdk-ios" */,
+				D3B600102FE0000100D3B601 /* XCRemoteSwiftPackageReference "Pulse" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 993C1BAA2D8D5E8900AD9BE4 /* Products */;
@@ -1199,6 +1212,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				A30000012F90000100A30001 /* AIQuizRuntimeDependencies.swift in Sources */,
+				D3B600022FE0000100D3B601 /* DebugMenuView.swift in Sources */,
 				3A8BE011ACEECD51866A1DF0 /* DebugYandexAIAPIKeyStore.swift in Sources */,
 				8872AB1B119A1A84B3BD2C60 /* FakeLaunchScreenView.swift in Sources */,
 				980B202D9D50C75229DD0042 /* LaunchOverlayPresenter.swift in Sources */,
@@ -1712,6 +1726,14 @@
 				minimumVersion = 1.19.2;
 			};
 		};
+		D3B600102FE0000100D3B601 /* XCRemoteSwiftPackageReference "Pulse" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/kean/Pulse";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 5.2.3;
+			};
+		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
@@ -1729,6 +1751,21 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 99F000302EA0000100F00001 /* XCRemoteSwiftPackageReference "swift-snapshot-testing" */;
 			productName = SnapshotTesting;
+		};
+		D3B600112FE0000100D3B601 /* Pulse */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = D3B600102FE0000100D3B601 /* XCRemoteSwiftPackageReference "Pulse" */;
+			productName = Pulse;
+		};
+		D3B600132FE0000100D3B601 /* PulseProxy */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = D3B600102FE0000100D3B601 /* XCRemoteSwiftPackageReference "Pulse" */;
+			productName = PulseProxy;
+		};
+		D3B600152FE0000100D3B601 /* PulseUI */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = D3B600102FE0000100D3B601 /* XCRemoteSwiftPackageReference "Pulse" */;
+			productName = PulseUI;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

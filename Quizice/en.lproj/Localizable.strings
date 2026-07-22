@@ -99,6 +99,14 @@
 "result.play_again" = "Play again";
 "result.to_themes" = "Choose a theme";
 "result.text_format" = "Your result:\n %d/%d";
+"debug_menu.title" = "Debug Menu";
+"debug_menu.section.interface" = "Interface";
+"debug_menu.section.backend" = "Backend and content";
+"debug_menu.section.tools" = "Tools";
+"debug_menu.hide_interface" = "Hide app interface";
+"debug_menu.hide_interface.subtitle" = "The settings button remains available";
+"debug_menu.pulse" = "Pulse";
+"debug_menu.pulse.subtitle" = "Inspect URLSession requests and responses";
 "settings.alert.action" = "OK";
 "settings.close" = "Close";
 "settings.done" = "Done";

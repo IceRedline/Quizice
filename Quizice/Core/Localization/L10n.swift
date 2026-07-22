@@ -71,6 +71,19 @@ enum L10n {
         }
     }
 
+#if DEBUG
+    enum DebugMenu {
+        static var title: String { L10n.localized("debug_menu.title", comment: "Debug menu screen title") }
+        static var interfaceSectionTitle: String { L10n.localized("debug_menu.section.interface", comment: "Debug menu interface section title") }
+        static var backendSectionTitle: String { L10n.localized("debug_menu.section.backend", comment: "Debug menu backend section title") }
+        static var toolsSectionTitle: String { L10n.localized("debug_menu.section.tools", comment: "Debug menu tools section title") }
+        static var hideInterface: String { L10n.localized("debug_menu.hide_interface", comment: "Debug menu hide interface toggle title") }
+        static var hideInterfaceSubtitle: String { L10n.localized("debug_menu.hide_interface.subtitle", comment: "Debug menu hide interface toggle subtitle") }
+        static var pulse: String { L10n.localized("debug_menu.pulse", comment: "Pulse network console row title") }
+        static var pulseSubtitle: String { L10n.localized("debug_menu.pulse.subtitle", comment: "Pulse network console row subtitle") }
+    }
+#endif
+
     enum AITheme {
         enum Difficulty {
             static var easy: String { L10n.localized("ai_theme.difficulty.easy", comment: "Easy AI quiz difficulty") }
