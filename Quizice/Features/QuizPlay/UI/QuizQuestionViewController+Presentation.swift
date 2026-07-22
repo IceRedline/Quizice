@@ -56,8 +56,8 @@ extension QuizQuestionViewController {
 
     func applyQuestion(_ viewModel: QuizQuestionViewModel, updatesQuestionNumber: Bool) {
         resetQuestionScrollPosition()
-        questionCardFaceTransitionDriver.reset(to: .front)
         setQuestionInfoButtonVisible(false)
+        setQuestionExplanationVisible(false, animated: false)
         questionInfoButton.alpha = 1
         questionExplanationLabel.text = viewModel.explanation
         questionExplanationScrollView.setContentOffset(.zero, animated: false)
@@ -174,8 +174,8 @@ extension QuizQuestionViewController {
         outgoingQuestionCardSnapshot = nil
         questionCardView.transform = .identity
         questionCardView.isUserInteractionEnabled = true
-        questionCardFaceTransitionDriver.reset(to: .front)
         setQuestionInfoButtonVisible(false)
+        setQuestionExplanationVisible(false, animated: false)
         questionExplanationLabel.text = nil
         themeNameLabel.text = themeName ?? L10n.Question.fallbackTheme
         questionNumberLabel.text = L10n.Question.unavailableNumber
@@ -194,13 +194,13 @@ extension QuizQuestionViewController {
     }
 
     func revealQuestionInfoButton() {
-        guard questionInfoButton.isHidden else { return }
-        questionCardFrontView.layoutIfNeeded()
+        guard !isQuestionInfoAvailable else { return }
+        questionCardContentView.layoutIfNeeded()
         setQuestionInfoButtonVisible(true)
 
         guard !UIAccessibility.isReduceMotionEnabled else {
             questionInfoButton.alpha = 1
-            questionCardFrontView.layoutIfNeeded()
+            questionCardContentView.layoutIfNeeded()
             return
         }
 
@@ -211,7 +211,7 @@ extension QuizQuestionViewController {
             options: AnimationTiming.answerFeedbackOptions,
             animations: {
                 self.questionInfoButton.alpha = 1
-                self.questionCardFrontView.layoutIfNeeded()
+                self.questionCardContentView.layoutIfNeeded()
             }
         )
     }
@@ -219,15 +219,8 @@ extension QuizQuestionViewController {
     func setQuestionInfoButtonVisible(_ isVisible: Bool) {
         guard questionInfoButton != nil else { return }
 
-        if isVisible {
-            timerLeadingToCardConstraint?.isActive = false
-            timerLeadingToInfoConstraint?.isActive = true
-        } else {
-            timerLeadingToInfoConstraint?.isActive = false
-            timerLeadingToCardConstraint?.isActive = true
-        }
-        questionInfoButton.isHidden = !isVisible
-        questionCardFrontView?.setNeedsLayout()
+        isQuestionInfoAvailable = isVisible
+        applyQuestionExplanationVisibility()
     }
     
     func correctAnswerTapped(isTrue: Bool) {
