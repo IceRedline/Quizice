@@ -67,6 +67,36 @@ final class HomeFeelingLuckyTests: HomeScreenVisualStateTestCase {
         XCTAssertEqual(router.showQuestionCallCount, 1)
     }
 
+    func testFeelingLuckyForwardsSelectedBackendMode() throws {
+        let repository = FeelingLuckyThemeRepositorySpy(
+            themes: [makeTheme(name: "Музыка", questionCount: 15)]
+        )
+        let viewController = QuizViewController(
+            themeRepository: repository,
+            randomQuestionsProvider: { $0 },
+            randomQuestionSelectionModeProvider: { .randomBalanced },
+            feelingLuckyMinimumFeedbackDelay: {}
+        )
+        let router = HomeRouterSpy()
+        viewController.router = router
+        let window = UIWindow(frame: CGRect(x: 0, y: 0, width: 390, height: 844))
+        window.rootViewController = viewController
+        window.makeKeyAndVisible()
+        window.layoutIfNeeded()
+        testWindows.append(window)
+        let luckyButton = try XCTUnwrap(
+            viewController.view.descendant(
+                withAccessibilityIdentifier: "homeFeelingLuckyButton"
+            ) as? UIButton
+        )
+
+        luckyButton.sendActions(for: .touchUpInside)
+        drainAnimations(0.01)
+
+        XCTAssertEqual(repository.requestedSelectionModes, [.randomBalanced])
+        XCTAssertEqual(router.showQuestionCallCount, 1)
+    }
+
     func testFeelingLuckySelectsFiveQuestionsFromTheCombinedPoolAndUsesRandomSelectionTitle() throws {
         let music = makeTheme(name: "Музыка", questionCount: 3)
         let technology = makeTheme(name: "Технологии", questionCount: 4)
@@ -246,4 +276,29 @@ final class HomeFeelingLuckyTests: HomeScreenVisualStateTestCase {
         XCTAssertEqual(motivationLabel.text, L10n.Question.unavailableMessage)
     }
 
+}
+
+private final class FeelingLuckyThemeRepositorySpy: ThemeRepository {
+    var themes: [QuizTheme]?
+    private(set) var requestedSelectionModes: [CrossThemeQuestionSelectionMode] = []
+
+    init(themes: [QuizTheme]) {
+        self.themes = themes
+    }
+
+    func loadData(forceReload: Bool) {}
+
+    func fetchQuizThemes() -> [QuizTheme] {
+        themes ?? []
+    }
+
+    func prepareRandomQuiz(
+        selectionMode: CrossThemeQuestionSelectionMode,
+        localFallback: QuizTheme,
+        questionCount: Int,
+        locale: String
+    ) async throws -> QuizTheme {
+        requestedSelectionModes.append(selectionMode)
+        return localFallback
+    }
 }

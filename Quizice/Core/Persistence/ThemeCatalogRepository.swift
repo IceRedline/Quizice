@@ -189,6 +189,59 @@ final class ThemeCatalogRepository: ThemeRepository {
         }
     }
 
+    func prepareRandomQuiz(
+        selectionMode: CrossThemeQuestionSelectionMode,
+        localFallback: QuizTheme,
+        questionCount: Int,
+        locale: String
+    ) async throws -> QuizTheme {
+        guard let backendContentAPI else {
+            AppLog.content.notice(
+                "📦 LOCAL RANDOM QUESTIONS: backend disabled, using bundled content mode=\(selectionMode.rawValue, privacy: .public) locale=\(locale, privacy: .public) count=\(questionCount, privacy: .public)"
+            )
+            return localFallback
+        }
+
+        let seed = seedGenerator()
+        let startedAt = Date()
+        do {
+            let response = try await withBackendTimeout(
+                nanoseconds: remoteQuestionTimeoutNanoseconds
+            ) {
+                try await backendContentAPI.fetchRandomQuestions(
+                    selectionMode: selectionMode,
+                    count: questionCount,
+                    locale: locale,
+                    seed: seed
+                )
+            }
+            try Task.checkCancellation()
+            guard AppLocalizationStore.shared.resolvedLanguageCode == locale else {
+                throw CancellationError()
+            }
+
+            let questions = response.questions.map { $0.makeModel() }
+            AppLog.content.notice(
+                "✅ BACKEND RANDOM QUESTIONS: received mode=\(selectionMode.rawValue, privacy: .public) locale=\(locale, privacy: .public) requested=\(questionCount, privacy: .public) received=\(questions.count, privacy: .public) seed=\(seed, privacy: .public) duration_ms=\(Self.durationMilliseconds(since: startedAt), privacy: .public)"
+            )
+            return QuizTheme(
+                id: RandomQuizSelection.themeID,
+                theme: localFallback.theme,
+                themeDescription: localFallback.themeDescription,
+                questions: questions,
+                source: .catalog,
+                questionOrigin: .backend
+            )
+        } catch is CancellationError {
+            throw CancellationError()
+        } catch {
+            AppLog.content.error(
+                "⚠️ BACKEND RANDOM QUESTIONS: failed, using bundled fallback mode=\(selectionMode.rawValue, privacy: .public) locale=\(locale, privacy: .public) count=\(questionCount, privacy: .public) seed=\(seed, privacy: .public) duration_ms=\(Self.durationMilliseconds(since: startedAt), privacy: .public) error=\(String(describing: error), privacy: .public)"
+            )
+            return localFallback
+        }
+    }
+
     func clearSwiftData(context: ModelContext) {
         SwiftDataThemeStore(context: context).clearThemes()
     }
