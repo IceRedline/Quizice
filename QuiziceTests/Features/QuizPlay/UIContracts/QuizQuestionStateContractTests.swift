@@ -284,7 +284,7 @@ final class QuizQuestionStateContractTests: CrossScreenVisualTestCase {
 
         let expectedInfoImage = UIImage(
             systemName: "info",
-            withConfiguration: UIImage.SymbolConfiguration(pointSize: 14, weight: .semibold)
+            withConfiguration: UIImage.SymbolConfiguration(pointSize: 12, weight: .semibold)
         )
         XCTAssertEqual(infoButton.image(for: .normal)?.pngData(), expectedInfoImage?.pngData())
     }
