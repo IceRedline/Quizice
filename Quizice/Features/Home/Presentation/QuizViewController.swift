@@ -180,6 +180,7 @@ final class QuizViewController: BaseQuizViewController, ThemeCollectionDelegate,
     let themesCollectionService: ThemesCollectionService
     let motivationPromptProvider: (String?) -> String
     let randomQuestionsProvider: ([QuizQuestion]) -> [QuizQuestion]
+    let randomQuestionSelectionModeProvider: () -> CrossThemeQuestionSelectionMode
     let cardReduceMotionProvider: () -> Bool
     let cardReduceTransparencyProvider: () -> Bool
     let cardDeviceParallaxEnabledProvider: () -> Bool
@@ -257,6 +258,9 @@ final class QuizViewController: BaseQuizViewController, ThemeCollectionDelegate,
         analytics: AnalyticsTracking = AppMetricaAnalyticsTracker.shared,
         motivationPromptProvider: @escaping (String?) -> String = QuizViewController.randomMotivationPrompt,
         randomQuestionsProvider: @escaping ([QuizQuestion]) -> [QuizQuestion] = { $0.shuffled() },
+        randomQuestionSelectionModeProvider: @escaping () -> CrossThemeQuestionSelectionMode = {
+            CrossThemeQuestionSelectionMode.allCases.randomElement() ?? .random
+        },
         cardReduceMotionProvider: @escaping () -> Bool = { UIAccessibility.isReduceMotionEnabled },
         cardReduceTransparencyProvider: @escaping () -> Bool = { UIAccessibility.isReduceTransparencyEnabled },
         cardDeviceParallaxEnabledProvider: @escaping () -> Bool = { true },
@@ -278,6 +282,7 @@ final class QuizViewController: BaseQuizViewController, ThemeCollectionDelegate,
         self.analytics = analytics
         self.motivationPromptProvider = motivationPromptProvider
         self.randomQuestionsProvider = randomQuestionsProvider
+        self.randomQuestionSelectionModeProvider = randomQuestionSelectionModeProvider
         self.themesCollectionService = ThemesCollectionService(
             themeRepository: themeRepository,
             statisticsStore: statisticsStore

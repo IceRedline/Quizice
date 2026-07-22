@@ -9,6 +9,11 @@ enum QuizCatalogOrigin: String, Equatable {
     case backend
 }
 
+enum CrossThemeQuestionSelectionMode: String, CaseIterable, Equatable {
+    case random
+    case randomBalanced = "random_balanced"
+}
+
 protocol ThemeRepository: AnyObject {
     var themes: [QuizTheme]? { get }
     var catalogOrigin: QuizCatalogOrigin { get }
@@ -17,6 +22,12 @@ protocol ThemeRepository: AnyObject {
     @discardableResult
     func refreshBackendCatalog(locale: String) async -> Bool
     func prepareQuiz(themeID: String, questionCount: Int, locale: String) async throws -> QuizTheme
+    func prepareRandomQuiz(
+        selectionMode: CrossThemeQuestionSelectionMode,
+        localFallback: QuizTheme,
+        questionCount: Int,
+        locale: String
+    ) async throws -> QuizTheme
 }
 
 extension ThemeRepository {
@@ -53,5 +64,14 @@ extension ThemeRepository {
             source: theme.source,
             questionOrigin: theme.questionOrigin
         )
+    }
+
+    func prepareRandomQuiz(
+        selectionMode: CrossThemeQuestionSelectionMode,
+        localFallback: QuizTheme,
+        questionCount: Int,
+        locale: String
+    ) async throws -> QuizTheme {
+        localFallback
     }
 }

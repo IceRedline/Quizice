@@ -79,6 +79,12 @@ protocol BackendContentAPI {
         locale: String,
         seed: String
     ) async throws -> BackendQuestionBatchResponse
+    func fetchRandomQuestions(
+        selectionMode: CrossThemeQuestionSelectionMode,
+        count: Int,
+        locale: String,
+        seed: String
+    ) async throws -> BackendQuestionBatchResponse
 }
 
 final class HTTPBackendContentAPI: BackendContentAPI {
@@ -136,6 +142,43 @@ final class HTTPBackendContentAPI: BackendContentAPI {
 
         let url = try makeURL(
             pathComponents: ["v1", "themes", normalizedThemeID, "questions"],
+            queryItems: [
+                URLQueryItem(name: "count", value: String(count)),
+                URLQueryItem(name: "locale", value: locale),
+                URLQueryItem(name: "seed", value: normalizedSeed)
+            ]
+        )
+        return try await get(
+            url: url,
+            operation: .questions,
+            validate: {
+                Self.isValid(
+                    $0,
+                    requestedCount: count,
+                    requestedLocale: locale,
+                    requestedSeed: normalizedSeed
+                )
+            }
+        )
+    }
+
+    func fetchRandomQuestions(
+        selectionMode: CrossThemeQuestionSelectionMode,
+        count: Int,
+        locale: String,
+        seed: String
+    ) async throws -> BackendQuestionBatchResponse {
+        let normalizedSeed = seed.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard
+            UUID(uuidString: normalizedSeed)?.uuidString.lowercased() == normalizedSeed,
+            QuizQuestionCountPolicy.supportedCounts.contains(count),
+            Self.isSupported(locale: locale)
+        else {
+            throw BackendContentError.invalidRequest
+        }
+
+        let url = try makeURL(
+            pathComponents: ["v1", "questions", selectionMode.rawValue],
             queryItems: [
                 URLQueryItem(name: "count", value: String(count)),
                 URLQueryItem(name: "locale", value: locale),

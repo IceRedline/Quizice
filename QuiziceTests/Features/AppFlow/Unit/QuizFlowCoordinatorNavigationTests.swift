@@ -158,7 +158,7 @@ final class QuizFlowCoordinatorNavigationTests: QuizFlowCoordinatorTestCase {
         XCTAssertFalse(activityIndicator.isAnimating)
     }
 
-    func testRandomSelectionReplayChoosesAChangedFiveQuestionSetFromTheFullCatalog() throws {
+    func testRandomSelectionReplayChoosesAChangedFiveQuestionSetFromTheFullCatalog() async throws {
         let catalogQuestions = (0..<8).map { index in
             QuizQuestion(
                 question: "Catalog question \(index)?",
@@ -192,7 +192,8 @@ final class QuizFlowCoordinatorNavigationTests: QuizFlowCoordinatorTestCase {
             themeRepository: repository,
             session: session,
             aiQuizThemeService: MockAIQuizThemeService(),
-            randomQuestionsProvider: { $0 }
+            randomQuestionsProvider: { $0 },
+            randomQuestionSelectionModeProvider: { .random }
         )
         coordinator.start()
         navigationController.topViewControllerOverride = navigationController
@@ -202,6 +203,9 @@ final class QuizFlowCoordinatorNavigationTests: QuizFlowCoordinatorTestCase {
         )
 
         coordinator.replayQuiz()
+        try await waitUntil {
+            session.chosenTheme?.quizTheme.questions.map(\.question) != initialQuestionTexts
+        }
 
         let replayedTheme = try XCTUnwrap(session.chosenTheme)
         let replayedQuestionTexts = replayedTheme.quizTheme.questions.map(\.question)

@@ -158,6 +158,11 @@ extension QuizViewController {
 
         session.chosenTheme = ThemeModel(quizTheme: randomSelectionTheme)
         session.questionsCount = RandomQuizSelection.questionCount
+        let selectionMode = randomQuestionSelectionModeProvider()
+        let locale = AppLocalizationStore.shared.resolvedLanguageCode
+        AppLog.content.notice(
+            "🎲 FEELING LUCKY: selected backend mode=\(selectionMode.rawValue, privacy: .public) locale=\(locale, privacy: .public)"
+        )
         analytics.track(.themeSelected(theme: session.chosenTheme?.analyticsTheme ?? .unknown, method: .random))
         quizTransitionSourceView = sourceView
         isQuizLaunchPending = true
@@ -172,28 +177,49 @@ extension QuizViewController {
         feelingLuckyTask?.cancel()
         let minimumFeedbackDelay = feelingLuckyMinimumFeedbackDelay
         feelingLuckyTask = Task { @MainActor [weak self, router] in
-            await minimumFeedbackDelay()
-            guard !Task.isCancelled, let self else { return }
-            guard
-                self.feelingLuckyRequestID == requestID,
-                self.isQuizLaunchPending,
-                self.session.chosenTheme?.themeID == randomSelectionTheme.stableID
-            else {
-                self.cancelFeelingLuckyLaunch()
-                return
-            }
-
-            self.feelingLuckyTask = nil
-            self.session.questionsCount = RandomQuizSelection.questionCount
-            self.analytics.track(
-                .quizStarted(
-                    theme: self.session.chosenTheme?.analyticsTheme ?? .unknown,
-                    questionCount: self.session.questionsCount
+            async let feedbackDelay: Void = minimumFeedbackDelay()
+            do {
+                guard let self else { return }
+                let preparedTheme = try await self.themeRepository.prepareRandomQuiz(
+                    selectionMode: selectionMode,
+                    localFallback: randomSelectionTheme,
+                    questionCount: RandomQuizSelection.questionCount,
+                    locale: locale
                 )
-            )
-            self.hasQuizLaunchStarted = true
-            router.showQuestion()
+                await feedbackDelay
+                try Task.checkCancellation()
+                guard
+                    self.feelingLuckyRequestID == requestID,
+                    self.isQuizLaunchPending,
+                    self.session.chosenTheme?.themeID == randomSelectionTheme.stableID,
+                    AppLocalizationStore.shared.resolvedLanguageCode == locale
+                else {
+                    throw CancellationError()
+                }
+
+                self.feelingLuckyTask = nil
+                self.session.chosenTheme = ThemeModel(quizTheme: preparedTheme)
+                self.session.questionsCount = RandomQuizSelection.questionCount
+                self.analytics.track(
+                    .quizStarted(
+                        theme: self.session.chosenTheme?.analyticsTheme ?? .unknown,
+                        questionCount: self.session.questionsCount
+                    )
+                )
+                self.hasQuizLaunchStarted = true
+                router.showQuestion()
+            } catch is CancellationError {
+                self?.cancelFeelingLuckyLaunch()
+            } catch {
+                self?.analytics.reportOperationalError(error, context: .contentLoad)
+                self?.finishFailedFeelingLuckyLaunch()
+            }
         }
+    }
+
+    private func finishFailedFeelingLuckyLaunch() {
+        cancelFeelingLuckyLaunch()
+        motivationLabel.text = L10n.Question.unavailableMessage
     }
 
     func cancelFeelingLuckyLaunch() {
