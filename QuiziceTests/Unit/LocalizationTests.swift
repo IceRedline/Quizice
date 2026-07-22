@@ -67,7 +67,31 @@ final class LocalizationTests: XCTestCase {
             "question.show_question",
             "question.time_remaining",
             "result.play_again",
-            "result.to_themes"
+            "result.to_themes",
+            "onboarding.action.skip",
+            "onboarding.action.get_started",
+            "onboarding.help.accessibility_label",
+            "onboarding.help.accessibility_hint",
+            "onboarding.progress_format",
+            "onboarding.welcome.kicker",
+            "onboarding.welcome.title",
+            "onboarding.welcome.subtitle",
+            "onboarding.topics.title",
+            "onboarding.topics.subtitle",
+            "onboarding.topics.selection_hint",
+            "onboarding.topics.selected",
+            "onboarding.topic.music",
+            "onboarding.topic.technology",
+            "onboarding.topic.history_culture",
+            "onboarding.topic.politics_business",
+            "onboarding.tutorial.title",
+            "onboarding.tutorial.subtitle",
+            "onboarding.tutorial.themes.title",
+            "onboarding.tutorial.themes.detail",
+            "onboarding.tutorial.ai.title",
+            "onboarding.tutorial.ai.detail",
+            "onboarding.tutorial.statistics.title",
+            "onboarding.tutorial.statistics.detail"
         ]
 
         for language in languages {
