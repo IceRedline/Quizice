@@ -4,11 +4,10 @@ final class ThemeCardCollectionViewCell: UICollectionViewCell {
     static let reuseIdentifier = "homeThemeCardCell"
 
     private enum Layout {
-        static let imageTopInset: CGFloat = 34
-        static let iconSize: CGFloat = 64
-        static let titleHorizontalInset: CGFloat = 8
-        static let titleBottomInset: CGFloat = 6
-        static let titleHeight: CGFloat = 56
+        static let horizontalInset: CGFloat = 16
+        static let iconSize: CGFloat = 42
+        static let iconTitleSpacing: CGFloat = 12
+        static let verticalInset: CGFloat = 10
     }
 
     private enum Typography {
@@ -18,7 +17,6 @@ final class ThemeCardCollectionViewCell: UICollectionViewCell {
 
     let actionButton = UIButton(type: .custom)
 
-    private let themeImageContainerView = UIView()
     private let themeIconSlotView = UIView()
     private let themeIconShadowView = UIImageView()
     private let themeImageView = UIImageView()
@@ -85,7 +83,7 @@ final class ThemeCardCollectionViewCell: UICollectionViewCell {
 
     func configure(theme: QuizTheme, appearance: AppAppearance, isSourceHidden: Bool) {
         let themeID = theme.stableID
-        let tintColor = ThemeVisualCatalog.tintColor(for: themeID)
+        let tintColor = ThemeVisualCatalog.tintColor(for: theme)
         let borderColor = appearance.themeCardBorder(baseColor: tintColor)
 
         contentView.backgroundColor = .clear
@@ -204,11 +202,6 @@ final class ThemeCardCollectionViewCell: UICollectionViewCell {
         actionButton.clipsToBounds = true
         actionButton.translatesAutoresizingMaskIntoConstraints = false
 
-        themeImageContainerView.backgroundColor = .clear
-        themeImageContainerView.isAccessibilityElement = false
-        themeImageContainerView.isUserInteractionEnabled = false
-        themeImageContainerView.translatesAutoresizingMaskIntoConstraints = false
-
         themeIconSlotView.backgroundColor = .clear
         themeIconSlotView.isAccessibilityElement = false
         themeIconSlotView.isUserInteractionEnabled = false
@@ -225,8 +218,8 @@ final class ThemeCardCollectionViewCell: UICollectionViewCell {
         themeImageView.translatesAutoresizingMaskIntoConstraints = false
 
         themeTitleLabel.adjustsFontForContentSizeCategory = true
-        themeTitleLabel.textAlignment = .center
-        themeTitleLabel.numberOfLines = 2
+        themeTitleLabel.textAlignment = .left
+        themeTitleLabel.numberOfLines = 3
         themeTitleLabel.lineBreakMode = .byWordWrapping
         themeTitleLabel.allowsDefaultTighteningForTruncation = true
         themeTitleLabel.isAccessibilityElement = false
@@ -234,8 +227,7 @@ final class ThemeCardCollectionViewCell: UICollectionViewCell {
         themeTitleLabel.translatesAutoresizingMaskIntoConstraints = false
 
         contentView.addSubview(actionButton)
-        actionButton.addSubview(themeImageContainerView)
-        themeImageContainerView.addSubview(themeIconSlotView)
+        actionButton.addSubview(themeIconSlotView)
         themeIconSlotView.addSubview(themeIconShadowView)
         themeIconSlotView.addSubview(themeImageView)
         actionButton.addSubview(themeTitleLabel)
@@ -246,34 +238,20 @@ final class ThemeCardCollectionViewCell: UICollectionViewCell {
             actionButton.topAnchor.constraint(equalTo: contentView.topAnchor),
             actionButton.bottomAnchor.constraint(equalTo: contentView.bottomAnchor),
 
-            themeImageContainerView.topAnchor.constraint(
-                equalTo: actionButton.topAnchor,
-                constant: Layout.imageTopInset
-            ),
-            themeImageContainerView.leadingAnchor.constraint(
-                equalTo: actionButton.leadingAnchor
-            ),
-            themeImageContainerView.trailingAnchor.constraint(
-                equalTo: actionButton.trailingAnchor
-            ),
-            themeImageContainerView.bottomAnchor.constraint(equalTo: themeTitleLabel.topAnchor),
-
             themeTitleLabel.leadingAnchor.constraint(
-                equalTo: actionButton.leadingAnchor,
-                constant: Layout.titleHorizontalInset
+                equalTo: themeIconSlotView.trailingAnchor,
+                constant: Layout.iconTitleSpacing
             ),
             themeTitleLabel.trailingAnchor.constraint(
                 equalTo: actionButton.trailingAnchor,
-                constant: -Layout.titleHorizontalInset
+                constant: -Layout.horizontalInset
             ),
-            themeTitleLabel.bottomAnchor.constraint(
-                equalTo: actionButton.bottomAnchor,
-                constant: -Layout.titleBottomInset
-            ),
-            themeTitleLabel.heightAnchor.constraint(equalToConstant: Layout.titleHeight),
+            themeTitleLabel.centerYAnchor.constraint(equalTo: actionButton.centerYAnchor),
+            themeTitleLabel.topAnchor.constraint(greaterThanOrEqualTo: actionButton.topAnchor, constant: Layout.verticalInset),
+            themeTitleLabel.bottomAnchor.constraint(lessThanOrEqualTo: actionButton.bottomAnchor, constant: -Layout.verticalInset),
 
-            themeIconSlotView.centerXAnchor.constraint(equalTo: themeImageContainerView.centerXAnchor),
-            themeIconSlotView.centerYAnchor.constraint(equalTo: themeImageContainerView.centerYAnchor),
+            themeIconSlotView.leadingAnchor.constraint(equalTo: actionButton.leadingAnchor, constant: Layout.horizontalInset),
+            themeIconSlotView.centerYAnchor.constraint(equalTo: actionButton.centerYAnchor),
             themeIconSlotView.widthAnchor.constraint(equalToConstant: Layout.iconSize),
             themeIconSlotView.heightAnchor.constraint(equalToConstant: Layout.iconSize),
 

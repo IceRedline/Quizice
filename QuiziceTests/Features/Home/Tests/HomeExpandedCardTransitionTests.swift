@@ -419,7 +419,9 @@ final class HomeExpandedCardTransitionTests: HomeScreenVisualStateTestCase {
         let refreshedImageView = try XCTUnwrap(
             refreshedSourceContent.subviews.compactMap { $0 as? UIImageView }.first
         )
-        let expectedRadarImage = try XCTUnwrap(UIImage(named: "theme_logo_music_radar"))
+        let expectedRadarImage = try XCTUnwrap(
+            UIImage(systemName: "music.note.list")?.withRenderingMode(.alwaysTemplate)
+        )
 
         XCTAssertEqual(refreshedImageView.image?.pngData(), expectedRadarImage.pngData())
         drainAnimations()

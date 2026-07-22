@@ -13,7 +13,7 @@ enum SnapshotSupport {
         traits: ViewImageConfig.iPhone13Pro.traits
     )
     private static var snapshotRecordMode: SnapshotTestingConfiguration.Record? {
-        .all
+        ProcessInfo.processInfo.environment["QUIZICE_RECORD_SNAPSHOTS"] == "1" ? .all : nil
     }
 
     static func setUp(
@@ -169,6 +169,8 @@ enum SnapshotSupport {
         name: String,
         description: String = "Synthetic snapshot theme",
         sfSymbolName: String? = nil,
+        emoji: String = QuizTheme.defaultEmoji,
+        colorHex: String? = nil,
         source: QuizThemeSource = .catalog,
         questions: [QuizQuestion] = [
             QuizQuestion(
@@ -184,12 +186,26 @@ enum SnapshotSupport {
             "history_culture": "theatermask.and.paintbrush.fill",
             "politics_business": "briefcase.fill"
         ][id] ?? QuizTheme.defaultSFSymbolName
+        let resolvedEmoji = emoji == QuizTheme.defaultEmoji ? [
+            "music": "🎵",
+            "technology": "💻",
+            "history_culture": "🏛️",
+            "politics_business": "💼"
+        ][id] ?? emoji : emoji
+        let resolvedColorHex = colorHex ?? [
+            "music": "#FF8252",
+            "technology": "#62A2E6",
+            "history_culture": "#8B5CF6",
+            "politics_business": "#F2C94C"
+        ][id]
         return QuizTheme(
             id: id,
             theme: name,
             themeDescription: description,
             questions: questions,
             sfSymbolName: resolvedSymbol,
+            emoji: resolvedEmoji,
+            colorHex: resolvedColorHex,
             source: source
         )
     }
@@ -225,6 +241,10 @@ enum SnapshotSupport {
         collectionView.register(
             StatisticsCardCollectionViewCell.self,
             forCellWithReuseIdentifier: StatisticsCardCollectionViewCell.reuseIdentifier
+        )
+        collectionView.register(
+            MoreThemesCollectionViewCell.self,
+            forCellWithReuseIdentifier: MoreThemesCollectionViewCell.reuseIdentifier
         )
         return collectionView
     }

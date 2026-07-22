@@ -94,6 +94,44 @@ final class HomeCollectionServiceTests: HomeScreenVisualStateTestCase {
         )
     }
 
+    func testCollectionServiceRevealsBackendSizedCatalogAfterFourRows() throws {
+        QuizFactory.shared.themes = (0..<10).map { makeTheme(name: "Theme \($0)") }
+        let service = ThemesCollectionService(preferredThemeIDsProvider: { [] })
+        let collectionView = makeCollectionView()
+
+        XCTAssertEqual(service.collectionView(collectionView, numberOfItemsInSection: 0), 12)
+        XCTAssertFalse(service.isShowingAllThemes)
+        let moreCell = service.collectionView(
+            collectionView,
+            cellForItemAt: IndexPath(item: 8, section: 0)
+        )
+        let moreButton = try XCTUnwrap(
+            moreCell.contentView.descendant(
+                withAccessibilityIdentifier: ThemesCollectionService.Content.moreThemesAccessibilityID
+            ) as? UIButton
+        )
+        XCTAssertEqual(moreButton.accessibilityLabel, L10n.Home.moreThemes)
+
+        moreButton.sendActions(for: .touchUpInside)
+
+        XCTAssertTrue(service.isShowingAllThemes)
+        XCTAssertEqual(service.collectionView(collectionView, numberOfItemsInSection: 0), 13)
+        let lastThemeCell = service.collectionView(
+            collectionView,
+            cellForItemAt: IndexPath(item: 9, section: 0)
+        )
+        XCTAssertNotNil(lastThemeCell.contentView.descendant(withAccessibilityIdentifier: "Theme 9"))
+        let aiThemeCell = service.collectionView(
+            collectionView,
+            cellForItemAt: IndexPath(item: 10, section: 0)
+        )
+        XCTAssertNotNil(
+            aiThemeCell.contentView.descendant(
+                withAccessibilityIdentifier: ThemesCollectionService.Content.aiThemeAccessibilityID
+            )
+        )
+    }
+
     func testCollectionServiceUsesTwoColumnThemeCardsAndWideActionCards() {
         QuizFactory.shared.themes = [makeTheme(name: "Музыка"), makeTheme(name: "Технологии")]
         let service = ThemesCollectionService()
@@ -109,7 +147,7 @@ final class HomeCollectionServiceTests: HomeScreenVisualStateTestCase {
         let interitemSpacing = service.collectionView(collectionView, layout: layout, minimumInteritemSpacingForSectionAt: 0)
 
         XCTAssertEqual(themeSize.width, 163)
-        XCTAssertEqual(themeSize.height, 163)
+        XCTAssertEqual(themeSize.height, 104)
         XCTAssertEqual(aiThemeSize.width, 342)
         XCTAssertEqual(aiThemeSize.height, 54)
         XCTAssertEqual(feelingLuckySize.width, 342)
@@ -123,50 +161,53 @@ final class HomeCollectionServiceTests: HomeScreenVisualStateTestCase {
         XCTAssertEqual(interitemSpacing, 16)
     }
 
-    func testCollectionServiceThemeCardShowsImageAboveThemeTitle() throws {
+    func testCollectionServiceThemeCardShowsHorizontalContentFromThemeMetadata() throws {
         useDesignStyle(.clean)
-        let themeAssets = [
-            (themeID: "music", themeName: "Музыка", symbolName: "music.note.square.stack", fallbackSymbolName: "music.note", tintColorName: "themeMusicTint"),
-            (themeID: "technology", themeName: "Технологии", symbolName: "gamecontroller", fallbackSymbolName: "gamecontroller", tintColorName: "themeTechnologyTint"),
-            (themeID: "history_culture", themeName: "История и культура", symbolName: "theatermask.and.paintbrush", fallbackSymbolName: "theatermask.and.paintbrush.fill", tintColorName: "themeCultureTint"),
-            (themeID: "politics_business", themeName: "Политика и бизнес", symbolName: "building.columns", fallbackSymbolName: "building.columns.fill", tintColorName: "themePoliticsTint")
+        let themeMetadata = [
+            (themeID: "music", themeName: "Музыка", symbolName: "music.note.list", colorHex: "#FF8252"),
+            (themeID: "technology", themeName: "Технологии", symbolName: "cpu.fill", colorHex: "#62A2E6"),
+            (themeID: "history_culture", themeName: "История и культура", symbolName: "theatermask.and.paintbrush.fill", colorHex: "#8B5CF6"),
+            (themeID: "politics_business", themeName: "Политика и бизнес", symbolName: "briefcase.fill", colorHex: "#F2C94C")
         ]
-        QuizFactory.shared.themes = themeAssets.map { makeTheme(name: $0.themeName) }
+        QuizFactory.shared.themes = themeMetadata.map {
+            makeTheme(name: $0.themeName, sfSymbolName: $0.symbolName, colorHex: $0.colorHex)
+        }
         let service = ThemesCollectionService()
         let collectionView = makeCollectionView()
+        let appearance = AppAppearanceStore.shared.appearance(compatibleWith: collectionView.traitCollection)
 
-        for (index, themeAsset) in themeAssets.enumerated() {
+        for (index, metadata) in themeMetadata.enumerated() {
             let themeCell = service.collectionView(collectionView, cellForItemAt: IndexPath(item: index, section: 0))
-            themeCell.frame = CGRect(x: 0, y: 0, width: 163, height: 163)
+            themeCell.frame = CGRect(x: 0, y: 0, width: 163, height: 104)
             themeCell.contentView.frame = themeCell.bounds
             themeCell.layoutIfNeeded()
             themeCell.contentView.layoutIfNeeded()
 
-            let imageView = try XCTUnwrap(themeCell.contentView.descendant(withAccessibilityIdentifier: "homeThemeImageView-\(themeAsset.themeID)") as? UIImageView)
-            let titleLabel = try XCTUnwrap(themeCell.contentView.descendant(withAccessibilityIdentifier: "homeThemeTitleLabel-\(themeAsset.themeID)") as? UILabel)
-            let themeButton = try XCTUnwrap(themeCell.contentView.descendant(withAccessibilityIdentifier: themeAsset.themeID) as? UIButton)
-            let expectedSymbolImage = UIImage(systemName: themeAsset.symbolName) ?? UIImage(systemName: themeAsset.fallbackSymbolName)
+            let imageView = try XCTUnwrap(themeCell.contentView.descendant(withAccessibilityIdentifier: "homeThemeImageView-\(metadata.themeID)") as? UIImageView)
+            let titleLabel = try XCTUnwrap(themeCell.contentView.descendant(withAccessibilityIdentifier: "homeThemeTitleLabel-\(metadata.themeID)") as? UILabel)
+            let themeButton = try XCTUnwrap(themeCell.contentView.descendant(withAccessibilityIdentifier: metadata.themeID) as? UIButton)
+            let expectedSymbolImage = UIImage(systemName: metadata.symbolName)
             let expectedImage = try XCTUnwrap(expectedSymbolImage?.withRenderingMode(.alwaysTemplate))
-            let tintColor = try XCTUnwrap(UIColor(named: themeAsset.tintColorName))
+            let tintColor = try XCTUnwrap(ThemeVisualCatalog.color(from: metadata.colorHex))
+            let borderColor = appearance.themeCardBorder(baseColor: tintColor)
 
             XCTAssertEqual(imageView.image?.pngData(), expectedImage.pngData())
             XCTAssertEqual(imageView.image?.renderingMode, .alwaysTemplate)
             XCTAssertEqual(imageView.contentMode, .scaleAspectFit)
-            assertColor(imageView.tintColor, equals: tintColor.withAlphaComponent(0.75))
+            assertColor(imageView.tintColor, equals: borderColor)
             XCTAssertEqual(imageView.transform, .identity)
-            XCTAssertEqual(titleLabel.text, themeAsset.themeName)
-            XCTAssertEqual(titleLabel.textAlignment, .center)
-            XCTAssertEqual(titleLabel.numberOfLines, 2)
+            XCTAssertEqual(titleLabel.text, metadata.themeName)
+            XCTAssertEqual(titleLabel.textAlignment, .left)
+            XCTAssertEqual(titleLabel.numberOfLines, 3)
             XCTAssertEqual(titleLabel.lineBreakMode, .byWordWrapping)
             assertColor(themeButton.backgroundColor, equals: assetColor("themeWhite"))
             assertColor(titleLabel.textColor, equals: assetColor("themeCleanSurfaceText"))
-            assertColor(UIColor(cgColor: themeButton.layer.borderColor ?? UIColor.clear.cgColor), equals: tintColor.withAlphaComponent(0.75))
+            assertColor(UIColor(cgColor: themeButton.layer.borderColor ?? UIColor.clear.cgColor), equals: borderColor)
             XCTAssertEqual(themeButton.layer.borderWidth, 2)
-            XCTAssertLessThan(imageView.frame.minY, titleLabel.frame.minY)
-            XCTAssertLessThanOrEqual(imageView.frame.maxY, titleLabel.frame.minY)
-            XCTAssertEqual(titleLabel.frame.height, 56, accuracy: 0.5)
-            XCTAssertEqual(titleLabel.frame.maxY, themeCell.bounds.maxY - 6, accuracy: 0.5)
-            XCTAssertEqual(imageView.superview?.bounds.size, CGSize(width: 64, height: 64))
+            let iconSlot = try XCTUnwrap(imageView.superview)
+            XCTAssertLessThan(iconSlot.frame.maxX, titleLabel.frame.minX)
+            XCTAssertEqual(iconSlot.center.y, titleLabel.center.y, accuracy: 0.5)
+            XCTAssertEqual(iconSlot.bounds.size, CGSize(width: 42, height: 42))
 
             let iconViews = imageView.superview?.subviews.compactMap { $0 as? UIImageView } ?? []
             XCTAssertEqual(iconViews.count, 2)
@@ -184,29 +225,30 @@ final class HomeCollectionServiceTests: HomeScreenVisualStateTestCase {
 
     func testClassicThemeCardsUseMeaningfulTintedSFSymbols() throws {
         useDesignStyle(.classic)
-        let themeAssets = [
-            (themeID: "music", themeName: "Музыка", symbolName: "music.note.list", fallbackSymbolName: "music.note", tintColorName: "themeMusicTint"),
-            (themeID: "technology", themeName: "Технологии", symbolName: "cpu.fill", fallbackSymbolName: "desktopcomputer", tintColorName: "themeTechnologyTint"),
-            (themeID: "history_culture", themeName: "История и культура", symbolName: "theatermask.and.paintbrush.fill", fallbackSymbolName: "theatermasks", tintColorName: "themeCultureTint"),
-            (themeID: "politics_business", themeName: "Политика и бизнес", symbolName: "briefcase.fill", fallbackSymbolName: "building.columns.fill", tintColorName: "themePoliticsTint")
+        let themeMetadata = [
+            (themeID: "music", themeName: "Музыка", symbolName: "music.note.list", colorHex: "#FF8252"),
+            (themeID: "technology", themeName: "Технологии", symbolName: "cpu.fill", colorHex: "#62A2E6"),
+            (themeID: "history_culture", themeName: "История и культура", symbolName: "theatermask.and.paintbrush.fill", colorHex: "#8B5CF6"),
+            (themeID: "politics_business", themeName: "Политика и бизнес", symbolName: "briefcase.fill", colorHex: "#F2C94C")
         ]
-        QuizFactory.shared.themes = themeAssets.map { makeTheme(name: $0.themeName) }
+        QuizFactory.shared.themes = themeMetadata.map {
+            makeTheme(name: $0.themeName, sfSymbolName: $0.symbolName, colorHex: $0.colorHex)
+        }
         let service = ThemesCollectionService()
         let collectionView = makeCollectionView()
 
-        for (index, themeAsset) in themeAssets.enumerated() {
+        for (index, metadata) in themeMetadata.enumerated() {
             let themeCell = service.collectionView(collectionView, cellForItemAt: IndexPath(item: index, section: 0))
             let imageView = try XCTUnwrap(
                 themeCell.contentView.descendant(
-                    withAccessibilityIdentifier: "homeThemeImageView-\(themeAsset.themeID)"
+                    withAccessibilityIdentifier: "homeThemeImageView-\(metadata.themeID)"
                 ) as? UIImageView
             )
-            let expectedSymbolImage = UIImage(systemName: themeAsset.symbolName)
-                ?? UIImage(systemName: themeAsset.fallbackSymbolName)
+            let expectedSymbolImage = UIImage(systemName: metadata.symbolName)
             let expectedImage = try XCTUnwrap(expectedSymbolImage?.withRenderingMode(.alwaysTemplate))
-            let tintColor = try XCTUnwrap(UIColor(named: themeAsset.tintColorName))
+            let tintColor = try XCTUnwrap(ThemeVisualCatalog.color(from: metadata.colorHex))
 
-            themeCell.frame = CGRect(x: 0, y: 0, width: 163, height: 163)
+            themeCell.frame = CGRect(x: 0, y: 0, width: 163, height: 104)
             themeCell.contentView.frame = themeCell.bounds
             themeCell.layoutIfNeeded()
             themeCell.contentView.layoutIfNeeded()
@@ -214,7 +256,7 @@ final class HomeCollectionServiceTests: HomeScreenVisualStateTestCase {
             XCTAssertEqual(imageView.image?.pngData(), expectedImage.pngData())
             XCTAssertEqual(imageView.image?.renderingMode, .alwaysTemplate)
             assertColor(imageView.tintColor, equals: tintColor)
-            XCTAssertEqual(imageView.superview?.bounds.size, CGSize(width: 64, height: 64))
+            XCTAssertEqual(imageView.superview?.bounds.size, CGSize(width: 42, height: 42))
             XCTAssertEqual(imageView.transform, .identity)
 
             let iconViews = imageView.superview?.subviews.compactMap { $0 as? UIImageView } ?? []
@@ -227,12 +269,12 @@ final class HomeCollectionServiceTests: HomeScreenVisualStateTestCase {
         }
     }
 
-    func testCompactRadarThemeTitleShrinksAcrossTwoLinesWithoutTruncation() throws {
+    func testCompactRadarThemeTitleShrinksAcrossAvailableLinesWithoutTruncation() throws {
         useDesignStyle(.radar)
         let theme = makeTheme(name: "История Древнего Рима")
         QuizFactory.shared.themes = [theme]
         let service = ThemesCollectionService()
-        let collectionView = makeCollectionView(width: 320)
+        let collectionView = makeCollectionView(width: 375)
         let indexPath = IndexPath(item: 0, section: 0)
         let itemSize = service.collectionView(
             collectionView,
@@ -463,7 +505,9 @@ final class HomeCollectionServiceTests: HomeScreenVisualStateTestCase {
         let titleLabel = try XCTUnwrap(themeCell.contentView.descendant(withAccessibilityIdentifier: "homeThemeTitleLabel-music") as? UILabel)
         let aiThemeButton = try XCTUnwrap(aiThemeCell.contentView.descendant(withAccessibilityIdentifier: "homeCreateWithAIButton") as? UIButton)
         let statisticsButton = try XCTUnwrap(statisticsCell.contentView.descendant(withAccessibilityIdentifier: "homeStatisticsCard") as? UIButton)
-        let expectedImage = try XCTUnwrap(UIImage(named: "theme_logo_music_radar"))
+        let expectedImage = try XCTUnwrap(
+            UIImage(systemName: "music.note.list")?.withRenderingMode(.alwaysTemplate)
+        )
 
         XCTAssertEqual(imageView.image?.pngData(), expectedImage.pngData())
         assertColor(titleLabel.textColor, equals: assetColor("themeRadarGreen"))

@@ -116,6 +116,8 @@ final class LocalizationTests: XCTestCase {
         var expectedThemeIDs: [String]?
         var expectedQuestionCounts: [Int]?
         var expectedSFSymbols: [String]?
+        var expectedEmojis: [String]?
+        var expectedColorHexes: [String]?
 
         for language in languages {
             let url = root.appendingPathComponent("\(language).lproj/data.json")
@@ -125,15 +127,21 @@ final class LocalizationTests: XCTestCase {
             let themeIDs = themes.map(\.id)
             let questionCounts = themes.map { $0.questions.count }
             let sfSymbols = themes.map(\.sfSymbol)
+            let emojis = themes.map(\.emoji)
+            let colorHexes = themes.map(\.colorHex)
             if expectedThemeIDs == nil {
                 expectedThemeIDs = themeIDs
                 expectedQuestionCounts = questionCounts
                 expectedSFSymbols = sfSymbols
+                expectedEmojis = emojis
+                expectedColorHexes = colorHexes
             }
 
             XCTAssertEqual(themeIDs, expectedThemeIDs, "Theme IDs must match in \(language)")
             XCTAssertEqual(questionCounts, expectedQuestionCounts, "Question counts must match in \(language)")
             XCTAssertEqual(sfSymbols, expectedSFSymbols, "SF Symbols must match in \(language)")
+            XCTAssertEqual(emojis, expectedEmojis, "Emoji must match in \(language)")
+            XCTAssertEqual(colorHexes, expectedColorHexes, "Theme colors must match in \(language)")
 
             for theme in themes {
                 XCTAssertFalse(theme.theme.isEmpty, "Theme title must not be empty in \(language)")
@@ -141,6 +149,12 @@ final class LocalizationTests: XCTestCase {
                 XCTAssertNotNil(
                     UIImage(systemName: theme.sfSymbol),
                     "Invalid SF Symbol '\(theme.sfSymbol)' in \(language)"
+                )
+                XCTAssertFalse(theme.emoji.isEmpty, "Theme emoji must not be empty in \(language)")
+                XCTAssertEqual(
+                    QuizThemeColor.normalizedHex(theme.colorHex),
+                    theme.colorHex,
+                    "Invalid theme color '\(theme.colorHex)' in \(language)"
                 )
                 for question in theme.questions {
                     XCTAssertFalse(question.question.isEmpty, "Question text must not be empty in \(language)")
@@ -228,6 +242,8 @@ private struct QuizThemePayload: Decodable {
     let theme: String
     let themeDescription: String
     let sfSymbol: String
+    let emoji: String
+    let colorHex: String
     let questions: [QuizQuestionPayload]
 }
 

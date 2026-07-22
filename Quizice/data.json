@@ -907,7 +907,9 @@
             }
         ],
         "id": "music",
-        "sfSymbol": "music.note.list"
+        "sfSymbol": "music.note.list",
+        "emoji": "🎵",
+        "colorHex": "#FF8252"
     },
     {
         "theme": "Технологии",
@@ -1861,7 +1863,9 @@
             }
         ],
         "id": "technology",
-        "sfSymbol": "cpu.fill"
+        "sfSymbol": "cpu.fill",
+        "emoji": "💻",
+        "colorHex": "#62A2E6"
     },
     {
         "theme": "История и культура",
@@ -2980,7 +2984,9 @@
             }
         ],
         "id": "history_culture",
-        "sfSymbol": "theatermask.and.paintbrush.fill"
+        "sfSymbol": "theatermask.and.paintbrush.fill",
+        "emoji": "🏛️",
+        "colorHex": "#8B5CF6"
     },
     {
         "theme": "Политика и бизнес",
@@ -4165,6 +4171,8 @@
             }
         ],
         "id": "politics_business",
-        "sfSymbol": "briefcase.fill"
+        "sfSymbol": "briefcase.fill",
+        "emoji": "💼",
+        "colorHex": "#F2C94C"
     }
 ]

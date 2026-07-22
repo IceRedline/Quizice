@@ -73,6 +73,10 @@ class HomeScreenVisualStateTestCase: XCTestCase {
             StatisticsCardCollectionViewCell.self,
             forCellWithReuseIdentifier: StatisticsCardCollectionViewCell.reuseIdentifier
         )
+        collectionView.register(
+            MoreThemesCollectionViewCell.self,
+            forCellWithReuseIdentifier: MoreThemesCollectionViewCell.reuseIdentifier
+        )
         return collectionView
     }
 
@@ -133,7 +137,10 @@ class HomeScreenVisualStateTestCase: XCTestCase {
     func makeTheme(
         name: String,
         questionCount: Int = 0,
-        description: String = "Synthetic home-screen test theme"
+        description: String = "Synthetic home-screen test theme",
+        sfSymbolName: String? = nil,
+        emoji: String? = nil,
+        colorHex: String? = nil
     ) -> QuizTheme {
         let id: String
         switch name {
@@ -155,11 +162,21 @@ class HomeScreenVisualStateTestCase: XCTestCase {
                 correctAnswer: "A"
             )
         }
+        let metadata: (sfSymbol: String, emoji: String, colorHex: String) = switch id {
+        case "music": ("music.note.list", "🎵", "#FF8252")
+        case "technology": ("cpu.fill", "💻", "#62A2E6")
+        case "history_culture": ("theatermask.and.paintbrush.fill", "🏛️", "#8B5CF6")
+        case "politics_business": ("briefcase.fill", "💼", "#F2C94C")
+        default: (QuizTheme.defaultSFSymbolName, QuizTheme.defaultEmoji, "#7C83FD")
+        }
         return QuizTheme(
             id: id,
             theme: name,
             themeDescription: description,
-            questions: questions
+            questions: questions,
+            sfSymbolName: sfSymbolName ?? metadata.sfSymbol,
+            emoji: emoji ?? metadata.emoji,
+            colorHex: colorHex ?? metadata.colorHex
         )
     }
 

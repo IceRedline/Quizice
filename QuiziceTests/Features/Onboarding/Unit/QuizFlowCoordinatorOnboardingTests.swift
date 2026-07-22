@@ -21,6 +21,8 @@ final class QuizFlowCoordinatorOnboardingTests: QuizFlowCoordinatorTestCase {
         XCTAssertEqual(hostingController.rootView.themes.map(\.id), ["music", "space"])
         XCTAssertEqual(hostingController.rootView.themes.map(\.title), ["Music", "Space"])
         XCTAssertEqual(hostingController.rootView.themes.map(\.sfSymbolName), ["music.note.list", "globe"])
+        XCTAssertEqual(hostingController.rootView.themes.map(\.emoji), ["🎵", "🚀"])
+        XCTAssertEqual(hostingController.rootView.themes.map(\.colorHex), ["#FF8252", "#304FFE"])
         XCTAssertEqual(hostingController.rootView.catalogOrigin, .backend)
         XCTAssertEqual(harness.navigationController.presentedAnimationFlags, [false])
         XCTAssertEqual(harness.analytics.onboardingScreenViewCount, 1)
@@ -98,14 +100,18 @@ final class QuizFlowCoordinatorOnboardingTests: QuizFlowCoordinatorTestCase {
                 theme: "Music",
                 themeDescription: "",
                 questions: [],
-                sfSymbolName: "music.note.list"
+                sfSymbolName: "music.note.list",
+                emoji: "🎵",
+                colorHex: "#FF8252"
             ),
             QuizTheme(
                 id: "space",
                 theme: "Space",
                 themeDescription: "",
                 questions: [],
-                sfSymbolName: "globe"
+                sfSymbolName: "globe",
+                emoji: "🚀",
+                colorHex: "#304FFE"
             )
         ]
         let coordinator = QuizFlowCoordinator(

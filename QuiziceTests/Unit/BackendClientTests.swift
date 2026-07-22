@@ -17,7 +17,7 @@ final class BackendClientTests: XCTestCase {
             XCTAssertEqual(request.cachePolicy, .reloadIgnoringLocalCacheData)
 #endif
             let body = Data(
-                #"{"locale":"ru","themes":[{"id":"music","name":"Музыка","description":"Описание","sfSymbol":"music.note.list"}]}"#.utf8
+                ##"{"locale":"ru","themes":[{"id":"music","name":"Музыка","description":"Описание","sfSymbol":"music.note.list","emoji":"🎵","colorHex":"#FF8252"}]}"##.utf8
             )
             return Self.response(for: request, data: body)
         }
@@ -27,6 +27,8 @@ final class BackendClientTests: XCTestCase {
         XCTAssertEqual(response.locale, "ru")
         XCTAssertEqual(response.themes.map(\.id), ["music"])
         XCTAssertEqual(response.themes.map(\.sfSymbol), ["music.note.list"])
+        XCTAssertEqual(response.themes.map(\.emoji), ["🎵"])
+        XCTAssertEqual(response.themes.map(\.colorHex), ["#FF8252"])
         XCTAssertEqual(metrics.values.count, 1)
         XCTAssertEqual(metrics.values.first?.operation, .themes)
         XCTAssertEqual(metrics.values.first?.result, .success)
@@ -163,13 +165,17 @@ final class BackendClientTests: XCTestCase {
                     id: "music",
                     name: "Remote Music",
                     description: "Known theme",
-                    sfSymbol: "music.note.list"
+                    sfSymbol: "music.note.list",
+                    emoji: "🎵",
+                    colorHex: "#FF8252"
                 ),
                 BackendThemeDTO(
                     id: "space",
                     name: "Space",
                     description: "Backend-only theme",
-                    sfSymbol: "globe"
+                    sfSymbol: "globe",
+                    emoji: "🚀",
+                    colorHex: "#4F46E5"
                 )
             ]
         )
@@ -186,6 +192,8 @@ final class BackendClientTests: XCTestCase {
         XCTAssertTrue(themes[1].questions.isEmpty)
         XCTAssertEqual(themes[1].questionOrigin, .backend)
         XCTAssertEqual(themes[1].sfSymbolName, "globe")
+        XCTAssertEqual(themes[1].emoji, "🚀")
+        XCTAssertEqual(themes[1].colorHex, "#4F46E5")
 
         let prepared = try await repository.prepareQuiz(
             themeID: "space",

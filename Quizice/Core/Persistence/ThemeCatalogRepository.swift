@@ -112,6 +112,8 @@ final class ThemeCatalogRepository: ThemeRepository {
                     themeDescription: remoteTheme.description,
                     questions: localTheme?.questions ?? [],
                     sfSymbolName: remoteTheme.sfSymbol,
+                    emoji: remoteTheme.emoji,
+                    colorHex: remoteTheme.colorHex,
                     source: .catalog,
                     questionOrigin: localTheme?.questionOrigin ?? .backend
                 )
@@ -178,6 +180,8 @@ final class ThemeCatalogRepository: ThemeRepository {
                 themeDescription: metadata.themeDescription,
                 questions: questions,
                 sfSymbolName: metadata.sfSymbolName,
+                emoji: metadata.emoji,
+                colorHex: metadata.colorHex,
                 source: .catalog,
                 questionOrigin: .backend
             )
@@ -233,6 +237,8 @@ final class ThemeCatalogRepository: ThemeRepository {
                 themeDescription: localFallback.themeDescription,
                 questions: questions,
                 sfSymbolName: localFallback.sfSymbolName,
+                emoji: localFallback.emoji,
+                colorHex: localFallback.colorHex,
                 source: .catalog,
                 questionOrigin: .backend
             )
@@ -271,6 +277,8 @@ final class ThemeCatalogRepository: ThemeRepository {
             themeDescription: theme.themeDescription,
             questions: Array(usableQuestions.shuffled().prefix(questionCount)),
             sfSymbolName: theme.sfSymbolName,
+            emoji: theme.emoji,
+            colorHex: theme.colorHex,
             source: theme.source,
             questionOrigin: .bundled
         )

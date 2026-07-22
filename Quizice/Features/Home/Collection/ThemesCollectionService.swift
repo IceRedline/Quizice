@@ -5,6 +5,7 @@ final class ThemesCollectionService: NSObject, UICollectionViewDelegate, UIColle
         static let themeCellReuseIdentifier = "themeCell"
         static let themeImageAccessibilityIDPrefix = "homeThemeImageView"
         static let themeTitleAccessibilityIDPrefix = "homeThemeTitleLabel"
+        static let moreThemesAccessibilityID = "homeMoreThemesButton"
         static let aiThemeAccessibilityID = "homeCreateWithAIButton"
         static let aiThemeBetaBadgeAccessibilityID = "homeCreateWithAIBetaBadge"
         static let aiThemeGradientBorderAccessibilityID = "homeCreateWithAIGradientBorder"
@@ -18,24 +19,15 @@ final class ThemesCollectionService: NSObject, UICollectionViewDelegate, UIColle
         static let statisticsAccuracyValueAccessibilityID = "homeStatisticsAccuracyValueLabel"
         static let statisticsAccuracyTitleAccessibilityID = "homeStatisticsAccuracyTitleLabel"
 
-        static let musicThemeLogoCleanSymbolName = "music.note.square.stack"
-        static let technologyThemeLogoCleanSymbolName = "gamecontroller"
-        static let cultureThemeLogoCleanSymbolName = "theatermask.and.paintbrush"
-        static let politicsThemeLogoCleanSymbolName = "building.columns"
-        static let musicThemeLogoRadarImageName = "theme_logo_music_radar"
-        static let technologyThemeLogoRadarImageName = "theme_logo_tech_radar"
-        static let cultureThemeLogoRadarImageName = "theme_logo_culture_radar"
-        static let politicsThemeLogoRadarImageName = "theme_logo_politics_radar"
-
-        static let musicThemeTintColorName = "themeMusicTint"
-        static let technologyThemeTintColorName = "themeTechnologyTint"
-        static let cultureThemeTintColorName = "themeCultureTint"
-        static let politicsThemeTintColorName = "themePoliticsTint"
     }
 
     private enum Layout {
         static let sectionInsets = UIEdgeInsets(top: 0, left: 24, bottom: 0, right: 24)
         static let itemSpacing: CGFloat = 16
+        static let themeCardHeight: CGFloat = 104
+        static let collapsedThemeRowCount = 4
+        static let themeColumnCount = 2
+        static let moreThemesCellHeight: CGFloat = 68
         static let secondaryActionButtonHeight: CGFloat = 54
         static let statisticsCardHeight: CGFloat = 112
         static let lastItemBottomInset: CGFloat = 24
@@ -104,6 +96,8 @@ final class ThemesCollectionService: NSObject, UICollectionViewDelegate, UIColle
     private let preferredThemeIDsProvider: () -> Set<String>
     private let appearanceStore = AppAppearanceStore.shared
     private weak var observedCollectionView: UICollectionView?
+    private(set) var isShowingAllThemes = false
+    var onThemesExpanded: (() -> Void)?
 
     private var displayedThemes: [QuizTheme] {
         let themes = themeRepository.themes ?? []
@@ -122,13 +116,34 @@ final class ThemesCollectionService: NSObject, UICollectionViewDelegate, UIColle
             .map { $0.element }
     }
 
-    private var themeCount: Int { displayedThemes.count }
+    private var collapsedThemeLimit: Int {
+        Layout.collapsedThemeRowCount * Layout.themeColumnCount
+    }
 
-    private var aiThemeIndex: Int { themeCount }
+    private var showsMoreThemesItem: Bool {
+        !isShowingAllThemes && displayedThemes.count > collapsedThemeLimit
+    }
 
-    private var feelingLuckyIndex: Int { themeCount + 1 }
+    private var visibleThemes: [QuizTheme] {
+        guard showsMoreThemesItem else { return displayedThemes }
+        return Array(displayedThemes.prefix(collapsedThemeLimit))
+    }
 
-    private var statisticsIndex: Int { themeCount + 2 }
+    private var themeCount: Int { visibleThemes.count }
+
+    private var moreThemesIndex: Int? {
+        showsMoreThemesItem ? themeCount : nil
+    }
+
+    private var actionCardsOffset: Int {
+        themeCount + (showsMoreThemesItem ? 1 : 0)
+    }
+
+    private var aiThemeIndex: Int { actionCardsOffset }
+
+    private var feelingLuckyIndex: Int { actionCardsOffset + 1 }
+
+    private var statisticsIndex: Int { actionCardsOffset + 2 }
 
     init(
         themeRepository: ThemeRepository = QuizFactory.shared,
@@ -147,13 +162,15 @@ final class ThemesCollectionService: NSObject, UICollectionViewDelegate, UIColle
         reconfigureStatisticsCell()
     }
 
-    func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int { themeCount + 3 }
+    func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
+        actionCardsOffset + 3
+    }
 
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
         observedCollectionView = collectionView
         let appearance = appearanceStore.appearance(compatibleWith: collectionView.traitCollection)
 
-        if let theme = displayedThemes[safe: indexPath.item] {
+        if let theme = visibleThemes[safe: indexPath.item] {
             guard let cell = collectionView.dequeueReusableCell(
                 withReuseIdentifier: ThemeCardCollectionViewCell.reuseIdentifier,
                 for: indexPath
@@ -169,6 +186,18 @@ final class ThemesCollectionService: NSObject, UICollectionViewDelegate, UIColle
             cell.actionButton.addTarget(self, action: #selector(buttonTouchedDown(_:)), for: .touchDown)
             cell.actionButton.addTarget(self, action: #selector(buttonTouchedUpInside(_:)), for: .touchUpInside)
             cell.actionButton.addTarget(self, action: #selector(buttonTouchedUpOutside(_:)), for: .touchUpOutside)
+            return cell
+        }
+
+        if let moreThemesIndex, indexPath.item == moreThemesIndex {
+            guard let cell = collectionView.dequeueReusableCell(
+                withReuseIdentifier: MoreThemesCollectionViewCell.reuseIdentifier,
+                for: indexPath
+            ) as? MoreThemesCollectionViewCell else {
+                preconditionFailure("Expected MoreThemesCollectionViewCell")
+            }
+            cell.configure(appearance: appearance)
+            cell.actionButton.addTarget(self, action: #selector(showMoreThemes(_:)), for: .touchUpInside)
             return cell
         }
 
@@ -223,8 +252,12 @@ final class ThemesCollectionService: NSObject, UICollectionViewDelegate, UIColle
             return CGSize(width: availableWidth, height: Layout.secondaryActionButtonHeight)
         }
 
+        if let moreThemesIndex, indexPath.item == moreThemesIndex {
+            return CGSize(width: availableWidth, height: Layout.moreThemesCellHeight)
+        }
+
         let twoColumnWidth = floor((availableWidth - Layout.itemSpacing) / 2)
-        return CGSize(width: twoColumnWidth, height: twoColumnWidth)
+        return CGSize(width: twoColumnWidth, height: Layout.themeCardHeight)
     }
 
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, minimumLineSpacingForSectionAt section: Int) -> CGFloat { Layout.itemSpacing }
@@ -530,7 +563,7 @@ final class ThemesCollectionService: NSObject, UICollectionViewDelegate, UIColle
         }
 
         let identifiers = Set(themeIDs)
-        let indexPaths = displayedThemes.enumerated().compactMap { index, theme in
+        let indexPaths = visibleThemes.enumerated().compactMap { index, theme in
             identifiers.contains(theme.stableID) ? IndexPath(item: index, section: 0) : nil
         }
         guard !indexPaths.isEmpty else { return }
@@ -562,6 +595,30 @@ final class ThemesCollectionService: NSObject, UICollectionViewDelegate, UIColle
 
     @objc func buttonTouchedDown(_ sender: UIButton) {
         delegate?.themeButtonTouchedDown(sender)
+    }
+
+    @objc private func showMoreThemes(_ sender: UIButton) {
+        guard !isShowingAllThemes, let collectionView = observedCollectionView else { return }
+        isShowingAllThemes = true
+        UISelectionFeedbackGenerator().selectionChanged()
+
+        let updates = {
+            collectionView.reloadData()
+            collectionView.collectionViewLayout.invalidateLayout()
+            collectionView.layoutIfNeeded()
+        }
+        if UIAccessibility.isReduceMotionEnabled {
+            updates()
+        } else {
+            UIView.transition(
+                with: collectionView,
+                duration: 0.32,
+                options: [.transitionCrossDissolve, .allowUserInteraction, .beginFromCurrentState],
+                animations: updates
+            )
+        }
+        onThemesExpanded?()
+        UIAccessibility.post(notification: .layoutChanged, argument: nil)
     }
 
     @objc func buttonTouchedUpInside(_ sender: UIButton) {

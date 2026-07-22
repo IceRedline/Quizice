@@ -13,13 +13,6 @@ enum AIThemeVisualStyle {
 }
 
 enum ThemeVisualCatalog {
-    private static let tintColorNames: [String: String] = [
-        "music": ThemesCollectionService.Content.musicThemeTintColorName,
-        "technology": ThemesCollectionService.Content.technologyThemeTintColorName,
-        "history_culture": ThemesCollectionService.Content.cultureThemeTintColorName,
-        "politics_business": ThemesCollectionService.Content.politicsThemeTintColorName
-    ]
-
     static func logoImage(sfSymbolName: String) -> UIImage? {
         let normalizedName = sfSymbolName.trimmingCharacters(in: .whitespacesAndNewlines)
         return (UIImage(systemName: normalizedName)
@@ -27,13 +20,24 @@ enum ThemeVisualCatalog {
             .withRenderingMode(.alwaysTemplate)
     }
 
-    static func tintColor(for themeID: String) -> UIColor {
-        tintColorIfAvailable(for: themeID) ?? fallbackTintColors[paletteIndex(for: themeID)]
+    static func tintColor(for theme: QuizTheme) -> UIColor {
+        tintColor(colorHex: theme.colorHex, themeID: theme.stableID)
     }
 
-    static func tintColorIfAvailable(for themeID: String) -> UIColor? {
-        guard let colorName = tintColorNames[themeID] else { return nil }
-        return UIColor(named: colorName)
+    static func tintColor(for theme: OnboardingTheme) -> UIColor {
+        tintColor(colorHex: theme.colorHex, themeID: theme.id)
+    }
+
+    static func tintColor(colorHex: String?, themeID: String) -> UIColor {
+        color(from: colorHex) ?? fallbackTintColors[paletteIndex(for: themeID)]
+    }
+
+    static func color(from colorHex: String?) -> UIColor? {
+        guard
+            let normalized = QuizThemeColor.normalizedHex(colorHex),
+            let value = UInt32(normalized.dropFirst(), radix: 16)
+        else { return nil }
+        return UIColor(hex: value)
     }
 
     private static let fallbackTintColors = [
