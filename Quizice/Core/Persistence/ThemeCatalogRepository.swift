@@ -17,7 +17,8 @@ final class ThemeCatalogRepository: ThemeRepository {
         let api = isRunningTests ? nil : BackendConfiguration.load().map {
             HTTPBackendContentAPI(
                 configuration: $0,
-                metrics: AppMetricaAnalyticsTracker.shared
+                metrics: AppMetricaAnalyticsTracker.shared,
+                accessTokenProvider: StoredBackendAccessTokenProvider()
             )
         }
         return ThemeCatalogRepository(backendContentAPI: api)
@@ -27,6 +28,7 @@ final class ThemeCatalogRepository: ThemeRepository {
     private var themeStore: SwiftDataThemeStore?
     private let themeDataLoader = LocalizedThemeDataLoader()
     private let backendContentAPI: BackendContentAPI?
+    private let preferenceStore: OnboardingProgressStoring
     private let seedGenerator: () -> String
     private let remoteQuestionTimeoutNanoseconds: UInt64
 
@@ -36,10 +38,12 @@ final class ThemeCatalogRepository: ThemeRepository {
 
     init(
         backendContentAPI: BackendContentAPI? = nil,
+        preferenceStore: OnboardingProgressStoring = OnboardingProgressStore.shared,
         seedGenerator: @escaping () -> String = { UUID().uuidString.lowercased() },
         remoteQuestionTimeoutNanoseconds: UInt64 = 3_000_000_000
     ) {
         self.backendContentAPI = backendContentAPI
+        self.preferenceStore = preferenceStore
         self.seedGenerator = seedGenerator
         self.remoteQuestionTimeoutNanoseconds = remoteQuestionTimeoutNanoseconds
         localizationObserver = NotificationCenter.default.addObserver(
@@ -114,9 +118,14 @@ final class ThemeCatalogRepository: ThemeRepository {
                     sfSymbolName: remoteTheme.sfSymbol,
                     emoji: remoteTheme.emoji,
                     colorHex: remoteTheme.colorHex,
+                    isFavorite: remoteTheme.isFavorite,
                     source: .catalog,
                     questionOrigin: localTheme?.questionOrigin ?? .backend
                 )
+            }
+            let remoteFavoriteIDs = response.themes.filter(\.isFavorite).map(\.id)
+            if !remoteFavoriteIDs.isEmpty, !preferenceStore.hasPendingThemePreferences(locale: locale) {
+                preferenceStore.applyRemotePreferredThemeIDs(remoteFavoriteIDs, locale: locale)
             }
             catalogOrigin = .backend
             onCatalogReplaced?()
@@ -127,8 +136,57 @@ final class ThemeCatalogRepository: ThemeRepository {
         } catch is CancellationError {
             return false
         } catch {
+            handleAuthenticationFailureIfNeeded(error)
             AppLog.content.error(
                 "Backend theme catalog rejected; current catalog remains active: origin=\(self.catalogOrigin.rawValue, privacy: .public) error=\(String(describing: error), privacy: .public)"
+            )
+            return false
+        }
+    }
+
+    @discardableResult
+    func synchronizeThemePreferences(locale: String) async -> Bool {
+        guard let backendContentAPI else { return false }
+        let storedIDs = preferenceStore.orderedPreferredThemeIDs(locale: locale)
+        let favoriteThemeIDs: [String]
+        if catalogOrigin == .backend {
+            let availableIDs = Set((themes ?? []).map(\.stableID))
+            favoriteThemeIDs = storedIDs.filter(availableIDs.contains)
+        } else {
+            favoriteThemeIDs = storedIDs
+        }
+
+        do {
+            let response: BackendThemePreferencesResponse
+            if preferenceStore.hasPendingThemePreferences(locale: locale) {
+                response = try await backendContentAPI.replaceThemePreferences(
+                    locale: locale,
+                    favoriteThemeIDs: favoriteThemeIDs
+                )
+            } else {
+                response = try await backendContentAPI.fetchThemePreferences(locale: locale)
+            }
+            try Task.checkCancellation()
+            guard AppLocalizationStore.shared.resolvedLanguageCode == locale else { return false }
+
+            preferenceStore.applyRemotePreferredThemeIDs(
+                response.favoriteThemeIds,
+                locale: locale
+            )
+            applyFavoriteOrder(response.favoriteThemeIds)
+            onCatalogReplaced?()
+            AppLog.content.info(
+                "Theme preferences synchronized: locale=\(locale, privacy: .public) favorites=\(response.favoriteThemeIds.count, privacy: .public)"
+            )
+            return true
+        } catch is CancellationError {
+            return false
+        } catch BackendContentError.unauthenticated {
+            return false
+        } catch {
+            handleAuthenticationFailureIfNeeded(error)
+            AppLog.content.error(
+                "Theme preferences sync deferred: locale=\(locale, privacy: .public) error=\(String(describing: error), privacy: .public)"
             )
             return false
         }
@@ -182,6 +240,7 @@ final class ThemeCatalogRepository: ThemeRepository {
                 sfSymbolName: metadata.sfSymbolName,
                 emoji: metadata.emoji,
                 colorHex: metadata.colorHex,
+                isFavorite: metadata.isFavorite,
                 source: .catalog,
                 questionOrigin: .backend
             )
@@ -239,6 +298,7 @@ final class ThemeCatalogRepository: ThemeRepository {
                 sfSymbolName: localFallback.sfSymbolName,
                 emoji: localFallback.emoji,
                 colorHex: localFallback.colorHex,
+                isFavorite: localFallback.isFavorite,
                 source: .catalog,
                 questionOrigin: .backend
             )
@@ -279,6 +339,7 @@ final class ThemeCatalogRepository: ThemeRepository {
             sfSymbolName: theme.sfSymbolName,
             emoji: theme.emoji,
             colorHex: theme.colorHex,
+            isFavorite: theme.isFavorite,
             source: theme.source,
             questionOrigin: .bundled
         )
@@ -287,6 +348,37 @@ final class ThemeCatalogRepository: ThemeRepository {
     private func reloadDataForLocalizationChange() {
         guard themeStore != nil else { return }
         loadData(forceReload: true)
+    }
+
+    private func applyFavoriteOrder(_ favoriteThemeIDs: [String]) {
+        guard let currentThemes = themes else { return }
+        let rankByID = Dictionary(
+            uniqueKeysWithValues: favoriteThemeIDs.enumerated().map { ($0.element, $0.offset) }
+        )
+        currentThemes.forEach {
+            $0.isFavorite = rankByID[$0.stableID] != nil
+        }
+        themes = currentThemes.enumerated()
+            .sorted { lhs, rhs in
+                let lhsRank = rankByID[lhs.element.stableID]
+                let rhsRank = rankByID[rhs.element.stableID]
+                switch (lhsRank, rhsRank) {
+                case let (.some(lhsRank), .some(rhsRank)):
+                    return lhsRank < rhsRank
+                case (.some, .none):
+                    return true
+                case (.none, .some):
+                    return false
+                case (.none, .none):
+                    return lhs.offset < rhs.offset
+                }
+            }
+            .map(\.element)
+    }
+
+    private func handleAuthenticationFailureIfNeeded(_ error: Error) {
+        guard case BackendContentError.httpStatus(401, _) = error else { return }
+        NotificationCenter.default.post(name: .backendAuthenticationInvalidated, object: nil)
     }
 
     private static func durationMilliseconds(since startDate: Date) -> Int {

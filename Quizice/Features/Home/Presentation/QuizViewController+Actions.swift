@@ -12,10 +12,16 @@ extension QuizViewController {
         backendCatalogRefreshTask = Task { @MainActor [weak self] in
             guard let self else { return }
             let didRefresh = await self.themeRepository.refreshBackendCatalog(locale: locale)
+            let didSynchronizePreferences = await self.themeRepository.synchronizeThemePreferences(
+                locale: locale
+            )
             guard self.backendCatalogRefreshRequestID == requestID else { return }
             self.backendCatalogRefreshTask = nil
             self.backendCatalogRefreshRequestID = nil
-            self.applyBackendCatalogRefresh(didRefresh: didRefresh, locale: locale)
+            self.applyBackendCatalogRefresh(
+                didRefresh: didRefresh || didSynchronizePreferences,
+                locale: locale
+            )
         }
     }
 
@@ -35,6 +41,14 @@ extension QuizViewController {
             AppLocalizationStore.shared.resolvedLanguageCode == locale
         else { return }
         updateThemeAvailabilityMessage()
+        applyThemePreferencesRefresh(locale: locale)
+    }
+
+    func applyThemePreferencesRefresh(locale: String) {
+        guard
+            isViewLoaded,
+            AppLocalizationStore.shared.resolvedLanguageCode == locale
+        else { return }
         themesCollectionView.reloadData()
         refreshExpandedThemeCardAppearance()
     }

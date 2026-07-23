@@ -55,6 +55,7 @@ final class QuizFactoryTests: XCTestCase {
         culture.sfSymbolName = "building.columns"
         culture.emoji = "🏛️"
         culture.colorHex = "#8B5CF6"
+        culture.isFavorite = true
         store.replaceThemes(with: [culture])
 
         let fetchedThemes = store.fetchThemes()
@@ -63,6 +64,7 @@ final class QuizFactoryTests: XCTestCase {
         XCTAssertEqual(fetchedThemes.first?.sfSymbolName, "building.columns")
         XCTAssertEqual(fetchedThemes.first?.emoji, "🏛️")
         XCTAssertEqual(fetchedThemes.first?.colorHex, "#8B5CF6")
+        XCTAssertTrue(fetchedThemes.first?.isFavorite == true)
 
         store.clearThemes()
 

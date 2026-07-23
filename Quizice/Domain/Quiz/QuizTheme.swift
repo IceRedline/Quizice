@@ -32,6 +32,7 @@ class QuizTheme {
     var sfSymbolName: String
     var emoji: String
     var colorHex: String?
+    var isFavorite: Bool
     var sourceRawValue: String?
     var questions: [QuizQuestion]
     var aiGenerationConfiguration: AIQuizGenerationConfiguration?
@@ -45,6 +46,7 @@ class QuizTheme {
         sfSymbolName: String = QuizTheme.defaultSFSymbolName,
         emoji: String = QuizTheme.defaultEmoji,
         colorHex: String? = nil,
+        isFavorite: Bool = false,
         source: QuizThemeSource = .catalog,
         questionOrigin: QuizQuestionOrigin = .bundled,
         aiGenerationConfiguration: AIQuizGenerationConfiguration? = nil
@@ -57,6 +59,7 @@ class QuizTheme {
             ? QuizTheme.defaultEmoji
             : emoji
         self.colorHex = QuizThemeColor.normalizedHex(colorHex)
+        self.isFavorite = isFavorite
         self.sourceRawValue = source.rawValue
         self.questions = questions
         self.questionOrigin = questionOrigin

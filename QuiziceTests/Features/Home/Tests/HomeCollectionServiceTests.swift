@@ -64,6 +64,54 @@ final class HomeCollectionServiceTests: HomeScreenVisualStateTestCase {
         }
     }
 
+    func testCollectionServiceFallsBackToBackendFavoriteOrderWithoutLocalPreferences() {
+        QuizFactory.shared.themes = [
+            makeTheme(name: "Политика и бизнес"),
+            makeTheme(name: "История и культура", isFavorite: true),
+            makeTheme(name: "Музыка", isFavorite: true),
+            makeTheme(name: "Технологии")
+        ]
+        let service = ThemesCollectionService(preferredThemeIDsProvider: { nil })
+        let collectionView = makeCollectionView()
+        let expectedThemeIDs = [
+            "history_culture",
+            "music",
+            "politics_business",
+            "technology"
+        ]
+
+        for (index, themeID) in expectedThemeIDs.enumerated() {
+            let cell = service.collectionView(
+                collectionView,
+                cellForItemAt: IndexPath(item: index, section: 0)
+            )
+            XCTAssertNotNil(
+                cell.contentView.descendant(withAccessibilityIdentifier: themeID)
+            )
+        }
+    }
+
+    func testExplicitEmptyLocalPreferencesDoNotRestoreBackendFavorites() {
+        QuizFactory.shared.themes = [
+            makeTheme(name: "Политика и бизнес"),
+            makeTheme(name: "История и культура", isFavorite: true),
+            makeTheme(name: "Музыка", isFavorite: true)
+        ]
+        let service = ThemesCollectionService(preferredThemeIDsProvider: { [] })
+        let collectionView = makeCollectionView()
+        let expectedThemeIDs = ["politics_business", "history_culture", "music"]
+
+        for (index, themeID) in expectedThemeIDs.enumerated() {
+            let cell = service.collectionView(
+                collectionView,
+                cellForItemAt: IndexPath(item: index, section: 0)
+            )
+            XCTAssertNotNil(
+                cell.contentView.descendant(withAccessibilityIdentifier: themeID)
+            )
+        }
+    }
+
     func testPreferredThemeReconfigurationUsesDisplayedIndex() {
         QuizFactory.shared.themes = [
             makeTheme(name: "Музыка"),

@@ -47,10 +47,21 @@ final class QuizFlowCoordinatorOnboardingTests: QuizFlowCoordinatorTestCase {
                 as? UIHostingController<QuizOnboardingView>
         )
 
-        hostingController.rootView.onComplete(["music", "history_culture"])
+        hostingController.rootView.onComplete(["space", "music"])
 
         XCTAssertFalse(harness.store.needsOnboarding)
-        XCTAssertEqual(harness.store.preferredThemeIDs, ["music", "history_culture"])
+        XCTAssertEqual(harness.store.preferredThemeIDs, ["music", "space"])
+        XCTAssertEqual(
+            harness.store.orderedPreferredThemeIDs(
+                locale: AppLocalizationStore.shared.resolvedLanguageCode
+            ),
+            ["music", "space"]
+        )
+        XCTAssertTrue(
+            harness.store.hasPendingThemePreferences(
+                locale: AppLocalizationStore.shared.resolvedLanguageCode
+            )
+        )
     }
 
     func testManualReplayPresentsAnimatedWithoutResettingCompletion() {

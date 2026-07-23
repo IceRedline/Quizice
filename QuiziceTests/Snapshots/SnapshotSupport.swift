@@ -28,6 +28,7 @@ enum SnapshotSupport {
         UserDefaults.standard.set(AppBackgroundStyle.defaultStyle.rawValue, forKey: AppAppearanceStore.Keys.backgroundStyle)
         UserDefaults.standard.removeObject(forKey: OnboardingProgressStore.Keys.completedVersion)
         UserDefaults.standard.removeObject(forKey: OnboardingProgressStore.Keys.preferredThemeIDs)
+        resetLocalizedThemePreferences()
     }
 
     static func tearDown() {
@@ -38,7 +39,22 @@ enum SnapshotSupport {
         UserDefaults.standard.removeObject(forKey: AppLocalizationStore.Keys.language)
         UserDefaults.standard.removeObject(forKey: OnboardingProgressStore.Keys.completedVersion)
         UserDefaults.standard.removeObject(forKey: OnboardingProgressStore.Keys.preferredThemeIDs)
+        resetLocalizedThemePreferences()
         resetSharedQuizFactoryForTests()
+    }
+
+    private static func resetLocalizedThemePreferences() {
+        UserDefaults.standard.removeObject(
+            forKey: OnboardingProgressStore.Keys.legacyPreferencesMigrationLocale
+        )
+        AppLanguagePreference.allCases.compactMap(\.languageCode).forEach { locale in
+            UserDefaults.standard.removeObject(
+                forKey: OnboardingProgressStore.Keys.preferredThemeIDs(locale: locale)
+            )
+            UserDefaults.standard.removeObject(
+                forKey: OnboardingProgressStore.Keys.pendingThemePreferences(locale: locale)
+            )
+        }
     }
 
     static func assertScreen(
