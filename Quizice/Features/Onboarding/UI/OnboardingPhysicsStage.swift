@@ -63,6 +63,10 @@ final class TopicsPhysicsView: UIView {
         static let glowSafetyInset: CGFloat = 28
     }
 
+    private enum Animation {
+        static let replayFadeDuration: TimeInterval = 0.5
+    }
+
     var onThemeTapped: ((String) -> Void)?
 
     private lazy var animator = UIDynamicAnimator(referenceView: self)
@@ -78,6 +82,9 @@ final class TopicsPhysicsView: UIView {
     private var appearanceKey = ""
     private var usesStaticLayout = false
     private var isActive = false
+    private var hasPresentedActiveScene = false
+    private var replayFadeGeneration = 0
+    private var isReplayFadeRunning = false
     private var lastLayoutSize = CGSize.zero
 
     override init(frame: CGRect) {
@@ -124,14 +131,23 @@ final class TopicsPhysicsView: UIView {
     func setActive(_ active: Bool) {
         guard isActive != active else { return }
         isActive = active
+
         if active {
-            rebuildSceneIfPossible()
+            if usesStaticLayout || !hasPresentedActiveScene {
+                hasPresentedActiveScene = true
+                rebuildSceneIfPossible()
+            } else {
+                fadeOutCurrentSceneAndReplay()
+            }
         } else {
+            cancelReplayFadePreservingCurrentAppearance()
             stopPhysics()
         }
     }
 
     func stop() {
+        replayFadeGeneration &+= 1
+        isReplayFadeRunning = false
         stopPhysics()
         bodyViews.forEach { $0.removeFromSuperview() }
         bodyViews.removeAll()
@@ -155,10 +171,12 @@ final class TopicsPhysicsView: UIView {
             makeBodyView(for: descriptor, appearance: appearance)
         }
 
-        if usesStaticLayout || !isActive {
+        if usesStaticLayout {
             layoutStaticPile()
-        } else {
+        } else if isActive {
             startPhysics()
+        } else {
+            prepareBodiesForDrop()
         }
         updateSelectionAppearance()
     }
@@ -261,6 +279,55 @@ final class TopicsPhysicsView: UIView {
                 deadline: .now() + Double(index) * 0.075,
                 execute: drop
             )
+        }
+    }
+
+    private func prepareBodiesForDrop() {
+        guard !usesStaticLayout else { return }
+        for (index, pair) in zip(descriptors.indices, zip(descriptors, bodyViews)) {
+            let (descriptor, view) = pair
+            placeForDrop(view, descriptor: descriptor, index: index)
+        }
+    }
+
+    private func fadeOutCurrentSceneAndReplay() {
+        stopPhysics()
+        replayFadeGeneration &+= 1
+        let generation = replayFadeGeneration
+        let visibleBodies = bodyViews.filter { $0.alpha > 0.001 }
+
+        guard !visibleBodies.isEmpty else {
+            rebuildSceneIfPossible()
+            return
+        }
+
+        isReplayFadeRunning = true
+        visibleBodies.forEach { $0.isUserInteractionEnabled = false }
+        UIView.animate(
+            withDuration: Animation.replayFadeDuration,
+            delay: 0,
+            options: [.allowUserInteraction, .beginFromCurrentState, .curveEaseInOut]
+        ) {
+            visibleBodies.forEach { $0.alpha = 0 }
+        } completion: { [weak self] _ in
+            guard let self else { return }
+            guard self.replayFadeGeneration == generation else { return }
+            self.isReplayFadeRunning = false
+            guard self.isActive else { return }
+            self.rebuildSceneIfPossible()
+        }
+    }
+
+    private func cancelReplayFadePreservingCurrentAppearance() {
+        guard isReplayFadeRunning else { return }
+        replayFadeGeneration &+= 1
+        isReplayFadeRunning = false
+
+        for view in bodyViews {
+            let currentAlpha = view.layer.presentation()?.opacity ?? Float(view.alpha)
+            view.layer.removeAllAnimations()
+            view.alpha = CGFloat(currentAlpha)
+            view.isUserInteractionEnabled = true
         }
     }
 
