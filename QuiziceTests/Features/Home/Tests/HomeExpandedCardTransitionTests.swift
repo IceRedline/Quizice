@@ -215,11 +215,16 @@ final class HomeExpandedCardTransitionTests: HomeScreenVisualStateTestCase {
         let collectionView = try XCTUnwrap(
             viewController.view.descendant(withAccessibilityIdentifier: "homeThemesCollectionView") as? UICollectionView
         )
+        let themeCollectionView = try XCTUnwrap(
+            viewController.view.descendant(
+                withAccessibilityIdentifier: ThemesCollectionService.Content.themeCatalogAccessibilityID
+            ) as? UICollectionView
+        )
         let sourceButton = try XCTUnwrap(
             viewController.view.descendant(withAccessibilityIdentifier: "music") as? UIButton
         )
         let sourceCell = try XCTUnwrap(
-            collectionView.visibleCells
+            themeCollectionView.visibleCells
                 .compactMap { $0 as? ThemeCardCollectionViewCell }
                 .first(where: { $0.actionButton === sourceButton })
         )

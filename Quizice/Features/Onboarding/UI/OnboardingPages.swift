@@ -176,6 +176,11 @@ private struct WelcomeArtwork: View {
 }
 
 struct OnboardingTopicsPage: View {
+    private enum Layout {
+        static let minimumStageHeight: CGFloat = 350
+        static let nonStageContentHeight: CGFloat = 205
+    }
+
     let themes: [OnboardingTheme]
     let catalogOrigin: QuizCatalogOrigin
     @Binding var selectedThemeIDs: Set<String>
@@ -185,50 +190,57 @@ struct OnboardingTopicsPage: View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     var body: some View {
-        ScrollView(showsIndicators: false) {
-            VStack(spacing: 14) {
-                VStack(spacing: 10) {
-                    Text(L10n.Onboarding.topicsTitle)
-                        .font(appearance.typography.swiftUIFont(size: 32, weight: .bold))
-                        .foregroundStyle(Color(uiColor: appearance.screenTextColor))
-                        .multilineTextAlignment(.center)
-                        .minimumScaleFactor(0.8)
-                        .accessibilityAddTraits(.isHeader)
-                        .accessibilityIdentifier("onboardingTopicsTitle")
+        GeometryReader { geometry in
+            ScrollView(showsIndicators: false) {
+                VStack(spacing: 14) {
+                    VStack(spacing: 10) {
+                        Text(L10n.Onboarding.topicsTitle)
+                            .font(appearance.typography.swiftUIFont(size: 32, weight: .bold))
+                            .foregroundStyle(Color(uiColor: appearance.screenTextColor))
+                            .multilineTextAlignment(.center)
+                            .minimumScaleFactor(0.8)
+                            .accessibilityAddTraits(.isHeader)
+                            .accessibilityIdentifier("onboardingTopicsTitle")
 
-                    Text(L10n.Onboarding.topicsSubtitle)
-                        .font(appearance.typography.swiftUIFont(size: 17, weight: .regular))
-                        .foregroundStyle(Color(uiColor: appearance.secondaryScreenTextColor))
-                        .multilineTextAlignment(.center)
-                        .lineSpacing(2)
-                        .fixedSize(horizontal: false, vertical: true)
+                        Text(L10n.Onboarding.topicsSubtitle)
+                            .font(appearance.typography.swiftUIFont(size: 17, weight: .regular))
+                            .foregroundStyle(Color(uiColor: appearance.secondaryScreenTextColor))
+                            .multilineTextAlignment(.center)
+                            .lineSpacing(2)
+                            .fixedSize(horizontal: false, vertical: true)
 
 #if DEBUG
-                    if DebugBackendSettings.shouldShowSourceIndicators {
-                        OnboardingCatalogSourceBadge(origin: catalogOrigin)
-                    }
+                        if DebugBackendSettings.shouldShowSourceIndicators {
+                            OnboardingCatalogSourceBadge(origin: catalogOrigin)
+                        }
 #endif
-                }
-                .padding(.horizontal, 24)
-
-                FallingTopicsStage(
-                    themes: themes,
-                    selectedThemeIDs: $selectedThemeIDs,
-                    isActive: isActive
-                )
-                .frame(height: 350)
-                .padding(.horizontal, 10)
-
-                Label(L10n.Onboarding.topicsSelectionHint, systemImage: "hand.tap.fill")
-                    .font(appearance.typography.swiftUIFont(size: 14, weight: .medium))
-                    .foregroundStyle(Color(uiColor: appearance.secondaryScreenTextColor))
-                    .multilineTextAlignment(.center)
+                    }
                     .padding(.horizontal, 24)
-                    .padding(.bottom, 10)
+
+                    FallingTopicsStage(
+                        themes: themes,
+                        selectedThemeIDs: $selectedThemeIDs,
+                        isActive: isActive
+                    )
+                    .frame(
+                        height: max(
+                            Layout.minimumStageHeight,
+                            geometry.size.height - Layout.nonStageContentHeight
+                        )
+                    )
+                    .padding(.horizontal, 10)
+
+                    Label(L10n.Onboarding.topicsSelectionHint, systemImage: "hand.tap.fill")
+                        .font(appearance.typography.swiftUIFont(size: 14, weight: .medium))
+                        .foregroundStyle(Color(uiColor: appearance.secondaryScreenTextColor))
+                        .multilineTextAlignment(.center)
+                        .padding(.horizontal, 24)
+                        .padding(.bottom, 2)
+                }
+                .frame(maxWidth: 560)
+                .frame(maxWidth: .infinity)
+                .padding(.top, 12)
             }
-            .frame(maxWidth: 560)
-            .frame(maxWidth: .infinity)
-            .padding(.top, 20)
         }
         .accessibilityIdentifier("onboardingTopicsPage")
     }

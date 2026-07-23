@@ -5,7 +5,7 @@ final class ThemesCollectionService: NSObject, UICollectionViewDelegate, UIColle
         static let themeCellReuseIdentifier = "themeCell"
         static let themeImageAccessibilityIDPrefix = "homeThemeImageView"
         static let themeTitleAccessibilityIDPrefix = "homeThemeTitleLabel"
-        static let moreThemesAccessibilityID = "homeMoreThemesButton"
+        static let themeCatalogAccessibilityID = "homeThemeCatalogCollectionView"
         static let aiThemeAccessibilityID = "homeCreateWithAIButton"
         static let aiThemeBetaBadgeAccessibilityID = "homeCreateWithAIBetaBadge"
         static let aiThemeGradientBorderAccessibilityID = "homeCreateWithAIGradientBorder"
@@ -24,10 +24,8 @@ final class ThemesCollectionService: NSObject, UICollectionViewDelegate, UIColle
     private enum Layout {
         static let sectionInsets = UIEdgeInsets(top: 0, left: 24, bottom: 0, right: 24)
         static let itemSpacing: CGFloat = 16
-        static let themeCardHeight: CGFloat = 104
-        static let collapsedThemeRowCount = 4
+        static let visibleThemeRowCount = 4
         static let themeColumnCount = 2
-        static let moreThemesCellHeight: CGFloat = 68
         static let secondaryActionButtonHeight: CGFloat = 54
         static let statisticsCardHeight: CGFloat = 112
         static let lastItemBottomInset: CGFloat = 24
@@ -42,7 +40,6 @@ final class ThemesCollectionService: NSObject, UICollectionViewDelegate, UIColle
     private enum Appearance {
         static let themeCardBackgroundAlpha: CGFloat = 0.20
         static let themeCardBorderAlpha: CGFloat = 0.45
-        static let themeCardCornerRadius: CGFloat = 28
         static let feelingLuckyButtonBackgroundAlpha: CGFloat = 0.14
         static let feelingLuckyButtonBorderAlpha: CGFloat = 0.36
         static let feelingLuckyButtonCornerRadius: CGFloat = 20
@@ -96,8 +93,17 @@ final class ThemesCollectionService: NSObject, UICollectionViewDelegate, UIColle
     private let preferredThemeIDsProvider: () -> [String]?
     private let appearanceStore = AppAppearanceStore.shared
     private weak var observedCollectionView: UICollectionView?
-    private(set) var isShowingAllThemes = false
-    var onThemesExpanded: (() -> Void)?
+    private weak var themeItemsCollectionView: UICollectionView?
+
+    var catalogCollectionView: UICollectionView? {
+        themeItemsCollectionView
+    }
+
+    var visibleThemeCells: [ThemeCardCollectionViewCell] {
+        themeItemsCollectionView?.visibleCells.compactMap {
+            $0 as? ThemeCardCollectionViewCell
+        } ?? []
+    }
 
     private var displayedThemes: [QuizTheme] {
         let themes = themeRepository.themes ?? []
@@ -126,34 +132,27 @@ final class ThemesCollectionService: NSObject, UICollectionViewDelegate, UIColle
             .map { $0.element }
     }
 
-    private var collapsedThemeLimit: Int {
-        Layout.collapsedThemeRowCount * Layout.themeColumnCount
+    private var visibleThemeLimit: Int {
+        Layout.visibleThemeRowCount * Layout.themeColumnCount
     }
 
-    private var showsMoreThemesItem: Bool {
-        !isShowingAllThemes && displayedThemes.count > collapsedThemeLimit
+    private var viewportRowCount: Int {
+        min(
+            Layout.visibleThemeRowCount,
+            max(
+                Int(ceil(Double(themeCount) / Double(Layout.themeColumnCount))),
+                1
+            )
+        )
     }
 
-    private var visibleThemes: [QuizTheme] {
-        guard showsMoreThemesItem else { return displayedThemes }
-        return Array(displayedThemes.prefix(collapsedThemeLimit))
-    }
+    private var themeCount: Int { displayedThemes.count }
 
-    private var themeCount: Int { visibleThemes.count }
-
-    private var moreThemesIndex: Int? {
-        showsMoreThemesItem ? themeCount : nil
-    }
-
-    private var actionCardsOffset: Int {
-        themeCount + (showsMoreThemesItem ? 1 : 0)
-    }
-
-    private var aiThemeIndex: Int { actionCardsOffset }
-
-    private var feelingLuckyIndex: Int { actionCardsOffset + 1 }
-
-    private var statisticsIndex: Int { actionCardsOffset + 2 }
+    private let themesViewportIndex = 0
+    private let aiThemeIndex = 1
+    private let feelingLuckyIndex = 2
+    private let statisticsIndex = 3
+    private let outerItemCount = 4
 
     init(
         themeRepository: ThemeRepository = QuizFactory.shared,
@@ -175,14 +174,22 @@ final class ThemesCollectionService: NSObject, UICollectionViewDelegate, UIColle
     }
 
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-        actionCardsOffset + 3
+        if isThemeItemsCollectionView(collectionView) {
+            themeItemsCollectionView = collectionView
+            return themeCount
+        }
+        observedCollectionView = collectionView
+        return outerItemCount
     }
 
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
-        observedCollectionView = collectionView
         let appearance = appearanceStore.appearance(compatibleWith: collectionView.traitCollection)
 
-        if let theme = visibleThemes[safe: indexPath.item] {
+        if isThemeItemsCollectionView(collectionView) {
+            themeItemsCollectionView = collectionView
+            guard let theme = displayedThemes[safe: indexPath.item] else {
+                preconditionFailure("Expected catalog theme at \(indexPath)")
+            }
             guard let cell = collectionView.dequeueReusableCell(
                 withReuseIdentifier: ThemeCardCollectionViewCell.reuseIdentifier,
                 for: indexPath
@@ -201,15 +208,20 @@ final class ThemesCollectionService: NSObject, UICollectionViewDelegate, UIColle
             return cell
         }
 
-        if let moreThemesIndex, indexPath.item == moreThemesIndex {
+        observedCollectionView = collectionView
+        if indexPath.item == themesViewportIndex {
             guard let cell = collectionView.dequeueReusableCell(
-                withReuseIdentifier: MoreThemesCollectionViewCell.reuseIdentifier,
+                withReuseIdentifier: ThemesViewportCollectionViewCell.reuseIdentifier,
                 for: indexPath
-            ) as? MoreThemesCollectionViewCell else {
-                preconditionFailure("Expected MoreThemesCollectionViewCell")
+            ) as? ThemesViewportCollectionViewCell else {
+                preconditionFailure("Expected ThemesViewportCollectionViewCell")
             }
-            cell.configure(appearance: appearance)
-            cell.actionButton.addTarget(self, action: #selector(showMoreThemes(_:)), for: .touchUpInside)
+            themeItemsCollectionView = cell.themesCollectionView
+            cell.configure(
+                dataSource: self,
+                delegate: self,
+                canScroll: displayedThemes.count > visibleThemeLimit
+            )
             return cell
         }
 
@@ -252,7 +264,32 @@ final class ThemesCollectionService: NSObject, UICollectionViewDelegate, UIColle
     }
 
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
-        let availableWidth = max(collectionView.bounds.width - Layout.sectionInsets.left - Layout.sectionInsets.right, 0)
+        if isThemeItemsCollectionView(collectionView) {
+            let twoColumnWidth = floor((collectionView.bounds.width - Layout.itemSpacing) / 2)
+            return CGSize(
+                width: twoColumnWidth,
+                height: themeRowHeight(
+                    containing: indexPath.item,
+                    cardWidth: twoColumnWidth,
+                    traitCollection: collectionView.traitCollection
+                )
+            )
+        }
+
+        let availableWidth = max(
+            collectionView.bounds.width - Layout.sectionInsets.left - Layout.sectionInsets.right,
+            0
+        )
+        if indexPath.item == themesViewportIndex {
+            return CGSize(
+                width: availableWidth,
+                height: themesViewportHeight(
+                    width: availableWidth,
+                    traitCollection: collectionView.traitCollection
+                )
+            )
+        }
+
         if indexPath.item == statisticsIndex {
             return CGSize(
                 width: availableWidth,
@@ -264,22 +301,67 @@ final class ThemesCollectionService: NSObject, UICollectionViewDelegate, UIColle
             return CGSize(width: availableWidth, height: Layout.secondaryActionButtonHeight)
         }
 
-        if let moreThemesIndex, indexPath.item == moreThemesIndex {
-            return CGSize(width: availableWidth, height: Layout.moreThemesCellHeight)
-        }
-
-        let twoColumnWidth = floor((availableWidth - Layout.itemSpacing) / 2)
-        return CGSize(width: twoColumnWidth, height: Layout.themeCardHeight)
+        return CGSize(width: availableWidth, height: Layout.secondaryActionButtonHeight)
     }
 
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, minimumLineSpacingForSectionAt section: Int) -> CGFloat { Layout.itemSpacing }
 
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, minimumInteritemSpacingForSectionAt section: Int) -> CGFloat { Layout.itemSpacing }
 
-    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, insetForSectionAt section: Int) -> UIEdgeInsets { Layout.sectionInsets }
+    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, insetForSectionAt section: Int) -> UIEdgeInsets {
+        isThemeItemsCollectionView(collectionView) ? .zero : Layout.sectionInsets
+    }
 
     func scrollViewDidScroll(_ scrollView: UIScrollView) {
+        if let collectionView = scrollView as? UICollectionView,
+           isThemeItemsCollectionView(collectionView) {
+            return
+        }
         delegate?.themesCollectionDidScroll(scrollView)
+    }
+
+    private func themeRowHeight(
+        containing itemIndex: Int,
+        cardWidth: CGFloat,
+        traitCollection: UITraitCollection
+    ) -> CGFloat {
+        let rowStartIndex = (itemIndex / Layout.themeColumnCount) * Layout.themeColumnCount
+        guard rowStartIndex < themeCount else {
+            return ThemeCardLayoutMetrics.singleLineHeight
+        }
+        let rowTitles = displayedThemes[
+            rowStartIndex..<min(rowStartIndex + Layout.themeColumnCount, themeCount)
+        ].map(\.theme)
+        let font = appearanceStore
+            .appearance(compatibleWith: traitCollection)
+            .typography
+            .font(size: ThemeCardLayoutMetrics.titleFontSize, weight: .semibold)
+        return ThemeCardLayoutMetrics.rowHeight(
+            titles: rowTitles,
+            cardWidth: cardWidth,
+            font: font
+        )
+    }
+
+    private func isThemeItemsCollectionView(_ collectionView: UICollectionView) -> Bool {
+        collectionView === themeItemsCollectionView
+            || collectionView.accessibilityIdentifier == Content.themeCatalogAccessibilityID
+    }
+
+    private func themesViewportHeight(
+        width: CGFloat,
+        traitCollection: UITraitCollection
+    ) -> CGFloat {
+        let cardWidth = floor((width - Layout.itemSpacing) / 2)
+        let rowHeights = (0..<viewportRowCount).map { row in
+            themeRowHeight(
+                containing: row * Layout.themeColumnCount,
+                cardWidth: cardWidth,
+                traitCollection: traitCollection
+            )
+        }
+        return rowHeights.reduce(0, +)
+            + Layout.itemSpacing * CGFloat(viewportRowCount - 1)
     }
 
     private func prepare(_ cell: UICollectionViewCell, appearance: AppAppearance) {
@@ -568,14 +650,14 @@ final class ThemesCollectionService: NSObject, UICollectionViewDelegate, UIColle
 
     private func reconfigureThemeCells(withIDs themeIDs: [String]) {
         guard
-            let collectionView = observedCollectionView,
+            let collectionView = themeItemsCollectionView,
             !themeIDs.isEmpty
         else {
             return
         }
 
         let identifiers = Set(themeIDs)
-        let indexPaths = visibleThemes.enumerated().compactMap { index, theme in
+        let indexPaths = displayedThemes.enumerated().compactMap { index, theme in
             identifiers.contains(theme.stableID) ? IndexPath(item: index, section: 0) : nil
         }
         guard !indexPaths.isEmpty else { return }
@@ -607,30 +689,6 @@ final class ThemesCollectionService: NSObject, UICollectionViewDelegate, UIColle
 
     @objc func buttonTouchedDown(_ sender: UIButton) {
         delegate?.themeButtonTouchedDown(sender)
-    }
-
-    @objc private func showMoreThemes(_ sender: UIButton) {
-        guard !isShowingAllThemes, let collectionView = observedCollectionView else { return }
-        isShowingAllThemes = true
-        UISelectionFeedbackGenerator().selectionChanged()
-
-        let updates = {
-            collectionView.reloadData()
-            collectionView.collectionViewLayout.invalidateLayout()
-            collectionView.layoutIfNeeded()
-        }
-        if UIAccessibility.isReduceMotionEnabled {
-            updates()
-        } else {
-            UIView.transition(
-                with: collectionView,
-                duration: 0.32,
-                options: [.transitionCrossDissolve, .allowUserInteraction, .beginFromCurrentState],
-                animations: updates
-            )
-        }
-        onThemesExpanded?()
-        UIAccessibility.post(notification: .layoutChanged, argument: nil)
     }
 
     @objc func buttonTouchedUpInside(_ sender: UIButton) {

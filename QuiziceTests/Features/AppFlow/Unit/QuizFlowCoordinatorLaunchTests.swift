@@ -84,6 +84,7 @@ final class QuizFlowCoordinatorLaunchTests: QuizFlowCoordinatorTestCase {
         let overlayWindow = try XCTUnwrap(
             windowScene.windows.first {
                 $0.accessibilityIdentifier == LaunchOverlayPresenter.accessibilityIdentifier
+                    && !$0.isHidden
             }
         )
         XCTAssertFalse(overlayWindow.isKeyWindow)
@@ -178,6 +179,7 @@ final class QuizFlowCoordinatorLaunchTests: QuizFlowCoordinatorTestCase {
         let overlayWindow = try XCTUnwrap(
             windowScene.windows.first {
                 $0.accessibilityIdentifier == LaunchOverlayPresenter.accessibilityIdentifier
+                    && !$0.isHidden
             }
         )
         await fulfillment(of: [preparationStarted], timeout: 1)
@@ -192,6 +194,42 @@ final class QuizFlowCoordinatorLaunchTests: QuizFlowCoordinatorTestCase {
             object: nil
         )
         await fulfillment(of: [dismissalExpectation], timeout: 2)
+    }
+
+    func testFakeLaunchDoesNotStartCompletionBeforeCatalogIsReady() async throws {
+        let windowScene = try XCTUnwrap(
+            UIApplication.shared.connectedScenes.compactMap { $0 as? UIWindowScene }.first
+        )
+        let window = UIWindow(windowScene: windowScene)
+        let readiness = FakeLaunchReadiness(isReady: false)
+        let completionExpectation = expectation(description: "Fake launch completes after catalog")
+        completionExpectation.assertForOverFulfill = true
+        var completionStyle: FakeLaunchCompletionStyle?
+        let animationsWereEnabled = UIView.areAnimationsEnabled
+        UIView.setAnimationsEnabled(false)
+        let rootView = FakeLaunchScreenView(
+            appearance: makeLaunchAppearance(designStyle: .classic),
+            holdDuration: 0,
+            readiness: readiness
+        ) { style in
+            completionStyle = style
+            completionExpectation.fulfill()
+        }
+        window.rootViewController = UIHostingController(rootView: rootView)
+        window.isHidden = false
+        defer {
+            UIView.setAnimationsEnabled(animationsWereEnabled)
+            window.isHidden = true
+            window.rootViewController = nil
+        }
+
+        try await Task.sleep(nanoseconds: 100_000_000)
+        XCTAssertNil(completionStyle)
+
+        readiness.isReady = true
+        await fulfillment(of: [completionExpectation], timeout: 2)
+
+        XCTAssertEqual(completionStyle, .crossfade)
     }
 
     func testFakeLaunchUsesCrossfadeCompletionWhenAnimationsAreDisabled() async throws {

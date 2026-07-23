@@ -255,12 +255,12 @@ enum SnapshotSupport {
             forCellWithReuseIdentifier: ThemeCardCollectionViewCell.reuseIdentifier
         )
         collectionView.register(
-            StatisticsCardCollectionViewCell.self,
-            forCellWithReuseIdentifier: StatisticsCardCollectionViewCell.reuseIdentifier
+            ThemesViewportCollectionViewCell.self,
+            forCellWithReuseIdentifier: ThemesViewportCollectionViewCell.reuseIdentifier
         )
         collectionView.register(
-            MoreThemesCollectionViewCell.self,
-            forCellWithReuseIdentifier: MoreThemesCollectionViewCell.reuseIdentifier
+            StatisticsCardCollectionViewCell.self,
+            forCellWithReuseIdentifier: StatisticsCardCollectionViewCell.reuseIdentifier
         )
         return collectionView
     }

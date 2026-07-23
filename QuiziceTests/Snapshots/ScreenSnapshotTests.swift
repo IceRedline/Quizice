@@ -29,14 +29,7 @@ final class ScreenSnapshotTests: XCTestCase {
     }
 
     func testCollapsedBackendCatalogSnapshot() {
-        let themes = (0..<10).map { index in
-            SnapshotSupport.makeTheme(
-                id: "backend-theme-\(index)",
-                name: "Тема \(index + 1)",
-                sfSymbolName: index.isMultiple(of: 2) ? "sparkles" : "lightbulb.fill",
-                colorHex: index.isMultiple(of: 2) ? "#8B5CF6" : "#62A2E6"
-            )
-        }
+        let themes = makeBackendCatalogThemes()
         SnapshotSupport.assertScreen(
             makeHomeViewController(themes: themes),
             named: "clean-home-collapsed-backend-catalog",
@@ -374,6 +367,17 @@ final class ScreenSnapshotTests: XCTestCase {
             motivationPromptProvider: { _ in "Время\nпроверить факты" },
             cardDeviceParallaxEnabledProvider: cardDeviceParallaxEnabledProvider
         )
+    }
+
+    private func makeBackendCatalogThemes() -> [QuizTheme] {
+        (0..<10).map { index in
+            SnapshotSupport.makeTheme(
+                id: "backend-theme-\(index)",
+                name: "Тема \(index + 1)",
+                sfSymbolName: index.isMultiple(of: 2) ? "sparkles" : "lightbulb.fill",
+                colorHex: index.isMultiple(of: 2) ? "#8B5CF6" : "#62A2E6"
+            )
+        }
     }
 
     private func makeExpandedStatisticsCardViewController(size: CGSize) throws -> QuizViewController {

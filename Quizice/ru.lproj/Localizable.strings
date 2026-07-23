@@ -77,8 +77,6 @@
 "home.feeling_lucky.accessibility_hint" = "Запускает пять случайных вопросов из всех тем";
 "home.feeling_lucky.loading" = "Подбираем вопросы";
 "home.feeling_lucky.random_selection" = "Случайный выбор";
-"home.more_themes" = "Больше тем";
-"home.more_themes.accessibility_hint" = "Показывает все доступные темы";
 "home.statistics.accessibility_hint" = "Открывает расширенную карточку общей статистики по завершённым викторинам";
 "home.statistics.accessibility_label" = "Общая статистика";
 "home.statistics.accessibility_value_format" = "Пройдено: %d. Точность: %d%%";

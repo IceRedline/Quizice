@@ -59,6 +59,10 @@ struct FallingTopicsStage: UIViewRepresentable {
 }
 
 final class TopicsPhysicsView: UIView {
+    private enum Layout {
+        static let glowSafetyInset: CGFloat = 28
+    }
+
     var onThemeTapped: ((String) -> Void)?
 
     private lazy var animator = UIDynamicAnimator(referenceView: self)
@@ -163,15 +167,18 @@ final class TopicsPhysicsView: UIView {
         for descriptor: TopicsPhysicsDescriptor,
         appearance: AppAppearance
     ) -> UIView {
-        let size = fittedSize(descriptor.size)
-        let view: UIView
         let card = PhysicsTopicCardView(theme: descriptor.theme)
         card.configure(
             appearance: appearance,
             isSelected: selectedThemeIDs.contains(descriptor.theme.id)
         )
         card.addTarget(self, action: #selector(themeCardTapped(_:)), for: .touchUpInside)
-        view = card
+        let size = fittedSize(
+            card.preferredSize(
+                maximumWidth: max(bounds.width - Layout.glowSafetyInset * 2, 1)
+            )
+        )
+        let view: UIView = card
         view.bounds = CGRect(origin: .zero, size: size)
         view.center = CGPoint(x: bounds.midX, y: -size.height)
         addSubview(view)
@@ -180,9 +187,10 @@ final class TopicsPhysicsView: UIView {
 
     private func fittedSize(_ proposedSize: CGSize) -> CGSize {
         let populationScale: CGFloat = themes.count > 10 ? 0.78 : themes.count > 6 ? 0.88 : 1
-        let widthScale = min(1, max(0.78, (bounds.width - 12) / 390))
-        let scale = populationScale * widthScale
-        return CGSize(width: proposedSize.width * scale, height: proposedSize.height * scale)
+        return CGSize(
+            width: min(proposedSize.width, max(bounds.width - 12, 1)),
+            height: max(proposedSize.height * populationScale, 54)
+        )
     }
 
     private func startPhysics() {
@@ -195,18 +203,27 @@ final class TopicsPhysicsView: UIView {
         let ceilingExtension = max(560, bounds.height * 1.7)
         collisions.addBoundary(
             withIdentifier: "left-wall" as NSString,
-            from: CGPoint(x: 1, y: -ceilingExtension),
-            to: CGPoint(x: 1, y: bounds.height)
+            from: CGPoint(x: Layout.glowSafetyInset, y: -ceilingExtension),
+            to: CGPoint(x: Layout.glowSafetyInset, y: bounds.height - Layout.glowSafetyInset)
         )
         collisions.addBoundary(
             withIdentifier: "right-wall" as NSString,
-            from: CGPoint(x: bounds.width - 1, y: -ceilingExtension),
-            to: CGPoint(x: bounds.width - 1, y: bounds.height)
+            from: CGPoint(x: bounds.width - Layout.glowSafetyInset, y: -ceilingExtension),
+            to: CGPoint(
+                x: bounds.width - Layout.glowSafetyInset,
+                y: bounds.height - Layout.glowSafetyInset
+            )
         )
         collisions.addBoundary(
             withIdentifier: "floor" as NSString,
-            from: CGPoint(x: 0, y: bounds.height - 1),
-            to: CGPoint(x: bounds.width, y: bounds.height - 1)
+            from: CGPoint(
+                x: Layout.glowSafetyInset,
+                y: bounds.height - Layout.glowSafetyInset
+            ),
+            to: CGPoint(
+                x: bounds.width - Layout.glowSafetyInset,
+                y: bounds.height - Layout.glowSafetyInset
+            )
         )
 
         let bodyProperties = UIDynamicItemBehavior()
@@ -254,7 +271,9 @@ final class TopicsPhysicsView: UIView {
     ) {
         let halfWidth = view.bounds.width / 2
         let proposedX = bounds.width * descriptor.spawnX
-        let x = min(max(proposedX, halfWidth + 3), bounds.width - halfWidth - 3)
+        let minimumX = halfWidth + Layout.glowSafetyInset
+        let maximumX = bounds.width - halfWidth - Layout.glowSafetyInset
+        let x = min(max(proposedX, minimumX), maximumX)
         view.center = CGPoint(
             x: x,
             y: -view.bounds.height - CGFloat(index % 3) * 28
@@ -264,13 +283,29 @@ final class TopicsPhysicsView: UIView {
 
     private func layoutStaticPile() {
         for (descriptor, view) in zip(descriptors, bodyViews) {
-            view.center = CGPoint(
+            let proposedCenter = CGPoint(
                 x: bounds.width * descriptor.staticCenter.x,
                 y: bounds.height * descriptor.staticCenter.y
             )
+            view.center = clampedCenter(proposedCenter, for: view)
             view.transform = CGAffineTransform(rotationAngle: descriptor.staticAngle)
         }
         bodyViews.compactMap { $0 as? PhysicsTopicCardView }.forEach(bringSubviewToFront)
+    }
+
+    private func clampedCenter(_ proposedCenter: CGPoint, for view: UIView) -> CGPoint {
+        let halfWidth = view.bounds.width / 2
+        let halfHeight = view.bounds.height / 2
+        return CGPoint(
+            x: min(
+                max(proposedCenter.x, halfWidth + Layout.glowSafetyInset),
+                bounds.width - halfWidth - Layout.glowSafetyInset
+            ),
+            y: min(
+                max(proposedCenter.y, halfHeight + Layout.glowSafetyInset),
+                bounds.height - halfHeight - Layout.glowSafetyInset
+            )
+        )
     }
 
     private func stopPhysics() {
@@ -299,7 +334,6 @@ final class TopicsPhysicsView: UIView {
 
 private struct TopicsPhysicsDescriptor {
     let theme: OnboardingTheme
-    let size: CGSize
     let spawnX: CGFloat
     let initialAngle: CGFloat
     let angularVelocity: CGFloat
@@ -317,17 +351,17 @@ private struct TopicsPhysicsDescriptor {
             let column = index % columnCount
             let row = index / columnCount
             let direction: CGFloat = index.isMultiple(of: 2) ? 1 : -1
-            let titleWidth = CGFloat(theme.title.count) * 9.2 + 82
             return TopicsPhysicsDescriptor(
                 theme: theme,
-                size: CGSize(width: min(max(titleWidth, 156), 196), height: 68),
                 spawnX: 0.16 + CGFloat(hash % 69) / 100,
                 initialAngle: direction * (0.06 + CGFloat(hash % 9) / 100),
                 angularVelocity: direction * (0.14 + CGFloat(hash % 18) / 100),
                 horizontalVelocity: -12 + CGFloat(hash % 25),
                 staticCenter: CGPoint(
                     x: (CGFloat(column) + 0.5) / CGFloat(columnCount),
-                    y: 0.91 - CGFloat(row) * rowSpacing
+                    y: 0.91
+                        - CGFloat(row) * rowSpacing
+                        - CGFloat(column) * rowSpacing / 2
                 ),
                 staticAngle: direction * (0.025 + CGFloat(hash % 5) / 100)
             )
@@ -341,12 +375,20 @@ private struct TopicsPhysicsDescriptor {
     }
 }
 
+enum OnboardingTopicSelectionAnimationTiming {
+    static let selectionDuration: TimeInterval = 0.38
+    static let iconDuration: TimeInterval = selectionDuration * 3
+    static let iconSpringDamping: CGFloat = 0.86
+}
+
 private final class PhysicsTopicCardView: UIControl {
     let theme: OnboardingTheme
     var themeID: String { theme.id }
 
+    private let selectionOverlayView = UIView()
     private let iconView = UIImageView()
     private let titleLabel = UILabel()
+    private var selectionState: Bool?
 
     init(theme: OnboardingTheme) {
         self.theme = theme
@@ -354,11 +396,18 @@ private final class PhysicsTopicCardView: UIControl {
         layer.cornerRadius = 22
         layer.cornerCurve = .continuous
 
+        selectionOverlayView.isUserInteractionEnabled = false
+        selectionOverlayView.alpha = 0
+        selectionOverlayView.accessibilityIdentifier = "onboardingTopicSelectionOverlay-\(theme.id)"
+        addSubview(selectionOverlayView)
+
         iconView.contentMode = .scaleAspectFit
         iconView.isUserInteractionEnabled = false
+        iconView.accessibilityIdentifier = "onboardingTopicIcon-\(theme.id)"
         addSubview(iconView)
 
-        titleLabel.numberOfLines = 2
+        titleLabel.numberOfLines = 1
+        titleLabel.lineBreakMode = .byTruncatingTail
         titleLabel.adjustsFontSizeToFitWidth = true
         titleLabel.minimumScaleFactor = 0.76
         titleLabel.isUserInteractionEnabled = false
@@ -381,6 +430,9 @@ private final class PhysicsTopicCardView: UIControl {
 
     override func layoutSubviews() {
         super.layoutSubviews()
+        selectionOverlayView.frame = bounds
+        selectionOverlayView.layer.cornerRadius = layer.cornerRadius
+        selectionOverlayView.layer.cornerCurve = .continuous
         let inset: CGFloat = 13
         let iconSize: CGFloat = 25
         iconView.frame = CGRect(
@@ -399,18 +451,26 @@ private final class PhysicsTopicCardView: UIControl {
         layer.shadowPath = UIBezierPath(roundedRect: bounds, cornerRadius: 22).cgPath
     }
 
+    func preferredSize(maximumWidth: CGFloat) -> CGSize {
+        let horizontalChrome: CGFloat = 13 + 25 + 10 + 13
+        let titleWidth = titleLabel.sizeThatFits(
+            CGSize(width: CGFloat.greatestFiniteMagnitude, height: 68)
+        ).width
+        return CGSize(
+            width: min(max(ceil(titleWidth) + horizontalChrome, 156), maximumWidth),
+            height: 68
+        )
+    }
+
     func configure(appearance: AppAppearance, isSelected: Bool) {
         let tint = ThemeVisualCatalog.tintColor(for: theme)
         let textColor = appearance.themeCardTextColor(baseColor: tint)
         backgroundColor = appearance.themeCardBackground(baseColor: tint)
-        layer.borderColor = appearance.themeCardBorder(baseColor: tint).cgColor
-        layer.borderWidth = isSelected ? 2.4 : max(appearance.themeCardBorderWidth, 1)
-        applyShadow(appearance.themeCardShadow)
 
         iconView.image = ThemeVisualCatalog.logoImage(
             sfSymbolName: theme.sfSymbolName
         ) ?? UIImage(systemName: "questionmark.square.dashed")
-        iconView.tintColor = textColor
+        iconView.tintColor = appearance.themeCardIconColor(baseColor: tint)
         iconView.image = iconView.image?.withRenderingMode(.alwaysTemplate)
 
         titleLabel.text = theme.title
@@ -420,6 +480,77 @@ private final class PhysicsTopicCardView: UIControl {
         accessibilityLabel = theme.title
         accessibilityValue = isSelected ? L10n.Onboarding.topicsSelected : ""
         accessibilityTraits = isSelected ? [.button, .selected] : .button
+
+        let previousSelection = selectionState
+        selectionState = isSelected
+        guard previousSelection != isSelected else { return }
+        let usesMotionEmphasis = !UIAccessibility.isReduceMotionEnabled
+        let applyCardSelection = { [self] in
+            selectionOverlayView.backgroundColor = tint.withAlphaComponent(
+                appearance.designStyle == .clean ? 0.14 : 0.24
+            )
+            selectionOverlayView.alpha = isSelected ? 1 : 0
+            layer.borderColor = (
+                isSelected ? tint : appearance.themeCardBorder(baseColor: tint)
+            ).cgColor
+            layer.borderWidth = isSelected
+                ? max(appearance.themeCardBorderWidth + 1.5, 3)
+                : max(appearance.themeCardBorderWidth, 1)
+            titleLabel.transform = isSelected && usesMotionEmphasis
+                ? CGAffineTransform(translationX: 2, y: 0)
+                : .identity
+            if isSelected {
+                layer.shadowColor = tint.cgColor
+                layer.shadowOpacity = 0.52
+                layer.shadowRadius = 15
+                layer.shadowOffset = .zero
+            } else {
+                applyShadow(appearance.themeCardShadow)
+            }
+        }
+        let applyIconSelection = { [self] in
+            iconView.transform = isSelected && usesMotionEmphasis
+                ? CGAffineTransform(scaleX: 1.18, y: 1.18)
+                : .identity
+        }
+
+        guard
+            previousSelection != nil,
+            UIView.areAnimationsEnabled
+        else {
+            applyCardSelection()
+            applyIconSelection()
+            return
+        }
+
+        if UIAccessibility.isReduceMotionEnabled {
+            UIView.animate(
+                withDuration: 0.18,
+                delay: 0,
+                options: [.curveEaseOut, .allowUserInteraction, .beginFromCurrentState],
+                animations: {
+                    applyCardSelection()
+                    applyIconSelection()
+                }
+            )
+        } else {
+            UIView.animate(
+                withDuration: OnboardingTopicSelectionAnimationTiming.selectionDuration,
+                delay: 0,
+                usingSpringWithDamping: isSelected ? 0.72 : 1,
+                initialSpringVelocity: 0,
+                options: [.allowUserInteraction, .beginFromCurrentState],
+                animations: applyCardSelection
+            )
+            UIView.animate(
+                withDuration: OnboardingTopicSelectionAnimationTiming.iconDuration,
+                delay: 0,
+                usingSpringWithDamping: OnboardingTopicSelectionAnimationTiming.iconSpringDamping,
+                initialSpringVelocity: 0,
+                options: [.allowUserInteraction, .beginFromCurrentState],
+                animations: applyIconSelection
+            )
+        }
     }
 
 }

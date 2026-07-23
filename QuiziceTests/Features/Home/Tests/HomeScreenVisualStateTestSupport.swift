@@ -72,13 +72,20 @@ class HomeScreenVisualStateTestCase: XCTestCase {
             forCellWithReuseIdentifier: ThemeCardCollectionViewCell.reuseIdentifier
         )
         collectionView.register(
+            ThemesViewportCollectionViewCell.self,
+            forCellWithReuseIdentifier: ThemesViewportCollectionViewCell.reuseIdentifier
+        )
+        collectionView.register(
             StatisticsCardCollectionViewCell.self,
             forCellWithReuseIdentifier: StatisticsCardCollectionViewCell.reuseIdentifier
         )
-        collectionView.register(
-            MoreThemesCollectionViewCell.self,
-            forCellWithReuseIdentifier: MoreThemesCollectionViewCell.reuseIdentifier
-        )
+        return collectionView
+    }
+
+    func makeThemeCollectionView(width: CGFloat = 342) -> UICollectionView {
+        let collectionView = makeCollectionView(width: width)
+        collectionView.accessibilityIdentifier =
+            ThemesCollectionService.Content.themeCatalogAccessibilityID
         return collectionView
     }
 

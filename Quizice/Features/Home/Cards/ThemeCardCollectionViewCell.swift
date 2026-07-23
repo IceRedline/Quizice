@@ -1,29 +1,60 @@
 import UIKit
 
+enum ThemeCardLayoutMetrics {
+    static let horizontalInset: CGFloat = 12
+    static let iconSize: CGFloat = 32
+    static let iconTitleSpacing: CGFloat = 8
+    static let verticalInset: CGFloat = 8
+    static let titleFontSize: CGFloat = 16
+    static let maximumTitleLines = 3
+    static let singleLineHeight: CGFloat = 64
+    static let additionalLineHeight: CGFloat = 12
+
+    static func rowHeight(
+        titles: [String],
+        cardWidth: CGFloat,
+        font: UIFont
+    ) -> CGFloat {
+        let availableTextWidth = max(
+            cardWidth
+                - horizontalInset * 2
+                - iconSize
+                - iconTitleSpacing,
+            1
+        )
+        let lineCount = titles
+            .map { titleLineCount($0, width: availableTextWidth, font: font) }
+            .max() ?? 1
+        return singleLineHeight + CGFloat(lineCount - 1) * additionalLineHeight
+    }
+
+    private static func titleLineCount(
+        _ title: String,
+        width: CGFloat,
+        font: UIFont
+    ) -> Int {
+        let bounds = (title as NSString).boundingRect(
+            with: CGSize(width: width, height: .greatestFiniteMagnitude),
+            options: [.usesLineFragmentOrigin, .usesFontLeading],
+            attributes: [.font: font],
+            context: nil
+        )
+        return min(
+            maximumTitleLines,
+            max(1, Int(ceil(bounds.height / font.lineHeight)))
+        )
+    }
+}
+
 final class ThemeCardCollectionViewCell: UICollectionViewCell {
     static let reuseIdentifier = "homeThemeCardCell"
-
-    private enum Layout {
-        static let horizontalInset: CGFloat = 16
-        static let iconSize: CGFloat = 42
-        static let iconTitleSpacing: CGFloat = 12
-        static let verticalInset: CGFloat = 10
-    }
-
-    private enum Typography {
-        static let titleSize: CGFloat = 18
-        static let titleMinimumScaleFactor: CGFloat = 0.72
-    }
 
     let actionButton = UIButton(type: .custom)
 
     private let themeIconSlotView = UIView()
     private let themeIconShadowView = UIImageView()
     private let themeImageView = UIImageView()
-    private let themeTitleLabel = ThemeCardFittingLabel(
-        baseFont: .preferredFont(forTextStyle: .headline),
-        minimumScaleFactor: Typography.titleMinimumScaleFactor
-    )
+    private let themeTitleLabel = UILabel()
 
     override init(frame: CGRect) {
         super.init(frame: frame)
@@ -106,9 +137,7 @@ final class ThemeCardCollectionViewCell: UICollectionViewCell {
             sfSymbolName: theme.sfSymbolName
         )
         themeImageView.image = logoImage
-        themeImageView.tintColor = appearance.designStyle == .classic
-            ? tintColor
-            : borderColor
+        themeImageView.tintColor = appearance.themeCardIconColor(baseColor: tintColor)
         themeImageView.transform = .identity
         themeImageView.accessibilityIdentifier = "\(ThemesCollectionService.Content.themeImageAccessibilityIDPrefix)-\(themeID)"
 
@@ -119,8 +148,9 @@ final class ThemeCardCollectionViewCell: UICollectionViewCell {
             ? CGAffineTransform(translationX: 0, y: ThemeIconVisualStyle.shadowOffset)
             : .identity
 
-        themeTitleLabel.updateBaseFont(
-            appearance.typography.font(size: Typography.titleSize, weight: .semibold)
+        themeTitleLabel.font = appearance.typography.font(
+            size: ThemeCardLayoutMetrics.titleFontSize,
+            weight: .semibold
         )
         themeTitleLabel.text = theme.theme
         themeTitleLabel.textColor = appearance.themeCardTextColor(baseColor: tintColor)
@@ -219,9 +249,9 @@ final class ThemeCardCollectionViewCell: UICollectionViewCell {
 
         themeTitleLabel.adjustsFontForContentSizeCategory = true
         themeTitleLabel.textAlignment = .left
-        themeTitleLabel.numberOfLines = 3
+        themeTitleLabel.numberOfLines = ThemeCardLayoutMetrics.maximumTitleLines
         themeTitleLabel.lineBreakMode = .byWordWrapping
-        themeTitleLabel.allowsDefaultTighteningForTruncation = true
+        themeTitleLabel.allowsDefaultTighteningForTruncation = false
         themeTitleLabel.isAccessibilityElement = false
         themeTitleLabel.isUserInteractionEnabled = false
         themeTitleLabel.translatesAutoresizingMaskIntoConstraints = false
@@ -240,20 +270,29 @@ final class ThemeCardCollectionViewCell: UICollectionViewCell {
 
             themeTitleLabel.leadingAnchor.constraint(
                 equalTo: themeIconSlotView.trailingAnchor,
-                constant: Layout.iconTitleSpacing
+                constant: ThemeCardLayoutMetrics.iconTitleSpacing
             ),
             themeTitleLabel.trailingAnchor.constraint(
                 equalTo: actionButton.trailingAnchor,
-                constant: -Layout.horizontalInset
+                constant: -ThemeCardLayoutMetrics.horizontalInset
             ),
             themeTitleLabel.centerYAnchor.constraint(equalTo: actionButton.centerYAnchor),
-            themeTitleLabel.topAnchor.constraint(greaterThanOrEqualTo: actionButton.topAnchor, constant: Layout.verticalInset),
-            themeTitleLabel.bottomAnchor.constraint(lessThanOrEqualTo: actionButton.bottomAnchor, constant: -Layout.verticalInset),
+            themeTitleLabel.topAnchor.constraint(
+                greaterThanOrEqualTo: actionButton.topAnchor,
+                constant: ThemeCardLayoutMetrics.verticalInset
+            ),
+            themeTitleLabel.bottomAnchor.constraint(
+                lessThanOrEqualTo: actionButton.bottomAnchor,
+                constant: -ThemeCardLayoutMetrics.verticalInset
+            ),
 
-            themeIconSlotView.leadingAnchor.constraint(equalTo: actionButton.leadingAnchor, constant: Layout.horizontalInset),
+            themeIconSlotView.leadingAnchor.constraint(
+                equalTo: actionButton.leadingAnchor,
+                constant: ThemeCardLayoutMetrics.horizontalInset
+            ),
             themeIconSlotView.centerYAnchor.constraint(equalTo: actionButton.centerYAnchor),
-            themeIconSlotView.widthAnchor.constraint(equalToConstant: Layout.iconSize),
-            themeIconSlotView.heightAnchor.constraint(equalToConstant: Layout.iconSize),
+            themeIconSlotView.widthAnchor.constraint(equalToConstant: ThemeCardLayoutMetrics.iconSize),
+            themeIconSlotView.heightAnchor.constraint(equalToConstant: ThemeCardLayoutMetrics.iconSize),
 
             themeIconShadowView.leadingAnchor.constraint(equalTo: themeIconSlotView.leadingAnchor),
             themeIconShadowView.trailingAnchor.constraint(equalTo: themeIconSlotView.trailingAnchor),
@@ -274,82 +313,5 @@ final class ThemeCardCollectionViewCell: UICollectionViewCell {
         if isHidden {
             layer.shadowOpacity = 0
         }
-    }
-}
-
-private final class ThemeCardFittingLabel: UILabel {
-    private enum Fitting {
-        static let iterations = 10
-        static let tolerance: CGFloat = 0.1
-    }
-
-    private var baseFont: UIFont
-    private let fittingMinimumScaleFactor: CGFloat
-
-    init(baseFont: UIFont, minimumScaleFactor: CGFloat) {
-        self.baseFont = baseFont
-        self.fittingMinimumScaleFactor = minimumScaleFactor
-        super.init(frame: .zero)
-        font = baseFont
-    }
-
-    @available(*, unavailable)
-    required init?(coder: NSCoder) {
-        nil
-    }
-
-    func updateBaseFont(_ font: UIFont) {
-        baseFont = font
-        self.font = font
-        setNeedsLayout()
-    }
-
-    override func layoutSubviews() {
-        super.layoutSubviews()
-        fitFontToBounds()
-    }
-
-    private func fitFontToBounds() {
-        guard let text, !text.isEmpty, bounds.width > 0, bounds.height > 0 else { return }
-
-        let minimumPointSize = baseFont.pointSize * fittingMinimumScaleFactor
-        guard !textFits(text, font: baseFont) else {
-            applyFontIfNeeded(baseFont)
-            return
-        }
-
-        var lowerBound = minimumPointSize
-        var upperBound = baseFont.pointSize
-        for _ in 0..<Fitting.iterations {
-            let candidatePointSize = (lowerBound + upperBound) / 2
-            let candidateFont = baseFont.withSize(candidatePointSize)
-            if textFits(text, font: candidateFont) {
-                lowerBound = candidatePointSize
-            } else {
-                upperBound = candidatePointSize
-            }
-        }
-
-        applyFontIfNeeded(baseFont.withSize(lowerBound))
-    }
-
-    private func textFits(_ text: String, font: UIFont) -> Bool {
-        let maximumLineHeight = numberOfLines > 0
-            ? font.lineHeight * CGFloat(numberOfLines)
-            : bounds.height
-        let maximumHeight = min(bounds.height, maximumLineHeight)
-        let requiredBounds = (text as NSString).boundingRect(
-            with: CGSize(width: bounds.width, height: .greatestFiniteMagnitude),
-            options: [.usesLineFragmentOrigin, .usesFontLeading],
-            attributes: [.font: font],
-            context: nil
-        )
-        return ceil(requiredBounds.height) <= ceil(maximumHeight) + Fitting.tolerance
-    }
-
-    private func applyFontIfNeeded(_ fittedFont: UIFont) {
-        guard abs(font.pointSize - fittedFont.pointSize) > Fitting.tolerance else { return }
-        font = fittedFont
-        invalidateIntrinsicContentSize()
     }
 }
