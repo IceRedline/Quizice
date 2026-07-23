@@ -77,6 +77,8 @@
 "home.feeling_lucky.accessibility_hint" = "Lance cinq questions aléatoires de tous les thèmes";
 "home.feeling_lucky.loading" = "Sélection des questions";
 "home.feeling_lucky.random_selection" = "Sélection aléatoire";
+"home.more_themes" = "Plus de thèmes";
+"home.more_themes.accessibility_hint" = "Fait défiler la liste vers les autres thèmes";
 "home.statistics.accessibility_hint" = "Ouvre les statistiques globales des quiz terminés";
 "home.statistics.accessibility_label" = "Statistiques globales";
 "home.statistics.accessibility_value_format" = "Joués : %d. Précision : %d%%";

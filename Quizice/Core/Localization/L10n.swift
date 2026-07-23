@@ -64,6 +64,8 @@ enum L10n {
         static var feelingLucky: String { L10n.localized("home.feeling_lucky", comment: "Feeling lucky random theme button title") }
         static var feelingLuckyAccessibilityHint: String { L10n.localized("home.feeling_lucky.accessibility_hint", comment: "Feeling lucky button accessibility hint") }
         static var feelingLuckyLoading: String { L10n.localized("home.feeling_lucky.loading", comment: "Feeling lucky loading state title") }
+        static var moreThemes: String { L10n.localized("home.more_themes", comment: "More themes button title") }
+        static var moreThemesAccessibilityHint: String { L10n.localized("home.more_themes.accessibility_hint", comment: "More themes button accessibility hint") }
         static var randomSelection: String { L10n.localized("home.feeling_lucky.random_selection", comment: "Feeling lucky quiz theme title") }
         static var statisticsAccessibilityHint: String { L10n.localized("home.statistics.accessibility_hint", comment: "Home statistics card accessibility hint") }
         static var statisticsAccessibilityLabel: String { L10n.localized("home.statistics.accessibility_label", comment: "Home statistics card accessibility label") }
