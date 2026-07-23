@@ -381,11 +381,67 @@ final class ThemeCardExpansionTransitionView: UIView {
 }
 
 final class HomeThemesCollectionView: UICollectionView {
+    private let bottomFadeMaskLayer = CAGradientLayer()
+    private var bottomFadeVisibility: CGFloat = 0
+    private var bottomFadeHeight: CGFloat = 0
+
+    override init(frame: CGRect, collectionViewLayout layout: UICollectionViewLayout) {
+        super.init(frame: frame, collectionViewLayout: layout)
+        configureTransparentBackground()
+    }
+
+    required init?(coder: NSCoder) {
+        super.init(coder: coder)
+        configureTransparentBackground()
+    }
+
+    override func layoutSubviews() {
+        super.layoutSubviews()
+        updateBottomFadeMask()
+    }
+
     override func touchesShouldCancel(in view: UIView) -> Bool {
         if view is UIControl {
             return true
         }
         return super.touchesShouldCancel(in: view)
+    }
+
+    func updateBottomFade(visibility: CGFloat, height: CGFloat) {
+        bottomFadeVisibility = min(max(visibility, 0), 1)
+        bottomFadeHeight = max(height, 0)
+        updateBottomFadeMask()
+    }
+
+    private func configureTransparentBackground() {
+        backgroundColor = .clear
+        backgroundView = nil
+        isOpaque = false
+        layer.isOpaque = false
+
+        bottomFadeMaskLayer.startPoint = CGPoint(x: 0.5, y: 0)
+        bottomFadeMaskLayer.endPoint = CGPoint(x: 0.5, y: 1)
+    }
+
+    private func updateBottomFadeMask() {
+        CATransaction.begin()
+        CATransaction.setDisableActions(true)
+        defer { CATransaction.commit() }
+
+        guard bottomFadeVisibility > 0.001, bounds.height > 0 else {
+            layer.mask = nil
+            return
+        }
+
+        let fadeStart = max(1 - bottomFadeHeight / bounds.height, 0)
+        bottomFadeMaskLayer.frame = bounds
+        bottomFadeMaskLayer.locations = [0, NSNumber(value: Double(fadeStart)), 1]
+        bottomFadeMaskLayer.colors = [
+            UIColor.white.cgColor,
+            UIColor.white.cgColor,
+            UIColor.white.withAlphaComponent(1 - bottomFadeVisibility).cgColor
+        ]
+        layer.mask = bottomFadeMaskLayer
     }
 }
 

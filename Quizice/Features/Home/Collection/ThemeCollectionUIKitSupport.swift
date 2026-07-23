@@ -79,6 +79,79 @@ final class GradientBorderView: UIView {
     }
 }
 
+final class MoreThemesFadeButton: UIControl {
+    private let titleLabel = UILabel()
+    private let chevronView = UIImageView()
+
+    override init(frame: CGRect) {
+        super.init(frame: frame)
+
+        isAccessibilityElement = true
+        clipsToBounds = true
+        isOpaque = false
+        layer.isOpaque = false
+        layer.zPosition = 1_000
+
+        titleLabel.translatesAutoresizingMaskIntoConstraints = false
+        titleLabel.adjustsFontForContentSizeCategory = true
+        chevronView.translatesAutoresizingMaskIntoConstraints = false
+        chevronView.contentMode = .scaleAspectFit
+
+        addSubview(titleLabel)
+        addSubview(chevronView)
+        NSLayoutConstraint.activate([
+            titleLabel.centerXAnchor.constraint(equalTo: centerXAnchor, constant: -9),
+            titleLabel.centerYAnchor.constraint(equalTo: bottomAnchor, constant: -18),
+            titleLabel.leadingAnchor.constraint(greaterThanOrEqualTo: leadingAnchor, constant: 24),
+            chevronView.leadingAnchor.constraint(equalTo: titleLabel.trailingAnchor, constant: 7),
+            chevronView.centerYAnchor.constraint(equalTo: titleLabel.centerYAnchor),
+            chevronView.trailingAnchor.constraint(lessThanOrEqualTo: trailingAnchor, constant: -24),
+            chevronView.widthAnchor.constraint(equalToConstant: 12),
+            chevronView.heightAnchor.constraint(equalToConstant: 12)
+        ])
+    }
+
+    @available(*, unavailable)
+    required init?(coder: NSCoder) {
+        nil
+    }
+
+    override var isHighlighted: Bool {
+        didSet {
+            UIView.animate(
+                withDuration: 0.16,
+                delay: 0,
+                options: [.allowUserInteraction, .beginFromCurrentState]
+            ) {
+                self.titleLabel.alpha = self.isHighlighted ? 0.62 : 1
+                self.chevronView.alpha = self.isHighlighted ? 0.62 : 1
+            }
+        }
+    }
+
+    func configure(appearance: AppAppearance) {
+        accessibilityIdentifier = ThemesCollectionService.Content.moreThemesAccessibilityID
+        accessibilityLabel = L10n.Home.moreThemes
+        accessibilityHint = L10n.Home.moreThemesAccessibilityHint
+        accessibilityTraits = .button
+
+        titleLabel.text = L10n.Home.moreThemes
+        titleLabel.textColor = appearance.screenTextColor
+        titleLabel.font = appearance.typography.font(size: 17, weight: .semibold)
+        chevronView.image = UIImage(
+            systemName: "chevron.down",
+            withConfiguration: UIImage.SymbolConfiguration(weight: .bold)
+        )
+        chevronView.tintColor = appearance.screenTextColor
+    }
+
+    func updateVisibility(distanceFromTop: CGFloat, fadeDistance: CGFloat) {
+        let progress = min(max(distanceFromTop / max(fadeDistance, 1), 0), 1)
+        alpha = 1 - progress
+        isHidden = progress >= 1
+    }
+}
+
 final class ThemesViewportCollectionViewCell: UICollectionViewCell {
     static let reuseIdentifier = "homeThemesViewportCell"
 
@@ -98,10 +171,17 @@ final class ThemesViewportCollectionViewCell: UICollectionViewCell {
         super.init(frame: frame)
 
         backgroundColor = .clear
+        isOpaque = false
+        layer.isOpaque = false
         contentView.backgroundColor = .clear
+        contentView.isOpaque = false
+        contentView.layer.isOpaque = false
         contentView.clipsToBounds = true
 
         themesCollectionView.backgroundColor = .clear
+        themesCollectionView.backgroundView = nil
+        themesCollectionView.isOpaque = false
+        themesCollectionView.layer.isOpaque = false
         themesCollectionView.accessibilityIdentifier =
             ThemesCollectionService.Content.themeCatalogAccessibilityID
         themesCollectionView.accessibilityLabel = L10n.Home.themesCollectionAccessibilityLabel
