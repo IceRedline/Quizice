@@ -15,8 +15,7 @@ final class LaunchOverlayPresenter {
     private var activePresentationID: UUID?
     private var activeDismissalID: UUID?
     private var preparationTask: Task<Void, Never>?
-    private var isPreparationComplete = true
-    private var pendingCompletionStyle: FakeLaunchCompletionStyle?
+    private var activeReadiness: FakeLaunchReadiness?
     private weak var coveredAccessibilityView: UIView?
     private var coveredViewWasAccessibilityHidden = false
 
@@ -35,11 +34,13 @@ final class LaunchOverlayPresenter {
 
         let visualStyle = FakeLaunchVisualStyle(appearance: appearance)
         let presentationID = UUID()
+        let readiness = FakeLaunchReadiness(isReady: preparation == nil)
         let hostingController = UIHostingController(
             rootView: FakeLaunchScreenView(
                 appearance: appearance,
                 holdDuration: holdDuration,
                 motion: motion,
+                readiness: readiness,
                 onFinished: { [weak self] style in
                     self?.completePresentation(presentationID, with: style)
                 }
@@ -62,8 +63,7 @@ final class LaunchOverlayPresenter {
         coveredViewWasAccessibilityHidden = coveredView.accessibilityElementsHidden
         coveredView.accessibilityElementsHidden = true
         activePresentationID = presentationID
-        isPreparationComplete = preparation == nil
-        pendingCompletionStyle = nil
+        activeReadiness = readiness
         self.overlayWindow = overlayWindow
         overlayWindow.isHidden = false
 
@@ -76,10 +76,7 @@ final class LaunchOverlayPresenter {
                     !Task.isCancelled
                 else { return }
                 preparationTask = nil
-                isPreparationComplete = true
-                guard let pendingCompletionStyle else { return }
-                self.pendingCompletionStyle = nil
-                completePresentation(presentationID, with: pendingCompletionStyle)
+                readiness.isReady = true
             }
         }
     }
@@ -94,8 +91,7 @@ final class LaunchOverlayPresenter {
     private func dismiss(animated: Bool, duration: TimeInterval) {
         preparationTask?.cancel()
         preparationTask = nil
-        pendingCompletionStyle = nil
-        isPreparationComplete = true
+        activeReadiness = nil
         activePresentationID = nil
 
         guard let overlayWindow else { return }
@@ -130,10 +126,6 @@ final class LaunchOverlayPresenter {
         with style: FakeLaunchCompletionStyle
     ) {
         guard activePresentationID == presentationID else { return }
-        guard isPreparationComplete else {
-            pendingCompletionStyle = style
-            return
-        }
 
         switch style {
         case .revealHome:
@@ -151,8 +143,7 @@ final class LaunchOverlayPresenter {
         overlayWindow?.layer.removeAllAnimations()
         activePresentationID = nil
         activeDismissalID = nil
-        pendingCompletionStyle = nil
-        isPreparationComplete = true
+        activeReadiness = nil
         overlayWindow?.isHidden = true
         overlayWindow?.rootViewController = nil
         overlayWindow = nil

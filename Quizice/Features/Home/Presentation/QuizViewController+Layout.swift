@@ -25,21 +25,13 @@ extension QuizViewController {
         themesCollectionView.dataSource = themesCollectionService
         themesCollectionView.register(UICollectionViewCell.self, forCellWithReuseIdentifier: Content.themeCellReuseIdentifier)
         themesCollectionView.register(
-            ThemeCardCollectionViewCell.self,
-            forCellWithReuseIdentifier: ThemeCardCollectionViewCell.reuseIdentifier
+            ThemesViewportCollectionViewCell.self,
+            forCellWithReuseIdentifier: ThemesViewportCollectionViewCell.reuseIdentifier
         )
         themesCollectionView.register(
             StatisticsCardCollectionViewCell.self,
             forCellWithReuseIdentifier: StatisticsCardCollectionViewCell.reuseIdentifier
         )
-        themesCollectionView.register(
-            MoreThemesCollectionViewCell.self,
-            forCellWithReuseIdentifier: MoreThemesCollectionViewCell.reuseIdentifier
-        )
-        themesCollectionService.onThemesExpanded = { [weak self] in
-            guard let self else { return }
-            self.updateCollectionScrollAvailability()
-        }
     }
 
     func configureHeaderViews() {
@@ -329,7 +321,7 @@ extension QuizViewController {
     }
 
     func sortedVisibleThemeCells() -> [UICollectionViewCell] {
-        themesCollectionView.visibleCells.sorted { lhs, rhs in
+        themesCollectionService.visibleThemeCells.sorted { lhs, rhs in
             let verticalDistance = abs(lhs.frame.minY - rhs.frame.minY)
             if verticalDistance > Layout.visibleCellRowSortingTolerance {
                 return lhs.frame.minY < rhs.frame.minY

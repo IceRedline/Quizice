@@ -19,16 +19,25 @@ final class HomeCollectionServiceTests: HomeScreenVisualStateTestCase {
         let service = ThemesCollectionService()
         let collectionView = makeCollectionView()
 
-        XCTAssertEqual(service.collectionView(collectionView, numberOfItemsInSection: 0), 5)
+        XCTAssertEqual(service.collectionView(collectionView, numberOfItemsInSection: 0), 4)
 
-        let firstThemeCell = service.collectionView(collectionView, cellForItemAt: IndexPath(item: 0, section: 0))
-        let secondThemeCell = service.collectionView(collectionView, cellForItemAt: IndexPath(item: 1, section: 0))
-        let aiThemeCell = service.collectionView(collectionView, cellForItemAt: IndexPath(item: 2, section: 0))
-        let feelingLuckyCell = service.collectionView(collectionView, cellForItemAt: IndexPath(item: 3, section: 0))
-        let statisticsCell = service.collectionView(collectionView, cellForItemAt: IndexPath(item: 4, section: 0))
+        let viewportCell = service.collectionView(
+            collectionView,
+            cellForItemAt: IndexPath(item: 0, section: 0)
+        ) as? ThemesViewportCollectionViewCell
+        let themeCollectionView = viewportCell?.themesCollectionView
+        let firstThemeCell = themeCollectionView.map {
+            service.collectionView($0, cellForItemAt: IndexPath(item: 0, section: 0))
+        }
+        let secondThemeCell = themeCollectionView.map {
+            service.collectionView($0, cellForItemAt: IndexPath(item: 1, section: 0))
+        }
+        let aiThemeCell = service.collectionView(collectionView, cellForItemAt: IndexPath(item: 1, section: 0))
+        let feelingLuckyCell = service.collectionView(collectionView, cellForItemAt: IndexPath(item: 2, section: 0))
+        let statisticsCell = service.collectionView(collectionView, cellForItemAt: IndexPath(item: 3, section: 0))
 
-        XCTAssertNotNil(firstThemeCell.contentView.descendant(withAccessibilityIdentifier: "music"))
-        XCTAssertNotNil(secondThemeCell.contentView.descendant(withAccessibilityIdentifier: "technology"))
+        XCTAssertNotNil(firstThemeCell?.contentView.descendant(withAccessibilityIdentifier: "music"))
+        XCTAssertNotNil(secondThemeCell?.contentView.descendant(withAccessibilityIdentifier: "technology"))
         XCTAssertNotNil(aiThemeCell.contentView.descendant(withAccessibilityIdentifier: "homeCreateWithAIButton"))
         XCTAssertNotNil(feelingLuckyCell.contentView.descendant(withAccessibilityIdentifier: "homeFeelingLuckyButton"))
         XCTAssertNotNil(statisticsCell.contentView.descendant(withAccessibilityIdentifier: "homeStatisticsCard"))
@@ -44,7 +53,7 @@ final class HomeCollectionServiceTests: HomeScreenVisualStateTestCase {
         let service = ThemesCollectionService(
             preferredThemeIDsProvider: { ["history_culture", "politics_business"] }
         )
-        let collectionView = makeCollectionView()
+        let collectionView = makeThemeCollectionView()
 
         let expectedThemeIDs = [
             "history_culture",
@@ -72,7 +81,7 @@ final class HomeCollectionServiceTests: HomeScreenVisualStateTestCase {
             makeTheme(name: "Технологии")
         ]
         let service = ThemesCollectionService(preferredThemeIDsProvider: { nil })
-        let collectionView = makeCollectionView()
+        let collectionView = makeThemeCollectionView()
         let expectedThemeIDs = [
             "history_culture",
             "music",
@@ -98,7 +107,7 @@ final class HomeCollectionServiceTests: HomeScreenVisualStateTestCase {
             makeTheme(name: "Музыка", isFavorite: true)
         ]
         let service = ThemesCollectionService(preferredThemeIDsProvider: { [] })
-        let collectionView = makeCollectionView()
+        let collectionView = makeThemeCollectionView()
         let expectedThemeIDs = ["politics_business", "history_culture", "music"]
 
         for (index, themeID) in expectedThemeIDs.enumerated() {
@@ -125,6 +134,8 @@ final class HomeCollectionServiceTests: HomeScreenVisualStateTestCase {
             frame: CGRect(x: 0, y: 0, width: 390, height: 700),
             collectionViewLayout: UICollectionViewFlowLayout()
         )
+        collectionView.accessibilityIdentifier =
+            ThemesCollectionService.Content.themeCatalogAccessibilityID
         collectionView.register(
             ThemeCardCollectionViewCell.self,
             forCellWithReuseIdentifier: ThemeCardCollectionViewCell.reuseIdentifier
@@ -142,60 +153,86 @@ final class HomeCollectionServiceTests: HomeScreenVisualStateTestCase {
         )
     }
 
-    func testCollectionServiceRevealsBackendSizedCatalogAfterFourRows() throws {
-        QuizFactory.shared.themes = (0..<10).map { makeTheme(name: "Theme \($0)") }
+    func testCollectionServiceKeepsFullBackendCatalogScrollable() throws {
+        QuizFactory.shared.themes = (0..<14).map { makeTheme(name: "Theme \($0)") }
         let service = ThemesCollectionService(preferredThemeIDsProvider: { [] })
-        let collectionView = makeCollectionView()
-
-        XCTAssertEqual(service.collectionView(collectionView, numberOfItemsInSection: 0), 12)
-        XCTAssertFalse(service.isShowingAllThemes)
-        let moreCell = service.collectionView(
-            collectionView,
-            cellForItemAt: IndexPath(item: 8, section: 0)
+        let outerCollectionView = makeCollectionView()
+        let viewportSize = service.collectionView(
+            outerCollectionView,
+            layout: outerCollectionView.collectionViewLayout,
+            sizeForItemAt: IndexPath(item: 0, section: 0)
         )
-        let moreButton = try XCTUnwrap(
-            moreCell.contentView.descendant(
-                withAccessibilityIdentifier: ThemesCollectionService.Content.moreThemesAccessibilityID
-            ) as? UIButton
+        let viewportCell = try XCTUnwrap(
+            service.collectionView(
+                outerCollectionView,
+                cellForItemAt: IndexPath(item: 0, section: 0)
+            ) as? ThemesViewportCollectionViewCell
         )
-        XCTAssertEqual(moreButton.accessibilityLabel, L10n.Home.moreThemes)
+        viewportCell.frame = CGRect(origin: .zero, size: viewportSize)
+        viewportCell.contentView.frame = viewportCell.bounds
+        viewportCell.layoutIfNeeded()
+        viewportCell.contentView.layoutIfNeeded()
+        let collectionView = viewportCell.themesCollectionView
+        collectionView.layoutIfNeeded()
 
-        moreButton.sendActions(for: .touchUpInside)
-
-        XCTAssertTrue(service.isShowingAllThemes)
-        XCTAssertEqual(service.collectionView(collectionView, numberOfItemsInSection: 0), 13)
+        XCTAssertEqual(service.collectionView(outerCollectionView, numberOfItemsInSection: 0), 4)
+        XCTAssertEqual(service.collectionView(collectionView, numberOfItemsInSection: 0), 14)
+        XCTAssertEqual(viewportSize.height, 304)
+        XCTAssertGreaterThan(
+            collectionView.collectionViewLayout.collectionViewContentSize.height,
+            collectionView.bounds.height
+        )
         let lastThemeCell = service.collectionView(
             collectionView,
-            cellForItemAt: IndexPath(item: 9, section: 0)
+            cellForItemAt: IndexPath(item: 13, section: 0)
         )
-        XCTAssertNotNil(lastThemeCell.contentView.descendant(withAccessibilityIdentifier: "Theme 9"))
-        let aiThemeCell = service.collectionView(
-            collectionView,
-            cellForItemAt: IndexPath(item: 10, section: 0)
+        XCTAssertNotNil(lastThemeCell.contentView.descendant(withAccessibilityIdentifier: "Theme 13"))
+    }
+
+    func testHomeScreenEnablesNativeScrollingForFullBackendCatalog() throws {
+        QuizFactory.shared.themes = (0..<14).map { makeTheme(name: "Theme \($0)") }
+        let viewController = makeHomeViewController(
+            in: CGRect(x: 0, y: 0, width: 390, height: 844)
         )
-        XCTAssertNotNil(
-            aiThemeCell.contentView.descendant(
-                withAccessibilityIdentifier: ThemesCollectionService.Content.aiThemeAccessibilityID
-            )
+        viewController.view.layoutIfNeeded()
+        let outerCollectionView = try XCTUnwrap(
+            viewController.view.descendant(
+                withAccessibilityIdentifier: "homeThemesCollectionView"
+            ) as? UICollectionView
         )
+        let collectionView = try XCTUnwrap(
+            viewController.view.descendant(
+                withAccessibilityIdentifier: ThemesCollectionService.Content.themeCatalogAccessibilityID
+            ) as? UICollectionView
+        )
+
+        XCTAssertTrue(collectionView.isScrollEnabled)
+        XCTAssertTrue(collectionView.alwaysBounceVertical)
+        XCTAssertEqual(collectionView.bounds.height, 304, accuracy: 0.5)
+        XCTAssertGreaterThan(
+            collectionView.collectionViewLayout.collectionViewContentSize.height,
+            collectionView.bounds.height
+        )
+        XCTAssertTrue(outerCollectionView.contentSize.height > 0)
     }
 
     func testCollectionServiceUsesTwoColumnThemeCardsAndWideActionCards() {
         QuizFactory.shared.themes = [makeTheme(name: "Музыка"), makeTheme(name: "Технологии")]
         let service = ThemesCollectionService()
         let collectionView = makeCollectionView()
-        let layout = collectionView.collectionViewLayout
+        let themeCollectionView = makeThemeCollectionView()
+        let layout = themeCollectionView.collectionViewLayout
 
-        let themeSize = service.collectionView(collectionView, layout: layout, sizeForItemAt: IndexPath(item: 0, section: 0))
-        let aiThemeSize = service.collectionView(collectionView, layout: layout, sizeForItemAt: IndexPath(item: 2, section: 0))
-        let feelingLuckySize = service.collectionView(collectionView, layout: layout, sizeForItemAt: IndexPath(item: 3, section: 0))
-        let statisticsSize = service.collectionView(collectionView, layout: layout, sizeForItemAt: IndexPath(item: 4, section: 0))
+        let themeSize = service.collectionView(themeCollectionView, layout: layout, sizeForItemAt: IndexPath(item: 0, section: 0))
+        let aiThemeSize = service.collectionView(collectionView, layout: collectionView.collectionViewLayout, sizeForItemAt: IndexPath(item: 1, section: 0))
+        let feelingLuckySize = service.collectionView(collectionView, layout: collectionView.collectionViewLayout, sizeForItemAt: IndexPath(item: 2, section: 0))
+        let statisticsSize = service.collectionView(collectionView, layout: collectionView.collectionViewLayout, sizeForItemAt: IndexPath(item: 3, section: 0))
         let inset = service.collectionView(collectionView, layout: layout, insetForSectionAt: 0)
         let lineSpacing = service.collectionView(collectionView, layout: layout, minimumLineSpacingForSectionAt: 0)
         let interitemSpacing = service.collectionView(collectionView, layout: layout, minimumInteritemSpacingForSectionAt: 0)
 
         XCTAssertEqual(themeSize.width, 163)
-        XCTAssertEqual(themeSize.height, 104)
+        XCTAssertEqual(themeSize.height, 64)
         XCTAssertEqual(aiThemeSize.width, 342)
         XCTAssertEqual(aiThemeSize.height, 54)
         XCTAssertEqual(feelingLuckySize.width, 342)
@@ -207,6 +244,44 @@ final class HomeCollectionServiceTests: HomeScreenVisualStateTestCase {
         XCTAssertEqual(inset.bottom, 0)
         XCTAssertEqual(lineSpacing, 16)
         XCTAssertEqual(interitemSpacing, 16)
+    }
+
+    func testCollectionServiceUsesOneSharedDynamicHeightPerThemeRow() {
+        QuizFactory.shared.themes = [
+            makeTheme(name: "Музыка"),
+            makeTheme(name: "История Древнего Рима"),
+            makeTheme(name: "Кино"),
+            makeTheme(name: "Игры")
+        ]
+        let service = ThemesCollectionService()
+        let collectionView = makeThemeCollectionView(width: 327)
+        let layout = collectionView.collectionViewLayout
+
+        let firstRowLeft = service.collectionView(
+            collectionView,
+            layout: layout,
+            sizeForItemAt: IndexPath(item: 0, section: 0)
+        )
+        let firstRowRight = service.collectionView(
+            collectionView,
+            layout: layout,
+            sizeForItemAt: IndexPath(item: 1, section: 0)
+        )
+        let secondRowLeft = service.collectionView(
+            collectionView,
+            layout: layout,
+            sizeForItemAt: IndexPath(item: 2, section: 0)
+        )
+        let secondRowRight = service.collectionView(
+            collectionView,
+            layout: layout,
+            sizeForItemAt: IndexPath(item: 3, section: 0)
+        )
+
+        XCTAssertEqual(firstRowLeft.height, firstRowRight.height)
+        XCTAssertEqual(secondRowLeft.height, secondRowRight.height)
+        XCTAssertGreaterThan(firstRowLeft.height, secondRowLeft.height)
+        XCTAssertEqual(secondRowLeft.height, ThemeCardLayoutMetrics.singleLineHeight)
     }
 
     func testCollectionServiceThemeCardShowsHorizontalContentFromThemeMetadata() throws {
@@ -221,12 +296,17 @@ final class HomeCollectionServiceTests: HomeScreenVisualStateTestCase {
             makeTheme(name: $0.themeName, sfSymbolName: $0.symbolName, colorHex: $0.colorHex)
         }
         let service = ThemesCollectionService()
-        let collectionView = makeCollectionView()
+        let collectionView = makeThemeCollectionView()
         let appearance = AppAppearanceStore.shared.appearance(compatibleWith: collectionView.traitCollection)
 
         for (index, metadata) in themeMetadata.enumerated() {
+            let itemSize = service.collectionView(
+                collectionView,
+                layout: collectionView.collectionViewLayout,
+                sizeForItemAt: IndexPath(item: index, section: 0)
+            )
             let themeCell = service.collectionView(collectionView, cellForItemAt: IndexPath(item: index, section: 0))
-            themeCell.frame = CGRect(x: 0, y: 0, width: 163, height: 104)
+            themeCell.frame = CGRect(origin: .zero, size: itemSize)
             themeCell.contentView.frame = themeCell.bounds
             themeCell.layoutIfNeeded()
             themeCell.contentView.layoutIfNeeded()
@@ -246,8 +326,9 @@ final class HomeCollectionServiceTests: HomeScreenVisualStateTestCase {
             XCTAssertEqual(imageView.transform, .identity)
             XCTAssertEqual(titleLabel.text, metadata.themeName)
             XCTAssertEqual(titleLabel.textAlignment, .left)
-            XCTAssertEqual(titleLabel.numberOfLines, 3)
+            XCTAssertEqual(titleLabel.numberOfLines, ThemeCardLayoutMetrics.maximumTitleLines)
             XCTAssertEqual(titleLabel.lineBreakMode, .byWordWrapping)
+            XCTAssertEqual(titleLabel.font.pointSize, ThemeCardLayoutMetrics.titleFontSize, accuracy: 0.01)
             assertColor(themeButton.backgroundColor, equals: assetColor("themeWhite"))
             assertColor(titleLabel.textColor, equals: assetColor("themeCleanSurfaceText"))
             assertColor(UIColor(cgColor: themeButton.layer.borderColor ?? UIColor.clear.cgColor), equals: borderColor)
@@ -255,7 +336,13 @@ final class HomeCollectionServiceTests: HomeScreenVisualStateTestCase {
             let iconSlot = try XCTUnwrap(imageView.superview)
             XCTAssertLessThan(iconSlot.frame.maxX, titleLabel.frame.minX)
             XCTAssertEqual(iconSlot.center.y, titleLabel.center.y, accuracy: 0.5)
-            XCTAssertEqual(iconSlot.bounds.size, CGSize(width: 42, height: 42))
+            XCTAssertEqual(
+                iconSlot.bounds.size,
+                CGSize(
+                    width: ThemeCardLayoutMetrics.iconSize,
+                    height: ThemeCardLayoutMetrics.iconSize
+                )
+            )
 
             let iconViews = imageView.superview?.subviews.compactMap { $0 as? UIImageView } ?? []
             XCTAssertEqual(iconViews.count, 2)
@@ -283,9 +370,14 @@ final class HomeCollectionServiceTests: HomeScreenVisualStateTestCase {
             makeTheme(name: $0.themeName, sfSymbolName: $0.symbolName, colorHex: $0.colorHex)
         }
         let service = ThemesCollectionService()
-        let collectionView = makeCollectionView()
+        let collectionView = makeThemeCollectionView()
 
         for (index, metadata) in themeMetadata.enumerated() {
+            let itemSize = service.collectionView(
+                collectionView,
+                layout: collectionView.collectionViewLayout,
+                sizeForItemAt: IndexPath(item: index, section: 0)
+            )
             let themeCell = service.collectionView(collectionView, cellForItemAt: IndexPath(item: index, section: 0))
             let imageView = try XCTUnwrap(
                 themeCell.contentView.descendant(
@@ -296,7 +388,7 @@ final class HomeCollectionServiceTests: HomeScreenVisualStateTestCase {
             let expectedImage = try XCTUnwrap(expectedSymbolImage?.withRenderingMode(.alwaysTemplate))
             let tintColor = try XCTUnwrap(ThemeVisualCatalog.color(from: metadata.colorHex))
 
-            themeCell.frame = CGRect(x: 0, y: 0, width: 163, height: 104)
+            themeCell.frame = CGRect(origin: .zero, size: itemSize)
             themeCell.contentView.frame = themeCell.bounds
             themeCell.layoutIfNeeded()
             themeCell.contentView.layoutIfNeeded()
@@ -304,7 +396,13 @@ final class HomeCollectionServiceTests: HomeScreenVisualStateTestCase {
             XCTAssertEqual(imageView.image?.pngData(), expectedImage.pngData())
             XCTAssertEqual(imageView.image?.renderingMode, .alwaysTemplate)
             assertColor(imageView.tintColor, equals: tintColor)
-            XCTAssertEqual(imageView.superview?.bounds.size, CGSize(width: 42, height: 42))
+            XCTAssertEqual(
+                imageView.superview?.bounds.size,
+                CGSize(
+                    width: ThemeCardLayoutMetrics.iconSize,
+                    height: ThemeCardLayoutMetrics.iconSize
+                )
+            )
             XCTAssertEqual(imageView.transform, .identity)
 
             let iconViews = imageView.superview?.subviews.compactMap { $0 as? UIImageView } ?? []
@@ -317,12 +415,12 @@ final class HomeCollectionServiceTests: HomeScreenVisualStateTestCase {
         }
     }
 
-    func testCompactRadarThemeTitleShrinksAcrossAvailableLinesWithoutTruncation() throws {
+    func testCompactRadarThemeTitleUsesDynamicHeightWithoutShrinking() throws {
         useDesignStyle(.radar)
         let theme = makeTheme(name: "История Древнего Рима")
         QuizFactory.shared.themes = [theme]
         let service = ThemesCollectionService()
-        let collectionView = makeCollectionView(width: 375)
+        let collectionView = makeThemeCollectionView(width: 327)
         let indexPath = IndexPath(item: 0, section: 0)
         let itemSize = service.collectionView(
             collectionView,
@@ -342,7 +440,7 @@ final class HomeCollectionServiceTests: HomeScreenVisualStateTestCase {
         let baseFont = AppAppearanceStore.shared
             .appearance(compatibleWith: collectionView.traitCollection)
             .typography
-            .font(size: 18, weight: .semibold)
+            .font(size: ThemeCardLayoutMetrics.titleFontSize, weight: .semibold)
         let requiredHeight = (titleLabel.text! as NSString).boundingRect(
             with: CGSize(width: titleLabel.bounds.width, height: .greatestFiniteMagnitude),
             options: [.usesLineFragmentOrigin, .usesFontLeading],
@@ -350,9 +448,40 @@ final class HomeCollectionServiceTests: HomeScreenVisualStateTestCase {
             context: nil
         ).height
 
-        XCTAssertLessThan(titleLabel.font.pointSize, baseFont.pointSize)
-        XCTAssertGreaterThanOrEqual(titleLabel.font.pointSize, baseFont.pointSize * 0.72 - 0.1)
+        XCTAssertGreaterThan(itemSize.height, ThemeCardLayoutMetrics.singleLineHeight)
+        XCTAssertEqual(titleLabel.font.pointSize, baseFont.pointSize, accuracy: 0.01)
         XCTAssertLessThanOrEqual(ceil(requiredHeight), ceil(titleLabel.bounds.height) + 0.5)
+    }
+
+    func testSingleWordThemeTitleStaysOnOneLineWithoutClipping() throws {
+        useDesignStyle(.classic)
+        let theme = makeTheme(name: "Технологии")
+        QuizFactory.shared.themes = [theme]
+        let service = ThemesCollectionService()
+        let collectionView = makeThemeCollectionView(width: 342)
+        let indexPath = IndexPath(item: 0, section: 0)
+        let itemSize = service.collectionView(
+            collectionView,
+            layout: collectionView.collectionViewLayout,
+            sizeForItemAt: indexPath
+        )
+        let themeCell = service.collectionView(collectionView, cellForItemAt: indexPath)
+        themeCell.frame = CGRect(origin: .zero, size: itemSize)
+        themeCell.contentView.frame = themeCell.bounds
+        themeCell.layoutIfNeeded()
+        themeCell.contentView.layoutIfNeeded()
+
+        let titleIdentifier = "\(ThemesCollectionService.Content.themeTitleAccessibilityIDPrefix)-\(theme.stableID)"
+        let titleLabel = try XCTUnwrap(
+            themeCell.contentView.descendant(withAccessibilityIdentifier: titleIdentifier) as? UILabel
+        )
+        let renderedWidth = (titleLabel.text! as NSString).size(
+            withAttributes: [.font: titleLabel.font!]
+        ).width
+
+        XCTAssertEqual(itemSize.height, ThemeCardLayoutMetrics.singleLineHeight)
+        XCTAssertEqual(titleLabel.font.pointSize, ThemeCardLayoutMetrics.titleFontSize, accuracy: 0.01)
+        XCTAssertLessThanOrEqual(ceil(renderedWidth), floor(titleLabel.bounds.width))
     }
 
     func testCollectionServiceAppliesPolishedCardStylingWithoutChangingIdentifiers() {
@@ -360,8 +489,9 @@ final class HomeCollectionServiceTests: HomeScreenVisualStateTestCase {
         QuizFactory.shared.themes = [makeTheme(name: "Музыка")]
         let service = ThemesCollectionService()
         let collectionView = makeCollectionView()
+        let themeCollectionView = makeThemeCollectionView()
 
-        let themeCell = service.collectionView(collectionView, cellForItemAt: IndexPath(item: 0, section: 0))
+        let themeCell = service.collectionView(themeCollectionView, cellForItemAt: IndexPath(item: 0, section: 0))
         let aiThemeCell = service.collectionView(collectionView, cellForItemAt: IndexPath(item: 1, section: 0))
         let feelingLuckyCell = service.collectionView(collectionView, cellForItemAt: IndexPath(item: 2, section: 0))
         let statisticsCell = service.collectionView(collectionView, cellForItemAt: IndexPath(item: 3, section: 0))
@@ -421,7 +551,10 @@ final class HomeCollectionServiceTests: HomeScreenVisualStateTestCase {
         QuizFactory.shared.themes = [makeTheme(name: "Музыка")]
 
         let service = ThemesCollectionService()
-        let themeCell = service.collectionView(makeCollectionView(), cellForItemAt: IndexPath(item: 0, section: 0))
+        let themeCell = service.collectionView(
+            makeThemeCollectionView(),
+            cellForItemAt: IndexPath(item: 0, section: 0)
+        )
 
         XCTAssertGreaterThan(themeCell.layer.shadowOpacity, 0)
     }
@@ -545,8 +678,9 @@ final class HomeCollectionServiceTests: HomeScreenVisualStateTestCase {
         QuizFactory.shared.themes = [makeTheme(name: "Музыка")]
         let service = ThemesCollectionService()
         let collectionView = makeCollectionView()
+        let themeCollectionView = makeThemeCollectionView()
 
-        let themeCell = service.collectionView(collectionView, cellForItemAt: IndexPath(item: 0, section: 0))
+        let themeCell = service.collectionView(themeCollectionView, cellForItemAt: IndexPath(item: 0, section: 0))
         let aiThemeCell = service.collectionView(collectionView, cellForItemAt: IndexPath(item: 1, section: 0))
         let statisticsCell = service.collectionView(collectionView, cellForItemAt: IndexPath(item: 3, section: 0))
         let imageView = try XCTUnwrap(themeCell.contentView.descendant(withAccessibilityIdentifier: "homeThemeImageView-music") as? UIImageView)
@@ -603,12 +737,14 @@ final class HomeCollectionServiceTests: HomeScreenVisualStateTestCase {
         let service = ThemesCollectionService()
         let collectionView = makeCollectionView()
 
-        XCTAssertEqual(service.collectionView(collectionView, numberOfItemsInSection: 0), 3)
+        XCTAssertEqual(service.collectionView(collectionView, numberOfItemsInSection: 0), 4)
 
-        let aiThemeCell = service.collectionView(collectionView, cellForItemAt: IndexPath(item: 0, section: 0))
-        let feelingLuckyCell = service.collectionView(collectionView, cellForItemAt: IndexPath(item: 1, section: 0))
-        let statisticsCell = service.collectionView(collectionView, cellForItemAt: IndexPath(item: 2, section: 0))
+        let viewportCell = service.collectionView(collectionView, cellForItemAt: IndexPath(item: 0, section: 0))
+        let aiThemeCell = service.collectionView(collectionView, cellForItemAt: IndexPath(item: 1, section: 0))
+        let feelingLuckyCell = service.collectionView(collectionView, cellForItemAt: IndexPath(item: 2, section: 0))
+        let statisticsCell = service.collectionView(collectionView, cellForItemAt: IndexPath(item: 3, section: 0))
 
+        XCTAssertTrue(viewportCell is ThemesViewportCollectionViewCell)
         XCTAssertNotNil(aiThemeCell.contentView.descendant(withAccessibilityIdentifier: "homeCreateWithAIButton"))
         XCTAssertNotNil(feelingLuckyCell.contentView.descendant(withAccessibilityIdentifier: "homeFeelingLuckyButton"))
         XCTAssertNotNil(statisticsCell.contentView.descendant(withAccessibilityIdentifier: "homeStatisticsCard"))

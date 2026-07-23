@@ -62,13 +62,13 @@ extension QuizViewController {
         guard
             homeCardState.phase == .grid,
             !isQuizLaunchPending,
-            session.loadTheme(themeID: themeID),
-            let theme = themeRepository.themes?.first(where: { $0.stableID == themeID }),
-            let chosenTheme = session.chosenTheme
+            let theme = themeRepository.themes?.first(where: { $0.stableID == themeID })
         else {
             updateThemeAvailabilityMessage()
             return
         }
+        let chosenTheme = ThemeModel(quizTheme: theme)
+        session.chosenTheme = chosenTheme
 
         sender.layer.removeAllAnimations()
         sender.transform = .identity
