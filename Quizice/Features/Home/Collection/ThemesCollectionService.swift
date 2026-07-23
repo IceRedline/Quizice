@@ -93,7 +93,7 @@ final class ThemesCollectionService: NSObject, UICollectionViewDelegate, UIColle
 
     private let themeRepository: ThemeRepository
     private let statisticsStore: StatisticsStore
-    private let preferredThemeIDsProvider: () -> Set<String>
+    private let preferredThemeIDsProvider: () -> [String]?
     private let appearanceStore = AppAppearanceStore.shared
     private weak var observedCollectionView: UICollectionView?
     private(set) var isShowingAllThemes = false
@@ -102,16 +102,26 @@ final class ThemesCollectionService: NSObject, UICollectionViewDelegate, UIColle
     private var displayedThemes: [QuizTheme] {
         let themes = themeRepository.themes ?? []
         let preferredThemeIDs = preferredThemeIDsProvider()
+            ?? themes.filter(\.isFavorite).map(\.stableID)
         guard !preferredThemeIDs.isEmpty else { return themes }
+        let preferredRank = Dictionary(
+            uniqueKeysWithValues: preferredThemeIDs.enumerated().map { ($0.element, $0.offset) }
+        )
 
         return themes.enumerated()
             .sorted { lhs, rhs in
-                let lhsIsPreferred = preferredThemeIDs.contains(lhs.element.stableID)
-                let rhsIsPreferred = preferredThemeIDs.contains(rhs.element.stableID)
-                if lhsIsPreferred != rhsIsPreferred {
-                    return lhsIsPreferred
+                let lhsRank = preferredRank[lhs.element.stableID]
+                let rhsRank = preferredRank[rhs.element.stableID]
+                switch (lhsRank, rhsRank) {
+                case let (.some(lhsRank), .some(rhsRank)):
+                    return lhsRank < rhsRank
+                case (.some, .none):
+                    return true
+                case (.none, .some):
+                    return false
+                case (.none, .none):
+                    return lhs.offset < rhs.offset
                 }
-                return lhs.offset < rhs.offset
             }
             .map { $0.element }
     }
@@ -148,8 +158,10 @@ final class ThemesCollectionService: NSObject, UICollectionViewDelegate, UIColle
     init(
         themeRepository: ThemeRepository = QuizFactory.shared,
         statisticsStore: StatisticsStore = StatisticsStore(),
-        preferredThemeIDsProvider: @escaping () -> Set<String> = {
-            OnboardingProgressStore.shared.preferredThemeIDs
+        preferredThemeIDsProvider: @escaping () -> [String]? = {
+            OnboardingProgressStore.shared.storedPreferredThemeIDs(
+                locale: AppLocalizationStore.shared.resolvedLanguageCode
+            )
         }
     ) {
         self.themeRepository = themeRepository

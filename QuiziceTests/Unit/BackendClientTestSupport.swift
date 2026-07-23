@@ -28,6 +28,12 @@ final class BackendMetricSpy: BackendRequestMetricRecording {
     func record(_ metric: BackendRequestMetric) { values.append(metric) }
 }
 
+struct BackendAccessTokenStub: BackendAccessTokenProviding {
+    let token: String?
+
+    func validAccessToken() -> String? { token }
+}
+
 final class BackendMemorySessionStore: SessionStoring {
     var session: AuthSession?
 
@@ -154,6 +160,70 @@ final class RecordingBackendContentAPI: BackendContentAPI {
     }
 }
 
+final class ThemePreferencesBackendContentAPI: BackendContentAPI {
+    private let catalogThemes: [BackendThemeDTO]
+    var remoteFavoriteThemeIDs: [String]
+    var preferencesError: Error?
+    private(set) var fetchedPreferenceLocales: [String] = []
+    private(set) var replacedPreferences: [(locale: String, themeIDs: [String])] = []
+
+    init(
+        catalogThemes: [BackendThemeDTO],
+        remoteFavoriteThemeIDs: [String] = []
+    ) {
+        self.catalogThemes = catalogThemes
+        self.remoteFavoriteThemeIDs = remoteFavoriteThemeIDs
+    }
+
+    func fetchThemes(locale: String) async throws -> BackendThemeCatalogResponse {
+        BackendThemeCatalogResponse(locale: locale, themes: catalogThemes)
+    }
+
+    func fetchThemePreferences(locale: String) async throws -> BackendThemePreferencesResponse {
+        fetchedPreferenceLocales.append(locale)
+        if let preferencesError {
+            throw preferencesError
+        }
+        return BackendThemePreferencesResponse(
+            locale: locale,
+            favoriteThemeIds: remoteFavoriteThemeIDs
+        )
+    }
+
+    func replaceThemePreferences(
+        locale: String,
+        favoriteThemeIDs: [String]
+    ) async throws -> BackendThemePreferencesResponse {
+        replacedPreferences.append((locale, favoriteThemeIDs))
+        if let preferencesError {
+            throw preferencesError
+        }
+        remoteFavoriteThemeIDs = favoriteThemeIDs
+        return BackendThemePreferencesResponse(
+            locale: locale,
+            favoriteThemeIds: favoriteThemeIDs
+        )
+    }
+
+    func fetchQuestions(
+        themeID: String,
+        count: Int,
+        locale: String,
+        seed: String
+    ) async throws -> BackendQuestionBatchResponse {
+        throw URLError(.unsupportedURL)
+    }
+
+    func fetchRandomQuestions(
+        selectionMode: CrossThemeQuestionSelectionMode,
+        count: Int,
+        locale: String,
+        seed: String
+    ) async throws -> BackendQuestionBatchResponse {
+        throw URLError(.unsupportedURL)
+    }
+}
+
 final class SequencedCatalogBackendContentAPI: BackendContentAPI {
     private var fetchCount = 0
 
@@ -169,7 +239,8 @@ final class SequencedCatalogBackendContentAPI: BackendContentAPI {
                     description: "Remote Description",
                     sfSymbol: "music.note.list",
                     emoji: "🎵",
-                    colorHex: "#FF8252"
+                    colorHex: "#FF8252",
+                    isFavorite: false
                 )
             ]
         )

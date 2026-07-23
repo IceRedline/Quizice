@@ -6,17 +6,26 @@ final class OnboardingProgressStoreTests: XCTestCase {
         withStore { store, _ in
             XCTAssertTrue(store.needsOnboarding)
             XCTAssertTrue(store.preferredThemeIDs.isEmpty)
+            XCTAssertNil(store.storedPreferredThemeIDs(locale: "ru"))
         }
     }
 
     func testCompletionPersistsVersionAndPreferredThemesAcrossStoreInstances() {
         withStore { store, defaults in
-            store.complete(preferredThemeIDs: ["technology", "music"])
+            store.complete(
+                preferredThemeIDs: ["technology", "music"],
+                locale: "ru"
+            )
 
             let reopenedStore = OnboardingProgressStore(userDefaults: defaults)
 
             XCTAssertFalse(reopenedStore.needsOnboarding)
             XCTAssertEqual(reopenedStore.preferredThemeIDs, ["music", "technology"])
+            XCTAssertEqual(
+                reopenedStore.orderedPreferredThemeIDs(locale: "ru"),
+                ["technology", "music"]
+            )
+            XCTAssertTrue(reopenedStore.hasPendingThemePreferences(locale: "ru"))
             XCTAssertEqual(
                 defaults.integer(forKey: OnboardingProgressStore.Keys.completedVersion),
                 OnboardingProgressStore.currentVersion
@@ -35,6 +44,52 @@ final class OnboardingProgressStoreTests: XCTestCase {
                 defaults.integer(forKey: OnboardingProgressStore.Keys.completedVersion),
                 OnboardingProgressStore.currentVersion
             )
+        }
+    }
+
+    func testPreferencesAreIndependentForEachLocale() {
+        withStore { store, _ in
+            store.complete(preferredThemeIDs: ["music", "space"], locale: "ru")
+            store.applyRemotePreferredThemeIDs(["cinema"], locale: "en")
+
+            XCTAssertEqual(
+                store.orderedPreferredThemeIDs(locale: "ru"),
+                ["music", "space"]
+            )
+            XCTAssertEqual(
+                store.orderedPreferredThemeIDs(locale: "en"),
+                ["cinema"]
+            )
+            XCTAssertTrue(store.hasPendingThemePreferences(locale: "ru"))
+            XCTAssertFalse(store.hasPendingThemePreferences(locale: "en"))
+        }
+    }
+
+    func testRemotePreferencesReplaceLocalOrderAndClearPendingFlag() {
+        withStore { store, _ in
+            store.complete(preferredThemeIDs: ["music", "space"], locale: "ru")
+
+            store.applyRemotePreferredThemeIDs(
+                ["space", "cinema", "music"],
+                locale: "ru"
+            )
+
+            XCTAssertEqual(
+                store.orderedPreferredThemeIDs(locale: "ru"),
+                ["space", "cinema", "music"]
+            )
+            XCTAssertFalse(store.hasPendingThemePreferences(locale: "ru"))
+        }
+    }
+
+    func testExplicitEmptySelectionIsDifferentFromMissingPreferences() {
+        withStore { store, _ in
+            XCTAssertNil(store.storedPreferredThemeIDs(locale: "ru"))
+
+            store.complete(preferredThemeIDs: [], locale: "ru")
+
+            XCTAssertEqual(store.storedPreferredThemeIDs(locale: "ru"), [])
+            XCTAssertTrue(store.hasPendingThemePreferences(locale: "ru"))
         }
     }
 

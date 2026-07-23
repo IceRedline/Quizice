@@ -18,6 +18,7 @@ class HomeScreenVisualStateTestCase: XCTestCase {
         UserDefaults.standard.set(AppBackgroundStyle.defaultStyle.rawValue, forKey: AppAppearanceStore.Keys.backgroundStyle)
         UserDefaults.standard.removeObject(forKey: OnboardingProgressStore.Keys.completedVersion)
         UserDefaults.standard.removeObject(forKey: OnboardingProgressStore.Keys.preferredThemeIDs)
+        resetLocalizedThemePreferences()
 #if DEBUG
         UserDefaults.standard.removeObject(forKey: DebugBackendSettings.useLocalContentOnlyKey)
         UserDefaults.standard.removeObject(forKey: DebugBackendSettings.useLocalhostKey)
@@ -35,6 +36,7 @@ class HomeScreenVisualStateTestCase: XCTestCase {
         UserDefaults.standard.removeObject(forKey: AppLocalizationStore.Keys.language)
         UserDefaults.standard.removeObject(forKey: OnboardingProgressStore.Keys.completedVersion)
         UserDefaults.standard.removeObject(forKey: OnboardingProgressStore.Keys.preferredThemeIDs)
+        resetLocalizedThemePreferences()
 #if DEBUG
         UserDefaults.standard.removeObject(forKey: DebugBackendSettings.useLocalContentOnlyKey)
         UserDefaults.standard.removeObject(forKey: DebugBackendSettings.useLocalhostKey)
@@ -140,7 +142,8 @@ class HomeScreenVisualStateTestCase: XCTestCase {
         description: String = "Synthetic home-screen test theme",
         sfSymbolName: String? = nil,
         emoji: String? = nil,
-        colorHex: String? = nil
+        colorHex: String? = nil,
+        isFavorite: Bool = false
     ) -> QuizTheme {
         let id: String
         switch name {
@@ -176,7 +179,8 @@ class HomeScreenVisualStateTestCase: XCTestCase {
             questions: questions,
             sfSymbolName: sfSymbolName ?? metadata.sfSymbol,
             emoji: emoji ?? metadata.emoji,
-            colorHex: colorHex ?? metadata.colorHex
+            colorHex: colorHex ?? metadata.colorHex,
+            isFavorite: isFavorite
         )
     }
 
@@ -213,6 +217,20 @@ class HomeScreenVisualStateTestCase: XCTestCase {
         UserDefaults.standard.removeObject(forKey: AppAppearanceStore.Keys.designStyle)
         UserDefaults.standard.removeObject(forKey: AppAppearanceStore.Keys.cleanColorScheme)
         UserDefaults.standard.removeObject(forKey: AppAppearanceStore.Keys.backgroundStyle)
+    }
+
+    private func resetLocalizedThemePreferences() {
+        UserDefaults.standard.removeObject(
+            forKey: OnboardingProgressStore.Keys.legacyPreferencesMigrationLocale
+        )
+        AppLanguagePreference.allCases.compactMap(\.languageCode).forEach { locale in
+            UserDefaults.standard.removeObject(
+                forKey: OnboardingProgressStore.Keys.preferredThemeIDs(locale: locale)
+            )
+            UserDefaults.standard.removeObject(
+                forKey: OnboardingProgressStore.Keys.pendingThemePreferences(locale: locale)
+            )
+        }
     }
 
     func assertColor(_ actual: UIColor?, equals expected: UIColor, file: StaticString = #filePath, line: UInt = #line) {
