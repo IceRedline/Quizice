@@ -121,7 +121,7 @@ final class ThemeCardCollectionViewCell: UICollectionViewCell {
         contentView.clipsToBounds = false
         backgroundColor = .clear
         layer.masksToBounds = false
-        applyShadow(appearance.themeCardShadow)
+        applyShadow(.none)
 
         actionButton.accessibilityIdentifier = themeID
         actionButton.accessibilityLabel = L10n.ThemeCard.accessibilityLabel(themeName: theme.theme)
