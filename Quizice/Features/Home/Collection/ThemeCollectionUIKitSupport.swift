@@ -80,8 +80,21 @@ final class GradientBorderView: UIView {
 }
 
 final class MoreThemesFadeButton: UIControl {
+    private enum Layout {
+        static let chevronSize: CGFloat = 18
+        static let chevronSpacing: CGFloat = 8
+        static let titleCenterOffset: CGFloat = -11
+        static let contentBottomInset: CGFloat = 18
+    }
+
+    private enum Animation {
+        static let visibilityDuration: TimeInterval = 0.20
+    }
+
     private let titleLabel = UILabel()
     private let chevronView = UIImageView()
+    private var visibilityAnimator: UIViewPropertyAnimator?
+    private var isVisibilityTargetVisible = true
 
     override init(frame: CGRect) {
         super.init(frame: frame)
@@ -100,14 +113,23 @@ final class MoreThemesFadeButton: UIControl {
         addSubview(titleLabel)
         addSubview(chevronView)
         NSLayoutConstraint.activate([
-            titleLabel.centerXAnchor.constraint(equalTo: centerXAnchor, constant: -9),
-            titleLabel.centerYAnchor.constraint(equalTo: bottomAnchor, constant: -18),
+            titleLabel.centerXAnchor.constraint(
+                equalTo: centerXAnchor,
+                constant: Layout.titleCenterOffset
+            ),
+            titleLabel.centerYAnchor.constraint(
+                equalTo: bottomAnchor,
+                constant: -Layout.contentBottomInset
+            ),
             titleLabel.leadingAnchor.constraint(greaterThanOrEqualTo: leadingAnchor, constant: 24),
-            chevronView.leadingAnchor.constraint(equalTo: titleLabel.trailingAnchor, constant: 7),
+            chevronView.leadingAnchor.constraint(
+                equalTo: titleLabel.trailingAnchor,
+                constant: Layout.chevronSpacing
+            ),
             chevronView.centerYAnchor.constraint(equalTo: titleLabel.centerYAnchor),
             chevronView.trailingAnchor.constraint(lessThanOrEqualTo: trailingAnchor, constant: -24),
-            chevronView.widthAnchor.constraint(equalToConstant: 12),
-            chevronView.heightAnchor.constraint(equalToConstant: 12)
+            chevronView.widthAnchor.constraint(equalToConstant: Layout.chevronSize),
+            chevronView.heightAnchor.constraint(equalToConstant: Layout.chevronSize)
         ])
     }
 
@@ -140,15 +162,48 @@ final class MoreThemesFadeButton: UIControl {
         titleLabel.font = appearance.typography.font(size: 17, weight: .semibold)
         chevronView.image = UIImage(
             systemName: "chevron.down",
-            withConfiguration: UIImage.SymbolConfiguration(weight: .bold)
+            withConfiguration: UIImage.SymbolConfiguration(
+                pointSize: Layout.chevronSize,
+                weight: .bold
+            )
         )
         chevronView.tintColor = appearance.screenTextColor
     }
 
-    func updateVisibility(distanceFromTop: CGFloat, fadeDistance: CGFloat) {
-        let progress = min(max(distanceFromTop / max(fadeDistance, 1), 0), 1)
-        alpha = 1 - progress
-        isHidden = progress >= 1
+    func setVisible(_ isVisible: Bool, animated: Bool) {
+        guard isVisibilityTargetVisible != isVisible else { return }
+        isVisibilityTargetVisible = isVisible
+        isUserInteractionEnabled = isVisible
+
+        visibilityAnimator?.stopAnimation(false)
+        visibilityAnimator?.finishAnimation(at: .current)
+
+        if isVisible {
+            isHidden = false
+        }
+
+        guard animated else {
+            alpha = isVisible ? 1 : 0
+            isHidden = !isVisible
+            return
+        }
+
+        let animator = UIViewPropertyAnimator(
+            duration: Animation.visibilityDuration,
+            curve: .easeInOut
+        ) {
+            self.alpha = isVisible ? 1 : 0
+        }
+        animator.addCompletion { [weak self] _ in
+            guard
+                let self,
+                self.isVisibilityTargetVisible == isVisible
+            else { return }
+            self.isHidden = !isVisible
+            self.visibilityAnimator = nil
+        }
+        visibilityAnimator = animator
+        animator.startAnimation()
     }
 }
 
