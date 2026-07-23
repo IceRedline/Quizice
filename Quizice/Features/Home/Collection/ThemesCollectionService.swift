@@ -37,7 +37,7 @@ final class ThemesCollectionService: NSObject, UICollectionViewDelegate, UIColle
         static let cellShadowOffset = CGSize(width: 0, height: 12)
         static let cellShadowRadius: CGFloat = 22
         static let moreThemesButtonHeight: CGFloat = 82
-        static let moreThemesFadeDistance: CGFloat = 52
+        static let moreThemesVisibilityThreshold: CGFloat = 5
     }
 
     private enum Appearance {
@@ -325,7 +325,7 @@ final class ThemesCollectionService: NSObject, UICollectionViewDelegate, UIColle
     func scrollViewDidScroll(_ scrollView: UIScrollView) {
         if let collectionView = scrollView as? UICollectionView,
            isThemeItemsCollectionView(collectionView) {
-            updateMoreThemesButtonVisibility()
+            updateMoreThemesButtonVisibility(animated: true)
             return
         }
         delegate?.themesCollectionDidScroll(scrollView)
@@ -720,10 +720,7 @@ final class ThemesCollectionService: NSObject, UICollectionViewDelegate, UIColle
     private func configureMoreThemesButton() {
         guard let button = moreThemesButton else { return }
         guard showsMoreThemesButton else {
-            button.updateVisibility(
-                distanceFromTop: Layout.moreThemesFadeDistance,
-                fadeDistance: Layout.moreThemesFadeDistance
-            )
+            button.setVisible(false, animated: false)
             (themeItemsCollectionView as? HomeThemesCollectionView)?
                 .updateBottomFade(visibility: 0, height: 0)
             return
@@ -732,10 +729,10 @@ final class ThemesCollectionService: NSObject, UICollectionViewDelegate, UIColle
         button.configure(
             appearance: appearanceStore.appearance(compatibleWith: collectionView.traitCollection)
         )
-        updateMoreThemesButtonVisibility()
+        updateMoreThemesButtonVisibility(animated: false)
     }
 
-    private func updateMoreThemesButtonVisibility() {
+    private func updateMoreThemesButtonVisibility(animated: Bool) {
         guard
             showsMoreThemesButton,
             let collectionView = themeItemsCollectionView,
@@ -744,17 +741,12 @@ final class ThemesCollectionService: NSObject, UICollectionViewDelegate, UIColle
 
         let distanceFromTop = collectionView.contentOffset.y
             + collectionView.adjustedContentInset.top
-        let scrollProgress = min(
-            max(distanceFromTop / max(Layout.moreThemesFadeDistance, 1), 0),
-            1
-        )
-        button.updateVisibility(
-            distanceFromTop: distanceFromTop,
-            fadeDistance: Layout.moreThemesFadeDistance
-        )
+        let isVisible = distanceFromTop < Layout.moreThemesVisibilityThreshold
+        button.setVisible(isVisible, animated: animated)
         (collectionView as? HomeThemesCollectionView)?.updateBottomFade(
-            visibility: 1 - scrollProgress,
-            height: Layout.moreThemesButtonHeight
+            visibility: isVisible ? 1 : 0,
+            height: Layout.moreThemesButtonHeight,
+            animated: animated
         )
         if !button.isHidden {
             button.superview?.bringSubviewToFront(button)
