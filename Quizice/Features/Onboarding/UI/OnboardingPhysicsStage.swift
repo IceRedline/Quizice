@@ -1,3 +1,4 @@
+import CoreMotion
 import SwiftUI
 import UIKit
 
@@ -60,16 +61,30 @@ struct FallingTopicsStage: UIViewRepresentable {
 
 final class TopicsPhysicsView: UIView {
     private enum Layout {
-        static let glowSafetyInset: CGFloat = 28
+        static let denseColumnGap: CGFloat = 8
+        static let horizontalBoundaryInset: CGFloat = 8
+        static let regularVerticalBoundaryInset: CGFloat = 28
+        static let compactVerticalBoundaryInset: CGFloat = 10
+        static let compactStageHeightThreshold: CGFloat = 430
+        static let minimumDenseCardHeight: CGFloat = 36
     }
 
     private enum Animation {
         static let replayFadeDuration: TimeInterval = 0.5
     }
 
+    private enum Motion {
+        static let updateInterval: TimeInterval = 1 / 60
+        static let smoothingFactor: CGFloat = 0.16
+        static let horizontalSensitivity: CGFloat = 1.18
+        static let minimumPlanarGravity: CGFloat = 0.12
+        static let activationDelayAfterLastDrop: TimeInterval = 0.7
+    }
+
     var onThemeTapped: ((String) -> Void)?
 
     private lazy var animator = UIDynamicAnimator(referenceView: self)
+    private let motionManager = CMMotionManager()
     private var gravityBehavior: UIGravityBehavior?
     private var collisionBehavior: UICollisionBehavior?
     private var itemBehavior: UIDynamicItemBehavior?
@@ -86,6 +101,7 @@ final class TopicsPhysicsView: UIView {
     private var replayFadeGeneration = 0
     private var isReplayFadeRunning = false
     private var lastLayoutSize = CGSize.zero
+    private var filteredMotionGravity = CGVector(dx: 0, dy: 1)
 
     override init(frame: CGRect) {
         super.init(frame: frame)
@@ -193,7 +209,7 @@ final class TopicsPhysicsView: UIView {
         card.addTarget(self, action: #selector(themeCardTapped(_:)), for: .touchUpInside)
         let size = fittedSize(
             card.preferredSize(
-                maximumWidth: max(bounds.width - Layout.glowSafetyInset * 2, 1)
+                maximumWidth: max(bounds.width - Layout.horizontalBoundaryInset * 2, 1)
             )
         )
         let view: UIView = card
@@ -204,11 +220,55 @@ final class TopicsPhysicsView: UIView {
     }
 
     private func fittedSize(_ proposedSize: CGSize) -> CGSize {
-        let populationScale: CGFloat = themes.count > 10 ? 0.78 : themes.count > 6 ? 0.88 : 1
+        let scales: (width: CGFloat, height: CGFloat) = switch themes.count {
+        case 13...:
+            (1, 0.78)
+        case 9...:
+            (0.88, 0.82)
+        case 7...:
+            (0.94, 0.88)
+        default:
+            (1, 1)
+        }
+        let maximumWidth: CGFloat
+        if themes.count > 10 {
+            maximumWidth = (
+                bounds.width
+                    - Layout.horizontalBoundaryInset * 2
+                    - Layout.denseColumnGap
+            ) / 2
+        } else {
+            maximumWidth = bounds.width - Layout.horizontalBoundaryInset * 2
+        }
+        let scaledHeight = proposedSize.height * scales.height
+        let fittedHeight: CGFloat
+        if themes.count > 10 {
+            let rowCount = max(Int(ceil(Double(themes.count) / 2)), 1)
+            let availableHeight = max(
+                bounds.height - verticalBoundaryInset * 2,
+                Layout.minimumDenseCardHeight
+            )
+            let maximumDenseCardHeight = availableHeight / CGFloat(rowCount)
+            fittedHeight = max(
+                min(scaledHeight, maximumDenseCardHeight),
+                Layout.minimumDenseCardHeight
+            )
+        } else {
+            fittedHeight = max(scaledHeight, 54)
+        }
         return CGSize(
-            width: min(proposedSize.width, max(bounds.width - 12, 1)),
-            height: max(proposedSize.height * populationScale, 54)
+            width: min(
+                proposedSize.width * scales.width,
+                max(maximumWidth, 1)
+            ),
+            height: fittedHeight
         )
+    }
+
+    private var verticalBoundaryInset: CGFloat {
+        bounds.height < Layout.compactStageHeightThreshold
+            ? Layout.compactVerticalBoundaryInset
+            : Layout.regularVerticalBoundaryInset
     }
 
     private func startPhysics() {
@@ -221,36 +281,42 @@ final class TopicsPhysicsView: UIView {
         let ceilingExtension = max(560, bounds.height * 1.7)
         collisions.addBoundary(
             withIdentifier: "left-wall" as NSString,
-            from: CGPoint(x: Layout.glowSafetyInset, y: -ceilingExtension),
-            to: CGPoint(x: Layout.glowSafetyInset, y: bounds.height - Layout.glowSafetyInset)
+            from: CGPoint(x: Layout.horizontalBoundaryInset, y: -ceilingExtension),
+            to: CGPoint(
+                x: Layout.horizontalBoundaryInset,
+                y: bounds.height - verticalBoundaryInset
+            )
         )
         collisions.addBoundary(
             withIdentifier: "right-wall" as NSString,
-            from: CGPoint(x: bounds.width - Layout.glowSafetyInset, y: -ceilingExtension),
+            from: CGPoint(
+                x: bounds.width - Layout.horizontalBoundaryInset,
+                y: -ceilingExtension
+            ),
             to: CGPoint(
-                x: bounds.width - Layout.glowSafetyInset,
-                y: bounds.height - Layout.glowSafetyInset
+                x: bounds.width - Layout.horizontalBoundaryInset,
+                y: bounds.height - verticalBoundaryInset
             )
         )
         collisions.addBoundary(
             withIdentifier: "floor" as NSString,
             from: CGPoint(
-                x: Layout.glowSafetyInset,
-                y: bounds.height - Layout.glowSafetyInset
+                x: Layout.horizontalBoundaryInset,
+                y: bounds.height - verticalBoundaryInset
             ),
             to: CGPoint(
-                x: bounds.width - Layout.glowSafetyInset,
-                y: bounds.height - Layout.glowSafetyInset
+                x: bounds.width - Layout.horizontalBoundaryInset,
+                y: bounds.height - verticalBoundaryInset
             )
         )
 
         let bodyProperties = UIDynamicItemBehavior()
-        bodyProperties.allowsRotation = true
-        bodyProperties.elasticity = 0.18
-        bodyProperties.friction = 0.78
+        bodyProperties.allowsRotation = themes.count <= 10
+        bodyProperties.elasticity = 0.7
+        bodyProperties.friction = themes.count > 10 ? 0.48 : 0.78
         bodyProperties.resistance = 0.12
-        bodyProperties.angularResistance = 0.32
-        bodyProperties.density = 0.72
+        bodyProperties.angularResistance = themes.count > 10 ? 0.52 : 0.32
+        bodyProperties.density = 0.5
 
         animator.addBehavior(gravity)
         animator.addBehavior(collisions)
@@ -259,6 +325,7 @@ final class TopicsPhysicsView: UIView {
         collisionBehavior = collisions
         itemBehavior = bodyProperties
 
+        let dropInterval = themes.count > 10 ? 0.16 : 0.075
         for (index, pair) in zip(descriptors.indices, zip(descriptors, bodyViews)) {
             let (descriptor, view) = pair
             placeForDrop(view, descriptor: descriptor, index: index)
@@ -268,7 +335,9 @@ final class TopicsPhysicsView: UIView {
                 gravity.addItem(view)
                 collisions.addItem(view)
                 bodyProperties.addItem(view)
-                bodyProperties.addAngularVelocity(descriptor.angularVelocity, for: view)
+                if bodyProperties.allowsRotation {
+                    bodyProperties.addAngularVelocity(descriptor.angularVelocity, for: view)
+                }
                 bodyProperties.addLinearVelocity(
                     CGPoint(x: descriptor.horizontalVelocity, y: CGFloat(index % 3) * 8),
                     for: view
@@ -276,10 +345,30 @@ final class TopicsPhysicsView: UIView {
             }
             pendingDrops.append(drop)
             DispatchQueue.main.asyncAfter(
-                deadline: .now() + Double(index) * 0.075,
+                deadline: .now() + Double(index) * dropInterval,
                 execute: drop
             )
         }
+
+        let lastDropDelay = Double(max(descriptors.count - 1, 0)) * dropInterval
+        let activateMotion = DispatchWorkItem { [weak self] in
+            guard
+                let self,
+                self.isActive,
+                self.collisionBehavior === collisions
+            else { return }
+            collisions.addBoundary(
+                withIdentifier: "ceiling" as NSString,
+                from: CGPoint(x: Layout.horizontalBoundaryInset, y: 0),
+                to: CGPoint(x: bounds.width - Layout.horizontalBoundaryInset, y: 0)
+            )
+            self.startMotionUpdates()
+        }
+        pendingDrops.append(activateMotion)
+        DispatchQueue.main.asyncAfter(
+            deadline: .now() + lastDropDelay + Motion.activationDelayAfterLastDrop,
+            execute: activateMotion
+        )
     }
 
     private func prepareBodiesForDrop() {
@@ -337,15 +426,24 @@ final class TopicsPhysicsView: UIView {
         index: Int
     ) {
         let halfWidth = view.bounds.width / 2
-        let proposedX = bounds.width * descriptor.spawnX
-        let minimumX = halfWidth + Layout.glowSafetyInset
-        let maximumX = bounds.width - halfWidth - Layout.glowSafetyInset
+        let proposedX: CGFloat
+        if themes.count > 10 {
+            let laneX: CGFloat = index.isMultiple(of: 2) ? 0.26 : 0.74
+            let jitter = (descriptor.spawnX - 0.5) * 0.08
+            proposedX = bounds.width * (laneX + jitter)
+        } else {
+            proposedX = bounds.width * descriptor.spawnX
+        }
+        let minimumX = halfWidth + Layout.horizontalBoundaryInset
+        let maximumX = bounds.width - halfWidth - Layout.horizontalBoundaryInset
         let x = min(max(proposedX, minimumX), maximumX)
         view.center = CGPoint(
             x: x,
             y: -view.bounds.height - CGFloat(index % 3) * 28
         )
-        view.transform = CGAffineTransform(rotationAngle: descriptor.initialAngle)
+        view.transform = themes.count > 10
+            ? .identity
+            : CGAffineTransform(rotationAngle: descriptor.initialAngle)
     }
 
     private func layoutStaticPile() {
@@ -365,12 +463,12 @@ final class TopicsPhysicsView: UIView {
         let halfHeight = view.bounds.height / 2
         return CGPoint(
             x: min(
-                max(proposedCenter.x, halfWidth + Layout.glowSafetyInset),
-                bounds.width - halfWidth - Layout.glowSafetyInset
+                max(proposedCenter.x, halfWidth + Layout.horizontalBoundaryInset),
+                bounds.width - halfWidth - Layout.horizontalBoundaryInset
             ),
             y: min(
-                max(proposedCenter.y, halfHeight + Layout.glowSafetyInset),
-                bounds.height - halfHeight - Layout.glowSafetyInset
+                max(proposedCenter.y, halfHeight + verticalBoundaryInset),
+                bounds.height - halfHeight - verticalBoundaryInset
             )
         )
     }
@@ -378,10 +476,66 @@ final class TopicsPhysicsView: UIView {
     private func stopPhysics() {
         pendingDrops.forEach { $0.cancel() }
         pendingDrops.removeAll()
+        stopMotionUpdates()
         animator.removeAllBehaviors()
         gravityBehavior = nil
         collisionBehavior = nil
         itemBehavior = nil
+    }
+
+    private func startMotionUpdates() {
+        guard motionManager.isDeviceMotionAvailable else { return }
+
+        stopMotionUpdates()
+        filteredMotionGravity = CGVector(dx: 0, dy: 1)
+        motionManager.deviceMotionUpdateInterval = Motion.updateInterval
+        let handler: CMDeviceMotionHandler = { [weak self] deviceMotion, _ in
+            guard let self, let gravity = deviceMotion?.gravity else { return }
+            self.applyDeviceGravity(gravity)
+        }
+        let availableFrames = CMMotionManager.availableAttitudeReferenceFrames()
+        if availableFrames.contains(.xArbitraryZVertical) {
+            motionManager.startDeviceMotionUpdates(
+                using: .xArbitraryZVertical,
+                to: .main,
+                withHandler: handler
+            )
+        } else {
+            motionManager.startDeviceMotionUpdates(to: .main, withHandler: handler)
+        }
+    }
+
+    private func stopMotionUpdates() {
+        motionManager.stopDeviceMotionUpdates()
+        filteredMotionGravity = CGVector(dx: 0, dy: 1)
+    }
+
+    private func applyDeviceGravity(_ gravity: CMAcceleration) {
+        let target = CGVector(
+            dx: CGFloat(gravity.x) * Motion.horizontalSensitivity,
+            dy: -CGFloat(gravity.y)
+        )
+        let targetMagnitude = hypot(target.dx, target.dy)
+        guard targetMagnitude >= Motion.minimumPlanarGravity else { return }
+
+        let normalizedTarget = CGVector(
+            dx: target.dx / targetMagnitude,
+            dy: target.dy / targetMagnitude
+        )
+        filteredMotionGravity = CGVector(
+            dx: filteredMotionGravity.dx
+                + (normalizedTarget.dx - filteredMotionGravity.dx) * Motion.smoothingFactor,
+            dy: filteredMotionGravity.dy
+                + (normalizedTarget.dy - filteredMotionGravity.dy) * Motion.smoothingFactor
+        )
+        let filteredMagnitude = max(
+            hypot(filteredMotionGravity.dx, filteredMotionGravity.dy),
+            .leastNonzeroMagnitude
+        )
+        gravityBehavior?.gravityDirection = CGVector(
+            dx: filteredMotionGravity.dx / filteredMagnitude,
+            dy: filteredMotionGravity.dy / filteredMagnitude
+        )
     }
 
     private func updateSelectionAppearance() {
@@ -476,7 +630,8 @@ private final class PhysicsTopicCardView: UIControl {
         titleLabel.numberOfLines = 1
         titleLabel.lineBreakMode = .byTruncatingTail
         titleLabel.adjustsFontSizeToFitWidth = true
-        titleLabel.minimumScaleFactor = 0.76
+        titleLabel.minimumScaleFactor = 0.70
+        titleLabel.allowsDefaultTighteningForTruncation = true
         titleLabel.isUserInteractionEnabled = false
         addSubview(titleLabel)
 
@@ -531,6 +686,9 @@ private final class PhysicsTopicCardView: UIControl {
 
     func configure(appearance: AppAppearance, isSelected: Bool) {
         let tint = ThemeVisualCatalog.tintColor(for: theme)
+        let selectionTint = appearance.designStyle == .radar
+            ? appearance.accentColor
+            : tint
         let textColor = appearance.themeCardTextColor(baseColor: tint)
         backgroundColor = appearance.themeCardBackground(baseColor: tint)
 
@@ -553,12 +711,12 @@ private final class PhysicsTopicCardView: UIControl {
         guard previousSelection != isSelected else { return }
         let usesMotionEmphasis = !UIAccessibility.isReduceMotionEnabled
         let applyCardSelection = { [self] in
-            selectionOverlayView.backgroundColor = tint.withAlphaComponent(
+            selectionOverlayView.backgroundColor = selectionTint.withAlphaComponent(
                 appearance.designStyle == .clean ? 0.14 : 0.24
             )
             selectionOverlayView.alpha = isSelected ? 1 : 0
             layer.borderColor = (
-                isSelected ? tint : appearance.themeCardBorder(baseColor: tint)
+                isSelected ? selectionTint : appearance.themeCardBorder(baseColor: tint)
             ).cgColor
             layer.borderWidth = isSelected
                 ? max(appearance.themeCardBorderWidth + 1.5, 3)
@@ -567,7 +725,7 @@ private final class PhysicsTopicCardView: UIControl {
                 ? CGAffineTransform(translationX: 2, y: 0)
                 : .identity
             if isSelected {
-                layer.shadowColor = tint.cgColor
+                layer.shadowColor = selectionTint.cgColor
                 layer.shadowOpacity = 0.52
                 layer.shadowRadius = 15
                 layer.shadowOffset = .zero

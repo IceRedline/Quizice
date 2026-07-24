@@ -214,6 +214,30 @@ final class HomeCollectionServiceTests: HomeScreenVisualStateTestCase {
             collectionView.bounds.height
         )
         XCTAssertTrue(outerCollectionView.contentSize.height > 0)
+
+        let compactViewController = makeHomeViewController(
+            in: CGRect(x: 0, y: 0, width: 375, height: 667)
+        )
+        compactViewController.view.layoutIfNeeded()
+        let compactOuterCollectionView = try XCTUnwrap(
+            compactViewController.view.descendant(
+                withAccessibilityIdentifier: "homeThemesCollectionView"
+            ) as? UICollectionView
+        )
+        let compactCatalogCollectionView = try XCTUnwrap(
+            compactViewController.view.descendant(
+                withAccessibilityIdentifier: ThemesCollectionService.Content.themeCatalogAccessibilityID
+            ) as? UICollectionView
+        )
+
+        XCTAssertFalse(compactOuterCollectionView.isScrollEnabled)
+        XCTAssertTrue(compactCatalogCollectionView.isScrollEnabled)
+        XCTAssertGreaterThan(compactCatalogCollectionView.bounds.height, 224)
+        XCTAssertLessThan(compactCatalogCollectionView.bounds.height, 304)
+        XCTAssertGreaterThan(
+            compactCatalogCollectionView.collectionViewLayout.collectionViewContentSize.height,
+            compactCatalogCollectionView.bounds.height
+        )
     }
 
     func testCollectionServiceUsesTwoColumnThemeCardsAndWideActionCards() {

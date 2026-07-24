@@ -137,14 +137,14 @@ final class ThemesCollectionService: NSObject, UICollectionViewDelegate, UIColle
     }
 
     private var visibleThemeLimit: Int {
-        Layout.visibleThemeRowCount * Layout.themeColumnCount
+        activeViewportRowCount * Layout.themeColumnCount
     }
 
     private var showsMoreThemesButton: Bool {
         displayedThemes.count > visibleThemeLimit
     }
 
-    private var viewportRowCount: Int {
+    private var maximumViewportRowCount: Int {
         min(
             Layout.visibleThemeRowCount,
             max(
@@ -155,6 +155,13 @@ final class ThemesCollectionService: NSObject, UICollectionViewDelegate, UIColle
     }
 
     private var themeCount: Int { displayedThemes.count }
+    private var activeViewportRowCount = Layout.visibleThemeRowCount {
+        didSet {
+            guard oldValue != activeViewportRowCount else { return }
+            updateThemeCatalogScrollAvailability()
+            configureMoreThemesButton()
+        }
+    }
 
     private let themesViewportIndex = 0
     private let aiThemeIndex = 1
@@ -295,7 +302,8 @@ final class ThemesCollectionService: NSObject, UICollectionViewDelegate, UIColle
                 width: availableWidth,
                 height: themesViewportHeight(
                     width: availableWidth,
-                    traitCollection: collectionView.traitCollection
+                    traitCollection: collectionView.traitCollection,
+                    availableOuterHeight: availableContentHeight(in: collectionView)
                 )
             )
         }
@@ -361,18 +369,63 @@ final class ThemesCollectionService: NSObject, UICollectionViewDelegate, UIColle
 
     private func themesViewportHeight(
         width: CGFloat,
-        traitCollection: UITraitCollection
+        traitCollection: UITraitCollection,
+        availableOuterHeight: CGFloat
     ) -> CGFloat {
         let cardWidth = floor((width - Layout.itemSpacing) / 2)
-        let rowHeights = (0..<viewportRowCount).map { row in
+        let allRowHeights = (0..<maximumViewportRowCount).map { row in
             themeRowHeight(
                 containing: row * Layout.themeColumnCount,
                 cardWidth: cardWidth,
                 traitCollection: traitCollection
             )
         }
-        return rowHeights.reduce(0, +)
-            + Layout.itemSpacing * CGFloat(viewportRowCount - 1)
+        let fixedOuterContentHeight =
+            Layout.secondaryActionButtonHeight * 2
+            + Layout.statisticsCardHeight
+            + Layout.lastItemBottomInset
+            + Layout.itemSpacing * CGFloat(outerItemCount - 1)
+        let viewportBudget = max(
+            availableOuterHeight - fixedOuterContentHeight,
+            ThemeCardLayoutMetrics.singleLineHeight
+        )
+        var fittedRowCount = 0
+        var fittedHeight: CGFloat = 0
+        for rowHeight in allRowHeights {
+            let candidateHeight = fittedHeight
+                + (fittedRowCount > 0 ? Layout.itemSpacing : 0)
+                + rowHeight
+            guard fittedRowCount == 0 || candidateHeight <= viewportBudget else { break }
+            fittedRowCount += 1
+            fittedHeight = candidateHeight
+        }
+
+        activeViewportRowCount = max(fittedRowCount, 1)
+        let maximumViewportHeight = allRowHeights.reduce(0, +)
+            + Layout.itemSpacing * CGFloat(max(allRowHeights.count - 1, 0))
+        let minimumViewportHeight = allRowHeights.first
+            ?? ThemeCardLayoutMetrics.singleLineHeight
+        return min(
+            maximumViewportHeight,
+            max(viewportBudget, minimumViewportHeight)
+        )
+    }
+
+    private func availableContentHeight(in collectionView: UICollectionView) -> CGFloat {
+        max(
+            collectionView.bounds.height
+                - collectionView.adjustedContentInset.top
+                - collectionView.adjustedContentInset.bottom,
+            0
+        )
+    }
+
+    private func updateThemeCatalogScrollAvailability() {
+        guard let themeItemsCollectionView else { return }
+        let canScroll = displayedThemes.count > visibleThemeLimit
+        themeItemsCollectionView.isScrollEnabled = canScroll
+        themeItemsCollectionView.alwaysBounceVertical = canScroll
+        themeItemsCollectionView.bounces = canScroll
     }
 
     private func prepare(_ cell: UICollectionViewCell, appearance: AppAppearance) {
@@ -414,7 +467,6 @@ final class ThemesCollectionService: NSObject, UICollectionViewDelegate, UIColle
         button.accessibilityElementsHidden = isAIThemePresented
         button.layer.borderWidth = 0
         button.layer.borderColor = UIColor.clear.cgColor
-        applyRadarGreenGlowStyleIfNeeded(to: button, appearance: appearance)
         let aiThemeCornerRadius = Layout.secondaryActionButtonHeight / 2
 
         let betaBadge = InsetLabel(
@@ -440,6 +492,8 @@ final class ThemesCollectionService: NSObject, UICollectionViewDelegate, UIColle
         betaBadge.translatesAutoresizingMaskIntoConstraints = false
 
         pin(button, to: cell.contentView)
+        cell.contentView.layoutIfNeeded()
+        applyRadarGreenGlowStyleIfNeeded(to: button, appearance: appearance)
         button.addSubview(betaBadge)
         let gradientBorderView: GradientBorderView?
         if appearance.designStyle == .radar {
@@ -646,6 +700,10 @@ final class ThemesCollectionService: NSObject, UICollectionViewDelegate, UIColle
         button.layer.shadowOpacity = Appearance.radarAIThemeGlowOpacity
         button.layer.shadowRadius = Appearance.radarAIThemeGlowRadius
         button.layer.shadowOffset = Appearance.radarAIThemeGlowOffset
+        button.layer.shadowPath = UIBezierPath(
+            roundedRect: button.bounds,
+            cornerRadius: button.layer.cornerRadius
+        ).cgPath
     }
 
     private func pin(_ view: UIView, to container: UIView, bottomInset: CGFloat = .zero) {

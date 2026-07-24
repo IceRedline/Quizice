@@ -158,6 +158,27 @@ final class SwiftUISnapshotTests: XCTestCase {
         )
     }
 
+    func testClassicOnboardingWelcomeCompactSnapshot() {
+        SnapshotSupport.setUp(designStyle: .classic, cleanColorScheme: .dark)
+        let appearance = SnapshotSupport.appearance(
+            designStyle: .classic,
+            cleanColorScheme: .dark
+        )
+        let viewController = makeHostingController(
+            rootView: QuizOnboardingView(
+                appearance: appearance,
+                themes: denseOnboardingThemes,
+                onComplete: { _ in }
+            )
+        )
+
+        SnapshotSupport.assertScreen(
+            viewController,
+            named: "classic-onboarding-welcome-iphone-se",
+            device: .iPhone8
+        )
+    }
+
     func testClassicOnboardingTopicsSnapshot() {
         SnapshotSupport.setUp(designStyle: .classic, cleanColorScheme: .dark)
         let appearance = SnapshotSupport.appearance(
@@ -178,6 +199,29 @@ final class SwiftUISnapshotTests: XCTestCase {
             viewController,
             named: "classic-onboarding-topics",
             device: SnapshotSupport.iPhone17Pro
+        )
+    }
+
+    func testClassicOnboardingTopicsCompactSnapshot() {
+        SnapshotSupport.setUp(designStyle: .classic, cleanColorScheme: .dark)
+        let appearance = SnapshotSupport.appearance(
+            designStyle: .classic,
+            cleanColorScheme: .dark
+        )
+        let viewController = makeHostingController(
+            rootView: QuizOnboardingView(
+                appearance: appearance,
+                themes: denseOnboardingThemes,
+                catalogOrigin: .backend,
+                initialPage: .topics,
+                onComplete: { _ in }
+            )
+        )
+
+        SnapshotSupport.assertScreen(
+            viewController,
+            named: "classic-onboarding-topics-iphone-se",
+            device: .iPhone8
         )
     }
 
@@ -230,6 +274,66 @@ final class SwiftUISnapshotTests: XCTestCase {
             named: "classic-ai-theme-service-alert-iphone-se",
             device: .iPhone8
         )
+    }
+
+    private var denseOnboardingThemes: [OnboardingTheme] {
+        let titles = [
+            "Математика",
+            "Автомобили",
+            "Биология",
+            "Космос",
+            "Физика",
+            "Химия",
+            "Литература",
+            "География",
+            "Кино",
+            "Видеоигры",
+            "История и культура",
+            "Политика и бизнес",
+            "Музыка",
+            "Технологии"
+        ]
+        let symbols = [
+            "function",
+            "car.fill",
+            "asterisk",
+            "moon.stars.fill",
+            "atom",
+            "flask.fill",
+            "book.fill",
+            "globe",
+            "film.fill",
+            "gamecontroller.fill",
+            "theatermask.and.paintbrush.fill",
+            "briefcase.fill",
+            "music.note.list",
+            "cpu.fill"
+        ]
+        let colors = [
+            "#FF2D55",
+            "#FF453A",
+            "#30D158",
+            "#BF5AF2",
+            "#5E5CE6",
+            "#64D2FF",
+            "#C7A97B",
+            "#00C7BE",
+            "#FF375F",
+            "#34C759",
+            "#FF9F0A",
+            "#5E5CE6",
+            "#AF52DE",
+            "#0A84FF"
+        ]
+
+        return titles.indices.map { index in
+            OnboardingTheme(
+                id: "compact-\(index)",
+                title: titles[index],
+                sfSymbolName: symbols[index],
+                colorHex: colors[index]
+            )
+        }
     }
 
     func testClassicAIThemeRefusalAlertSnapshot() {
