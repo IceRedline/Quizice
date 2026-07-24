@@ -75,7 +75,11 @@ enum SnapshotSupport {
         viewController.view.layoutIfNeeded()
         let snapshotting: Snapshotting<UIViewController, UIImage>
         if let device {
-            snapshotting = .image(on: device)
+            let displayScale: CGFloat = device.size == ViewImageConfig.iPhone8.size ? 2 : 3
+            let traits = device.traits.modifyingTraits {
+                $0.displayScale = displayScale
+            }
+            snapshotting = .image(on: device, traits: traits)
         } else if let size {
             snapshotting = .image(size: size)
         } else {
@@ -167,11 +171,30 @@ enum SnapshotSupport {
         collectionView.dataSource = service
         collectionView.delegate = service
         collectionView.layoutIfNeeded()
-        let cell = service.collectionView(collectionView, cellForItemAt: IndexPath(item: item, section: 0))
+        let targetCollectionView: UICollectionView
+        let targetItem: Int
+        if item < themes.count {
+            targetCollectionView = makeCollectionView(
+                width: max(
+                    collectionWidth
+                        - ThemesCollectionService.Layout.sectionInsets.left
+                        - ThemesCollectionService.Layout.sectionInsets.right,
+                    0
+                )
+            )
+            targetCollectionView.accessibilityIdentifier =
+                ThemesCollectionService.Content.themeCatalogAccessibilityID
+            targetItem = item
+        } else {
+            targetCollectionView = collectionView
+            targetItem = item - themes.count + 1
+        }
+        let indexPath = IndexPath(item: targetItem, section: 0)
+        let cell = service.collectionView(targetCollectionView, cellForItemAt: indexPath)
         cell.frame = CGRect(origin: .zero, size: service.collectionView(
-            collectionView,
-            layout: collectionView.collectionViewLayout,
-            sizeForItemAt: IndexPath(item: item, section: 0)
+            targetCollectionView,
+            layout: targetCollectionView.collectionViewLayout,
+            sizeForItemAt: indexPath
         ))
         cell.contentView.frame = cell.bounds
         cell.setNeedsLayout()

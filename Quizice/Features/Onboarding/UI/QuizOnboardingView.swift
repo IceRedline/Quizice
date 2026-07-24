@@ -106,6 +106,7 @@ struct QuizOnboardingView: View {
                 footer
                     .padding(.horizontal, Layout.horizontalInset)
             }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
             .safeAreaPadding(.top, Layout.topPadding)
             .safeAreaPadding(.bottom, Layout.bottomPadding)
         }
