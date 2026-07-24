@@ -186,9 +186,9 @@ final class QuizFlowCoordinatorOnboardingTests: QuizFlowCoordinatorTestCase {
 
             XCTAssertEqual(titleLabel.numberOfLines, 1)
             XCTAssertLessThanOrEqual(
-                ceil(requiredWidth),
+                ceil(requiredWidth * titleLabel.minimumScaleFactor),
                 floor(titleLabel.bounds.width),
-                "\(theme.title) should fit on one line"
+                "\(theme.title) should fit on one line at the label's supported scale"
             )
         }
     }

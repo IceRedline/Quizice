@@ -141,6 +141,10 @@
 		BAD18B17E21E7B041F2CF8AF /* HomeFeatureStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8D626989A7C8B8CD6A608580 /* HomeFeatureStore.swift */; };
 		BCF1AE84D17127EB902B3253 /* QuizFlowCoordinatorNavigationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = EB6F631936510D31E8A3AA43 /* QuizFlowCoordinatorNavigationTests.swift */; };
 		C0412F0C30759BD3C122B3D5 /* HomeThemeCardGeometry.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7BCB28B41CB3A77D9197495C /* HomeThemeCardGeometry.swift */; };
+		C10000000000000000000001 /* ThemesCollectionService+ActionCards.swift in Sources */ = {isa = PBXBuildFile; fileRef = C10000000000000000000002 /* ThemesCollectionService+ActionCards.swift */; };
+		C10000000000000000000003 /* OnboardingPhysicsTopicCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = C10000000000000000000004 /* OnboardingPhysicsTopicCard.swift */; };
+		C10000000000000000000005 /* HomeCollectionServicePresentationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C10000000000000000000006 /* HomeCollectionServicePresentationTests.swift */; };
+		C10000000000000000000007 /* BackendAIClientSessionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C10000000000000000000008 /* BackendAIClientSessionTests.swift */; };
 		C9D930627D3BF78B2F0263D3 /* ExpandedStatisticsCardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 96D09FAE06BCC927ACC38483 /* ExpandedStatisticsCardView.swift */; };
 		CB9033BEC1B9D697369DBEC8 /* Animations.swift in Sources */ = {isa = PBXBuildFile; fileRef = FB00BEA52EDDC012EE25FF62 /* Animations.swift */; };
 		CB94F483D8602A33172BC338 /* GameCenterClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 183C1C2BE4E19509D4653CBA /* GameCenterClient.swift */; };
@@ -328,6 +332,10 @@
 		BEADA391C8787D35DA96DDD0 /* QuizResultViewControllerProtocol.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = QuizResultViewControllerProtocol.swift; sourceTree = "<group>"; };
 		BEAE50A34CFC43E6FC3BCD9F /* SwiftUISnapshotTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = SwiftUISnapshotTests.swift; sourceTree = "<group>"; };
 		C0FE3CA8836CBEED7596B8D0 /* YandexAIQuizThemeResponseTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = YandexAIQuizThemeResponseTests.swift; sourceTree = "<group>"; };
+		C10000000000000000000002 /* ThemesCollectionService+ActionCards.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = "ThemesCollectionService+ActionCards.swift"; sourceTree = "<group>"; };
+		C10000000000000000000004 /* OnboardingPhysicsTopicCard.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = OnboardingPhysicsTopicCard.swift; sourceTree = "<group>"; };
+		C10000000000000000000006 /* HomeCollectionServicePresentationTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = HomeCollectionServicePresentationTests.swift; sourceTree = "<group>"; };
+		C10000000000000000000008 /* BackendAIClientSessionTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = BackendAIClientSessionTests.swift; sourceTree = "<group>"; };
 		C14F2A48ECEC53C698749172 /* AppDelegate.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		C151A3DA0E5DDE1CCD0FB8F1 /* AIQuizThemeService.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AIQuizThemeService.swift; sourceTree = "<group>"; };
 		C1C17D89B50A9BDE5ED7E244 /* YandexAIQuizThemeServiceTestCase.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = YandexAIQuizThemeServiceTestCase.swift; sourceTree = "<group>"; };
@@ -667,6 +675,7 @@
 			isa = PBXGroup;
 			children = (
 				A40000102FA0000100A40010 /* OnboardingPhysicsStage.swift */,
+				C10000000000000000000004 /* OnboardingPhysicsTopicCard.swift */,
 				A40000032FA0000100A40003 /* OnboardingPages.swift */,
 				A40000022FA0000100A40002 /* QuizOnboardingView.swift */,
 			);
@@ -1001,6 +1010,7 @@
 			children = (
 				F29F81FE1C80FF38DC74DC61 /* ThemeCollectionUIKitSupport.swift */,
 				E82336079EA413DAC55F5098 /* ThemeVisualCatalog.swift */,
+				C10000000000000000000002 /* ThemesCollectionService+ActionCards.swift */,
 				D49927F6947B94B34C9F29BA /* ThemesCollectionService.swift */,
 			);
 			path = Collection;
@@ -1013,6 +1023,7 @@
 				6A7E73CC187A089F6D5215B1 /* AppAppearanceTests.swift */,
 				C42A75C09759C2D0F8FC78C2 /* AuthServiceTests.swift */,
 				B20000000000000000000003 /* AuthServiceTestSupport.swift */,
+				C10000000000000000000008 /* BackendAIClientSessionTests.swift */,
 				B10000000000000000000006 /* BackendClientTests.swift */,
 				B20000000000000000000001 /* BackendClientTestSupport.swift */,
 				43967E761EE3C2C1360397EA /* HomeThemeCardFlipTransitionTests.swift */,
@@ -1081,6 +1092,7 @@
 			children = (
 				8D91233DF15623B01A4727EC /* HomeAIThemeCardInteractionTests.swift */,
 				A3E9F06229E7078F35E6031C /* HomeAIThemeCardTransitionTests.swift */,
+				C10000000000000000000006 /* HomeCollectionServicePresentationTests.swift */,
 				8262BBDADFD39A2E1117F76C /* HomeCollectionServiceTests.swift */,
 				D323DE3BDBE734B792B55FCD /* HomeExpandedCardTransitionTests.swift */,
 				2FE8053B70386C642A9C71F9 /* HomeExpandedThemeCardInteractionTests.swift */,
@@ -1266,6 +1278,7 @@
 			files = (
 				A30000012F90000100A30001 /* AIQuizRuntimeDependencies.swift in Sources */,
 				A40000112FA0000100A40011 /* OnboardingPhysicsStage.swift in Sources */,
+				C10000000000000000000003 /* OnboardingPhysicsTopicCard.swift in Sources */,
 				A40000062FA0000100A40006 /* OnboardingPages.swift in Sources */,
 				A40000042FA0000100A40004 /* OnboardingProgressStore.swift in Sources */,
 				A40000052FA0000100A40005 /* QuizOnboardingView.swift in Sources */,
@@ -1325,6 +1338,7 @@
 				D98BF6E8CE1AD22E159DCDF1 /* TwoSidedCardTransitionDriver.swift in Sources */,
 				8ED0DEC6730254A0617F88A6 /* ThemeCollectionUIKitSupport.swift in Sources */,
 				B2CD30CAC15215296B9D9BBE /* ThemeVisualCatalog.swift in Sources */,
+				C10000000000000000000001 /* ThemesCollectionService+ActionCards.swift in Sources */,
 				AE72B30D9E74A63EAA3592D0 /* ThemesCollectionService.swift in Sources */,
 				F8EF7182B7B25C43203DD912 /* ThemeCollectionDelegate.swift in Sources */,
 				7B6E2427F4083AC5C9CF0078 /* CoreMotionHomeThemeCardMotionProvider.swift in Sources */,
@@ -1379,6 +1393,7 @@
 				BCF1AE84D17127EB902B3253 /* QuizFlowCoordinatorNavigationTests.swift in Sources */,
 				B4F203A995BFC3EE72EE9407 /* HomeAIThemeCardInteractionTests.swift in Sources */,
 				7777C3FC8A38413E317FF32C /* HomeAIThemeCardTransitionTests.swift in Sources */,
+				C10000000000000000000005 /* HomeCollectionServicePresentationTests.swift in Sources */,
 				EE029172AB34E91DFEF01EBA /* HomeCollectionServiceTests.swift in Sources */,
 				67393A843E92E982AC3A4AC4 /* HomeExpandedCardTransitionTests.swift in Sources */,
 				FE84BE6C879CCF7923FA8842 /* HomeExpandedThemeCardInteractionTests.swift in Sources */,
@@ -1411,6 +1426,7 @@
 				D166E8010E80FA2754489B9A /* AppAppearanceTests.swift in Sources */,
 				76635C743D62053B33366893 /* AuthServiceTests.swift in Sources */,
 				B20000000000000000000004 /* AuthServiceTestSupport.swift in Sources */,
+				C10000000000000000000007 /* BackendAIClientSessionTests.swift in Sources */,
 				B10000000000000000000007 /* BackendClientTests.swift in Sources */,
 				B20000000000000000000002 /* BackendClientTestSupport.swift in Sources */,
 				5D190DABB9C20596EF4666E9 /* HomeThemeCardFlipTransitionTests.swift in Sources */,

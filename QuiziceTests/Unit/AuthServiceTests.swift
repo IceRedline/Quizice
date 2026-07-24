@@ -1,6 +1,5 @@
 import XCTest
 @testable import Quizice
-
 @MainActor
 final class GameCenterAuthenticationServiceTests: XCTestCase {
     func testSuccessfulAuthenticationMergesGuestAttemptAndSynchronizesIt() async {

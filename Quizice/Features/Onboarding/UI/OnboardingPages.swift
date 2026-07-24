@@ -2,6 +2,13 @@ import SwiftUI
 import UIKit
 
 struct OnboardingWelcomePage: View {
+    private enum Layout {
+        static let compactHeightThreshold: CGFloat = 590
+        static let regularArtworkHeight: CGFloat = 232
+        static let compactArtworkHeight: CGFloat = 178
+        static let compactArtworkScale: CGFloat = 0.78
+    }
+
     let themes: [OnboardingTheme]
     let isActive: Bool
 
@@ -10,46 +17,73 @@ struct OnboardingWelcomePage: View {
     @State private var isRevealed = false
 
     var body: some View {
-        ScrollView(showsIndicators: false) {
-            VStack(spacing: 22) {
-                Spacer(minLength: 8)
+        GeometryReader { geometry in
+            let isCompact = geometry.size.height < Layout.compactHeightThreshold
+
+            VStack(spacing: isCompact ? 12 : 22) {
+                Spacer(minLength: isCompact ? 0 : 8)
 
                 WelcomeArtwork(
                     themes: themes,
                     isRevealed: isRevealed || reduceMotion || !UIView.areAnimationsEnabled
                 )
-                    .frame(height: 232)
+                .frame(height: Layout.regularArtworkHeight)
+                .scaleEffect(isCompact ? Layout.compactArtworkScale : 1)
+                .frame(
+                    height: isCompact
+                        ? Layout.compactArtworkHeight
+                        : Layout.regularArtworkHeight
+                )
 
-                VStack(spacing: 12) {
+                VStack(spacing: isCompact ? 8 : 12) {
                     Text(L10n.Onboarding.welcomeKicker)
-                        .font(appearance.typography.swiftUIFont(size: 13, weight: .bold))
+                        .font(
+                            appearance.typography.swiftUIFont(
+                                size: isCompact ? 11 : 13,
+                                weight: .bold
+                            )
+                        )
                         .foregroundStyle(Color(uiColor: appearance.secondaryScreenTextColor))
                         .textCase(.uppercase)
-                        .tracking(0.8)
+                        .tracking(isCompact ? 0.5 : 0.8)
 
                     Text(L10n.Onboarding.welcomeTitle)
-                        .font(appearance.typography.swiftUIFont(size: 38, weight: .bold))
+                        .font(
+                            appearance.typography.swiftUIFont(
+                                size: isCompact ? 30 : 38,
+                                weight: .bold
+                            )
+                        )
                         .foregroundStyle(Color(uiColor: appearance.screenTextColor))
                         .multilineTextAlignment(.center)
-                        .lineSpacing(-2)
+                        .lineSpacing(isCompact ? -1 : -2)
                         .minimumScaleFactor(0.76)
                         .accessibilityAddTraits(.isHeader)
                         .accessibilityIdentifier("onboardingWelcomeTitle")
 
                     Text(L10n.Onboarding.welcomeSubtitle)
-                        .font(appearance.typography.swiftUIFont(size: 18, weight: .regular))
+                        .font(
+                            appearance.typography.swiftUIFont(
+                                size: isCompact ? 15 : 18,
+                                weight: .regular
+                            )
+                        )
                         .foregroundStyle(Color(uiColor: appearance.secondaryScreenTextColor))
                         .multilineTextAlignment(.center)
-                        .lineSpacing(3)
+                        .lineSpacing(isCompact ? 1 : 3)
                         .fixedSize(horizontal: false, vertical: true)
                 }
-                .padding(.horizontal, 4)
+                .padding(.horizontal, isCompact ? 0 : 4)
 
-                Spacer(minLength: 18)
+                Spacer(minLength: isCompact ? 0 : 18)
             }
             .frame(maxWidth: 520)
-            .padding(.horizontal, 24)
-            .frame(maxWidth: .infinity)
+            .padding(.horizontal, isCompact ? 20 : 24)
+            .frame(
+                maxWidth: .infinity,
+                minHeight: geometry.size.height,
+                maxHeight: geometry.size.height
+            )
         }
         .accessibilityIdentifier("onboardingWelcomePage")
         .onAppear(perform: updateReveal)
@@ -177,8 +211,7 @@ private struct WelcomeArtwork: View {
 
 struct OnboardingTopicsPage: View {
     private enum Layout {
-        static let minimumStageHeight: CGFloat = 350
-        static let nonStageContentHeight: CGFloat = 205
+        static let compactHeightThreshold: CGFloat = 590
     }
 
     let themes: [OnboardingTheme]
@@ -191,56 +224,71 @@ struct OnboardingTopicsPage: View {
 
     var body: some View {
         GeometryReader { geometry in
-            ScrollView(showsIndicators: false) {
-                VStack(spacing: 14) {
-                    VStack(spacing: 10) {
-                        Text(L10n.Onboarding.topicsTitle)
-                            .font(appearance.typography.swiftUIFont(size: 32, weight: .bold))
-                            .foregroundStyle(Color(uiColor: appearance.screenTextColor))
-                            .multilineTextAlignment(.center)
-                            .minimumScaleFactor(0.8)
-                            .accessibilityAddTraits(.isHeader)
-                            .accessibilityIdentifier("onboardingTopicsTitle")
+            let isCompact = geometry.size.height < Layout.compactHeightThreshold
 
-                        Text(L10n.Onboarding.topicsSubtitle)
-                            .font(appearance.typography.swiftUIFont(size: 17, weight: .regular))
-                            .foregroundStyle(Color(uiColor: appearance.secondaryScreenTextColor))
-                            .multilineTextAlignment(.center)
-                            .lineSpacing(2)
-                            .fixedSize(horizontal: false, vertical: true)
-
-#if DEBUG
-                        if DebugBackendSettings.shouldShowSourceIndicators {
-                            OnboardingCatalogSourceBadge(origin: catalogOrigin)
-                        }
-#endif
-                    }
-                    .padding(.horizontal, 24)
-
-                    FallingTopicsStage(
-                        themes: themes,
-                        selectedThemeIDs: $selectedThemeIDs,
-                        isActive: isActive
-                    )
-                    .frame(
-                        height: max(
-                            Layout.minimumStageHeight,
-                            geometry.size.height - Layout.nonStageContentHeight
+            VStack(spacing: isCompact ? 8 : 14) {
+                VStack(spacing: isCompact ? 6 : 10) {
+                    Text(L10n.Onboarding.topicsTitle)
+                        .font(
+                            appearance.typography.swiftUIFont(
+                                size: isCompact ? 28 : 32,
+                                weight: .bold
+                            )
                         )
-                    )
-                    .padding(.horizontal, 10)
+                        .foregroundStyle(Color(uiColor: appearance.screenTextColor))
+                        .multilineTextAlignment(.center)
+                        .minimumScaleFactor(0.8)
+                        .accessibilityAddTraits(.isHeader)
+                        .accessibilityIdentifier("onboardingTopicsTitle")
 
-                    Label(L10n.Onboarding.topicsSelectionHint, systemImage: "hand.tap.fill")
-                        .font(appearance.typography.swiftUIFont(size: 14, weight: .medium))
+                    Text(L10n.Onboarding.topicsSubtitle)
+                        .font(
+                            appearance.typography.swiftUIFont(
+                                size: isCompact ? 15 : 17,
+                                weight: .regular
+                            )
+                        )
                         .foregroundStyle(Color(uiColor: appearance.secondaryScreenTextColor))
                         .multilineTextAlignment(.center)
-                        .padding(.horizontal, 24)
-                        .padding(.bottom, 2)
+                        .lineSpacing(isCompact ? 1 : 2)
+                        .fixedSize(horizontal: false, vertical: true)
+
+#if DEBUG
+                    if DebugBackendSettings.shouldShowSourceIndicators {
+                        OnboardingCatalogSourceBadge(origin: catalogOrigin)
+                    }
+#endif
                 }
-                .frame(maxWidth: 560)
-                .frame(maxWidth: .infinity)
-                .padding(.top, 12)
+                .padding(.horizontal, 24)
+
+                FallingTopicsStage(
+                    themes: themes,
+                    selectedThemeIDs: $selectedThemeIDs,
+                    isActive: isActive
+                )
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .layoutPriority(1)
+
+                Label(L10n.Onboarding.topicsSelectionHint, systemImage: "hand.tap.fill")
+                    .font(
+                        appearance.typography.swiftUIFont(
+                            size: isCompact ? 12 : 14,
+                            weight: .medium
+                        )
+                    )
+                    .foregroundStyle(Color(uiColor: appearance.secondaryScreenTextColor))
+                    .multilineTextAlignment(.center)
+                    .padding(.horizontal, 24)
+                    .padding(.bottom, isCompact ? 0 : 2)
             }
+            .frame(maxWidth: 560)
+            .padding(.top, isCompact ? 4 : 12)
+            .frame(
+                maxWidth: .infinity,
+                minHeight: geometry.size.height,
+                maxHeight: geometry.size.height,
+                alignment: .top
+            )
         }
         .accessibilityIdentifier("onboardingTopicsPage")
     }
@@ -464,19 +512,14 @@ private struct TutorialFeatureRow: View {
             RoundedRectangle(cornerRadius: 24, style: .continuous)
                 .fill(Color(uiColor: appearance.secondaryButton.backgroundColor))
                 .overlay {
-                    RoundedRectangle(cornerRadius: 24, style: .continuous)
-                        .stroke(
-                            LinearGradient(
-                                colors: [
-                                    Color(uiColor: AIThemeVisualStyle.gradientStartColor),
-                                    Color(uiColor: AIThemeVisualStyle.gradientEndColor)
-                                ],
-                                startPoint: .leading,
-                                endPoint: .trailing
-                            ),
-                            lineWidth: 2
-                        )
+                    aiPreviewOutline
                 }
+                .shadow(
+                    color: appearance.designStyle == .radar
+                        ? Color(uiColor: appearance.accentColor).opacity(0.22)
+                        : .clear,
+                    radius: appearance.designStyle == .radar ? 10 : 0
+                )
                 .overlay {
                     Image(systemName: "sparkles")
                         .font(.system(size: 28, weight: .semibold))
@@ -501,6 +544,26 @@ private struct TutorialFeatureRow: View {
                     .foregroundStyle(Color(uiColor: appearance.surfaceTextColor))
             }
             .padding(5)
+        }
+    }
+
+    @ViewBuilder
+    private var aiPreviewOutline: some View {
+        let shape = RoundedRectangle(cornerRadius: 24, style: .continuous)
+        if appearance.designStyle == .radar {
+            shape.stroke(Color(uiColor: appearance.accentColor), lineWidth: 2)
+        } else {
+            shape.stroke(
+                LinearGradient(
+                    colors: [
+                        Color(uiColor: AIThemeVisualStyle.gradientStartColor),
+                        Color(uiColor: AIThemeVisualStyle.gradientEndColor)
+                    ],
+                    startPoint: .leading,
+                    endPoint: .trailing
+                ),
+                lineWidth: 2
+            )
         }
     }
 }

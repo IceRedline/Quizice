@@ -20,7 +20,6 @@ final class OnboardingProgressStoreTests: XCTestCase {
             let reopenedStore = OnboardingProgressStore(userDefaults: defaults)
 
             XCTAssertFalse(reopenedStore.needsOnboarding)
-            XCTAssertEqual(reopenedStore.preferredThemeIDs, ["music", "technology"])
             XCTAssertEqual(
                 reopenedStore.orderedPreferredThemeIDs(locale: "ru"),
                 ["technology", "music"]

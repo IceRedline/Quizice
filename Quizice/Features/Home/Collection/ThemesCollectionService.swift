@@ -22,14 +22,17 @@ final class ThemesCollectionService: NSObject, UICollectionViewDelegate, UIColle
 
     }
 
-    private enum Layout {
+    enum Layout {
         static let sectionInsets = UIEdgeInsets(top: 0, left: 24, bottom: 0, right: 24)
         static let itemSpacing: CGFloat = 16
+        static let compactOuterItemSpacing: CGFloat = 12
         static let visibleThemeRowCount = 4
         static let themeColumnCount = 2
         static let secondaryActionButtonHeight: CGFloat = 54
         static let statisticsCardHeight: CGFloat = 112
         static let lastItemBottomInset: CGFloat = 24
+        static let compactLastItemBottomInset: CGFloat = 16
+        static let compactAvailableHeightThreshold: CGFloat = 600
         static let aiThemeBadgeTrailingInset: CGFloat = 16
         static let aiThemeBadgeHorizontalInset: CGFloat = 10
         static let aiThemeBadgeVerticalInset: CGFloat = 5
@@ -40,7 +43,7 @@ final class ThemesCollectionService: NSObject, UICollectionViewDelegate, UIColle
         static let moreThemesVisibilityThreshold: CGFloat = 5
     }
 
-    private enum Appearance {
+    enum Appearance {
         static let themeCardBackgroundAlpha: CGFloat = 0.20
         static let themeCardBorderAlpha: CGFloat = 0.45
         static let feelingLuckyButtonBackgroundAlpha: CGFloat = 0.14
@@ -95,7 +98,7 @@ final class ThemesCollectionService: NSObject, UICollectionViewDelegate, UIColle
     private let statisticsStore: StatisticsStore
     private let preferredThemeIDsProvider: () -> [String]?
     private let appearanceStore = AppAppearanceStore.shared
-    private weak var observedCollectionView: UICollectionView?
+    weak var observedCollectionView: UICollectionView?
     private weak var themeItemsCollectionView: UICollectionView?
     private weak var moreThemesButton: MoreThemesFadeButton?
 
@@ -137,14 +140,14 @@ final class ThemesCollectionService: NSObject, UICollectionViewDelegate, UIColle
     }
 
     private var visibleThemeLimit: Int {
-        Layout.visibleThemeRowCount * Layout.themeColumnCount
+        activeViewportRowCount * Layout.themeColumnCount
     }
 
     private var showsMoreThemesButton: Bool {
         displayedThemes.count > visibleThemeLimit
     }
 
-    private var viewportRowCount: Int {
+    private var maximumViewportRowCount: Int {
         min(
             Layout.visibleThemeRowCount,
             max(
@@ -155,6 +158,13 @@ final class ThemesCollectionService: NSObject, UICollectionViewDelegate, UIColle
     }
 
     private var themeCount: Int { displayedThemes.count }
+    private var activeViewportRowCount = Layout.visibleThemeRowCount {
+        didSet {
+            guard oldValue != activeViewportRowCount else { return }
+            updateThemeCatalogScrollAvailability()
+            configureMoreThemesButton()
+        }
+    }
 
     private let themesViewportIndex = 0
     private let aiThemeIndex = 1
@@ -295,7 +305,8 @@ final class ThemesCollectionService: NSObject, UICollectionViewDelegate, UIColle
                 width: availableWidth,
                 height: themesViewportHeight(
                     width: availableWidth,
-                    traitCollection: collectionView.traitCollection
+                    traitCollection: collectionView.traitCollection,
+                    availableOuterHeight: availableContentHeight(in: collectionView)
                 )
             )
         }
@@ -303,7 +314,8 @@ final class ThemesCollectionService: NSObject, UICollectionViewDelegate, UIColle
         if indexPath.item == statisticsIndex {
             return CGSize(
                 width: availableWidth,
-                height: Layout.statisticsCardHeight + Layout.lastItemBottomInset
+                height: Layout.statisticsCardHeight
+                    + lastItemBottomInset(availableHeight: availableContentHeight(in: collectionView))
             )
         }
 
@@ -314,9 +326,17 @@ final class ThemesCollectionService: NSObject, UICollectionViewDelegate, UIColle
         return CGSize(width: availableWidth, height: Layout.secondaryActionButtonHeight)
     }
 
-    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, minimumLineSpacingForSectionAt section: Int) -> CGFloat { Layout.itemSpacing }
+    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, minimumLineSpacingForSectionAt section: Int) -> CGFloat {
+        isThemeItemsCollectionView(collectionView)
+            ? Layout.itemSpacing
+            : outerItemSpacing(availableHeight: availableContentHeight(in: collectionView))
+    }
 
-    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, minimumInteritemSpacingForSectionAt section: Int) -> CGFloat { Layout.itemSpacing }
+    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, minimumInteritemSpacingForSectionAt section: Int) -> CGFloat {
+        isThemeItemsCollectionView(collectionView)
+            ? Layout.itemSpacing
+            : outerItemSpacing(availableHeight: availableContentHeight(in: collectionView))
+    }
 
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, insetForSectionAt section: Int) -> UIEdgeInsets {
         isThemeItemsCollectionView(collectionView) ? .zero : Layout.sectionInsets
@@ -361,18 +381,76 @@ final class ThemesCollectionService: NSObject, UICollectionViewDelegate, UIColle
 
     private func themesViewportHeight(
         width: CGFloat,
-        traitCollection: UITraitCollection
+        traitCollection: UITraitCollection,
+        availableOuterHeight: CGFloat
     ) -> CGFloat {
         let cardWidth = floor((width - Layout.itemSpacing) / 2)
-        let rowHeights = (0..<viewportRowCount).map { row in
+        let allRowHeights = (0..<maximumViewportRowCount).map { row in
             themeRowHeight(
                 containing: row * Layout.themeColumnCount,
                 cardWidth: cardWidth,
                 traitCollection: traitCollection
             )
         }
-        return rowHeights.reduce(0, +)
-            + Layout.itemSpacing * CGFloat(viewportRowCount - 1)
+        let fixedOuterContentHeight =
+            Layout.secondaryActionButtonHeight * 2
+            + Layout.statisticsCardHeight
+            + lastItemBottomInset(availableHeight: availableOuterHeight)
+            + outerItemSpacing(availableHeight: availableOuterHeight)
+                * CGFloat(outerItemCount - 1)
+        let viewportBudget = max(
+            availableOuterHeight - fixedOuterContentHeight,
+            ThemeCardLayoutMetrics.singleLineHeight
+        )
+        var fittedRowCount = 0
+        var fittedHeight: CGFloat = 0
+        for rowHeight in allRowHeights {
+            let candidateHeight = fittedHeight
+                + (fittedRowCount > 0 ? Layout.itemSpacing : 0)
+                + rowHeight
+            guard fittedRowCount == 0 || candidateHeight <= viewportBudget else { break }
+            fittedRowCount += 1
+            fittedHeight = candidateHeight
+        }
+
+        activeViewportRowCount = max(fittedRowCount, 1)
+        let maximumViewportHeight = allRowHeights.reduce(0, +)
+            + Layout.itemSpacing * CGFloat(max(allRowHeights.count - 1, 0))
+        let minimumViewportHeight = allRowHeights.first
+            ?? ThemeCardLayoutMetrics.singleLineHeight
+        return min(
+            maximumViewportHeight,
+            max(viewportBudget, minimumViewportHeight)
+        )
+    }
+
+    private func availableContentHeight(in collectionView: UICollectionView) -> CGFloat {
+        max(
+            collectionView.bounds.height
+                - collectionView.adjustedContentInset.top
+                - collectionView.adjustedContentInset.bottom,
+            0
+        )
+    }
+
+    private func outerItemSpacing(availableHeight: CGFloat) -> CGFloat {
+        availableHeight < Layout.compactAvailableHeightThreshold
+            ? Layout.compactOuterItemSpacing
+            : Layout.itemSpacing
+    }
+
+    private func lastItemBottomInset(availableHeight: CGFloat) -> CGFloat {
+        availableHeight < Layout.compactAvailableHeightThreshold
+            ? Layout.compactLastItemBottomInset
+            : Layout.lastItemBottomInset
+    }
+
+    private func updateThemeCatalogScrollAvailability() {
+        guard let themeItemsCollectionView else { return }
+        let canScroll = displayedThemes.count > visibleThemeLimit
+        themeItemsCollectionView.isScrollEnabled = canScroll
+        themeItemsCollectionView.alwaysBounceVertical = canScroll
+        themeItemsCollectionView.bounces = canScroll
     }
 
     private func prepare(_ cell: UICollectionViewCell, appearance: AppAppearance) {
@@ -414,7 +492,6 @@ final class ThemesCollectionService: NSObject, UICollectionViewDelegate, UIColle
         button.accessibilityElementsHidden = isAIThemePresented
         button.layer.borderWidth = 0
         button.layer.borderColor = UIColor.clear.cgColor
-        applyRadarGreenGlowStyleIfNeeded(to: button, appearance: appearance)
         let aiThemeCornerRadius = Layout.secondaryActionButtonHeight / 2
 
         let betaBadge = InsetLabel(
@@ -440,6 +517,8 @@ final class ThemesCollectionService: NSObject, UICollectionViewDelegate, UIColle
         betaBadge.translatesAutoresizingMaskIntoConstraints = false
 
         pin(button, to: cell.contentView)
+        cell.contentView.layoutIfNeeded()
+        applyRadarGreenGlowStyleIfNeeded(to: button, appearance: appearance)
         button.addSubview(betaBadge)
         let gradientBorderView: GradientBorderView?
         if appearance.designStyle == .radar {
@@ -473,190 +552,6 @@ final class ThemesCollectionService: NSObject, UICollectionViewDelegate, UIColle
                 gradientBorderView.bottomAnchor.constraint(equalTo: button.bottomAnchor)
             ])
         }
-    }
-
-    @discardableResult
-    private func configureSecondaryActionCard(
-        in cell: UICollectionViewCell,
-        accessibilityIdentifier: String,
-        accessibilityLabel: String,
-        accessibilityHint: String,
-        title: String,
-        action: Selector,
-        appearance: AppAppearance
-    ) -> UIButton {
-        let button = makeSecondaryActionButton(
-            accessibilityIdentifier: accessibilityIdentifier,
-            accessibilityLabel: accessibilityLabel,
-            accessibilityHint: accessibilityHint,
-            title: title,
-            action: action,
-            appearance: appearance
-        )
-
-        pin(button, to: cell.contentView)
-        return button
-    }
-
-    private func configureFeelingLuckyContent(in button: UIButton, appearance: AppAppearance) {
-        let activityIndicator = UIActivityIndicatorView(style: .medium)
-        activityIndicator.accessibilityIdentifier = Content.feelingLuckyProgressAccessibilityID
-        activityIndicator.color = appearance.screenTextColor
-        activityIndicator.hidesWhenStopped = true
-        activityIndicator.isUserInteractionEnabled = false
-
-        let titleLabel = UILabel()
-        titleLabel.text = isFeelingLuckyLoading ? L10n.Home.feelingLuckyLoading : L10n.Home.feelingLucky
-        titleLabel.textColor = appearance.screenTextColor
-        titleLabel.font = appearance.typography.font(size: Appearance.luckyFontSize, weight: .semibold)
-        titleLabel.adjustsFontForContentSizeCategory = true
-        titleLabel.minimumScaleFactor = 0.78
-        titleLabel.adjustsFontSizeToFitWidth = true
-        titleLabel.isUserInteractionEnabled = false
-
-        let contentStack = UIStackView(arrangedSubviews: [activityIndicator, titleLabel])
-        contentStack.axis = .horizontal
-        contentStack.alignment = .center
-        contentStack.spacing = 10
-        contentStack.isUserInteractionEnabled = false
-        contentStack.translatesAutoresizingMaskIntoConstraints = false
-        button.addSubview(contentStack)
-        NSLayoutConstraint.activate([
-            contentStack.centerXAnchor.constraint(equalTo: button.centerXAnchor),
-            contentStack.centerYAnchor.constraint(equalTo: button.centerYAnchor),
-            contentStack.leadingAnchor.constraint(greaterThanOrEqualTo: button.leadingAnchor, constant: 20),
-            contentStack.trailingAnchor.constraint(lessThanOrEqualTo: button.trailingAnchor, constant: -20)
-        ])
-
-        applyFeelingLuckyLoadingState(
-            to: button,
-            loadingContentView: contentStack,
-            activityIndicator: activityIndicator,
-            titleLabel: titleLabel
-        )
-    }
-
-    private func applyFeelingLuckyLoadingState(
-        to button: UIButton,
-        loadingContentView: UIStackView,
-        activityIndicator: UIActivityIndicatorView,
-        titleLabel: UILabel
-    ) {
-        button.isEnabled = !isFeelingLuckyLoading
-        button.accessibilityLabel = isFeelingLuckyLoading
-            ? L10n.Home.feelingLuckyLoading
-            : L10n.Home.feelingLucky
-        button.accessibilityHint = isFeelingLuckyLoading
-            ? nil
-            : L10n.Home.feelingLuckyAccessibilityHint
-        if isFeelingLuckyLoading {
-            button.setTitle(nil, for: .normal)
-            titleLabel.text = L10n.Home.feelingLuckyLoading
-            loadingContentView.isHidden = false
-            button.accessibilityTraits.insert(.updatesFrequently)
-            activityIndicator.startAnimating()
-        } else {
-            button.setTitle(L10n.Home.feelingLucky, for: .normal)
-            loadingContentView.isHidden = true
-            button.accessibilityTraits.remove(.updatesFrequently)
-            activityIndicator.stopAnimating()
-        }
-    }
-
-    private func refreshVisibleFeelingLuckyButton() {
-        guard let collectionView = observedCollectionView else { return }
-        let button = collectionView.visibleCells
-            .lazy
-            .flatMap(\.contentView.subviews)
-            .compactMap { $0 as? UIButton }
-            .first(where: { $0.accessibilityIdentifier == Content.feelingLuckyAccessibilityID })
-        guard
-            let button,
-            let activityIndicator = button.subviews
-                .lazy
-                .flatMap(\.subviews)
-                .compactMap({ $0 as? UIActivityIndicatorView })
-                .first(where: { $0.accessibilityIdentifier == Content.feelingLuckyProgressAccessibilityID }),
-            let loadingContentView = activityIndicator.superview as? UIStackView,
-            let titleLabel = button.subviews
-                .lazy
-                .flatMap(\.subviews)
-                .compactMap({ $0 as? UILabel })
-                .first
-        else { return }
-
-        applyFeelingLuckyLoadingState(
-            to: button,
-            loadingContentView: loadingContentView,
-            activityIndicator: activityIndicator,
-            titleLabel: titleLabel
-        )
-    }
-
-    private func makeSecondaryActionButton(
-        accessibilityIdentifier: String,
-        accessibilityLabel: String,
-        accessibilityHint: String,
-        title: String,
-        action: Selector,
-        appearance: AppAppearance
-    ) -> UIButton {
-        let button = UIButton(type: .system)
-        button.accessibilityIdentifier = accessibilityIdentifier
-        button.accessibilityLabel = accessibilityLabel
-        button.accessibilityHint = accessibilityHint
-        button.applyActionAppearance(appearance.secondaryButton, appearance: appearance)
-        applyCleanOutlineStyleIfNeeded(
-            to: button,
-            appearance: appearance,
-            borderColor: appearance.screenTextColor.withAlphaComponent(0.18)
-        )
-        button.clipsToBounds = true
-        button.setTitle(title, for: .normal)
-        button.setTitleColor(appearance.screenTextColor, for: .normal)
-        button.titleLabel?.font = appearance.typography.font(size: Appearance.luckyFontSize, weight: .semibold)
-        button.titleLabel?.adjustsFontForContentSizeCategory = true
-        button.translatesAutoresizingMaskIntoConstraints = false
-        button.addTarget(self, action: #selector(buttonTouchedDown(_:)), for: .touchDown)
-        button.addTarget(self, action: action, for: .touchUpInside)
-        button.addTarget(self, action: #selector(buttonTouchedUpOutside(_:)), for: .touchUpOutside)
-        return button
-    }
-
-    private func applyCleanOutlineStyleIfNeeded(to button: UIButton, appearance: AppAppearance, borderColor: UIColor) {
-        guard appearance.designStyle == .clean else { return }
-        button.backgroundColor = appearance.card.backgroundColor
-        button.layer.borderColor = borderColor.cgColor
-        button.layer.borderWidth = max(button.layer.borderWidth, Appearance.buttonBorderWidth)
-    }
-
-    private func applyRadarTransparentStyleIfNeeded(to button: UIButton, appearance: AppAppearance) {
-        guard appearance.designStyle == .radar else { return }
-        button.backgroundColor = .clear
-    }
-
-    private func applyRadarGreenGlowStyleIfNeeded(to button: UIButton, appearance: AppAppearance) {
-        guard appearance.designStyle == .radar else { return }
-        button.backgroundColor = .clear
-        button.clipsToBounds = false
-        button.layer.masksToBounds = false
-        button.layer.borderWidth = Appearance.buttonBorderWidth
-        button.layer.borderColor = appearance.accentColor.cgColor
-        button.layer.shadowColor = appearance.accentColor.cgColor
-        button.layer.shadowOpacity = Appearance.radarAIThemeGlowOpacity
-        button.layer.shadowRadius = Appearance.radarAIThemeGlowRadius
-        button.layer.shadowOffset = Appearance.radarAIThemeGlowOffset
-    }
-
-    private func pin(_ view: UIView, to container: UIView, bottomInset: CGFloat = .zero) {
-        container.addSubview(view)
-
-        NSLayoutConstraint.activate([
-            view.leadingAnchor.constraint(equalTo: container.leadingAnchor),
-            view.trailingAnchor.constraint(equalTo: container.trailingAnchor),
-            view.topAnchor.constraint(equalTo: container.topAnchor),
-            view.bottomAnchor.constraint(equalTo: container.bottomAnchor, constant: -bottomInset)
-        ])
     }
 
     private func reconfigureThemeCells(withIDs themeIDs: [String]) {

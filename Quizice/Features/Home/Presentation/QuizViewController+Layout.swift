@@ -256,23 +256,9 @@ extension QuizViewController {
     }
 
     func updateCollectionScrollAvailability() {
-        themesCollectionView.layoutIfNeeded()
-        let contentHeight = themesCollectionView.collectionViewLayout.collectionViewContentSize.height
-        let viewportHeight = max(
-            themesCollectionView.bounds.height - themesCollectionView.adjustedContentInset.top - themesCollectionView.adjustedContentInset.bottom,
-            .zero
-        )
-        let shouldScroll = contentHeight > viewportHeight + Layout.scrollActivationTolerance
-
-        let isGridInteractive = homeCardState.phase == .grid && !isQuizLaunchPending
-        themesCollectionView.isScrollEnabled = shouldScroll
-        themesCollectionView.alwaysBounceVertical = shouldScroll
-        themesCollectionView.bounces = shouldScroll
-        if !isGridInteractive {
-            themesCollectionView.isScrollEnabled = false
-            themesCollectionView.alwaysBounceVertical = false
-            themesCollectionView.bounces = false
-        }
+        themesCollectionView.isScrollEnabled = false
+        themesCollectionView.alwaysBounceVertical = false
+        themesCollectionView.bounces = false
     }
 
     func updateCollectionTopInset() {
@@ -286,6 +272,7 @@ extension QuizViewController {
         let contentOffsetFromTopInset = themesCollectionView.contentOffset.y + oldTopInset
         themesCollectionView.contentInset.top = topInset
         themesCollectionView.verticalScrollIndicatorInsets.top = topInset
+        themesCollectionView.collectionViewLayout.invalidateLayout()
 
         if !themesCollectionView.isDragging && !themesCollectionView.isDecelerating {
             themesCollectionView.contentOffset.y = contentOffsetFromTopInset - topInset
