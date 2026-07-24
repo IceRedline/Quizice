@@ -906,7 +906,10 @@
                 "explanation": "Son riff est reconnaissable bien au-delà du rock."
             }
         ],
-        "id": "music"
+        "id": "music",
+        "sfSymbol": "music.note.list",
+        "emoji": "🎵",
+        "colorHex": "#FF8252"
     },
     {
         "theme": "Technologie",
@@ -1859,7 +1862,10 @@
                 "explanation": "Un chatbot peut être réalisé dans chacun des langages proposés selon le contexte."
             }
         ],
-        "id": "technology"
+        "id": "technology",
+        "sfSymbol": "cpu.fill",
+        "emoji": "💻",
+        "colorHex": "#62A2E6"
     },
     {
         "theme": "Histoire et culture",
@@ -2977,7 +2983,10 @@
                 "explanation": "Les traits indiqués caractérisent Barokko."
             }
         ],
-        "id": "history_culture"
+        "id": "history_culture",
+        "sfSymbol": "theatermask.and.paintbrush.fill",
+        "emoji": "🏛️",
+        "colorHex": "#8B5CF6"
     },
     {
         "theme": "Politique et affaires",
@@ -4161,6 +4170,9 @@
                 "explanation": "Facebook a acquis Instagram en 2012 pour environ 1 milliard de dollars."
             }
         ],
-        "id": "politics_business"
+        "id": "politics_business",
+        "sfSymbol": "briefcase.fill",
+        "emoji": "💼",
+        "colorHex": "#F2C94C"
     }
 ]

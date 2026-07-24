@@ -35,16 +35,22 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
             let appearance = AppAppearanceStore.shared.appearance(
                 compatibleWith: window.traitCollection
             )
-            launchOverlayPresenter.present(in: window, appearance: appearance)
+            launchOverlayPresenter.present(
+                in: window,
+                appearance: appearance,
+                preparation: { [weak coordinator, weak authenticationService] in
+                    await coordinator?.prepareInitialCatalog()
+                    guard !Task.isCancelled else { return }
+                    coordinator?.presentInitialOnboardingIfNeeded()
+                    authenticationService?.start { [weak coordinator] viewController in
+                        coordinator?.presentSystemViewController(viewController)
+                    }
+                }
+            )
         }
         window.makeKeyAndVisible()
         self.window = window
 
-        if isRunningTests == false, let coordinator {
-            authenticationService?.start { [weak coordinator] viewController in
-                coordinator?.presentSystemViewController(viewController)
-            }
-        }
     }
 
     func sceneDidDisconnect(_ scene: UIScene) {

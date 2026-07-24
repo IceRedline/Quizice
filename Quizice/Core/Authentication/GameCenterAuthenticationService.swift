@@ -238,6 +238,7 @@ final class GameCenterAuthenticationService {
         statisticsStore.activateAuthenticatedUser(session.userID)
         state = .authenticated(userID: session.userID, teamPlayerID: session.teamPlayerID)
         aiQuizAccessStore.update(isAuthenticated: true)
+        notificationCenter.post(name: .backendAuthenticationEstablished, object: nil)
         synchronizeStatistics(
             using: session,
             mayRefreshToken: statisticsMayRefreshToken

@@ -264,8 +264,7 @@ extension QuizViewController {
     }
 
     func sourceButton(themeID: String) -> UIButton? {
-        themesCollectionView.visibleCells
-            .compactMap { $0 as? ThemeCardCollectionViewCell }
+        themesCollectionService.visibleThemeCells
             .map(\.actionButton)
             .first(where: { $0.accessibilityIdentifier == themeID })
     }

@@ -8,6 +8,7 @@ extension QuizViewController {
         headerStackView.accessibilityElementsHidden = isHidden
         screenStackView.accessibilityElementsHidden = isHidden
         settingsButton.accessibilityElementsHidden = isHidden
+        helpButton.accessibilityElementsHidden = isHidden
     }
 
     func refreshExpandedThemeCardAppearance() {
@@ -362,6 +363,11 @@ extension QuizViewController {
     @objc func settingsButtonTapped() {
         guard !isQuizLaunchPending else { return }
         router?.showSettings()
+    }
+
+    @objc func helpButtonTapped() {
+        guard !isQuizLaunchPending, homeCardState.phase == .grid else { return }
+        router?.showOnboarding()
     }
 
 #if DEBUG

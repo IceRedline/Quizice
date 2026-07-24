@@ -4,6 +4,7 @@ enum BackendOperation: String, Equatable {
     case authentication
     case statisticsSync = "statistics_sync"
     case themes
+    case themePreferences = "theme_preferences"
     case questions
     case aiGeneration = "ai_generation"
 }
@@ -36,8 +37,10 @@ struct NoopBackendRequestMetricRecorder: BackendRequestMetricRecording {
 enum BackendContentError: Error, Equatable {
     case invalidRequest
     case invalidResponse
+    case unauthenticated
     case transport(URLError.Code)
     case httpStatus(Int, BackendErrorEnvelope?)
+    case encoding
     case decoding
     case contractViolation
     case timedOut
@@ -47,11 +50,59 @@ struct BackendThemeDTO: Decodable, Equatable {
     let id: String
     let name: String
     let description: String
+    let sfSymbol: String
+    let emoji: String
+    let colorHex: String
+    let isFavorite: Bool
 }
 
 struct BackendThemeCatalogResponse: Decodable, Equatable {
     let locale: String
     let themes: [BackendThemeDTO]
+}
+
+struct BackendThemePreferencesUpdate: Encodable, Equatable {
+    let locale: String
+    let favoriteThemeIds: [String]
+}
+
+struct BackendThemePreferencesResponse: Decodable, Equatable {
+    let locale: String
+    let favoriteThemeIds: [String]
+}
+
+protocol BackendAccessTokenProviding {
+    func validAccessToken() -> String?
+}
+
+struct NoopBackendAccessTokenProvider: BackendAccessTokenProviding {
+    func validAccessToken() -> String? { nil }
+}
+
+struct StoredBackendAccessTokenProvider: BackendAccessTokenProviding {
+    private let sessionStore: SessionStoring
+    private let now: () -> Date
+
+    init(
+        sessionStore: SessionStoring = KeychainSessionStore(),
+        now: @escaping () -> Date = Date.init
+    ) {
+        self.sessionStore = sessionStore
+        self.now = now
+    }
+
+    func validAccessToken() -> String? {
+        do {
+            guard
+                let session = try sessionStore.load(),
+                session.expiresAt > now()
+            else { return nil }
+            let token = session.accessToken.trimmingCharacters(in: .whitespacesAndNewlines)
+            return token.isEmpty ? nil : token
+        } catch {
+            return nil
+        }
+    }
 }
 
 struct BackendQuestionDTO: Decodable, Equatable {
@@ -78,6 +129,11 @@ struct BackendQuestionBatchResponse: Decodable, Equatable {
 
 protocol BackendContentAPI {
     func fetchThemes(locale: String) async throws -> BackendThemeCatalogResponse
+    func fetchThemePreferences(locale: String) async throws -> BackendThemePreferencesResponse
+    func replaceThemePreferences(
+        locale: String,
+        favoriteThemeIDs: [String]
+    ) async throws -> BackendThemePreferencesResponse
     func fetchQuestions(
         themeID: String,
         count: Int,
@@ -92,24 +148,42 @@ protocol BackendContentAPI {
     ) async throws -> BackendQuestionBatchResponse
 }
 
+extension BackendContentAPI {
+    func fetchThemePreferences(locale: String) async throws -> BackendThemePreferencesResponse {
+        throw BackendContentError.unauthenticated
+    }
+
+    func replaceThemePreferences(
+        locale: String,
+        favoriteThemeIDs: [String]
+    ) async throws -> BackendThemePreferencesResponse {
+        throw BackendContentError.unauthenticated
+    }
+}
+
 final class HTTPBackendContentAPI: BackendContentAPI {
     private let baseURL: URL
     private let session: URLSession
+    private let encoder: JSONEncoder
     private let decoder: JSONDecoder
     private let requestTimeout: TimeInterval
     private let metrics: BackendRequestMetricRecording
+    private let accessTokenProvider: BackendAccessTokenProviding
     private let clock = ContinuousClock()
 
     init(
         configuration: BackendConfiguration,
         session: URLSession = .shared,
         requestTimeout: TimeInterval = 15,
-        metrics: BackendRequestMetricRecording = NoopBackendRequestMetricRecorder()
+        metrics: BackendRequestMetricRecording = NoopBackendRequestMetricRecorder(),
+        accessTokenProvider: BackendAccessTokenProviding = NoopBackendAccessTokenProvider()
     ) {
         baseURL = configuration.baseURL
         self.session = session
         self.requestTimeout = requestTimeout
         self.metrics = metrics
+        self.accessTokenProvider = accessTokenProvider
+        encoder = JSONEncoder()
         decoder = JSONDecoder()
     }
 
@@ -124,6 +198,56 @@ final class HTTPBackendContentAPI: BackendContentAPI {
         return try await get(
             url: url,
             operation: .themes,
+            accessToken: accessTokenProvider.validAccessToken(),
+            validate: { Self.isValid($0, requestedLocale: locale) }
+        )
+    }
+
+    func fetchThemePreferences(locale: String) async throws -> BackendThemePreferencesResponse {
+        guard Self.isSupported(locale: locale) else {
+            throw BackendContentError.invalidRequest
+        }
+        guard let accessToken = accessTokenProvider.validAccessToken() else {
+            throw BackendContentError.unauthenticated
+        }
+        let url = try makeURL(
+            pathComponents: ["v1", "me", "theme-preferences"],
+            queryItems: [URLQueryItem(name: "locale", value: locale)]
+        )
+        return try await get(
+            url: url,
+            operation: .themePreferences,
+            accessToken: accessToken,
+            validate: { Self.isValid($0, requestedLocale: locale) }
+        )
+    }
+
+    func replaceThemePreferences(
+        locale: String,
+        favoriteThemeIDs: [String]
+    ) async throws -> BackendThemePreferencesResponse {
+        guard Self.isSupported(locale: locale) else {
+            throw BackendContentError.invalidRequest
+        }
+        guard let accessToken = accessTokenProvider.validAccessToken() else {
+            throw BackendContentError.unauthenticated
+        }
+        let normalizedIDs = Self.normalizedThemeIDs(favoriteThemeIDs)
+        guard normalizedIDs.count == favoriteThemeIDs.count else {
+            throw BackendContentError.invalidRequest
+        }
+        let url = try makeURL(
+            pathComponents: ["v1", "me", "theme-preferences"],
+            queryItems: []
+        )
+        return try await put(
+            url: url,
+            operation: .themePreferences,
+            accessToken: accessToken,
+            body: BackendThemePreferencesUpdate(
+                locale: locale,
+                favoriteThemeIds: normalizedIDs
+            ),
             validate: { Self.isValid($0, requestedLocale: locale) }
         )
     }
@@ -207,6 +331,7 @@ final class HTTPBackendContentAPI: BackendContentAPI {
     private func get<Response: Decodable>(
         url: URL,
         operation: BackendOperation,
+        accessToken: String? = nil,
         validate: (Response) -> Bool
     ) async throws -> Response {
         var request = URLRequest(url: url, timeoutInterval: requestTimeout)
@@ -215,7 +340,51 @@ final class HTTPBackendContentAPI: BackendContentAPI {
 #endif
         request.httpMethod = "GET"
         request.setValue("application/json", forHTTPHeaderField: "Accept")
+        if let accessToken {
+            request.setValue("Bearer \(accessToken)", forHTTPHeaderField: "Authorization")
+        }
+        return try await perform(
+            request: request,
+            operation: operation,
+            validate: validate
+        )
+    }
 
+    private func put<Response: Decodable, Body: Encodable>(
+        url: URL,
+        operation: BackendOperation,
+        accessToken: String,
+        body: Body,
+        validate: (Response) -> Bool
+    ) async throws -> Response {
+        let bodyData: Data
+        do {
+            bodyData = try encoder.encode(body)
+        } catch {
+            throw BackendContentError.encoding
+        }
+
+        var request = URLRequest(url: url, timeoutInterval: requestTimeout)
+#if DEBUG
+        request.cachePolicy = .reloadIgnoringLocalCacheData
+#endif
+        request.httpMethod = "PUT"
+        request.httpBody = bodyData
+        request.setValue("application/json", forHTTPHeaderField: "Accept")
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.setValue("Bearer \(accessToken)", forHTTPHeaderField: "Authorization")
+        return try await perform(
+            request: request,
+            operation: operation,
+            validate: validate
+        )
+    }
+
+    private func perform<Response: Decodable>(
+        request: URLRequest,
+        operation: BackendOperation,
+        validate: (Response) -> Bool
+    ) async throws -> Response {
         let startedAt = clock.now
         do {
             let (data, response) = try await session.data(for: request)
@@ -323,7 +492,7 @@ final class HTTPBackendContentAPI: BackendContentAPI {
         guard var components = URLComponents(url: url, resolvingAgainstBaseURL: false) else {
             throw BackendContentError.invalidRequest
         }
-        components.queryItems = queryItems
+        components.queryItems = queryItems.isEmpty ? nil : queryItems
         guard let result = components.url else {
             throw BackendContentError.invalidRequest
         }
@@ -362,10 +531,33 @@ final class HTTPBackendContentAPI: BackendContentAPI {
             let id = theme.id.trimmingCharacters(in: .whitespacesAndNewlines)
             let name = theme.name.trimmingCharacters(in: .whitespacesAndNewlines)
             let description = theme.description.trimmingCharacters(in: .whitespacesAndNewlines)
+            let sfSymbol = theme.sfSymbol.trimmingCharacters(in: .whitespacesAndNewlines)
+            let emoji = theme.emoji.trimmingCharacters(in: .whitespacesAndNewlines)
+            let colorHex = QuizThemeColor.normalizedHex(theme.colorHex)
             return !id.isEmpty
                 && !name.isEmpty
                 && !description.isEmpty
+                && !sfSymbol.isEmpty
+                && !emoji.isEmpty
+                && colorHex == theme.colorHex
                 && identifiers.insert(id).inserted
+        }
+    }
+
+    private static func isValid(
+        _ response: BackendThemePreferencesResponse,
+        requestedLocale: String
+    ) -> Bool {
+        response.locale == requestedLocale
+            && normalizedThemeIDs(response.favoriteThemeIds) == response.favoriteThemeIds
+    }
+
+    private static func normalizedThemeIDs(_ themeIDs: [String]) -> [String] {
+        var identifiers = Set<String>()
+        return themeIDs.compactMap { themeID in
+            let normalizedID = themeID.trimmingCharacters(in: .whitespacesAndNewlines)
+            guard !normalizedID.isEmpty, identifiers.insert(normalizedID).inserted else { return nil }
+            return normalizedID
         }
     }
 

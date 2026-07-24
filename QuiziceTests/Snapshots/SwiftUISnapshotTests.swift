@@ -6,6 +6,37 @@ import SnapshotTesting
 
 @MainActor
 final class SwiftUISnapshotTests: XCTestCase {
+    private let onboardingThemes = [
+        OnboardingTheme(
+            id: "music",
+            title: L10n.Onboarding.topicMusic,
+            sfSymbolName: "music.note.list",
+            emoji: "🎵",
+            colorHex: "#FF8252"
+        ),
+        OnboardingTheme(
+            id: "technology",
+            title: L10n.Onboarding.topicTechnology,
+            sfSymbolName: "cpu.fill",
+            emoji: "💻",
+            colorHex: "#62A2E6"
+        ),
+        OnboardingTheme(
+            id: "history_culture",
+            title: L10n.Onboarding.topicHistoryCulture,
+            sfSymbolName: "theatermask.and.paintbrush.fill",
+            emoji: "🏛️",
+            colorHex: "#8B5CF6"
+        ),
+        OnboardingTheme(
+            id: "politics_business",
+            title: L10n.Onboarding.topicPoliticsBusiness,
+            sfSymbolName: "briefcase.fill",
+            emoji: "💼",
+            colorHex: "#F2C94C"
+        )
+    ]
+
     override func setUp() {
         super.setUp()
         SnapshotSupport.setUp(designStyle: .clean, cleanColorScheme: .light)
@@ -106,6 +137,116 @@ final class SwiftUISnapshotTests: XCTestCase {
         )
     }
 
+    func testClassicOnboardingWelcomeSnapshot() {
+        SnapshotSupport.setUp(designStyle: .classic, cleanColorScheme: .dark)
+        let appearance = SnapshotSupport.appearance(
+            designStyle: .classic,
+            cleanColorScheme: .dark
+        )
+        let viewController = makeHostingController(
+            rootView: QuizOnboardingView(
+                appearance: appearance,
+                themes: onboardingThemes,
+                onComplete: { _ in }
+            )
+        )
+
+        SnapshotSupport.assertScreen(
+            viewController,
+            named: "classic-onboarding-welcome",
+            device: SnapshotSupport.iPhone17Pro
+        )
+    }
+
+    func testClassicOnboardingWelcomeCompactSnapshot() {
+        SnapshotSupport.setUp(designStyle: .classic, cleanColorScheme: .dark)
+        let appearance = SnapshotSupport.appearance(
+            designStyle: .classic,
+            cleanColorScheme: .dark
+        )
+        let viewController = makeHostingController(
+            rootView: QuizOnboardingView(
+                appearance: appearance,
+                themes: denseOnboardingThemes,
+                onComplete: { _ in }
+            )
+        )
+
+        SnapshotSupport.assertScreen(
+            viewController,
+            named: "classic-onboarding-welcome-iphone-se",
+            device: .iPhone8
+        )
+    }
+
+    func testClassicOnboardingTopicsSnapshot() {
+        SnapshotSupport.setUp(designStyle: .classic, cleanColorScheme: .dark)
+        let appearance = SnapshotSupport.appearance(
+            designStyle: .classic,
+            cleanColorScheme: .dark
+        )
+        let viewController = makeHostingController(
+            rootView: QuizOnboardingView(
+                appearance: appearance,
+                themes: onboardingThemes,
+                initialPage: .topics,
+                preferredThemeIDs: ["music", "history_culture"],
+                onComplete: { _ in }
+            )
+        )
+
+        SnapshotSupport.assertScreen(
+            viewController,
+            named: "classic-onboarding-topics",
+            device: SnapshotSupport.iPhone17Pro
+        )
+    }
+
+    func testClassicOnboardingTopicsCompactSnapshot() {
+        SnapshotSupport.setUp(designStyle: .classic, cleanColorScheme: .dark)
+        let appearance = SnapshotSupport.appearance(
+            designStyle: .classic,
+            cleanColorScheme: .dark
+        )
+        let viewController = makeHostingController(
+            rootView: QuizOnboardingView(
+                appearance: appearance,
+                themes: denseOnboardingThemes,
+                catalogOrigin: .backend,
+                initialPage: .topics,
+                onComplete: { _ in }
+            )
+        )
+
+        SnapshotSupport.assertScreen(
+            viewController,
+            named: "classic-onboarding-topics-iphone-se",
+            device: .iPhone8
+        )
+    }
+
+    func testClassicOnboardingTutorialCompactSnapshot() {
+        SnapshotSupport.setUp(designStyle: .classic, cleanColorScheme: .dark)
+        let appearance = SnapshotSupport.appearance(
+            designStyle: .classic,
+            cleanColorScheme: .dark
+        )
+        let viewController = makeHostingController(
+            rootView: QuizOnboardingView(
+                appearance: appearance,
+                themes: onboardingThemes,
+                initialPage: .tutorial,
+                onComplete: { _ in }
+            )
+        )
+
+        SnapshotSupport.assertScreen(
+            viewController,
+            named: "classic-onboarding-tutorial-iphone-se",
+            device: .iPhone8
+        )
+    }
+
     func testClassicAIThemeServiceAlertSnapshot() async {
         SnapshotSupport.setUp(designStyle: .classic)
         let presenter = QuizAlertPresenter()
@@ -133,6 +274,66 @@ final class SwiftUISnapshotTests: XCTestCase {
             named: "classic-ai-theme-service-alert-iphone-se",
             device: .iPhone8
         )
+    }
+
+    private var denseOnboardingThemes: [OnboardingTheme] {
+        let titles = [
+            "Математика",
+            "Автомобили",
+            "Биология",
+            "Космос",
+            "Физика",
+            "Химия",
+            "Литература",
+            "География",
+            "Кино",
+            "Видеоигры",
+            "История и культура",
+            "Политика и бизнес",
+            "Музыка",
+            "Технологии"
+        ]
+        let symbols = [
+            "function",
+            "car.fill",
+            "asterisk",
+            "moon.stars.fill",
+            "atom",
+            "flask.fill",
+            "book.fill",
+            "globe",
+            "film.fill",
+            "gamecontroller.fill",
+            "theatermask.and.paintbrush.fill",
+            "briefcase.fill",
+            "music.note.list",
+            "cpu.fill"
+        ]
+        let colors = [
+            "#FF2D55",
+            "#FF453A",
+            "#30D158",
+            "#BF5AF2",
+            "#5E5CE6",
+            "#64D2FF",
+            "#C7A97B",
+            "#00C7BE",
+            "#FF375F",
+            "#34C759",
+            "#FF9F0A",
+            "#5E5CE6",
+            "#AF52DE",
+            "#0A84FF"
+        ]
+
+        return titles.indices.map { index in
+            OnboardingTheme(
+                id: "compact-\(index)",
+                title: titles[index],
+                sfSymbolName: symbols[index],
+                colorHex: colors[index]
+            )
+        }
     }
 
     func testClassicAIThemeRefusalAlertSnapshot() {

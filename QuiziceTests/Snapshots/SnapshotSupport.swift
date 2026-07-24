@@ -26,6 +26,9 @@ enum SnapshotSupport {
         UserDefaults.standard.set(designStyle.rawValue, forKey: AppAppearanceStore.Keys.designStyle)
         UserDefaults.standard.set(cleanColorScheme.rawValue, forKey: AppAppearanceStore.Keys.cleanColorScheme)
         UserDefaults.standard.set(AppBackgroundStyle.defaultStyle.rawValue, forKey: AppAppearanceStore.Keys.backgroundStyle)
+        UserDefaults.standard.removeObject(forKey: OnboardingProgressStore.Keys.completedVersion)
+        UserDefaults.standard.removeObject(forKey: OnboardingProgressStore.Keys.preferredThemeIDs)
+        resetLocalizedThemePreferences()
     }
 
     static func tearDown() {
@@ -34,7 +37,24 @@ enum SnapshotSupport {
         UserDefaults.standard.removeObject(forKey: AppAppearanceStore.Keys.cleanColorScheme)
         UserDefaults.standard.removeObject(forKey: AppAppearanceStore.Keys.backgroundStyle)
         UserDefaults.standard.removeObject(forKey: AppLocalizationStore.Keys.language)
+        UserDefaults.standard.removeObject(forKey: OnboardingProgressStore.Keys.completedVersion)
+        UserDefaults.standard.removeObject(forKey: OnboardingProgressStore.Keys.preferredThemeIDs)
+        resetLocalizedThemePreferences()
         resetSharedQuizFactoryForTests()
+    }
+
+    private static func resetLocalizedThemePreferences() {
+        UserDefaults.standard.removeObject(
+            forKey: OnboardingProgressStore.Keys.legacyPreferencesMigrationLocale
+        )
+        AppLanguagePreference.allCases.compactMap(\.languageCode).forEach { locale in
+            UserDefaults.standard.removeObject(
+                forKey: OnboardingProgressStore.Keys.preferredThemeIDs(locale: locale)
+            )
+            UserDefaults.standard.removeObject(
+                forKey: OnboardingProgressStore.Keys.pendingThemePreferences(locale: locale)
+            )
+        }
     }
 
     static func assertScreen(
@@ -164,6 +184,9 @@ enum SnapshotSupport {
         id: String,
         name: String,
         description: String = "Synthetic snapshot theme",
+        sfSymbolName: String? = nil,
+        emoji: String = QuizTheme.defaultEmoji,
+        colorHex: String? = nil,
         source: QuizThemeSource = .catalog,
         questions: [QuizQuestion] = [
             QuizQuestion(
@@ -173,7 +196,34 @@ enum SnapshotSupport {
             )
         ]
     ) -> QuizTheme {
-        QuizTheme(id: id, theme: name, themeDescription: description, questions: questions, source: source)
+        let resolvedSymbol = sfSymbolName ?? [
+            "music": "music.note.list",
+            "technology": "cpu.fill",
+            "history_culture": "theatermask.and.paintbrush.fill",
+            "politics_business": "briefcase.fill"
+        ][id] ?? QuizTheme.defaultSFSymbolName
+        let resolvedEmoji = emoji == QuizTheme.defaultEmoji ? [
+            "music": "🎵",
+            "technology": "💻",
+            "history_culture": "🏛️",
+            "politics_business": "💼"
+        ][id] ?? emoji : emoji
+        let resolvedColorHex = colorHex ?? [
+            "music": "#FF8252",
+            "technology": "#62A2E6",
+            "history_culture": "#8B5CF6",
+            "politics_business": "#F2C94C"
+        ][id]
+        return QuizTheme(
+            id: id,
+            theme: name,
+            themeDescription: description,
+            questions: questions,
+            sfSymbolName: resolvedSymbol,
+            emoji: resolvedEmoji,
+            colorHex: resolvedColorHex,
+            source: source
+        )
     }
 
     private static func prepare(
@@ -203,6 +253,10 @@ enum SnapshotSupport {
         collectionView.register(
             ThemeCardCollectionViewCell.self,
             forCellWithReuseIdentifier: ThemeCardCollectionViewCell.reuseIdentifier
+        )
+        collectionView.register(
+            ThemesViewportCollectionViewCell.self,
+            forCellWithReuseIdentifier: ThemesViewportCollectionViewCell.reuseIdentifier
         )
         collectionView.register(
             StatisticsCardCollectionViewCell.self,
