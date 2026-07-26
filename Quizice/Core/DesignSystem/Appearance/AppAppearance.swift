@@ -327,6 +327,12 @@ struct AppAppearance {
         }
     }
 
+    func themeCardIconColor(baseColor: UIColor) -> UIColor {
+        designStyle == .classic
+            ? baseColor
+            : themeCardBorder(baseColor: baseColor)
+    }
+
     private static func makeClean(
         cleanColorSchemePreference: CleanColorSchemePreference,
         backgroundStyle: AppBackgroundStyle,

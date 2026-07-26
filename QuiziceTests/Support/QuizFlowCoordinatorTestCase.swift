@@ -325,9 +325,11 @@ final class RoutingNavigationControllerSpy: UINavigationController {
 
 final class RoutingThemeRepository: ThemeRepository {
     var themes: [QuizTheme]?
+    let catalogOrigin: QuizCatalogOrigin
 
-    init(themes: [QuizTheme]) {
+    init(themes: [QuizTheme], catalogOrigin: QuizCatalogOrigin = .bundled) {
         self.themes = themes
+        self.catalogOrigin = catalogOrigin
     }
 
     func loadData(forceReload: Bool) {}

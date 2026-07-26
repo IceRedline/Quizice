@@ -118,7 +118,8 @@ extension QuizViewController {
         initialShadow: AppShadowStyle
     ) -> ThemeCardExpansionTransitionView {
         let themeID = theme?.stableID ?? homeCardState.themeID ?? ""
-        let tintColor = ThemeVisualCatalog.tintColor(for: themeID)
+        let tintColor = theme.map(ThemeVisualCatalog.tintColor(for:))
+            ?? ThemeVisualCatalog.tintColor(colorHex: nil, themeID: themeID)
         let transitionView = ThemeCardExpansionTransitionView(
             frame: frame,
             targetFrameInRoot: targetFrame,

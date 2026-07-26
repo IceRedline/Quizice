@@ -215,11 +215,16 @@ final class HomeExpandedCardTransitionTests: HomeScreenVisualStateTestCase {
         let collectionView = try XCTUnwrap(
             viewController.view.descendant(withAccessibilityIdentifier: "homeThemesCollectionView") as? UICollectionView
         )
+        let themeCollectionView = try XCTUnwrap(
+            viewController.view.descendant(
+                withAccessibilityIdentifier: ThemesCollectionService.Content.themeCatalogAccessibilityID
+            ) as? UICollectionView
+        )
         let sourceButton = try XCTUnwrap(
             viewController.view.descendant(withAccessibilityIdentifier: "music") as? UIButton
         )
         let sourceCell = try XCTUnwrap(
-            collectionView.visibleCells
+            themeCollectionView.visibleCells
                 .compactMap { $0 as? ThemeCardCollectionViewCell }
                 .first(where: { $0.actionButton === sourceButton })
         )
@@ -294,6 +299,9 @@ final class HomeExpandedCardTransitionTests: HomeScreenVisualStateTestCase {
         )
         XCTAssertTrue(
             viewController.view.descendant(withAccessibilityIdentifier: "homeSettingsButton")?.accessibilityElementsHidden == true
+        )
+        XCTAssertTrue(
+            viewController.view.descendant(withAccessibilityIdentifier: "homeOnboardingHelpButton")?.accessibilityElementsHidden == true
         )
 
         let targetCardFrame = card.convert(card.bounds, to: viewController.view)
@@ -416,7 +424,9 @@ final class HomeExpandedCardTransitionTests: HomeScreenVisualStateTestCase {
         let refreshedImageView = try XCTUnwrap(
             refreshedSourceContent.subviews.compactMap { $0 as? UIImageView }.first
         )
-        let expectedRadarImage = try XCTUnwrap(UIImage(named: "theme_logo_music_radar"))
+        let expectedRadarImage = try XCTUnwrap(
+            UIImage(systemName: "music.note.list")?.withRenderingMode(.alwaysTemplate)
+        )
 
         XCTAssertEqual(refreshedImageView.image?.pngData(), expectedRadarImage.pngData())
         drainAnimations()

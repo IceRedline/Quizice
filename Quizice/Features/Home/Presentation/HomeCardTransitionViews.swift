@@ -381,11 +381,114 @@ final class ThemeCardExpansionTransitionView: UIView {
 }
 
 final class HomeThemesCollectionView: UICollectionView {
+    private enum Animation {
+        static let bottomFadeDuration: CFTimeInterval = 0.20
+        static let bottomFadeKey = "home.bottomFade.colors"
+    }
+
+    private let bottomFadeMaskLayer = CAGradientLayer()
+    private var bottomFadeVisibility: CGFloat = 0
+    private var bottomFadeHeight: CGFloat = 0
+
+    override init(frame: CGRect, collectionViewLayout layout: UICollectionViewLayout) {
+        super.init(frame: frame, collectionViewLayout: layout)
+        configureTransparentBackground()
+    }
+
+    required init?(coder: NSCoder) {
+        super.init(coder: coder)
+        configureTransparentBackground()
+    }
+
+    override func layoutSubviews() {
+        super.layoutSubviews()
+        updateBottomFadeMask(
+            animated: false,
+            preservesActiveAnimation: true
+        )
+    }
+
     override func touchesShouldCancel(in view: UIView) -> Bool {
         if view is UIControl {
             return true
         }
         return super.touchesShouldCancel(in: view)
+    }
+
+    func updateBottomFade(
+        visibility: CGFloat,
+        height: CGFloat,
+        animated: Bool = false
+    ) {
+        let targetVisibility = min(max(visibility, 0), 1)
+        let targetHeight = max(height, 0)
+        let visibilityChanged = abs(bottomFadeVisibility - targetVisibility) > 0.001
+        let heightChanged = abs(bottomFadeHeight - targetHeight) > 0.001
+
+        bottomFadeVisibility = targetVisibility
+        bottomFadeHeight = targetHeight
+        updateBottomFadeMask(
+            animated: animated && visibilityChanged,
+            preservesActiveAnimation: !visibilityChanged && !heightChanged
+        )
+    }
+
+    private func configureTransparentBackground() {
+        backgroundColor = .clear
+        backgroundView = nil
+        isOpaque = false
+        layer.isOpaque = false
+
+        bottomFadeMaskLayer.startPoint = CGPoint(x: 0.5, y: 0)
+        bottomFadeMaskLayer.endPoint = CGPoint(x: 0.5, y: 1)
+    }
+
+    private func updateBottomFadeMask(
+        animated: Bool,
+        preservesActiveAnimation: Bool
+    ) {
+        CATransaction.begin()
+        CATransaction.setDisableActions(true)
+        defer { CATransaction.commit() }
+
+        guard bottomFadeHeight > 0, bounds.height > 0 else {
+            bottomFadeMaskLayer.removeAllAnimations()
+            layer.mask = nil
+            return
+        }
+
+        let fadeStart = max(1 - bottomFadeHeight / bounds.height, 0)
+        let opaqueColor = UIColor.white.cgColor
+        let targetColors = [
+            opaqueColor,
+            opaqueColor,
+            UIColor.white.withAlphaComponent(1 - bottomFadeVisibility).cgColor
+        ]
+        let currentColors = bottomFadeMaskLayer.presentation()?.colors
+            ?? bottomFadeMaskLayer.colors
+            ?? [opaqueColor, opaqueColor, opaqueColor]
+
+        bottomFadeMaskLayer.frame = bounds
+        bottomFadeMaskLayer.locations = [0, NSNumber(value: Double(fadeStart)), 1]
+        bottomFadeMaskLayer.colors = targetColors
+        layer.mask = bottomFadeMaskLayer
+
+        guard animated else {
+            if !preservesActiveAnimation {
+                bottomFadeMaskLayer.removeAnimation(forKey: Animation.bottomFadeKey)
+            }
+            return
+        }
+
+        let colorsAnimation = CABasicAnimation(keyPath: "colors")
+        colorsAnimation.fromValue = currentColors
+        colorsAnimation.toValue = targetColors
+        colorsAnimation.duration = Animation.bottomFadeDuration
+        colorsAnimation.timingFunction = CAMediaTimingFunction(name: .easeInEaseOut)
+        bottomFadeMaskLayer.add(
+            colorsAnimation,
+            forKey: Animation.bottomFadeKey
+        )
     }
 }
 

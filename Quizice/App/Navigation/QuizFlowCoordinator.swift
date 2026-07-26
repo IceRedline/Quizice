@@ -4,6 +4,11 @@ import UIKit
 protocol HomeRouting: AnyObject {
     func showQuestion()
     func showSettings()
+    func showOnboarding()
+}
+
+extension HomeRouting {
+    func showOnboarding() {}
 }
 
 protocol QuizPlayRouting: AnyObject {
@@ -33,17 +38,23 @@ final class QuizFlowCoordinator: NSObject, QuizRouting, UIViewControllerTransiti
     private let session: QuizSessionManaging
     private let aiQuizThemeService: AIQuizThemeServiceProtocol
     private let aiQuizAccessProvider: AIQuizAccessProviding
+    private let onboardingProgressStore: OnboardingProgressStoring
     private let analytics: AnalyticsTracking
+    private let notificationCenter: NotificationCenter
     private let randomQuestionsProvider: ([QuizQuestion]) -> [QuizQuestion]
     private let randomQuestionSelectionModeProvider: () -> CrossThemeQuestionSelectionMode
     private let cardSlideTransitionAnimator = QuizCardSlidePresentationAnimator()
     private let aiReplayAlertPresenter = QuizAlertPresenter()
     private weak var activeQuestionViewController: QuizQuestionViewController?
     private weak var resultViewController: QuizResultViewController?
+    private weak var activeOnboardingViewController: UIViewController?
+    private var pendingSystemViewController: UIViewController?
     private var catalogReplayTask: Task<Void, Never>?
     private var catalogReplayProgressTask: Task<Void, Never>?
     private var aiReplayTask: Task<Void, Never>?
     private var aiReplayProgressTask: Task<Void, Never>?
+    private var themePreferencesSyncTask: Task<Void, Never>?
+    private var authenticationEstablishedObserver: NSObjectProtocol?
     private let catalogReplayProgressDelay: () async -> Void
 
     init(
@@ -53,7 +64,9 @@ final class QuizFlowCoordinator: NSObject, QuizRouting, UIViewControllerTransiti
         session: QuizSessionManaging = QuizSessionStore.shared,
         aiQuizThemeService: AIQuizThemeServiceProtocol? = nil,
         aiQuizAccessProvider: AIQuizAccessProviding? = nil,
+        onboardingProgressStore: OnboardingProgressStoring = OnboardingProgressStore.shared,
         analytics: AnalyticsTracking = AppMetricaAnalyticsTracker.shared,
+        notificationCenter: NotificationCenter = .default,
         randomQuestionsProvider: @escaping ([QuizQuestion]) -> [QuizQuestion] = { $0.shuffled() },
         randomQuestionSelectionModeProvider: @escaping () -> CrossThemeQuestionSelectionMode = {
             CrossThemeQuestionSelectionMode.allCases.randomElement() ?? .random
@@ -70,11 +83,22 @@ final class QuizFlowCoordinator: NSObject, QuizRouting, UIViewControllerTransiti
         self.aiQuizThemeService = aiQuizThemeService
             ?? Self.makeDefaultAIQuizThemeService(accessProvider: resolvedAIQuizAccessProvider)
         self.aiQuizAccessProvider = resolvedAIQuizAccessProvider
+        self.onboardingProgressStore = onboardingProgressStore
         self.analytics = analytics
+        self.notificationCenter = notificationCenter
         self.randomQuestionsProvider = randomQuestionsProvider
         self.randomQuestionSelectionModeProvider = randomQuestionSelectionModeProvider
         self.catalogReplayProgressDelay = catalogReplayProgressDelay
         super.init()
+        authenticationEstablishedObserver = notificationCenter.addObserver(
+            forName: .backendAuthenticationEstablished,
+            object: nil,
+            queue: .main
+        ) { [weak self] _ in
+            Task { @MainActor [weak self] in
+                self?.synchronizeThemePreferencesAfterAuthentication()
+            }
+        }
     }
 
     deinit {
@@ -82,9 +106,14 @@ final class QuizFlowCoordinator: NSObject, QuizRouting, UIViewControllerTransiti
         catalogReplayProgressTask?.cancel()
         aiReplayTask?.cancel()
         aiReplayProgressTask?.cancel()
+        themePreferencesSyncTask?.cancel()
+        if let authenticationEstablishedObserver {
+            notificationCenter.removeObserver(authenticationEstablishedObserver)
+        }
     }
 
     func start() {
+        themeRepository.loadData(forceReload: false)
         let viewController = QuizViewController(
             themeRepository: themeRepository,
             session: session,
@@ -98,6 +127,21 @@ final class QuizFlowCoordinator: NSObject, QuizRouting, UIViewControllerTransiti
         navigationController.setNavigationBarHidden(true, animated: false)
         navigationController.setViewControllers([viewController], animated: false)
         window.rootViewController = navigationController
+    }
+
+    @MainActor
+    func prepareInitialCatalog() async {
+        let locale = AppLocalizationStore.shared.resolvedLanguageCode
+        let didRefresh = await themeRepository.refreshBackendCatalog(locale: locale)
+        let didSynchronizePreferences = await themeRepository.synchronizeThemePreferences(
+            locale: locale
+        )
+        guard !Task.isCancelled else { return }
+        (navigationController.viewControllers.first as? QuizViewController)?
+            .applyBackendCatalogRefresh(
+                didRefresh: didRefresh || didSynchronizePreferences,
+                locale: locale
+            )
     }
 
     func showQuestion() {
@@ -131,9 +175,112 @@ final class QuizFlowCoordinator: NSObject, QuizRouting, UIViewControllerTransiti
         presentedViewController.present(viewController, animated: true)
     }
 
+    func presentInitialOnboardingIfNeeded() {
+        guard onboardingProgressStore.needsOnboarding else { return }
+        presentOnboarding(animated: false)
+    }
+
+    func showOnboarding() {
+        presentOnboarding(animated: true)
+    }
+
     func presentSystemViewController(_ viewController: UIViewController) {
+        guard activeOnboardingViewController == nil else {
+            pendingSystemViewController = viewController
+            return
+        }
         guard presentedViewController !== viewController else { return }
         presentedViewController.present(viewController, animated: true)
+    }
+
+    private func presentOnboarding(animated: Bool) {
+        guard activeOnboardingViewController == nil else { return }
+
+        let appearance = AppAppearanceStore.shared.appearance(
+            compatibleWith: window.traitCollection
+        )
+        let onboardingView = QuizOnboardingView(
+            appearance: appearance,
+            themes: onboardingThemes,
+            catalogOrigin: themeRepository.catalogOrigin,
+            preferredThemeIDs: Set(
+                onboardingProgressStore.orderedPreferredThemeIDs(
+                    locale: AppLocalizationStore.shared.resolvedLanguageCode
+                )
+            ),
+            onComplete: { [weak self] preferredThemeIDs in
+                self?.completeOnboarding(preferredThemeIDs: preferredThemeIDs)
+            }
+        )
+        let viewController = UIHostingController(rootView: onboardingView)
+        viewController.modalPresentationStyle = .fullScreen
+        viewController.overrideUserInterfaceStyle = appearance.resolvedInterfaceStyle
+        viewController.view.backgroundColor = .clear
+        activeOnboardingViewController = viewController
+        analytics.track(.screenView(screen: .onboarding))
+        presentedViewController.present(viewController, animated: animated)
+    }
+
+    private var onboardingThemes: [OnboardingTheme] {
+        (themeRepository.themes ?? themeRepository.fetchQuizThemes()).map {
+            OnboardingTheme(
+                id: $0.stableID,
+                title: $0.theme,
+                sfSymbolName: $0.sfSymbolName,
+                emoji: $0.emoji,
+                colorHex: $0.colorHex
+            )
+        }
+    }
+
+    func completeOnboarding(preferredThemeIDs: Set<String>) {
+        let locale = AppLocalizationStore.shared.resolvedLanguageCode
+        let orderedPreferredThemeIDs = onboardingThemes
+            .map(\.id)
+            .filter(preferredThemeIDs.contains)
+        onboardingProgressStore.complete(
+            preferredThemeIDs: orderedPreferredThemeIDs,
+            locale: locale
+        )
+        (navigationController.viewControllers.first as? QuizViewController)?
+            .applyThemePreferencesRefresh(locale: locale)
+        synchronizeThemePreferences(locale: locale)
+        let viewController = activeOnboardingViewController
+        activeOnboardingViewController = nil
+        guard let viewController else {
+            presentPendingSystemViewControllerIfNeeded()
+            return
+        }
+        viewController.dismiss(animated: true) { [weak self] in
+            self?.presentPendingSystemViewControllerIfNeeded()
+        }
+    }
+
+    private func presentPendingSystemViewControllerIfNeeded() {
+        guard let viewController = pendingSystemViewController else { return }
+        pendingSystemViewController = nil
+        presentSystemViewController(viewController)
+    }
+
+    private func synchronizeThemePreferencesAfterAuthentication() {
+        synchronizeThemePreferences(
+            locale: AppLocalizationStore.shared.resolvedLanguageCode
+        )
+    }
+
+    private func synchronizeThemePreferences(locale: String) {
+        themePreferencesSyncTask?.cancel()
+        themePreferencesSyncTask = Task { @MainActor [weak self] in
+            guard let self else { return }
+            let didSynchronize = await themeRepository.synchronizeThemePreferences(locale: locale)
+            guard
+                !Task.isCancelled,
+                AppLocalizationStore.shared.resolvedLanguageCode == locale
+            else { return }
+            themePreferencesSyncTask = nil
+            (navigationController.viewControllers.first as? QuizViewController)?
+                .applyBackendCatalogRefresh(didRefresh: didSynchronize, locale: locale)
+        }
     }
 
     func closeQuestion() {

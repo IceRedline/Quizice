@@ -167,10 +167,9 @@ extension ExpandedThemeCardView {
         }
     }
 
-    func frontArtworkImage(themeID: String, appearance: AppAppearance) -> UIImage? {
+    func frontArtworkImage(sfSymbolName: String, appearance: AppAppearance) -> UIImage? {
         guard let image = ThemeVisualCatalog.logoImage(
-            for: themeID,
-            designStyle: appearance.designStyle
+            sfSymbolName: sfSymbolName
         ) else {
             return nil
         }

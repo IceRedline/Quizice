@@ -12,27 +12,45 @@ extension QuizViewController {
         backendCatalogRefreshTask = Task { @MainActor [weak self] in
             guard let self else { return }
             let didRefresh = await self.themeRepository.refreshBackendCatalog(locale: locale)
+            let didSynchronizePreferences = await self.themeRepository.synchronizeThemePreferences(
+                locale: locale
+            )
             guard self.backendCatalogRefreshRequestID == requestID else { return }
             self.backendCatalogRefreshTask = nil
             self.backendCatalogRefreshRequestID = nil
-#if DEBUG
-            if didRefresh {
-                self.debugCatalogSourceState = .backend
-            } else if self.themeRepository.catalogOrigin == .backend {
-                self.debugCatalogSourceState = .backendStale
-            } else {
-                self.debugCatalogSourceState = .local
-            }
-#endif
-            guard
-                didRefresh,
-                !Task.isCancelled,
-                AppLocalizationStore.shared.resolvedLanguageCode == locale
-            else { return }
-            self.updateThemeAvailabilityMessage()
-            self.themesCollectionView.reloadData()
-            self.refreshExpandedThemeCardAppearance()
+            self.applyBackendCatalogRefresh(
+                didRefresh: didRefresh || didSynchronizePreferences,
+                locale: locale
+            )
         }
+    }
+
+    func applyBackendCatalogRefresh(didRefresh: Bool, locale: String) {
+#if DEBUG
+        if didRefresh {
+            debugCatalogSourceState = .backend
+        } else if themeRepository.catalogOrigin == .backend {
+            debugCatalogSourceState = .backendStale
+        } else {
+            debugCatalogSourceState = .local
+        }
+#endif
+        guard
+            didRefresh,
+            !Task.isCancelled,
+            AppLocalizationStore.shared.resolvedLanguageCode == locale
+        else { return }
+        updateThemeAvailabilityMessage()
+        applyThemePreferencesRefresh(locale: locale)
+    }
+
+    func applyThemePreferencesRefresh(locale: String) {
+        guard
+            isViewLoaded,
+            AppLocalizationStore.shared.resolvedLanguageCode == locale
+        else { return }
+        themesCollectionView.reloadData()
+        refreshExpandedThemeCardAppearance()
     }
 
     func themeButtonTouchedDown(_ sender: UIButton) {
@@ -44,13 +62,13 @@ extension QuizViewController {
         guard
             homeCardState.phase == .grid,
             !isQuizLaunchPending,
-            session.loadTheme(themeID: themeID),
-            let theme = themeRepository.themes?.first(where: { $0.stableID == themeID }),
-            let chosenTheme = session.chosenTheme
+            let theme = themeRepository.themes?.first(where: { $0.stableID == themeID })
         else {
             updateThemeAvailabilityMessage()
             return
         }
+        let chosenTheme = ThemeModel(quizTheme: theme)
+        session.chosenTheme = chosenTheme
 
         sender.layer.removeAllAnimations()
         sender.transform = .identity
@@ -59,9 +77,10 @@ extension QuizViewController {
         let effect = homeStore.send(
             .present(
                 themeID: themeID,
-                availableQuestionCounts: QuizQuestionCountPolicy.availableCounts(
-                    for: chosenTheme.questionsAndAnswers
-                ),
+                availableQuestionCounts: chosenTheme.questionOrigin == .backend
+                    && chosenTheme.questionsAndAnswers.isEmpty
+                    ? QuizQuestionCountPolicy.supportedCounts
+                    : QuizQuestionCountPolicy.availableCounts(for: chosenTheme.questionsAndAnswers),
                 preferredQuestionCount: session.questionsCount
             )
         )
@@ -170,6 +189,7 @@ extension QuizViewController {
         themesCollectionService.isFeelingLuckyLoading = true
         themesCollectionView.isUserInteractionEnabled = false
         settingsButton.isEnabled = false
+        helpButton.isEnabled = false
         updateCollectionScrollAvailability()
 
         let requestID = UUID()
@@ -231,6 +251,7 @@ extension QuizViewController {
         feelingLuckyRequestID = nil
         themesCollectionService.isFeelingLuckyLoading = false
         settingsButton?.isEnabled = true
+        helpButton?.isEnabled = true
         if wasWaitingToLaunch, isViewLoaded {
             isQuizLaunchPending = false
             quizTransitionSourceView = nil

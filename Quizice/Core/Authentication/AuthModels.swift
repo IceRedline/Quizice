@@ -5,6 +5,9 @@ extension Notification.Name {
     static let backendAuthenticationInvalidated = Notification.Name(
         "ru.avtabenskiy.Quizice.backendAuthenticationInvalidated"
     )
+    static let backendAuthenticationEstablished = Notification.Name(
+        "ru.avtabenskiy.Quizice.backendAuthenticationEstablished"
+    )
 }
 
 enum AuthSessionState: Equatable {

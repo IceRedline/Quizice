@@ -74,6 +74,7 @@ readonly -a SPLIT_TEST_SOURCE_FILES=(
   "QuiziceTests/Features/AppFlow/Unit/QuizFlowCoordinatorNavigationTests.swift"
   "QuiziceTests/Features/Home/Tests/HomeAIThemeCardInteractionTests.swift"
   "QuiziceTests/Features/Home/Tests/HomeAIThemeCardTransitionTests.swift"
+  "QuiziceTests/Features/Home/Tests/HomeCollectionServicePresentationTests.swift"
   "QuiziceTests/Features/Home/Tests/HomeCollectionServiceTests.swift"
   "QuiziceTests/Features/Home/Tests/HomeExpandedCardTransitionTests.swift"
   "QuiziceTests/Features/Home/Tests/HomeExpandedThemeCardInteractionTests.swift"
@@ -111,6 +112,7 @@ readonly -a SPLIT_TEST_SUITE_LAYOUT=(
   "QuiziceTests/Features/AppFlow/Unit/QuizFlowCoordinatorNavigationTests.swift|QuizFlowCoordinatorNavigationTests"
   "QuiziceTests/Features/Home/Tests/HomeAIThemeCardInteractionTests.swift|HomeAIThemeCardInteractionTests"
   "QuiziceTests/Features/Home/Tests/HomeAIThemeCardTransitionTests.swift|HomeAIThemeCardTransitionTests"
+  "QuiziceTests/Features/Home/Tests/HomeCollectionServicePresentationTests.swift|HomeCollectionServicePresentationTests"
   "QuiziceTests/Features/Home/Tests/HomeCollectionServiceTests.swift|HomeCollectionServiceTests"
   "QuiziceTests/Features/Home/Tests/HomeExpandedCardTransitionTests.swift|HomeExpandedCardTransitionTests"
   "QuiziceTests/Features/Home/Tests/HomeExpandedThemeCardInteractionTests.swift|HomeExpandedThemeCardInteractionTests"
@@ -442,7 +444,7 @@ check_split_test_layout_and_markers() {
     'testCollectionServiceAppliesPolishedCardStylingWithoutChangingIdentifiers' \
     'home collection tests must preserve polished card styling coverage'
   require_test_method \
-    "QuiziceTests/Features/Home/Tests/HomeCollectionServiceTests.swift" \
+    "QuiziceTests/Features/Home/Tests/HomeCollectionServicePresentationTests.swift" \
     'testCompactStatisticsTitleShrinksAndLastItemOwnsBottomSpacing' \
     'home collection tests must preserve compact statistics spacing coverage'
   require_test_method \

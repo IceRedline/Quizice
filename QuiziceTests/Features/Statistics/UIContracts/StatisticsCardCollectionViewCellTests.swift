@@ -37,7 +37,7 @@ final class StatisticsCardCollectionViewCellTests: XCTestCase {
         store.recordAttempt(correctAnswers: 5, totalQuestions: 5)
         let service = ThemesCollectionService(statisticsStore: store)
         let collectionView = makeCollectionView(service: service)
-        let statisticsIndexPath = IndexPath(item: 2, section: 0)
+        let statisticsIndexPath = IndexPath(item: 3, section: 0)
 
         collectionView.reloadData()
         collectionView.layoutIfNeeded()
@@ -69,7 +69,7 @@ final class StatisticsCardCollectionViewCellTests: XCTestCase {
     func testPresentedStatisticsStateReconfiguresOnlyItsSourceVisibility() throws {
         let service = ThemesCollectionService(statisticsStore: makeStatisticsStore())
         let collectionView = makeCollectionView(service: service)
-        let statisticsIndexPath = IndexPath(item: 2, section: 0)
+        let statisticsIndexPath = IndexPath(item: 3, section: 0)
 
         collectionView.reloadData()
         collectionView.layoutIfNeeded()
@@ -169,6 +169,10 @@ final class StatisticsCardCollectionViewCellTests: XCTestCase {
         collectionView.register(
             ThemeCardCollectionViewCell.self,
             forCellWithReuseIdentifier: ThemeCardCollectionViewCell.reuseIdentifier
+        )
+        collectionView.register(
+            ThemesViewportCollectionViewCell.self,
+            forCellWithReuseIdentifier: ThemesViewportCollectionViewCell.reuseIdentifier
         )
         collectionView.register(
             StatisticsCardCollectionViewCell.self,

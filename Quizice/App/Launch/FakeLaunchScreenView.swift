@@ -6,6 +6,14 @@ enum FakeLaunchCompletionStyle: Equatable {
     case crossfade
 }
 
+final class FakeLaunchReadiness: ObservableObject {
+    @Published var isReady: Bool
+
+    init(isReady: Bool) {
+        self.isReady = isReady
+    }
+}
+
 struct FakeLaunchMotion {
     static let standard = FakeLaunchMotion(
         logoZoomScale: 42,
@@ -80,11 +88,13 @@ struct FakeLaunchScreenView: View {
     let appearance: AppAppearance
     private let holdDuration: TimeInterval
     private let motion: FakeLaunchMotion
+    @ObservedObject private var readiness: FakeLaunchReadiness
     private let onFinished: (FakeLaunchCompletionStyle) -> Void
 
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var isRevealed = false
     @State private var phase = Phase.holding
+    @State private var didFinishMinimumHold = false
     @State private var didFinish = false
 
     init(
@@ -93,9 +103,26 @@ struct FakeLaunchScreenView: View {
         motion: FakeLaunchMotion = .standard,
         onFinished: @escaping (FakeLaunchCompletionStyle) -> Void = { _ in }
     ) {
+        self.init(
+            appearance: appearance,
+            holdDuration: holdDuration,
+            motion: motion,
+            readiness: FakeLaunchReadiness(isReady: true),
+            onFinished: onFinished
+        )
+    }
+
+    init(
+        appearance: AppAppearance,
+        holdDuration: TimeInterval = 1.15,
+        motion: FakeLaunchMotion = .standard,
+        readiness: FakeLaunchReadiness,
+        onFinished: @escaping (FakeLaunchCompletionStyle) -> Void = { _ in }
+    ) {
         self.appearance = appearance
         self.holdDuration = holdDuration
         self.motion = motion
+        self.readiness = readiness
         self.onFinished = onFinished
     }
 
@@ -135,7 +162,10 @@ struct FakeLaunchScreenView: View {
         .accessibilityHidden(true)
         .onAppear(perform: reveal)
         .task {
-            await runSequence()
+            await finishMinimumHold()
+        }
+        .onChange(of: readiness.isReady) { _, _ in
+            startCompletionIfReady()
         }
     }
 
@@ -248,7 +278,7 @@ struct FakeLaunchScreenView: View {
     }
 
     @MainActor
-    private func runSequence() async {
+    private func finishMinimumHold() async {
         let nanoseconds = UInt64(max(0, holdDuration) * 1_000_000_000)
         do {
             try await Task.sleep(nanoseconds: nanoseconds)
@@ -257,6 +287,18 @@ struct FakeLaunchScreenView: View {
         }
 
         guard !Task.isCancelled else { return }
+        didFinishMinimumHold = true
+        startCompletionIfReady()
+    }
+
+    private func startCompletionIfReady() {
+        guard
+            didFinishMinimumHold,
+            readiness.isReady,
+            phase == .holding,
+            !didFinish
+        else { return }
+
         guard !reduceMotion, UIView.areAnimationsEnabled else {
             finish(with: .crossfade)
             return

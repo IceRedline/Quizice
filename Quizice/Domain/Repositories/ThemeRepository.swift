@@ -21,6 +21,8 @@ protocol ThemeRepository: AnyObject {
     func fetchQuizThemes() -> [QuizTheme]
     @discardableResult
     func refreshBackendCatalog(locale: String) async -> Bool
+    @discardableResult
+    func synchronizeThemePreferences(locale: String) async -> Bool
     func prepareQuiz(themeID: String, questionCount: Int, locale: String) async throws -> QuizTheme
     func prepareRandomQuiz(
         selectionMode: CrossThemeQuestionSelectionMode,
@@ -35,6 +37,9 @@ extension ThemeRepository {
 
     @discardableResult
     func refreshBackendCatalog(locale: String) async -> Bool { false }
+
+    @discardableResult
+    func synchronizeThemePreferences(locale: String) async -> Bool { false }
 
     func prepareQuiz(
         themeID: String,
@@ -61,6 +66,10 @@ extension ThemeRepository {
             theme: theme.theme,
             themeDescription: theme.themeDescription,
             questions: Array(questions.shuffled().prefix(questionCount)),
+            sfSymbolName: theme.sfSymbolName,
+            emoji: theme.emoji,
+            colorHex: theme.colorHex,
+            isFavorite: theme.isFavorite,
             source: theme.source,
             questionOrigin: theme.questionOrigin
         )

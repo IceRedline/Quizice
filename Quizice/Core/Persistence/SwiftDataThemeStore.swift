@@ -44,6 +44,10 @@ private final class StoredQuizTheme {
     @Attribute(.unique) var id: String
     var theme: String
     var themeDescription: String
+    var sfSymbolName: String?
+    var emoji: String?
+    var colorHex: String?
+    var isFavorite: Bool?
     var sourceRawValue: String?
     @Relationship(deleteRule: .cascade) var questions: [StoredQuizQuestion]
 
@@ -51,12 +55,20 @@ private final class StoredQuizTheme {
         id: String,
         theme: String,
         themeDescription: String,
+        sfSymbolName: String?,
+        emoji: String?,
+        colorHex: String?,
+        isFavorite: Bool?,
         sourceRawValue: String?,
         questions: [StoredQuizQuestion]
     ) {
         self.id = id
         self.theme = theme
         self.themeDescription = themeDescription
+        self.sfSymbolName = sfSymbolName
+        self.emoji = emoji
+        self.colorHex = colorHex
+        self.isFavorite = isFavorite
         self.sourceRawValue = sourceRawValue
         self.questions = questions
     }
@@ -66,6 +78,10 @@ private final class StoredQuizTheme {
             id: model.id,
             theme: model.theme,
             themeDescription: model.themeDescription,
+            sfSymbolName: model.sfSymbolName,
+            emoji: model.emoji,
+            colorHex: model.colorHex,
+            isFavorite: model.isFavorite,
             sourceRawValue: model.source.rawValue,
             questions: model.questions.map(StoredQuizQuestion.init(model:))
         )
@@ -77,6 +93,10 @@ private final class StoredQuizTheme {
             theme: theme,
             themeDescription: themeDescription,
             questions: questions.map { $0.makeDomainModel() },
+            sfSymbolName: sfSymbolName ?? QuizTheme.defaultSFSymbolName,
+            emoji: emoji ?? QuizTheme.defaultEmoji,
+            colorHex: colorHex,
+            isFavorite: isFavorite ?? false,
             source: QuizThemeSource(rawValue: sourceRawValue ?? "") ?? .catalog
         )
     }

@@ -107,6 +107,62 @@ final class HomeThemeCardStateTests: HomeScreenVisualStateTestCase {
         XCTAssertFalse(activityIndicator.isAnimating)
     }
 
+    func testBackendOnlyThemeStartsEvenWhenSessionCatalogIsStale() async throws {
+        let metadata = QuizTheme(
+            id: "space",
+            theme: "Космос",
+            themeDescription: "Backend-only theme",
+            questions: [],
+            sfSymbolName: "moon.stars.fill",
+            emoji: "🚀",
+            colorHex: "#BF5AF2",
+            questionOrigin: .backend
+        )
+        let repository = BackendOnlyHomeThemeRepository(metadata: metadata)
+        let session = RoutingSession()
+        session.themes = []
+        let viewController = QuizViewController(
+            themeRepository: repository,
+            session: session,
+            cardReduceMotionProvider: { true },
+            quizPreparationProgressDelay: {}
+        )
+        let router = HomeRouterSpy()
+        viewController.router = router
+        let window = UIWindow(frame: CGRect(x: 0, y: 0, width: 390, height: 844))
+        window.rootViewController = viewController
+        window.makeKeyAndVisible()
+        window.layoutIfNeeded()
+        testWindows.append(window)
+
+        let sourceButton = try XCTUnwrap(
+            viewController.view.descendant(withAccessibilityIdentifier: "space") as? UIButton
+        )
+        sourceButton.sendActions(for: .touchUpInside)
+        try await waitUntil { viewController.homeCardState.phase == .expandedFront }
+        XCTAssertEqual(session.chosenTheme?.themeID, "space")
+
+        let infoButton = try XCTUnwrap(
+            viewController.view.descendant(
+                withAccessibilityIdentifier: "expandedThemeCardInfoButton"
+            ) as? UIButton
+        )
+        infoButton.sendActions(for: .touchUpInside)
+        try await waitUntil { viewController.homeCardState.phase == .expandedBack }
+
+        let startButton = try XCTUnwrap(
+            viewController.view.descendant(
+                withAccessibilityIdentifier: "descriptionStartButton"
+            ) as? UIButton
+        )
+        XCTAssertTrue(startButton.isEnabled)
+        startButton.sendActions(for: .touchUpInside)
+        try await waitUntil { router.showQuestionCallCount == 1 }
+
+        XCTAssertEqual(repository.preparedThemeIDs, ["space"])
+        XCTAssertEqual(session.chosenTheme?.questionsAndAnswers.count, 5)
+    }
+
     func testSlowQuizPreparationShowsStartIndicatorAfterConfiguredDelay() async throws {
         let theme = makeTheme(name: "Музыка", questionCount: 15)
         let repository = HangingRoutingThemeRepository(themes: [theme])
@@ -153,4 +209,47 @@ final class HomeThemeCardStateTests: HomeScreenVisualStateTestCase {
         XCTAssertFalse(activityIndicator.isAnimating)
     }
 
+}
+
+private final class BackendOnlyHomeThemeRepository: ThemeRepository {
+    var themes: [QuizTheme]?
+    private(set) var preparedThemeIDs: [String] = []
+
+    init(metadata: QuizTheme) {
+        themes = [metadata]
+    }
+
+    func loadData(forceReload: Bool) {}
+
+    func fetchQuizThemes() -> [QuizTheme] {
+        themes ?? []
+    }
+
+    func prepareQuiz(
+        themeID: String,
+        questionCount: Int,
+        locale: String
+    ) async throws -> QuizTheme {
+        guard let metadata = themes?.first(where: { $0.stableID == themeID }) else {
+            throw QuizPreparationError.unavailable
+        }
+        preparedThemeIDs.append(themeID)
+        let questions = (0..<questionCount).map { index in
+            QuizQuestion(
+                question: "Remote question \(index)?",
+                answers: ["A", "B", "C", "D"],
+                correctAnswer: "A"
+            )
+        }
+        return QuizTheme(
+            id: metadata.id,
+            theme: metadata.theme,
+            themeDescription: metadata.themeDescription,
+            questions: questions,
+            sfSymbolName: metadata.sfSymbolName,
+            emoji: metadata.emoji,
+            colorHex: metadata.colorHex,
+            questionOrigin: .backend
+        )
+    }
 }
