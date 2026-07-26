@@ -380,6 +380,102 @@ final class HomeAIThemeCardInteractionTests: HomeScreenVisualStateTestCase {
         drainAnimations()
     }
 
+    func testExpandedAIThemeCardUsesOpaqueGrayClassicSurface() {
+        let cardView = ExpandedAIThemeCardView(
+            frame: CGRect(x: 0, y: 0, width: 342, height: 640)
+        )
+        let classicAppearance = AppAppearance(
+            designStyle: .classic,
+            cleanColorSchemePreference: .dark,
+            traitCollection: UITraitCollection(userInterfaceStyle: .dark)
+        )
+
+        cardView.configure(
+            state: HomeAIThemeCardState(),
+            appearance: classicAppearance
+        )
+
+        let classicSurfaceColor = cardView.configuredSurfaceStyle?.backgroundColor
+        XCTAssertFalse(
+            classicSurfaceColor?.isEqual(
+                classicAppearance.dialogSurface.backgroundColor
+            ) == true
+        )
+        XCTAssertEqual(
+            cardView.frontSurfaceView.backgroundColor?.cgColor.alpha ?? -1,
+            1,
+            accuracy: 0.001
+        )
+        XCTAssertEqual(
+            cardView.backSurfaceView.backgroundColor?.cgColor.alpha ?? -1,
+            1,
+            accuracy: 0.001
+        )
+        assertColor(cardView.frontSurfaceView.backgroundColor, equals: classicSurfaceColor ?? .clear)
+        assertColor(cardView.backSurfaceView.backgroundColor, equals: classicSurfaceColor ?? .clear)
+
+        var surfaceRed: CGFloat = 0
+        var surfaceGreen: CGFloat = 0
+        var surfaceBlue: CGFloat = 0
+        var surfaceAlpha: CGFloat = 0
+        var backgroundRed: CGFloat = 0
+        var backgroundGreen: CGFloat = 0
+        var backgroundBlue: CGFloat = 0
+        var backgroundAlpha: CGFloat = 0
+        XCTAssertTrue(
+            classicSurfaceColor?.getRed(
+                &surfaceRed,
+                green: &surfaceGreen,
+                blue: &surfaceBlue,
+                alpha: &surfaceAlpha
+            ) == true
+        )
+        XCTAssertTrue(
+            classicAppearance.backgroundColor.getRed(
+                &backgroundRed,
+                green: &backgroundGreen,
+                blue: &backgroundBlue,
+                alpha: &backgroundAlpha
+            )
+        )
+        XCTAssertGreaterThan(surfaceRed, backgroundRed)
+        XCTAssertGreaterThan(surfaceGreen, backgroundGreen)
+        XCTAssertGreaterThan(surfaceBlue, backgroundBlue)
+        XCTAssertEqual(surfaceAlpha, 1, accuracy: 0.001)
+    }
+
+    func testExpandedAIThemeCardKeepsRadarSurfaceOpaque() {
+        let cardView = ExpandedAIThemeCardView(
+            frame: CGRect(x: 0, y: 0, width: 342, height: 640)
+        )
+        let radarAppearance = AppAppearance(
+            designStyle: .radar,
+            cleanColorSchemePreference: .dark,
+            traitCollection: UITraitCollection(userInterfaceStyle: .dark)
+        )
+
+        cardView.configure(
+            state: HomeAIThemeCardState(),
+            appearance: radarAppearance
+        )
+
+        XCTAssertTrue(
+            cardView.configuredSurfaceStyle?.backgroundColor.isEqual(
+                radarAppearance.dialogSurface.backgroundColor
+            ) == true
+        )
+        XCTAssertEqual(
+            cardView.frontSurfaceView.backgroundColor?.cgColor.alpha ?? -1,
+            1,
+            accuracy: 0.001
+        )
+        XCTAssertEqual(
+            cardView.backSurfaceView.backgroundColor?.cgColor.alpha ?? -1,
+            1,
+            accuracy: 0.001
+        )
+    }
+
 }
 
 private final class HomeAIQuizAccessStub: AIQuizAccessProviding {

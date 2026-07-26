@@ -415,6 +415,7 @@ final class InlineAIRouterSpy: QuizRouting {
     }
     func showResult(_ result: QuizResultState) {}
     func showSettings() {}
+    func showSubscription() {}
     func closeQuestion() {}
     func replayQuiz() {}
     func returnToThemes() {}

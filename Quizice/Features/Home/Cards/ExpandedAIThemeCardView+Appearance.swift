@@ -2,8 +2,9 @@ import UIKit
 
 extension ExpandedAIThemeCardView {
     func applyAppearance(_ appearance: AppAppearance) {
-        configuredSurfaceStyle = appearance.card
-        cardCornerRadius = appearance.card.cornerRadius
+        let expandedSurfaceStyle = makeExpandedSurfaceStyle(appearance)
+        configuredSurfaceStyle = expandedSurfaceStyle
+        cardCornerRadius = expandedSurfaceStyle.cornerRadius
         configuredShadowStyle = appearance.designStyle == .radar
             ? AppShadowStyle(
                 color: appearance.accentColor,
@@ -94,10 +95,39 @@ extension ExpandedAIThemeCardView {
         }
     }
 
+    private func makeExpandedSurfaceStyle(
+        _ appearance: AppAppearance
+    ) -> AppSurfaceStyle {
+        switch appearance.designStyle {
+        case .clean:
+            return appearance.card
+
+        case .radar:
+            return appearance.dialogSurface
+
+        case .classic:
+            return AppSurfaceStyle(
+                backgroundColor: appearance.row.backgroundColor
+                    .opaqueComposited(over: appearance.backgroundColor),
+                borderColor: appearance.card.borderColor,
+                borderWidth: appearance.card.borderWidth,
+                cornerRadius: appearance.card.cornerRadius,
+                shadow: appearance.card.shadow
+            )
+        }
+    }
+
     func applyConfiguredSurfaceAppearance() {
         guard let style = configuredSurfaceStyle else { return }
         let isRadar = configuredAppearance?.designStyle == .radar
-        let surfaceColor = isTransitionSurfaceHidden ? UIColor.clear : style.backgroundColor
+        let surfaceColor: UIColor
+        if isTransitionSurfaceHidden {
+            surfaceColor = .clear
+        } else if isRadar {
+            surfaceColor = style.backgroundColor.withAlphaComponent(1)
+        } else {
+            surfaceColor = style.backgroundColor
+        }
         let solidBorderColor: UIColor
         let solidBorderWidth: CGFloat
         if isTransitionSurfaceHidden {
@@ -274,4 +304,54 @@ extension ExpandedAIThemeCardView {
         onSubmit?()
     }
 
+}
+
+private extension UIColor {
+    func opaqueComposited(over backgroundColor: UIColor) -> UIColor {
+        var foregroundRed: CGFloat = 0
+        var foregroundGreen: CGFloat = 0
+        var foregroundBlue: CGFloat = 0
+        var foregroundAlpha: CGFloat = 0
+        var backgroundRed: CGFloat = 0
+        var backgroundGreen: CGFloat = 0
+        var backgroundBlue: CGFloat = 0
+        var backgroundAlpha: CGFloat = 0
+
+        guard
+            getRed(
+                &foregroundRed,
+                green: &foregroundGreen,
+                blue: &foregroundBlue,
+                alpha: &foregroundAlpha
+            ),
+            backgroundColor.getRed(
+                &backgroundRed,
+                green: &backgroundGreen,
+                blue: &backgroundBlue,
+                alpha: &backgroundAlpha
+            )
+        else {
+            return backgroundColor.withAlphaComponent(1)
+        }
+
+        let outputAlpha = foregroundAlpha
+            + backgroundAlpha * (1 - foregroundAlpha)
+        guard outputAlpha > 0 else { return .clear }
+
+        return UIColor(
+            red: (
+                foregroundRed * foregroundAlpha
+                    + backgroundRed * backgroundAlpha * (1 - foregroundAlpha)
+            ) / outputAlpha,
+            green: (
+                foregroundGreen * foregroundAlpha
+                    + backgroundGreen * backgroundAlpha * (1 - foregroundAlpha)
+            ) / outputAlpha,
+            blue: (
+                foregroundBlue * foregroundAlpha
+                    + backgroundBlue * backgroundAlpha * (1 - foregroundAlpha)
+            ) / outputAlpha,
+            alpha: 1
+        )
+    }
 }

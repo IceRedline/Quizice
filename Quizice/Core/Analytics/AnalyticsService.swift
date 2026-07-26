@@ -15,6 +15,7 @@ enum AnalyticsScreen: String {
     case quizResult = "quiz_result"
     case statistics
     case aiThemeCreation = "ai_theme_creation"
+    case subscription = "subscription_paywall"
     case settings
 }
 
