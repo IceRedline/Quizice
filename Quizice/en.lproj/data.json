@@ -906,7 +906,10 @@
                 "explanation": "The guitar riff of “Seven Nation Army” is recognised far beyond rock music."
             }
         ],
-        "id": "music"
+        "id": "music",
+        "sfSymbol": "music.note.list",
+        "emoji": "🎵",
+        "colorHex": "#FF8252"
     },
     {
         "theme": "Technology",
@@ -1859,7 +1862,10 @@
                 "explanation": "Chatbots can be created in any of the listed languages depending on the platform."
             }
         ],
-        "id": "technology"
+        "id": "technology",
+        "sfSymbol": "cpu.fill",
+        "emoji": "💻",
+        "colorHex": "#62A2E6"
     },
     {
         "theme": "History and Culture",
@@ -2977,7 +2983,10 @@
                 "explanation": "The features listed in the question are characteristic of Barokko."
             }
         ],
-        "id": "history_culture"
+        "id": "history_culture",
+        "sfSymbol": "theatermask.and.paintbrush.fill",
+        "emoji": "🏛️",
+        "colorHex": "#8B5CF6"
     },
     {
         "theme": "Politics and Business",
@@ -4161,6 +4170,9 @@
                 "explanation": "Facebook acquired Instagram in 2012 for approximately $1 billion."
             }
         ],
-        "id": "politics_business"
+        "id": "politics_business",
+        "sfSymbol": "briefcase.fill",
+        "emoji": "💼",
+        "colorHex": "#F2C94C"
     }
 ]

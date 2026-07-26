@@ -157,7 +157,7 @@ final class AppAppearanceTests: XCTestCase {
     func testQuizThemeActionsStayMonochromeWithoutChangingCatalogIdentity() throws {
         let appearance = SnapshotSupport.appearance(designStyle: .clean, cleanColorScheme: .light)
         let darkAppearance = SnapshotSupport.appearance(designStyle: .clean, cleanColorScheme: .dark)
-        let musicTint = try XCTUnwrap(ThemeVisualCatalog.tintColorIfAvailable(for: "music"))
+        let musicTint = try XCTUnwrap(ThemeVisualCatalog.color(from: "#FF8252"))
 
         XCTAssertFalse(musicTint.isEqual(appearance.accentColor))
         XCTAssertTrue(

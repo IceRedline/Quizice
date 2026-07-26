@@ -906,7 +906,10 @@
                 "explanation": "Гитарный рифф «Seven Nation Army» стал узнаваемым далеко за пределами рок-сцены."
             }
         ],
-        "id": "music"
+        "id": "music",
+        "sfSymbol": "music.note.list",
+        "emoji": "🎵",
+        "colorHex": "#FF8252"
     },
     {
         "theme": "Технологии",
@@ -1859,7 +1862,10 @@
                 "explanation": "Чат-боты можно создавать на всех перечисленных языках в зависимости от платформы."
             }
         ],
-        "id": "technology"
+        "id": "technology",
+        "sfSymbol": "cpu.fill",
+        "emoji": "💻",
+        "colorHex": "#62A2E6"
     },
     {
         "theme": "История и культура",
@@ -2977,7 +2983,10 @@
                 "explanation": "Перечисленные в вопросе признаки характерны для Барокко."
             }
         ],
-        "id": "history_culture"
+        "id": "history_culture",
+        "sfSymbol": "theatermask.and.paintbrush.fill",
+        "emoji": "🏛️",
+        "colorHex": "#8B5CF6"
     },
     {
         "theme": "Политика и бизнес",
@@ -4161,6 +4170,9 @@
                 "explanation": "Купила Instagram в 2012 году примерно за 1 млрд долларов наличными и акциями."
             }
         ],
-        "id": "politics_business"
+        "id": "politics_business",
+        "sfSymbol": "briefcase.fill",
+        "emoji": "💼",
+        "colorHex": "#F2C94C"
     }
 ]

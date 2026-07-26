@@ -4,6 +4,77 @@ import XCTest
 
 @MainActor
 final class HomeSettingsVisualStateTests: HomeScreenVisualStateTestCase {
+    func testHomeHelpButtonSitsBelowSettingsAndReopensOnboarding() throws {
+        QuizFactory.shared.themes = [makeTheme(name: "Музыка")]
+
+        let viewController = makeHomeViewController(
+            in: CGRect(x: 0, y: 0, width: 390, height: 844)
+        )
+        let router = HomeRouterSpy()
+        viewController.router = router
+        let settingsButton = try XCTUnwrap(
+            viewController.view.descendant(
+                withAccessibilityIdentifier: "homeSettingsButton"
+            ) as? UIButton
+        )
+        let helpButton = try XCTUnwrap(
+            viewController.view.descendant(
+                withAccessibilityIdentifier: "homeOnboardingHelpButton"
+            ) as? UIButton
+        )
+        let helpSurface = try XCTUnwrap(
+            viewController.view.descendant(
+                withAccessibilityIdentifier: "homeOnboardingHelpVisualSurface"
+            )
+        )
+
+        XCTAssertEqual(helpButton.bounds.size, CGSize(width: 44, height: 44))
+        XCTAssertEqual(helpSurface.bounds.size, CGSize(width: 36, height: 36))
+        XCTAssertEqual(helpButton.center.x, settingsButton.center.x, accuracy: 0.5)
+        XCTAssertGreaterThan(helpButton.frame.minY, settingsButton.frame.maxY)
+        XCTAssertGreaterThanOrEqual(settingsButton.frame.minY, 0)
+        XCTAssertGreaterThanOrEqual(helpButton.frame.minY, 0)
+        XCTAssertEqual(helpButton.accessibilityLabel, L10n.Onboarding.helpAccessibilityLabel)
+        XCTAssertEqual(helpButton.accessibilityHint, L10n.Onboarding.helpAccessibilityHint)
+        XCTAssertNotNil(helpButton.image(for: .normal))
+
+        helpButton.sendActions(for: .touchUpInside)
+
+        XCTAssertEqual(router.showOnboardingCallCount, 1)
+        XCTAssertEqual(router.showSettingsCallCount, 0)
+    }
+
+    func testHomeStartsAtTopAfterReservingSpaceForHelpButton() throws {
+        QuizFactory.shared.themes = [
+            makeTheme(name: "Музыка"),
+            makeTheme(name: "Технологии"),
+            makeTheme(name: "История и культура"),
+            makeTheme(name: "Политика и бизнес")
+        ]
+        let viewController = makeHomeViewController(
+            in: CGRect(x: 0, y: 0, width: 390, height: 844)
+        )
+        let collectionView = try XCTUnwrap(
+            viewController.view.descendant(
+                withAccessibilityIdentifier: "homeThemesCollectionView"
+            ) as? UICollectionView
+        )
+        let motivationLabel = try XCTUnwrap(
+            viewController.view.descendant(
+                withAccessibilityIdentifier: "homeMotivationLabel"
+            )
+        )
+
+        XCTAssertGreaterThan(collectionView.adjustedContentInset.top, 0)
+        XCTAssertEqual(
+            collectionView.contentOffset.y,
+            -collectionView.adjustedContentInset.top,
+            accuracy: 0.5
+        )
+        XCTAssertGreaterThanOrEqual(motivationLabel.frame.minY, 0)
+        XCTAssertEqual(motivationLabel.alpha, 1, accuracy: 0.001)
+    }
+
     func testHomeSettingsButtonPresentsSettingsScreen() throws {
         QuizFactory.shared.themes = [makeTheme(name: "Музыка")]
 

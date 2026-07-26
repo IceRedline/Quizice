@@ -23,9 +23,16 @@ enum QuizQuestionOrigin: String, Codable, Equatable {
 }
 
 class QuizTheme {
+    static let defaultSFSymbolName = "questionmark.square.dashed"
+    static let defaultEmoji = "❓"
+
     var id: String
     var theme: String
     var themeDescription: String
+    var sfSymbolName: String
+    var emoji: String
+    var colorHex: String?
+    var isFavorite: Bool
     var sourceRawValue: String?
     var questions: [QuizQuestion]
     var aiGenerationConfiguration: AIQuizGenerationConfiguration?
@@ -36,6 +43,10 @@ class QuizTheme {
         theme: String,
         themeDescription: String,
         questions: [QuizQuestion],
+        sfSymbolName: String = QuizTheme.defaultSFSymbolName,
+        emoji: String = QuizTheme.defaultEmoji,
+        colorHex: String? = nil,
+        isFavorite: Bool = false,
         source: QuizThemeSource = .catalog,
         questionOrigin: QuizQuestionOrigin = .bundled,
         aiGenerationConfiguration: AIQuizGenerationConfiguration? = nil
@@ -43,6 +54,12 @@ class QuizTheme {
         self.id = id
         self.theme = theme
         self.themeDescription = themeDescription
+        self.sfSymbolName = sfSymbolName
+        self.emoji = emoji.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+            ? QuizTheme.defaultEmoji
+            : emoji
+        self.colorHex = QuizThemeColor.normalizedHex(colorHex)
+        self.isFavorite = isFavorite
         self.sourceRawValue = source.rawValue
         self.questions = questions
         self.questionOrigin = questionOrigin
@@ -112,6 +129,9 @@ struct QuizThemeDTO: Decodable {
     let id: String
     let theme: String
     let themeDescription: String
+    let sfSymbol: String
+    let emoji: String
+    let colorHex: String?
     let questions: [QuizQuestionDTO]
 
     func makeModel() -> QuizTheme {
@@ -119,7 +139,20 @@ struct QuizThemeDTO: Decodable {
             id: id,
             theme: theme,
             themeDescription: themeDescription,
-            questions: questions.map { $0.makeModel() }
+            questions: questions.map { $0.makeModel() },
+            sfSymbolName: sfSymbol,
+            emoji: emoji,
+            colorHex: colorHex
         )
+    }
+}
+
+enum QuizThemeColor {
+    static func normalizedHex(_ value: String?) -> String? {
+        guard let value else { return nil }
+        let trimmed = value.trimmingCharacters(in: .whitespacesAndNewlines)
+        let digits = trimmed.hasPrefix("#") ? String(trimmed.dropFirst()) : trimmed
+        guard digits.count == 6, digits.allSatisfy(\.isHexDigit) else { return nil }
+        return "#\(digits.uppercased())"
     }
 }

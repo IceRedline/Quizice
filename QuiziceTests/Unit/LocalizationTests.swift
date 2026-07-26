@@ -1,3 +1,4 @@
+import UIKit
 import XCTest
 @testable import Quizice
 
@@ -67,7 +68,31 @@ final class LocalizationTests: XCTestCase {
             "question.show_question",
             "question.time_remaining",
             "result.play_again",
-            "result.to_themes"
+            "result.to_themes",
+            "onboarding.action.skip",
+            "onboarding.action.get_started",
+            "onboarding.help.accessibility_label",
+            "onboarding.help.accessibility_hint",
+            "onboarding.progress_format",
+            "onboarding.welcome.kicker",
+            "onboarding.welcome.title",
+            "onboarding.welcome.subtitle",
+            "onboarding.topics.title",
+            "onboarding.topics.subtitle",
+            "onboarding.topics.selection_hint",
+            "onboarding.topics.selected",
+            "onboarding.topic.music",
+            "onboarding.topic.technology",
+            "onboarding.topic.history_culture",
+            "onboarding.topic.politics_business",
+            "onboarding.tutorial.title",
+            "onboarding.tutorial.subtitle",
+            "onboarding.tutorial.themes.title",
+            "onboarding.tutorial.themes.detail",
+            "onboarding.tutorial.ai.title",
+            "onboarding.tutorial.ai.detail",
+            "onboarding.tutorial.statistics.title",
+            "onboarding.tutorial.statistics.detail"
         ]
 
         for language in languages {
@@ -90,6 +115,9 @@ final class LocalizationTests: XCTestCase {
         let languages = ["ru", "en", "es", "de", "it", "fr"]
         var expectedThemeIDs: [String]?
         var expectedQuestionCounts: [Int]?
+        var expectedSFSymbols: [String]?
+        var expectedEmojis: [String]?
+        var expectedColorHexes: [String]?
 
         for language in languages {
             let url = root.appendingPathComponent("\(language).lproj/data.json")
@@ -98,17 +126,36 @@ final class LocalizationTests: XCTestCase {
 
             let themeIDs = themes.map(\.id)
             let questionCounts = themes.map { $0.questions.count }
+            let sfSymbols = themes.map(\.sfSymbol)
+            let emojis = themes.map(\.emoji)
+            let colorHexes = themes.map(\.colorHex)
             if expectedThemeIDs == nil {
                 expectedThemeIDs = themeIDs
                 expectedQuestionCounts = questionCounts
+                expectedSFSymbols = sfSymbols
+                expectedEmojis = emojis
+                expectedColorHexes = colorHexes
             }
 
             XCTAssertEqual(themeIDs, expectedThemeIDs, "Theme IDs must match in \(language)")
             XCTAssertEqual(questionCounts, expectedQuestionCounts, "Question counts must match in \(language)")
+            XCTAssertEqual(sfSymbols, expectedSFSymbols, "SF Symbols must match in \(language)")
+            XCTAssertEqual(emojis, expectedEmojis, "Emoji must match in \(language)")
+            XCTAssertEqual(colorHexes, expectedColorHexes, "Theme colors must match in \(language)")
 
             for theme in themes {
                 XCTAssertFalse(theme.theme.isEmpty, "Theme title must not be empty in \(language)")
                 XCTAssertFalse(theme.themeDescription.isEmpty, "Theme description must not be empty in \(language)")
+                XCTAssertNotNil(
+                    UIImage(systemName: theme.sfSymbol),
+                    "Invalid SF Symbol '\(theme.sfSymbol)' in \(language)"
+                )
+                XCTAssertFalse(theme.emoji.isEmpty, "Theme emoji must not be empty in \(language)")
+                XCTAssertEqual(
+                    QuizThemeColor.normalizedHex(theme.colorHex),
+                    theme.colorHex,
+                    "Invalid theme color '\(theme.colorHex)' in \(language)"
+                )
                 for question in theme.questions {
                     XCTAssertFalse(question.question.isEmpty, "Question text must not be empty in \(language)")
                     XCTAssertTrue(
@@ -194,6 +241,9 @@ private struct QuizThemePayload: Decodable {
     let id: String
     let theme: String
     let themeDescription: String
+    let sfSymbol: String
+    let emoji: String
+    let colorHex: String
     let questions: [QuizQuestionPayload]
 }
 

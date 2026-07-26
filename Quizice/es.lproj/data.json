@@ -906,7 +906,10 @@
                 "explanation": "El riff de guitarra de «Seven Nation Army» es reconocible mucho más allá del rock."
             }
         ],
-        "id": "music"
+        "id": "music",
+        "sfSymbol": "music.note.list",
+        "emoji": "🎵",
+        "colorHex": "#FF8252"
     },
     {
         "theme": "Tecnología",
@@ -1859,7 +1862,10 @@
                 "explanation": "Los chatbots pueden crearse con todos los lenguajes indicados."
             }
         ],
-        "id": "technology"
+        "id": "technology",
+        "sfSymbol": "cpu.fill",
+        "emoji": "💻",
+        "colorHex": "#62A2E6"
     },
     {
         "theme": "Historia y cultura",
@@ -2977,7 +2983,10 @@
                 "explanation": "Los rasgos indicados son característicos de Barokko."
             }
         ],
-        "id": "history_culture"
+        "id": "history_culture",
+        "sfSymbol": "theatermask.and.paintbrush.fill",
+        "emoji": "🏛️",
+        "colorHex": "#8B5CF6"
     },
     {
         "theme": "Política y negocios",
@@ -4161,6 +4170,9 @@
                 "explanation": "Compró Instagram en 2012 por cerca de mil millones de dólares, antes de que la red social adoptara el nombre Meta."
             }
         ],
-        "id": "politics_business"
+        "id": "politics_business",
+        "sfSymbol": "briefcase.fill",
+        "emoji": "💼",
+        "colorHex": "#F2C94C"
     }
 ]

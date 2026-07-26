@@ -240,12 +240,15 @@ final class ExpandedThemeCardView: UIView, UIGestureRecognizerDelegate {
         setStartLoading(false)
 
         let themeID = theme.stableID
-        let tintColor = ThemeVisualCatalog.tintColor(for: themeID)
+        let tintColor = ThemeVisualCatalog.tintColor(for: theme)
         let borderColor = appearance.themeCardBorder(baseColor: tintColor)
         let supportedCounts = Set(Self.supportedQuestionCounts)
         self.availableQuestionCounts = Set(availableQuestionCounts).intersection(supportedCounts)
 
-        let frontArtwork = frontArtworkImage(themeID: themeID, appearance: appearance)
+        let frontArtwork = frontArtworkImage(
+            sfSymbolName: theme.sfSymbolName,
+            appearance: appearance
+        )
         let isSymbolIcon = appearance.designStyle != .radar
         frontIconShadowView.image = isSymbolIcon ? frontArtwork : nil
         frontIconShadowView.tintColor = .black

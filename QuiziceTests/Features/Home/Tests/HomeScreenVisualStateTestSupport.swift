@@ -16,6 +16,9 @@ class HomeScreenVisualStateTestCase: XCTestCase {
         UserDefaults.standard.set(CleanColorSchemePreference.light.rawValue, forKey: AppAppearanceStore.Keys.cleanColorScheme)
         UserDefaults.standard.set(AppDesignStyle.classic.rawValue, forKey: AppAppearanceStore.Keys.designStyle)
         UserDefaults.standard.set(AppBackgroundStyle.defaultStyle.rawValue, forKey: AppAppearanceStore.Keys.backgroundStyle)
+        UserDefaults.standard.removeObject(forKey: OnboardingProgressStore.Keys.completedVersion)
+        UserDefaults.standard.removeObject(forKey: OnboardingProgressStore.Keys.preferredThemeIDs)
+        resetLocalizedThemePreferences()
 #if DEBUG
         UserDefaults.standard.removeObject(forKey: DebugBackendSettings.useLocalContentOnlyKey)
         UserDefaults.standard.removeObject(forKey: DebugBackendSettings.useLocalhostKey)
@@ -31,6 +34,9 @@ class HomeScreenVisualStateTestCase: XCTestCase {
         UserDefaults.standard.removeObject(forKey: AppAppearanceStore.Keys.cleanColorScheme)
         UserDefaults.standard.removeObject(forKey: AppAppearanceStore.Keys.backgroundStyle)
         UserDefaults.standard.removeObject(forKey: AppLocalizationStore.Keys.language)
+        UserDefaults.standard.removeObject(forKey: OnboardingProgressStore.Keys.completedVersion)
+        UserDefaults.standard.removeObject(forKey: OnboardingProgressStore.Keys.preferredThemeIDs)
+        resetLocalizedThemePreferences()
 #if DEBUG
         UserDefaults.standard.removeObject(forKey: DebugBackendSettings.useLocalContentOnlyKey)
         UserDefaults.standard.removeObject(forKey: DebugBackendSettings.useLocalhostKey)
@@ -66,9 +72,20 @@ class HomeScreenVisualStateTestCase: XCTestCase {
             forCellWithReuseIdentifier: ThemeCardCollectionViewCell.reuseIdentifier
         )
         collectionView.register(
+            ThemesViewportCollectionViewCell.self,
+            forCellWithReuseIdentifier: ThemesViewportCollectionViewCell.reuseIdentifier
+        )
+        collectionView.register(
             StatisticsCardCollectionViewCell.self,
             forCellWithReuseIdentifier: StatisticsCardCollectionViewCell.reuseIdentifier
         )
+        return collectionView
+    }
+
+    func makeThemeCollectionView(width: CGFloat = 342) -> UICollectionView {
+        let collectionView = makeCollectionView(width: width)
+        collectionView.accessibilityIdentifier =
+            ThemesCollectionService.Content.themeCatalogAccessibilityID
         return collectionView
     }
 
@@ -129,7 +146,11 @@ class HomeScreenVisualStateTestCase: XCTestCase {
     func makeTheme(
         name: String,
         questionCount: Int = 0,
-        description: String = "Synthetic home-screen test theme"
+        description: String = "Synthetic home-screen test theme",
+        sfSymbolName: String? = nil,
+        emoji: String? = nil,
+        colorHex: String? = nil,
+        isFavorite: Bool = false
     ) -> QuizTheme {
         let id: String
         switch name {
@@ -151,11 +172,22 @@ class HomeScreenVisualStateTestCase: XCTestCase {
                 correctAnswer: "A"
             )
         }
+        let metadata: (sfSymbol: String, emoji: String, colorHex: String) = switch id {
+        case "music": ("music.note.list", "🎵", "#FF8252")
+        case "technology": ("cpu.fill", "💻", "#62A2E6")
+        case "history_culture": ("theatermask.and.paintbrush.fill", "🏛️", "#8B5CF6")
+        case "politics_business": ("briefcase.fill", "💼", "#F2C94C")
+        default: (QuizTheme.defaultSFSymbolName, QuizTheme.defaultEmoji, "#7C83FD")
+        }
         return QuizTheme(
             id: id,
             theme: name,
             themeDescription: description,
-            questions: questions
+            questions: questions,
+            sfSymbolName: sfSymbolName ?? metadata.sfSymbol,
+            emoji: emoji ?? metadata.emoji,
+            colorHex: colorHex ?? metadata.colorHex,
+            isFavorite: isFavorite
         )
     }
 
@@ -192,6 +224,20 @@ class HomeScreenVisualStateTestCase: XCTestCase {
         UserDefaults.standard.removeObject(forKey: AppAppearanceStore.Keys.designStyle)
         UserDefaults.standard.removeObject(forKey: AppAppearanceStore.Keys.cleanColorScheme)
         UserDefaults.standard.removeObject(forKey: AppAppearanceStore.Keys.backgroundStyle)
+    }
+
+    private func resetLocalizedThemePreferences() {
+        UserDefaults.standard.removeObject(
+            forKey: OnboardingProgressStore.Keys.legacyPreferencesMigrationLocale
+        )
+        AppLanguagePreference.allCases.compactMap(\.languageCode).forEach { locale in
+            UserDefaults.standard.removeObject(
+                forKey: OnboardingProgressStore.Keys.preferredThemeIDs(locale: locale)
+            )
+            UserDefaults.standard.removeObject(
+                forKey: OnboardingProgressStore.Keys.pendingThemePreferences(locale: locale)
+            )
+        }
     }
 
     func assertColor(_ actual: UIColor?, equals expected: UIColor, file: StaticString = #filePath, line: UInt = #line) {
@@ -304,6 +350,7 @@ final class HomeRouterSpy: QuizRouting {
     private(set) var showQuestionCallCount = 0
     private(set) var showResultCallCount = 0
     private(set) var showSettingsCallCount = 0
+    private(set) var showOnboardingCallCount = 0
     private(set) var closeQuestionCallCount = 0
     private(set) var replayQuizCallCount = 0
     private(set) var returnToThemesCallCount = 0
@@ -314,6 +361,7 @@ final class HomeRouterSpy: QuizRouting {
     }
     func showResult(_ result: QuizResultState) { showResultCallCount += 1 }
     func showSettings() { showSettingsCallCount += 1 }
+    func showOnboarding() { showOnboardingCallCount += 1 }
     func closeQuestion() { closeQuestionCallCount += 1 }
     func replayQuiz() { replayQuizCallCount += 1 }
     func returnToThemes() { returnToThemesCallCount += 1 }

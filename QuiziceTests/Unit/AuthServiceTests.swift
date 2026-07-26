@@ -1,10 +1,18 @@
 import XCTest
 @testable import Quizice
-
 @MainActor
 final class GameCenterAuthenticationServiceTests: XCTestCase {
     func testSuccessfulAuthenticationMergesGuestAttemptAndSynchronizesIt() async {
         let harness = makeHarness()
+        var authenticationEstablishedCount = 0
+        let observer = harness.notificationCenter.addObserver(
+            forName: .backendAuthenticationEstablished,
+            object: nil,
+            queue: nil
+        ) { _ in
+            authenticationEstablishedCount += 1
+        }
+        defer { harness.notificationCenter.removeObserver(observer) }
         harness.statistics.recordAttempt(correctAnswers: 4, totalQuestions: 5)
         harness.api.syncSummary = StatisticsSummary(
             playedQuizzes: 1,
@@ -27,6 +35,7 @@ final class GameCenterAuthenticationServiceTests: XCTestCase {
         XCTAssertEqual(harness.api.syncRequests.first?.attempts.count, 1)
         XCTAssertEqual(harness.statistics.loadSummary(), harness.api.syncSummary)
         XCTAssertTrue(harness.aiAccess.isAIQuizAvailable)
+        XCTAssertEqual(authenticationEstablishedCount, 1)
     }
 
     func testUnavailableGameCenterEntersGuestMode() async {
