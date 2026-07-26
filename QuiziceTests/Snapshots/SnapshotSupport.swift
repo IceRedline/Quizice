@@ -285,6 +285,10 @@ enum SnapshotSupport {
             StatisticsCardCollectionViewCell.self,
             forCellWithReuseIdentifier: StatisticsCardCollectionViewCell.reuseIdentifier
         )
+        collectionView.register(
+            SubscriptionPromoBannerCollectionViewCell.self,
+            forCellWithReuseIdentifier: SubscriptionPromoBannerCollectionViewCell.reuseIdentifier
+        )
         return collectionView
     }
 }

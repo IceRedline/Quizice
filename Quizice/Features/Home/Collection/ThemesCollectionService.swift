@@ -8,7 +8,10 @@ final class ThemesCollectionService: NSObject, UICollectionViewDelegate, UIColle
         static let themeCatalogAccessibilityID = "homeThemeCatalogCollectionView"
         static let moreThemesAccessibilityID = "homeMoreThemesButton"
         static let aiThemeAccessibilityID = "homeCreateWithAIButton"
-        static let aiThemeBetaBadgeAccessibilityID = "homeCreateWithAIBetaBadge"
+        static let aiThemeTextStackAccessibilityID = "homeCreateWithAITextStack"
+        static let aiThemeTitleAccessibilityID = "homeCreateWithAITitle"
+        static let aiThemePlusBadgeAccessibilityID = "homeCreateWithAIPlusBadge"
+        static let aiThemeSubtitleAccessibilityID = "homeCreateWithAISubtitle"
         static let aiThemeGradientBorderAccessibilityID = "homeCreateWithAIGradientBorder"
         static let feelingLuckyAccessibilityID = "homeFeelingLuckyButton"
         static let feelingLuckyProgressAccessibilityID = "homeFeelingLuckyProgressView"
@@ -28,15 +31,21 @@ final class ThemesCollectionService: NSObject, UICollectionViewDelegate, UIColle
         static let compactOuterItemSpacing: CGFloat = 12
         static let visibleThemeRowCount = 4
         static let themeColumnCount = 2
+        static let aiThemeButtonHeight: CGFloat = 72
+        static let accessibilityAIThemeButtonHeight: CGFloat = 272
         static let secondaryActionButtonHeight: CGFloat = 54
+        static let subscriptionPromoHeight: CGFloat = 90
+        static let accessibilitySubscriptionPromoHeight: CGFloat = 288
         static let statisticsCardHeight: CGFloat = 112
         static let lastItemBottomInset: CGFloat = 24
         static let compactLastItemBottomInset: CGFloat = 16
         static let compactAvailableHeightThreshold: CGFloat = 600
         static let aiThemeBadgeTrailingInset: CGFloat = 16
+        static let aiThemeContentLeadingInset: CGFloat = 18
+        static let aiThemeContentTrailingSpacing: CGFloat = 12
         static let aiThemeBadgeHorizontalInset: CGFloat = 10
         static let aiThemeBadgeVerticalInset: CGFloat = 5
-        static let aiThemeBadgeMinimumWidth: CGFloat = 48
+        static let aiThemeBadgeMinimumWidth: CGFloat = 52
         static let cellShadowOffset = CGSize(width: 0, height: 12)
         static let cellShadowRadius: CGFloat = 22
         static let moreThemesButtonHeight: CGFloat = 82
@@ -61,7 +70,9 @@ final class ThemesCollectionService: NSObject, UICollectionViewDelegate, UIColle
         static let titleFontSize: CGFloat = 24
         static let descriptionFontSize: CGFloat = 15
         static let luckyFontSize: CGFloat = 19
-        static let betaBadgeFontSize: CGFloat = 12
+        static let aiThemeTitleFontSize: CGFloat = 18
+        static let aiThemeSubtitleFontSize: CGFloat = 12
+        static let plusBadgeFontSize: CGFloat = 11
     }
 
     weak var delegate: ThemeCollectionDelegate?
@@ -167,10 +178,11 @@ final class ThemesCollectionService: NSObject, UICollectionViewDelegate, UIColle
     }
 
     private let themesViewportIndex = 0
-    private let aiThemeIndex = 1
-    private let feelingLuckyIndex = 2
-    private let statisticsIndex = 3
-    private let outerItemCount = 4
+    private let subscriptionPromoIndex = 1
+    private let aiThemeIndex = 2
+    private let feelingLuckyIndex = 3
+    private let statisticsIndex = 4
+    private let outerItemCount = 5
 
     init(
         themeRepository: ThemeRepository = QuizFactory.shared,
@@ -242,6 +254,33 @@ final class ThemesCollectionService: NSObject, UICollectionViewDelegate, UIColle
             )
             installMoreThemesButtonIfNeeded(in: cell)
             configureMoreThemesButton()
+            return cell
+        }
+
+        if indexPath.item == subscriptionPromoIndex {
+            guard let cell = collectionView.dequeueReusableCell(
+                withReuseIdentifier: SubscriptionPromoBannerCollectionViewCell.reuseIdentifier,
+                for: indexPath
+            ) as? SubscriptionPromoBannerCollectionViewCell else {
+                preconditionFailure("Expected SubscriptionPromoBannerCollectionViewCell")
+            }
+            cell.configure(appearance: appearance)
+            cell.actionButton.removeTarget(self, action: nil, for: .allEvents)
+            cell.actionButton.addTarget(
+                self,
+                action: #selector(buttonTouchedDown(_:)),
+                for: .touchDown
+            )
+            cell.actionButton.addTarget(
+                self,
+                action: #selector(subscriptionPromoButtonTouchedUpInside(_:)),
+                for: .touchUpInside
+            )
+            cell.actionButton.addTarget(
+                self,
+                action: #selector(buttonTouchedUpOutside(_:)),
+                for: .touchUpOutside
+            )
             return cell
         }
 
@@ -319,7 +358,23 @@ final class ThemesCollectionService: NSObject, UICollectionViewDelegate, UIColle
             )
         }
 
-        if indexPath.item == aiThemeIndex || indexPath.item == feelingLuckyIndex {
+        if indexPath.item == subscriptionPromoIndex {
+            let height = collectionView.traitCollection.preferredContentSizeCategory
+                .isAccessibilityCategory
+                ? Layout.accessibilitySubscriptionPromoHeight
+                : Layout.subscriptionPromoHeight
+            return CGSize(width: availableWidth, height: height)
+        }
+
+        if indexPath.item == aiThemeIndex {
+            let height = collectionView.traitCollection.preferredContentSizeCategory
+                .isAccessibilityCategory
+                ? Layout.accessibilityAIThemeButtonHeight
+                : Layout.aiThemeButtonHeight
+            return CGSize(width: availableWidth, height: height)
+        }
+
+        if indexPath.item == feelingLuckyIndex {
             return CGSize(width: availableWidth, height: Layout.secondaryActionButtonHeight)
         }
 
@@ -392,8 +447,17 @@ final class ThemesCollectionService: NSObject, UICollectionViewDelegate, UIColle
                 traitCollection: traitCollection
             )
         }
+        let usesAccessibilityLayout = traitCollection
+            .preferredContentSizeCategory
+            .isAccessibilityCategory
         let fixedOuterContentHeight =
-            Layout.secondaryActionButtonHeight * 2
+            (usesAccessibilityLayout
+                ? Layout.accessibilitySubscriptionPromoHeight
+                : Layout.subscriptionPromoHeight)
+            + (usesAccessibilityLayout
+                ? Layout.accessibilityAIThemeButtonHeight
+                : Layout.aiThemeButtonHeight)
+            + Layout.secondaryActionButtonHeight
             + Layout.statisticsCardHeight
             + lastItemBottomInset(availableHeight: availableOuterHeight)
             + outerItemSpacing(availableHeight: availableOuterHeight)
@@ -478,6 +542,9 @@ final class ThemesCollectionService: NSObject, UICollectionViewDelegate, UIColle
 
     private func configureAIThemeCard(in cell: UICollectionViewCell, appearance: AppAppearance) {
         cell.applyShadow(.none)
+        let usesAccessibilityLayout = cell.traitCollection
+            .preferredContentSizeCategory
+            .isAccessibilityCategory
         let button = makeSecondaryActionButton(
             accessibilityIdentifier: Content.aiThemeAccessibilityID,
             accessibilityLabel: L10n.Home.createWithAI,
@@ -490,11 +557,47 @@ final class ThemesCollectionService: NSObject, UICollectionViewDelegate, UIColle
         button.isEnabled = !isAIThemePresented
         button.isAccessibilityElement = !isAIThemePresented
         button.accessibilityElementsHidden = isAIThemePresented
+        button.accessibilityValue = L10n.Subscription.aiCardSubtitle
         button.layer.borderWidth = 0
         button.layer.borderColor = UIColor.clear.cgColor
-        let aiThemeCornerRadius = Layout.secondaryActionButtonHeight / 2
+        let aiThemeCornerRadius = Layout.aiThemeButtonHeight / 2
 
-        let betaBadge = InsetLabel(
+        let titleLabel = UILabel()
+        titleLabel.accessibilityIdentifier = Content.aiThemeTitleAccessibilityID
+        titleLabel.text = L10n.Home.createWithAI
+        titleLabel.textColor = appearance.screenTextColor
+        titleLabel.font = appearance.typography.font(
+            size: Appearance.aiThemeTitleFontSize,
+            weight: .semibold
+        )
+        titleLabel.adjustsFontForContentSizeCategory = true
+        titleLabel.numberOfLines = usesAccessibilityLayout ? 2 : 1
+        titleLabel.minimumScaleFactor = 0.82
+        titleLabel.adjustsFontSizeToFitWidth = !usesAccessibilityLayout
+        titleLabel.isUserInteractionEnabled = false
+
+        let subtitleLabel = UILabel()
+        subtitleLabel.accessibilityIdentifier = Content.aiThemeSubtitleAccessibilityID
+        subtitleLabel.text = L10n.Subscription.aiCardSubtitle
+        subtitleLabel.textColor = appearance.screenTextColor.withAlphaComponent(0.64)
+        subtitleLabel.font = appearance.typography.font(
+            size: Appearance.aiThemeSubtitleFontSize,
+            weight: .regular
+        )
+        subtitleLabel.adjustsFontForContentSizeCategory = true
+        subtitleLabel.numberOfLines = 2
+        subtitleLabel.lineBreakMode = .byWordWrapping
+        subtitleLabel.isUserInteractionEnabled = false
+
+        let textStack = UIStackView(arrangedSubviews: [titleLabel, subtitleLabel])
+        textStack.axis = .vertical
+        textStack.alignment = .fill
+        textStack.spacing = 2
+        textStack.accessibilityIdentifier = Content.aiThemeTextStackAccessibilityID
+        textStack.isUserInteractionEnabled = false
+        textStack.translatesAutoresizingMaskIntoConstraints = false
+
+        let plusBadge = InsetLabel(
             contentInsets: UIEdgeInsets(
                 top: Layout.aiThemeBadgeVerticalInset,
                 left: Layout.aiThemeBadgeHorizontalInset,
@@ -502,24 +605,37 @@ final class ThemesCollectionService: NSObject, UICollectionViewDelegate, UIColle
                 right: Layout.aiThemeBadgeHorizontalInset
             )
         )
-        betaBadge.accessibilityIdentifier = Content.aiThemeBetaBadgeAccessibilityID
-        betaBadge.text = L10n.Home.createWithAIBetaBadge
-        betaBadge.textColor = appearance.screenTextColor
-        betaBadge.font = appearance.typography.font(size: Appearance.betaBadgeFontSize, weight: .bold)
-        betaBadge.adjustsFontForContentSizeCategory = true
-        betaBadge.textAlignment = .center
-        betaBadge.backgroundColor = appearance.screenTextColor.withAlphaComponent(Appearance.aiThemeBadgeBackgroundAlpha)
-        betaBadge.layer.cornerRadius = Appearance.aiThemeBadgeCornerRadius
-        betaBadge.layer.borderWidth = Appearance.buttonBorderWidth
-        betaBadge.layer.borderColor = appearance.screenTextColor.withAlphaComponent(Appearance.aiThemeBadgeBorderAlpha).cgColor
-        betaBadge.clipsToBounds = true
-        betaBadge.isUserInteractionEnabled = false
-        betaBadge.translatesAutoresizingMaskIntoConstraints = false
+        plusBadge.accessibilityIdentifier = Content.aiThemePlusBadgeAccessibilityID
+        plusBadge.text = L10n.Subscription.plus.uppercased(
+            with: AppLocalizationStore.shared.resolvedLocale
+        )
+        plusBadge.textColor = appearance.screenTextColor
+        plusBadge.font = appearance.typography.font(
+            size: Appearance.plusBadgeFontSize,
+            weight: .bold
+        )
+        plusBadge.adjustsFontForContentSizeCategory = true
+        plusBadge.textAlignment = .center
+        plusBadge.backgroundColor = appearance.screenTextColor.withAlphaComponent(
+            Appearance.aiThemeBadgeBackgroundAlpha
+        )
+        plusBadge.layer.cornerRadius = Appearance.aiThemeBadgeCornerRadius
+        plusBadge.layer.borderWidth = Appearance.buttonBorderWidth
+        plusBadge.layer.borderColor = appearance.screenTextColor.withAlphaComponent(
+            Appearance.aiThemeBadgeBorderAlpha
+        ).cgColor
+        plusBadge.clipsToBounds = true
+        plusBadge.isUserInteractionEnabled = false
+        plusBadge.translatesAutoresizingMaskIntoConstraints = false
 
         pin(button, to: cell.contentView)
         cell.contentView.layoutIfNeeded()
         applyRadarGreenGlowStyleIfNeeded(to: button, appearance: appearance)
-        button.addSubview(betaBadge)
+        button.setTitle(nil, for: .normal)
+        button.addSubview(textStack)
+        if !usesAccessibilityLayout {
+            button.addSubview(plusBadge)
+        }
         let gradientBorderView: GradientBorderView?
         if appearance.designStyle == .radar {
             gradientBorderView = nil
@@ -536,13 +652,40 @@ final class ThemesCollectionService: NSObject, UICollectionViewDelegate, UIColle
             gradientBorderView = borderView
         }
 
-        NSLayoutConstraint.activate([
-            betaBadge.trailingAnchor.constraint(equalTo: button.trailingAnchor, constant: -Layout.aiThemeBadgeTrailingInset),
-            betaBadge.centerYAnchor.constraint(equalTo: button.centerYAnchor),
+        var contentConstraints = [
+            textStack.leadingAnchor.constraint(
+                equalTo: button.leadingAnchor,
+                constant: Layout.aiThemeContentLeadingInset
+            ),
+            textStack.centerYAnchor.constraint(equalTo: button.centerYAnchor),
+            textStack.topAnchor.constraint(greaterThanOrEqualTo: button.topAnchor, constant: 8),
+            textStack.bottomAnchor.constraint(lessThanOrEqualTo: button.bottomAnchor, constant: -8)
+        ]
 
-            betaBadge.leadingAnchor.constraint(greaterThanOrEqualTo: button.centerXAnchor),
-            betaBadge.widthAnchor.constraint(greaterThanOrEqualToConstant: Layout.aiThemeBadgeMinimumWidth)
-        ])
+        if usesAccessibilityLayout {
+            contentConstraints.append(
+                textStack.trailingAnchor.constraint(
+                    equalTo: button.trailingAnchor,
+                    constant: -Layout.aiThemeContentLeadingInset
+                )
+            )
+        } else {
+            contentConstraints.append(contentsOf: [
+                plusBadge.leadingAnchor.constraint(
+                    greaterThanOrEqualTo: textStack.trailingAnchor,
+                    constant: Layout.aiThemeContentTrailingSpacing
+                ),
+                plusBadge.trailingAnchor.constraint(
+                    equalTo: button.trailingAnchor,
+                    constant: -Layout.aiThemeBadgeTrailingInset
+                ),
+                plusBadge.centerYAnchor.constraint(equalTo: button.centerYAnchor),
+                plusBadge.widthAnchor.constraint(
+                    greaterThanOrEqualToConstant: Layout.aiThemeBadgeMinimumWidth
+                )
+            ])
+        }
+        NSLayoutConstraint.activate(contentConstraints)
 
         if let gradientBorderView {
             NSLayoutConstraint.activate([
@@ -684,6 +827,10 @@ final class ThemesCollectionService: NSObject, UICollectionViewDelegate, UIColle
 
     @objc func aiThemeButtonTouchedUpInside(_ sender: UIButton) {
         delegate?.aiThemeButtonTouchedUpInside(sender)
+    }
+
+    @objc func subscriptionPromoButtonTouchedUpInside(_ sender: UIButton) {
+        delegate?.subscriptionPromoButtonTouchedUpInside(sender)
     }
 
     @objc func statisticsButtonTouchedUpInside(_ sender: UIButton) {

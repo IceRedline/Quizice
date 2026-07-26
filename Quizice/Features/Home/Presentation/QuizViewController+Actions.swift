@@ -120,6 +120,15 @@ extension QuizViewController {
         handleHomeCardEffect(effect, sourceView: sender)
     }
 
+    func subscriptionPromoButtonTouchedUpInside(_ sender: UIButton) {
+        animationsEngine.animateUpFloat(sender)
+        guard
+            homeCardState.phase == .grid,
+            !isQuizLaunchPending
+        else { return }
+        router?.showSubscription()
+    }
+
     func statisticsButtonTouchedUpInside(_ sender: UIButton) {
         animationsEngine.animateUpFloat(sender)
         guard homeCardState.phase == .grid, !isQuizLaunchPending else { return }

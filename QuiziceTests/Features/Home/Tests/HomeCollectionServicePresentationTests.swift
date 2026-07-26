@@ -26,7 +26,7 @@ final class HomeCollectionServicePresentationTests: HomeScreenVisualStateTestCas
         QuizFactory.shared.themes = [makeTheme(name: "Музыка")]
         let service = ThemesCollectionService()
         let collectionView = makeCollectionView(width: 320)
-        let indexPath = IndexPath(item: 3, section: 0)
+        let indexPath = IndexPath(item: 4, section: 0)
         let itemSize = service.collectionView(
             collectionView,
             layout: collectionView.collectionViewLayout,
@@ -66,7 +66,7 @@ final class HomeCollectionServicePresentationTests: HomeScreenVisualStateTestCas
         let service = ThemesCollectionService(statisticsStore: statisticsStore)
         let collectionView = makeCollectionView()
 
-        let statisticsCell = service.collectionView(collectionView, cellForItemAt: IndexPath(item: 3, section: 0))
+        let statisticsCell = service.collectionView(collectionView, cellForItemAt: IndexPath(item: 4, section: 0))
         statisticsCell.frame = CGRect(x: 0, y: 0, width: 342, height: 136)
         statisticsCell.contentView.frame = statisticsCell.bounds
         statisticsCell.layoutIfNeeded()
@@ -126,7 +126,7 @@ final class HomeCollectionServicePresentationTests: HomeScreenVisualStateTestCas
         let service = ThemesCollectionService(statisticsStore: statisticsStore)
         let collectionView = makeCollectionView()
 
-        let statisticsCell = service.collectionView(collectionView, cellForItemAt: IndexPath(item: 3, section: 0))
+        let statisticsCell = service.collectionView(collectionView, cellForItemAt: IndexPath(item: 4, section: 0))
         let statisticsButton = try XCTUnwrap(statisticsCell.contentView.descendant(withAccessibilityIdentifier: "homeStatisticsCard") as? UIButton)
         let playedValueLabel = try XCTUnwrap(statisticsCell.contentView.descendant(withAccessibilityIdentifier: "homeStatisticsPlayedValueLabel") as? UILabel)
         let accuracyValueLabel = try XCTUnwrap(statisticsCell.contentView.descendant(withAccessibilityIdentifier: "homeStatisticsAccuracyValueLabel") as? UILabel)
@@ -147,8 +147,8 @@ final class HomeCollectionServicePresentationTests: HomeScreenVisualStateTestCas
         let themeCollectionView = makeThemeCollectionView()
 
         let themeCell = service.collectionView(themeCollectionView, cellForItemAt: IndexPath(item: 0, section: 0))
-        let aiThemeCell = service.collectionView(collectionView, cellForItemAt: IndexPath(item: 1, section: 0))
-        let statisticsCell = service.collectionView(collectionView, cellForItemAt: IndexPath(item: 3, section: 0))
+        let aiThemeCell = service.collectionView(collectionView, cellForItemAt: IndexPath(item: 2, section: 0))
+        let statisticsCell = service.collectionView(collectionView, cellForItemAt: IndexPath(item: 4, section: 0))
         let imageView = try XCTUnwrap(themeCell.contentView.descendant(withAccessibilityIdentifier: "homeThemeImageView-music") as? UIImageView)
         let titleLabel = try XCTUnwrap(themeCell.contentView.descendant(withAccessibilityIdentifier: "homeThemeTitleLabel-music") as? UILabel)
         let aiThemeButton = try XCTUnwrap(aiThemeCell.contentView.descendant(withAccessibilityIdentifier: "homeCreateWithAIButton") as? UIButton)
@@ -187,6 +187,8 @@ final class HomeCollectionServicePresentationTests: HomeScreenVisualStateTestCas
         unknownButton.accessibilityIdentifier = "Неизвестная тема"
         let aiThemeButton = UIButton(type: .system)
         aiThemeButton.accessibilityIdentifier = "homeCreateWithAIButton"
+        let subscriptionButton = UIButton(type: .system)
+        subscriptionButton.accessibilityIdentifier = "homeSubscriptionPromoBanner"
         let feelingLuckyButton = UIButton(type: .system)
         feelingLuckyButton.accessibilityIdentifier = "homeFeelingLuckyButton"
         let statisticsButton = UIButton(type: .system)
@@ -195,11 +197,13 @@ final class HomeCollectionServicePresentationTests: HomeScreenVisualStateTestCas
         service.buttonTouchedUpInside(themeButton)
         service.buttonTouchedUpInside(unknownButton)
         service.aiThemeButtonTouchedUpInside(aiThemeButton)
+        service.subscriptionPromoButtonTouchedUpInside(subscriptionButton)
         service.feelingLuckyButtonTouchedUpInside(feelingLuckyButton)
         service.statisticsButtonTouchedUpInside(statisticsButton)
 
         XCTAssertEqual(delegate.selectedThemeIDs, ["music"])
         XCTAssertEqual(delegate.aiThemeTapCount, 1)
+        XCTAssertEqual(delegate.subscriptionPromoTapCount, 1)
         XCTAssertEqual(delegate.feelingLuckyTapCount, 1)
         XCTAssertEqual(delegate.statisticsTapCount, 1)
     }
@@ -209,14 +213,20 @@ final class HomeCollectionServicePresentationTests: HomeScreenVisualStateTestCas
         let service = ThemesCollectionService()
         let collectionView = makeCollectionView()
 
-        XCTAssertEqual(service.collectionView(collectionView, numberOfItemsInSection: 0), 4)
+        XCTAssertEqual(service.collectionView(collectionView, numberOfItemsInSection: 0), 5)
 
         let viewportCell = service.collectionView(collectionView, cellForItemAt: IndexPath(item: 0, section: 0))
-        let aiThemeCell = service.collectionView(collectionView, cellForItemAt: IndexPath(item: 1, section: 0))
-        let feelingLuckyCell = service.collectionView(collectionView, cellForItemAt: IndexPath(item: 2, section: 0))
-        let statisticsCell = service.collectionView(collectionView, cellForItemAt: IndexPath(item: 3, section: 0))
+        let subscriptionCell = service.collectionView(collectionView, cellForItemAt: IndexPath(item: 1, section: 0))
+        let aiThemeCell = service.collectionView(collectionView, cellForItemAt: IndexPath(item: 2, section: 0))
+        let feelingLuckyCell = service.collectionView(collectionView, cellForItemAt: IndexPath(item: 3, section: 0))
+        let statisticsCell = service.collectionView(collectionView, cellForItemAt: IndexPath(item: 4, section: 0))
 
         XCTAssertTrue(viewportCell is ThemesViewportCollectionViewCell)
+        XCTAssertNotNil(
+            subscriptionCell.contentView.descendant(
+                withAccessibilityIdentifier: "homeSubscriptionPromoBanner"
+            )
+        )
         XCTAssertNotNil(aiThemeCell.contentView.descendant(withAccessibilityIdentifier: "homeCreateWithAIButton"))
         XCTAssertNotNil(feelingLuckyCell.contentView.descendant(withAccessibilityIdentifier: "homeFeelingLuckyButton"))
         XCTAssertNotNil(statisticsCell.contentView.descendant(withAccessibilityIdentifier: "homeStatisticsCard"))

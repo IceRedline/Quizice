@@ -303,6 +303,7 @@ final class HomeThemeCardMotionProviderFake: HomeThemeCardMotionProviding {
 final class ThemeCollectionDelegateSpy: ThemeCollectionDelegate {
     private(set) var selectedThemeIDs: [String] = []
     private(set) var aiThemeTapCount = 0
+    private(set) var subscriptionPromoTapCount = 0
     private(set) var feelingLuckyTapCount = 0
     private(set) var statisticsTapCount = 0
 
@@ -316,6 +317,10 @@ final class ThemeCollectionDelegateSpy: ThemeCollectionDelegate {
 
     func aiThemeButtonTouchedUpInside(_ sender: UIButton) {
         aiThemeTapCount += 1
+    }
+
+    func subscriptionPromoButtonTouchedUpInside(_ sender: UIButton) {
+        subscriptionPromoTapCount += 1
     }
 
     func feelingLuckyButtonTouchedUpInside(_ sender: UIButton) {
@@ -351,6 +356,7 @@ final class HomeRouterSpy: QuizRouting {
     private(set) var showResultCallCount = 0
     private(set) var showSettingsCallCount = 0
     private(set) var showOnboardingCallCount = 0
+    private(set) var showSubscriptionCallCount = 0
     private(set) var closeQuestionCallCount = 0
     private(set) var replayQuizCallCount = 0
     private(set) var returnToThemesCallCount = 0
@@ -362,6 +368,7 @@ final class HomeRouterSpy: QuizRouting {
     func showResult(_ result: QuizResultState) { showResultCallCount += 1 }
     func showSettings() { showSettingsCallCount += 1 }
     func showOnboarding() { showOnboardingCallCount += 1 }
+    func showSubscription() { showSubscriptionCallCount += 1 }
     func closeQuestion() { closeQuestionCallCount += 1 }
     func replayQuiz() { replayQuizCallCount += 1 }
     func returnToThemes() { returnToThemesCallCount += 1 }
