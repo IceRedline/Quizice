@@ -6,6 +6,8 @@
 	<string>$(APPMETRICA_API_KEY)</string>
 	<key>BackendBaseURL</key>
 	<string>$(BACKEND_BASE_URL)</string>
+	<key>ITSAppUsesNonExemptEncryption</key>
+	<false/>
 	<key>UIAppFonts</key>
 	<array>
 		<string>Inter.ttf</string>

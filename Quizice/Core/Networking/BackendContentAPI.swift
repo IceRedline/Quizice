@@ -88,6 +88,11 @@ final class HTTPBackendContentAPI: BackendContentAPI {
     private let accessTokenProvider: BackendAccessTokenProviding
     private let clock = ContinuousClock()
 
+    // Content responses (themes, preferences, question batches) are a few
+    // kilobytes at most. Anything larger indicates a misbehaving upstream or
+    // an active attack; refuse the body before JSON decoding balloons memory.
+    private static let maxResponseBytes = 10 * 1024 * 1024
+
     init(
         configuration: BackendConfiguration,
         session: URLSession = .shared,
@@ -390,6 +395,16 @@ final class HTTPBackendContentAPI: BackendContentAPI {
                     responseBytes: data.count
                 )
                 throw BackendContentError.invalidResponse
+            }
+            guard data.count <= Self.maxResponseBytes else {
+                record(
+                    operation: operation,
+                    result: .contractError,
+                    startedAt: startedAt,
+                    statusCode: httpResponse.statusCode,
+                    responseBytes: data.count
+                )
+                throw BackendContentError.contractViolation
             }
             guard (200..<300).contains(httpResponse.statusCode) else {
                 let envelope = try? decoder.decode(BackendErrorEnvelope.self, from: data)
