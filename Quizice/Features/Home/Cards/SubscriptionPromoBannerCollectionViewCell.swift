@@ -170,7 +170,7 @@ final class SubscriptionPromoBannerCollectionViewCell: UICollectionViewCell {
         actionButton.accessibilityIdentifier = AccessibilityID.button
         actionButton.clipsToBounds = true
         actionButton.translatesAutoresizingMaskIntoConstraints = false
-        cardMaskLayer.fillColor = UIColor.black.cgColor
+        cardMaskLayer.fillColor = AppAssetColor.black.uiColor.cgColor
         contentView.addSubview(actionButton)
 
         gradientBackdropView.isUserInteractionEnabled = false

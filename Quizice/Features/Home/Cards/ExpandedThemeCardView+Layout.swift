@@ -283,6 +283,15 @@ extension ExpandedThemeCardView {
         backDescriptionLabel.isAccessibilityElement = true
         backDescriptionLabel.translatesAutoresizingMaskIntoConstraints = false
 
+        difficultyLabel.accessibilityIdentifier = AccessibilityID.difficultyLabel
+        difficultyLabel.text = L10n.AITheme.difficulty
+        difficultyLabel.adjustsFontForContentSizeCategory = true
+        difficultyLabel.numberOfLines = 0
+
+        difficultyControl.accessibilityIdentifier = AccessibilityID.difficultyControl
+        difficultyControl.accessibilityLabel = L10n.AITheme.difficulty
+        difficultyControl.translatesAutoresizingMaskIntoConstraints = false
+
         questionCountLabel.accessibilityIdentifier = AccessibilityID.questionCountLabel
         questionCountLabel.text = L10n.ThemeCard.questionCount
         questionCountLabel.adjustsFontForContentSizeCategory = true
@@ -319,6 +328,8 @@ extension ExpandedThemeCardView {
         backControlsStack.spacing = Layout.controlsSpacing
         backControlsStack.translatesAutoresizingMaskIntoConstraints = false
         [
+            difficultyLabel,
+            difficultyControl,
             questionCountLabel,
             questionCountControl,
             unavailableLabel,
@@ -412,6 +423,9 @@ extension ExpandedThemeCardView {
                 constant: -Layout.edgeInset
             ),
 
+            difficultyControl.heightAnchor.constraint(
+                greaterThanOrEqualToConstant: Layout.segmentedControlHeight
+            ),
             questionCountControl.heightAnchor.constraint(
                 greaterThanOrEqualToConstant: Layout.segmentedControlHeight
             ),
@@ -430,6 +444,8 @@ extension ExpandedThemeCardView {
         backFaceView.accessibilityElements = [
             backTitleLabel,
             backDescriptionLabel,
+            difficultyLabel,
+            difficultyControl,
             questionCountLabel,
             questionCountControl,
             unavailableLabel,
@@ -459,6 +475,11 @@ extension ExpandedThemeCardView {
         questionCountControl.addTarget(
             self,
             action: #selector(questionCountChanged),
+            for: .valueChanged
+        )
+        difficultyControl.addTarget(
+            self,
+            action: #selector(difficultyChanged),
             for: .valueChanged
         )
         startButton.addTarget(self, action: #selector(startTapped), for: .touchUpInside)

@@ -38,7 +38,11 @@ final class Animations {
         }
     }
     
-    func animateTintColor(_ viewToAnimate: UIView, color: UIColor = UIColor.black, duration: Double = 0.5) {
+    func animateTintColor(
+        _ viewToAnimate: UIView,
+        color: UIColor = AppAssetColor.black.uiColor,
+        duration: Double = 0.5
+    ) {
         UIView.transition(
             with: viewToAnimate,
             duration: duration,

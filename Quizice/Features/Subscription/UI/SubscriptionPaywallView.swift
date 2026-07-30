@@ -584,7 +584,12 @@ struct SubscriptionPaywallView: View {
             .padding(.top, 12)
             .padding(.bottom, 8)
         }
-        .background(.ultraThinMaterial)
+        .background {
+            Rectangle()
+                .fill(.ultraThinMaterial)
+                .environment(\.colorScheme, .dark)
+                .ignoresSafeArea(edges: .bottom)
+        }
         .overlay(alignment: .top) {
             Rectangle()
                 .fill(Color(uiColor: appearance.card.borderColor))

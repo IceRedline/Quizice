@@ -31,11 +31,13 @@ final class ThemesCollectionService: NSObject, UICollectionViewDelegate, UIColle
         static let compactOuterItemSpacing: CGFloat = 12
         static let visibleThemeRowCount = 4
         static let themeColumnCount = 2
-        static let aiThemeButtonHeight: CGFloat = 72
-        static let accessibilityAIThemeButtonHeight: CGFloat = 272
+        static let prominentActionCardHeight: CGFloat = 72
+        static let accessibilityProminentActionCardHeight: CGFloat = 272
+        static let aiThemeButtonHeight = prominentActionCardHeight
+        static let accessibilityAIThemeButtonHeight = accessibilityProminentActionCardHeight
         static let secondaryActionButtonHeight: CGFloat = 54
-        static let subscriptionPromoHeight: CGFloat = 90
-        static let accessibilitySubscriptionPromoHeight: CGFloat = 288
+        static let subscriptionPromoHeight = prominentActionCardHeight
+        static let accessibilitySubscriptionPromoHeight = accessibilityProminentActionCardHeight
         static let statisticsCardHeight: CGFloat = 112
         static let lastItemBottomInset: CGFloat = 24
         static let compactLastItemBottomInset: CGFloat = 16

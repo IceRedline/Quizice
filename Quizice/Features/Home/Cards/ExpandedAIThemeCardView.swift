@@ -47,7 +47,7 @@ final class AIThemeGradientBorderView: UIView {
             )
         )
         borderMaskLayer.frame = bounds
-        borderMaskLayer.fillColor = UIColor.black.cgColor
+        borderMaskLayer.fillColor = AppAssetColor.black.uiColor.cgColor
         borderMaskLayer.fillRule = .evenOdd
         borderMaskLayer.path = path.cgPath
     }
@@ -104,18 +104,6 @@ final class ExpandedAIThemeCardView: UIView, UITextViewDelegate {
 
     enum Outline {
         static let gradientLineWidth: CGFloat = 1.6
-        static let gradientPink = UIColor(
-            red: 255 / 255,
-            green: 79 / 255,
-            blue: 216 / 255,
-            alpha: 1
-        )
-        static let gradientBlue = UIColor(
-            red: 54 / 255,
-            green: 163 / 255,
-            blue: 255 / 255,
-            alpha: 1
-        )
         static let radarGlowOpacity: Float = 0.22
         static let radarGlowRadius: CGFloat = 10
     }
@@ -124,7 +112,7 @@ final class ExpandedAIThemeCardView: UIView, UITextViewDelegate {
     static let supportedDifficulties = AIQuizDifficulty.allCases
 
     static var gradientOutlineColors: [UIColor] {
-        [Outline.gradientPink, Outline.gradientBlue]
+        AIThemeVisualStyle.gradientColors
     }
 
     static var gradientOutlineLineWidth: CGFloat {

@@ -60,11 +60,29 @@ final class ThemeCatalogRepository: ThemeRepository {
     }
 
     func loadData(forceReload: Bool = false) {
-        let existingThemes = fetchQuizThemes()
+        let cachedCatalog = themeStore?.fetchCatalog()
+        let currentLocale = AppLocalizationStore.shared.resolvedLanguageCode
+        if !forceReload,
+           cachedCatalog?.origin == .backend,
+           cachedCatalog?.locale == currentLocale,
+           let cachedThemes = cachedCatalog?.themes,
+           !cachedThemes.isEmpty {
+            AppLog.content.debug(
+                "Loading \(cachedThemes.count) backend themes from SwiftData"
+            )
+            themes = cachedThemes
+            catalogOrigin = .backend
+            return
+        }
+
         do {
             let loadedData = try themeDataLoader.load()
             let localizedHash = "\(loadedData.languageCode):\(loadedData.hash)"
             let savedHash = UserDefaults.standard.string(forKey: Content.localizedDataHashKey)
+            let existingThemes = cachedCatalog?.origin == .bundled
+                && cachedCatalog?.locale == loadedData.languageCode
+                ? cachedCatalog?.themes ?? []
+                : []
 
             if !forceReload, localizedHash == savedHash, !existingThemes.isEmpty {
                 AppLog.content.debug("JSON unchanged, loading \(existingThemes.count) themes from SwiftData")
@@ -74,7 +92,11 @@ final class ThemeCatalogRepository: ThemeRepository {
             }
 
             AppLog.content.debug("Localized JSON decoded for language: \(loadedData.languageCode, privacy: .public)")
-            themeStore?.replaceThemes(with: loadedData.themes)
+            themeStore?.replaceThemes(
+                with: loadedData.themes,
+                locale: loadedData.languageCode,
+                catalogOrigin: .bundled
+            )
             UserDefaults.standard.set(localizedHash, forKey: Content.localizedDataHashKey)
             themes = loadedData.themes
             catalogOrigin = .bundled
@@ -120,6 +142,11 @@ final class ThemeCatalogRepository: ThemeRepository {
                     questionOrigin: .backend
                 )
             }
+            themeStore?.replaceThemes(
+                with: backendThemes,
+                locale: locale,
+                catalogOrigin: .backend
+            )
             themes = backendThemes
             let remoteFavoriteIDs = response.themes.filter(\.isFavorite).map(\.id)
             if !remoteFavoriteIDs.isEmpty, !preferenceStore.hasPendingThemePreferences(locale: locale) {
@@ -195,6 +222,20 @@ final class ThemeCatalogRepository: ThemeRepository {
         questionCount: Int,
         locale: String
     ) async throws -> QuizTheme {
+        try await prepareQuiz(
+            themeID: themeID,
+            questionCount: questionCount,
+            difficulty: .medium,
+            locale: locale
+        )
+    }
+
+    func prepareQuiz(
+        themeID: String,
+        questionCount: Int,
+        difficulty: AIQuizDifficulty,
+        locale: String
+    ) async throws -> QuizTheme {
         guard
             QuizQuestionCountPolicy.supportedCounts.contains(questionCount),
             let metadata = (themes ?? fetchQuizThemes()).first(where: {
@@ -208,7 +249,11 @@ final class ThemeCatalogRepository: ThemeRepository {
             AppLog.content.notice(
                 "📦 LOCAL QUESTIONS: bundled catalog active theme=\(themeID, privacy: .public) locale=\(locale, privacy: .public) count=\(questionCount, privacy: .public)"
             )
-            return try makeLocalQuiz(themeID: themeID, questionCount: questionCount)
+            return try makeLocalQuiz(
+                themeID: themeID,
+                questionCount: questionCount,
+                difficulty: difficulty
+            )
         }
         guard let backendContentAPI else { throw QuizPreparationError.unavailable }
 
@@ -222,6 +267,7 @@ final class ThemeCatalogRepository: ThemeRepository {
                     themeID: themeID,
                     count: questionCount,
                     locale: locale,
+                    difficulty: difficulty,
                     seed: seed
                 )
             }
@@ -244,7 +290,8 @@ final class ThemeCatalogRepository: ThemeRepository {
                 colorHex: metadata.colorHex,
                 isFavorite: metadata.isFavorite,
                 source: .catalog,
-                questionOrigin: .backend
+                questionOrigin: .backend,
+                difficulty: difficulty
             )
         } catch is CancellationError {
             throw CancellationError()
@@ -260,6 +307,22 @@ final class ThemeCatalogRepository: ThemeRepository {
         selectionMode: CrossThemeQuestionSelectionMode,
         localFallback: QuizTheme,
         questionCount: Int,
+        locale: String
+    ) async throws -> QuizTheme {
+        try await prepareRandomQuiz(
+            selectionMode: selectionMode,
+            localFallback: localFallback,
+            questionCount: questionCount,
+            difficulty: .medium,
+            locale: locale
+        )
+    }
+
+    func prepareRandomQuiz(
+        selectionMode: CrossThemeQuestionSelectionMode,
+        localFallback: QuizTheme,
+        questionCount: Int,
+        difficulty: AIQuizDifficulty,
         locale: String
     ) async throws -> QuizTheme {
         guard QuizQuestionCountPolicy.supportedCounts.contains(questionCount) else {
@@ -283,6 +346,7 @@ final class ThemeCatalogRepository: ThemeRepository {
                     selectionMode: selectionMode,
                     count: questionCount,
                     locale: locale,
+                    difficulty: difficulty,
                     seed: seed
                 )
             }
@@ -305,7 +369,8 @@ final class ThemeCatalogRepository: ThemeRepository {
                 colorHex: localFallback.colorHex,
                 isFavorite: localFallback.isFavorite,
                 source: .catalog,
-                questionOrigin: .backend
+                questionOrigin: .backend,
+                difficulty: difficulty
             )
         } catch is CancellationError {
             throw CancellationError()
@@ -321,7 +386,11 @@ final class ThemeCatalogRepository: ThemeRepository {
         SwiftDataThemeStore(context: context).clearThemes()
     }
 
-    private func makeLocalQuiz(themeID: String, questionCount: Int) throws -> QuizTheme {
+    private func makeLocalQuiz(
+        themeID: String,
+        questionCount: Int,
+        difficulty: AIQuizDifficulty
+    ) throws -> QuizTheme {
         let catalog = themes ?? fetchQuizThemes()
         guard
             QuizQuestionCountPolicy.supportedCounts.contains(questionCount),
@@ -346,7 +415,8 @@ final class ThemeCatalogRepository: ThemeRepository {
             colorHex: theme.colorHex,
             isFavorite: theme.isFavorite,
             source: theme.source,
-            questionOrigin: .bundled
+            questionOrigin: .bundled,
+            difficulty: difficulty
         )
     }
 

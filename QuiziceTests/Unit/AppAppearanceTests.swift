@@ -106,7 +106,9 @@ final class AppAppearanceTests: XCTestCase {
         XCTAssertEqual(cleanDarkKeyboard.interfaceStyle, .dark)
         XCTAssertEqual(cleanSystemKeyboard.interfaceStyle, .unspecified)
         XCTAssertTrue(radarKeyboard.doneButtonTintColor.isEqual(radar.accentColor))
-        XCTAssertTrue(classicKeyboard.doneButtonTintColor.isEqual(UIColor.systemBlue))
+        XCTAssertTrue(
+            classicKeyboard.doneButtonTintColor.isEqual(AppAssetColor.fallbackBlue.uiColor)
+        )
         XCTAssertTrue(cleanLightKeyboard.doneButtonTintColor.isEqual(cleanLight.accentColor))
         XCTAssertTrue(cleanDarkKeyboard.doneButtonTintColor.isEqual(cleanDark.accentColor))
         XCTAssertTrue(cleanSystemKeyboard.doneButtonTintColor.isEqual(cleanSystem.accentColor))
