@@ -159,18 +159,23 @@ final class GameCenterAuthenticationService {
         statisticsMayRefreshToken: Bool,
         attemptID: UUID
     ) async {
+        // Reading the cached session is a best-effort operation. A broken
+        // Keychain (e.g. after a restore-from-backup or a user reset) must
+        // not force a legitimate Game Center player into guest mode — fall
+        // through to a fresh exchange instead.
+        if allowsCachedSession,
+           let cachedSession = loadStoredSession(),
+           cachedSession.isValid(for: teamPlayerID, now: now()) {
+            completeAuthentication(
+                with: cachedSession,
+                attemptID: attemptID,
+                statisticsMayRefreshToken: statisticsMayRefreshToken
+            )
+            return
+        }
+        clearStoredSession()
+
         do {
-            if allowsCachedSession,
-               let cachedSession = try sessionStore.load(),
-               cachedSession.isValid(for: teamPlayerID, now: now()) {
-                completeAuthentication(
-                    with: cachedSession,
-                    attemptID: attemptID,
-                    statisticsMayRefreshToken: statisticsMayRefreshToken
-                )
-                return
-            }
-            clearStoredSession()
             let session = try await exchangeSession(
                 for: teamPlayerID,
                 attemptID: attemptID
