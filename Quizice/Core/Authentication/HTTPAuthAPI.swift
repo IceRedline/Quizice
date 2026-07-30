@@ -68,16 +68,40 @@ final class HTTPAuthAPI: AuthAPI {
         request: StatisticsStore.SyncRequest,
         accessToken: String
     ) async throws -> StatisticsStore.SyncResponse {
-        try await post(
-            path: Endpoint.statisticsSync,
-            body: request,
-            accessToken: accessToken,
-            operation: .statisticsSync
-        ) { (response: StatisticsStore.SyncResponse) in
-            guard Self.isValid(response: response, for: request) else {
-                throw BackendAPIError.contractViolation
+        // Statistics sync is a background operation with no user-visible
+        // latency. When the network is flaky, retrying with exponential
+        // backoff prevents attempts from silently disappearing and being
+        // reattempted only on the next launch.
+        try await BackendRetry.withExponentialBackoff(
+            isRetryable: Self.isRetryableSyncError
+        ) {
+            try await self.post(
+                path: Endpoint.statisticsSync,
+                body: request,
+                accessToken: accessToken,
+                operation: .statisticsSync
+            ) { (response: StatisticsStore.SyncResponse) in
+                guard Self.isValid(response: response, for: request) else {
+                    throw BackendAPIError.contractViolation
+                }
+                return response
             }
-            return response
+        }
+    }
+
+    private static func isRetryableSyncError(_ error: Error) -> Bool {
+        switch error {
+        case let apiError as BackendAPIError:
+            switch apiError {
+            case .transport:
+                return true
+            case let .httpStatus(status, _):
+                return status >= 500 && status < 600
+            case .unauthorized, .invalidResponse, .encoding, .decoding, .contractViolation, .configurationMissing:
+                return false
+            }
+        default:
+            return false
         }
     }
 

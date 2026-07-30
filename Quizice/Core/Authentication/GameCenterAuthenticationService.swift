@@ -170,7 +170,7 @@ final class GameCenterAuthenticationService {
                 )
                 return
             }
-            try? sessionStore.clear()
+            clearStoredSession()
             let session = try await exchangeSession(
                 for: teamPlayerID,
                 attemptID: attemptID
@@ -255,7 +255,7 @@ final class GameCenterAuthenticationService {
         if preservingGameCenterPlayer == false {
             currentTeamPlayerID = nil
         }
-        try? sessionStore.clear()
+        clearStoredSession()
         statisticsStore.activateGuest()
         state = .guest
         aiQuizAccessStore.update(isAuthenticated: false)
@@ -266,7 +266,7 @@ final class GameCenterAuthenticationService {
         mayRefreshToken: Bool = true
     ) {
         guard synchronizationTask == nil else { return }
-        let storedSession = knownSession ?? (try? sessionStore.load()) ?? nil
+        let storedSession = knownSession ?? loadStoredSession()
         guard
             let session = storedSession,
             case let .authenticated(userID, teamPlayerID) = state,
@@ -339,12 +339,36 @@ final class GameCenterAuthenticationService {
         synchronizationTask?.cancel()
         synchronizationTask = nil
         synchronizationAttemptID = nil
-        try? sessionStore.clear()
+        clearStoredSession()
         beginAuthentication(
             for: teamPlayerID,
             allowsCachedSession: false,
             statisticsMayRefreshToken: statisticsMayRefreshToken
         )
+    }
+
+    /// Delete the Keychain session and record failures so operations teams see
+    /// them. Swallowing errors silently made prior incidents hard to diagnose:
+    /// the app kept running with a stale token that could not be cleared.
+    private func clearStoredSession() {
+        do {
+            try sessionStore.clear()
+        } catch {
+            AppLog.auth.error(
+                "Failed to clear stored session: \(String(describing: error), privacy: .public)"
+            )
+        }
+    }
+
+    private func loadStoredSession() -> AuthSession? {
+        do {
+            return try sessionStore.load()
+        } catch {
+            AppLog.auth.error(
+                "Failed to load stored session: \(String(describing: error), privacy: .public)"
+            )
+            return nil
+        }
     }
 }
 

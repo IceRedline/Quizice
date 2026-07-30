@@ -346,6 +346,16 @@ final class QuizFlowCoordinator: NSObject, QuizRouting, UIViewControllerTransiti
                 let theme = try await service.generateQuizTheme(configuration: configuration)
                 try Task.checkCancellation()
                 guard let self else { return }
+                // If the user switched languages while generation was in
+                // flight, the freshly generated questions are for the old
+                // locale. Drop the response rather than starting a quiz whose
+                // UI language and question language disagree.
+                let requestedLanguage = configuration.locale.language.languageCode?.identifier.lowercased()
+                if let requestedLanguage,
+                   AppLocalizationStore.shared.resolvedLanguageCode != requestedLanguage {
+                    self.stopAIReplayLoading()
+                    return
+                }
 
                 theme.aiGenerationConfiguration = configuration
                 self.session.chosenTheme = ThemeModel(quizTheme: theme)

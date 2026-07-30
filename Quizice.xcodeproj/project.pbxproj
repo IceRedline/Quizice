@@ -130,6 +130,7 @@
 		AEB6A4A9B2F1D4D4AF3D26F9 /* QuizViewController+Layout.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1888F5B8071C93C881C24E19 /* QuizViewController+Layout.swift */; };
 		B10000000000000000000002 /* BackendContentAPI.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10000000000000000000001 /* BackendContentAPI.swift */; };
 		B1000000000000000000000B /* BackendContentModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1000000000000000000000A /* BackendContentModels.swift */; };
+		B10000000000000000000012 /* BackendRetry.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10000000000000000000011 /* BackendRetry.swift */; };
 		B10000000000000000000005 /* BackendAIQuizThemeService.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10000000000000000000004 /* BackendAIQuizThemeService.swift */; };
 		B10000000000000000000007 /* BackendClientTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10000000000000000000006 /* BackendClientTests.swift */; };
 		B10000000000000000000009 /* LiveBackendContractTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10000000000000000000008 /* LiveBackendContractTests.swift */; };
@@ -328,6 +329,7 @@
 		AFDA7BB1A82A295FE0B9A1FF /* ExpandedThemeCardView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ExpandedThemeCardView.swift; sourceTree = "<group>"; };
 		B10000000000000000000001 /* BackendContentAPI.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = BackendContentAPI.swift; sourceTree = "<group>"; };
 		B1000000000000000000000A /* BackendContentModels.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = BackendContentModels.swift; sourceTree = "<group>"; };
+		B10000000000000000000011 /* BackendRetry.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = BackendRetry.swift; sourceTree = "<group>"; };
 		B10000000000000000000004 /* BackendAIQuizThemeService.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = BackendAIQuizThemeService.swift; sourceTree = "<group>"; };
 		B10000000000000000000006 /* BackendClientTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = BackendClientTests.swift; sourceTree = "<group>"; };
 		B10000000000000000000008 /* LiveBackendContractTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = LiveBackendContractTests.swift; sourceTree = "<group>"; };
@@ -963,6 +965,7 @@
 			children = (
 				B10000000000000000000001 /* BackendContentAPI.swift */,
 				B1000000000000000000000A /* BackendContentModels.swift */,
+				B10000000000000000000011 /* BackendRetry.swift */,
 			);
 			path = Networking;
 			sourceTree = "<group>";
@@ -1337,6 +1340,7 @@
 				2465B215AD94E69D77F872BB /* AnalyticsService.swift in Sources */,
 				B10000000000000000000002 /* BackendContentAPI.swift in Sources */,
 				B1000000000000000000000B /* BackendContentModels.swift in Sources */,
+				B10000000000000000000012 /* BackendRetry.swift in Sources */,
 				D7E82CFA753F341CAA0395AD /* AuthModels.swift in Sources */,
 				B55AF88819584133CB2007D9 /* BackendConfiguration.swift in Sources */,
 				4D6FAE5E0FDBB639C1424B3F /* GameCenterAuthenticationService.swift in Sources */,

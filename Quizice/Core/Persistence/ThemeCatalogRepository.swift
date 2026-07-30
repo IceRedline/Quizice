@@ -128,7 +128,6 @@ final class ThemeCatalogRepository: ThemeRepository {
         do {
             let response = try await backendContentAPI.fetchThemes(locale: locale)
             try Task.checkCancellation()
-            guard AppLocalizationStore.shared.resolvedLanguageCode == locale else { return false }
 
             guard !response.themes.isEmpty else {
                 throw BackendContentError.contractViolation
@@ -148,22 +147,30 @@ final class ThemeCatalogRepository: ThemeRepository {
                     questionOrigin: .backend
                 )
             }
-            themeStore?.replaceThemes(
-                with: backendThemes,
-                locale: locale,
-                catalogOrigin: .backend
-            )
-            themes = backendThemes
             let remoteFavoriteIDs = response.themes.filter(\.isFavorite).map(\.id)
-            if !remoteFavoriteIDs.isEmpty, !preferenceStore.hasPendingThemePreferences(locale: locale) {
-                preferenceStore.applyRemotePreferredThemeIDs(remoteFavoriteIDs, locale: locale)
+
+            // All mutations of shared state (themes, catalogOrigin,
+            // preferenceStore) and the onCatalogReplaced callback run on the
+            // main queue. Without this hop, the continuation may resume on a
+            // background executor and race with UI readers of `themes`.
+            return await MainActor.run {
+                guard AppLocalizationStore.shared.resolvedLanguageCode == locale else { return false }
+                themeStore?.replaceThemes(
+                    with: backendThemes,
+                    locale: locale,
+                    catalogOrigin: .backend
+                )
+                themes = backendThemes
+                if !remoteFavoriteIDs.isEmpty, !preferenceStore.hasPendingThemePreferences(locale: locale) {
+                    preferenceStore.applyRemotePreferredThemeIDs(remoteFavoriteIDs, locale: locale)
+                }
+                catalogOrigin = .backend
+                onCatalogReplaced?()
+                AppLog.content.info(
+                    "Backend theme catalog accepted: locale=\(locale, privacy: .public) themes=\(backendThemes.count, privacy: .public)"
+                )
+                return true
             }
-            catalogOrigin = .backend
-            onCatalogReplaced?()
-            AppLog.content.info(
-                "Backend theme catalog accepted: locale=\(locale, privacy: .public) themes=\(backendThemes.count, privacy: .public)"
-            )
-            return true
         } catch is CancellationError {
             return false
         } catch {
@@ -198,18 +205,22 @@ final class ThemeCatalogRepository: ThemeRepository {
                 response = try await backendContentAPI.fetchThemePreferences(locale: locale)
             }
             try Task.checkCancellation()
-            guard AppLocalizationStore.shared.resolvedLanguageCode == locale else { return false }
 
-            preferenceStore.applyRemotePreferredThemeIDs(
-                response.favoriteThemeIds,
-                locale: locale
-            )
-            applyFavoriteOrder(response.favoriteThemeIds)
-            onCatalogReplaced?()
-            AppLog.content.info(
-                "Theme preferences synchronized: locale=\(locale, privacy: .public) favorites=\(response.favoriteThemeIds.count, privacy: .public)"
-            )
-            return true
+            // Post-await mutations of preferenceStore, themes ordering, and
+            // the onCatalogReplaced callback run on the main queue.
+            return await MainActor.run {
+                guard AppLocalizationStore.shared.resolvedLanguageCode == locale else { return false }
+                preferenceStore.applyRemotePreferredThemeIDs(
+                    response.favoriteThemeIds,
+                    locale: locale
+                )
+                applyFavoriteOrder(response.favoriteThemeIds)
+                onCatalogReplaced?()
+                AppLog.content.info(
+                    "Theme preferences synchronized: locale=\(locale, privacy: .public) favorites=\(response.favoriteThemeIds.count, privacy: .public)"
+                )
+                return true
+            }
         } catch is CancellationError {
             return false
         } catch BackendContentError.unauthenticated {
