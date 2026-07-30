@@ -51,7 +51,12 @@ final class QuizQuestionPresenter: QuizQuestionPresenterProtocol {
         self.timerClient = timerClient
         self.randomizer = randomizer
     }
-    
+
+    deinit {
+        timerCancellation?.cancel()
+        timerCancellation = nil
+    }
+
     func viewDidLoad() {
         resetGameProgress()
         loadQuestions()

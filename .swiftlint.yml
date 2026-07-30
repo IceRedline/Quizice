@@ -7,13 +7,39 @@ excluded:
   - .build
   - QuiziceTests/Snapshots/__Snapshots__
 
-# Keep the initial adoption focused on correctness and clear Swift idioms.
-# Existing formatting is intentionally left untouched; the rule set can grow
-# as files are cleaned up in normal feature work.
+# Pre-release rule set. Add rules gradually so violations remain reviewable.
+# Keep this list opt-in (`only_rules`) — the default SwiftLint corpus is too
+# noisy for a mature UIKit + SwiftUI hybrid.
 only_rules:
+  # Correctness — real defects hiding behind idiomatic-looking code.
   - empty_count
   - empty_string
   - fatal_error_message
+  - force_cast
+  - force_try
   - legacy_random
+  - overridden_super_call
+  - redundant_optional_initialization
   - syntactic_sugar
+  - toggle_bool
+  - unused_closure_parameter
+  - unused_control_flow_label
+  - unused_optional_binding
   - weak_delegate
+
+  # Style hygiene — cheap wins, no false positives worth arguing about.
+  - closing_brace
+  - colon
+  - comma
+  - control_statement
+  - duplicate_imports
+  - opening_brace
+  - protocol_property_accessors_order
+  - redundant_discardable_let
+  - redundant_string_enum_value
+  - redundant_void_return
+  - return_arrow_whitespace
+  - trailing_comma
+  - trailing_newline
+  - trailing_semicolon
+  - vertical_whitespace

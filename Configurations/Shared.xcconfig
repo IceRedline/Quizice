@@ -1,0 +1,17 @@
+// Shared build configuration for Quizice.
+//
+// Values that must not appear in source control (AppMetrica API key, backend
+// base URL) live in Secrets.xcconfig, which is git-ignored. Copy
+// Secrets.xcconfig.template to Secrets.xcconfig and fill in the values before
+// building. The optional include keeps normal builds working even when the
+// file is absent — the app gracefully degrades: analytics stays disabled and
+// the client falls back to bundled catalog data.
+#include? "Secrets.xcconfig"
+
+// Concurrency safety net.
+// `minimal` emits warnings for cross-actor Sendable violations without
+// upgrading them to errors, so we catch real data races (like the
+// pre-existing off-main mutation of shared state) without blocking builds on
+// legacy patterns. Move to `targeted` or `complete` once the codebase adopts
+// Sendable annotations broadly.
+SWIFT_STRICT_CONCURRENCY = minimal
