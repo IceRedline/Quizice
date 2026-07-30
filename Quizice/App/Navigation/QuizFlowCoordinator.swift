@@ -5,10 +5,12 @@ protocol HomeRouting: AnyObject {
     func showQuestion()
     func showSettings()
     func showOnboarding()
+    func showSubscription()
 }
 
 extension HomeRouting {
     func showOnboarding() {}
+    func showSubscription() {}
 }
 
 protocol QuizPlayRouting: AnyObject {
@@ -182,6 +184,31 @@ final class QuizFlowCoordinator: NSObject, QuizRouting, UIViewControllerTransiti
 
     func showOnboarding() {
         presentOnboarding(animated: true)
+    }
+
+    func showSubscription() {
+        let presenter = presentedViewController
+        let appearance = AppAppearanceStore.shared.appearance(
+            compatibleWith: presenter.traitCollection
+        )
+        let view = SubscriptionPaywallView(
+            appearance: appearance,
+            analytics: analytics,
+            onSubscribe: { [weak self] in
+                self?.presentSubscriptionComingSoon()
+            },
+            onRestore: { [weak self] in
+                self?.presentSubscriptionComingSoon()
+            }
+        )
+        let viewController = UIHostingController(rootView: view)
+        viewController.modalPresentationStyle = .pageSheet
+        if let sheetPresentationController = viewController.sheetPresentationController {
+            sheetPresentationController.detents = [.large()]
+            sheetPresentationController.prefersGrabberVisible = false
+            sheetPresentationController.prefersScrollingExpandsWhenScrolledToEdge = false
+        }
+        presenter.present(viewController, animated: true)
     }
 
     func presentSystemViewController(_ viewController: UIViewController) {
@@ -555,6 +582,22 @@ final class QuizFlowCoordinator: NSObject, QuizRouting, UIViewControllerTransiti
 
     private static func durationMilliseconds(since startDate: Date) -> Int {
         max(Int(Date().timeIntervalSince(startDate) * 1_000), 0)
+    }
+
+    private func presentSubscriptionComingSoon() {
+        guard !(presentedViewController is UIAlertController) else { return }
+        let alert = UIAlertController(
+            title: L10n.Subscription.ComingSoon.title,
+            message: L10n.Subscription.ComingSoon.message,
+            preferredStyle: .alert
+        )
+        alert.addAction(
+            UIAlertAction(
+                title: L10n.Subscription.ComingSoon.action,
+                style: .default
+            )
+        )
+        presentedViewController.present(alert, animated: true)
     }
 
     private var presentedViewController: UIViewController {

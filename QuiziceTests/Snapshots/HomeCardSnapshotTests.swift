@@ -46,21 +46,53 @@ final class HomeCardSnapshotTests: XCTestCase {
         )
     }
 
-    func testAIThemeActionCardSnapshot() {
-        let cell = SnapshotSupport.makeCollectionCell(item: 2, themes: themes, designStyle: .clean)
+    func testSubscriptionPromoBannerSnapshot() {
+        let cell = makeSubscriptionPromoCell(designStyle: .clean)
 
         SnapshotSupport.assertComponent(
-            cell.contentView,
+            cell,
+            named: "clean-subscription-promo-banner",
+            size: CGSize(width: 390, height: 126)
+        )
+    }
+
+    func testClassicSubscriptionPromoBannerSnapshot() {
+        let cell = makeSubscriptionPromoCell(designStyle: .classic)
+
+        SnapshotSupport.assertComponent(
+            cell,
+            named: "classic-subscription-promo-banner",
+            size: CGSize(width: 390, height: 126),
+            backgroundAppearance: SnapshotSupport.appearance(designStyle: .classic)
+        )
+    }
+
+    func testRadarSubscriptionPromoBannerSnapshot() {
+        let cell = makeSubscriptionPromoCell(designStyle: .radar)
+
+        SnapshotSupport.assertComponent(
+            cell,
+            named: "radar-subscription-promo-banner",
+            size: CGSize(width: 390, height: 126),
+            backgroundAppearance: SnapshotSupport.appearance(designStyle: .radar)
+        )
+    }
+
+    func testAIThemeActionCardSnapshot() {
+        let cell = SnapshotSupport.makeCollectionCell(item: 3, themes: themes, designStyle: .clean)
+
+        SnapshotSupport.assertComponent(
+            cell,
             named: "clean-ai-theme-card",
             size: CGSize(width: 390, height: 140)
         )
     }
 
     func testClassicAIThemeActionCardSnapshot() {
-        let cell = SnapshotSupport.makeCollectionCell(item: 2, themes: themes, designStyle: .classic)
+        let cell = SnapshotSupport.makeCollectionCell(item: 3, themes: themes, designStyle: .classic)
 
         SnapshotSupport.assertComponent(
-            cell.contentView,
+            cell,
             named: "classic-ai-theme-card",
             size: CGSize(width: 390, height: 140),
             backgroundAppearance: SnapshotSupport.appearance(designStyle: .classic)
@@ -68,10 +100,10 @@ final class HomeCardSnapshotTests: XCTestCase {
     }
 
     func testRadarAIThemeActionCardSnapshot() {
-        let cell = SnapshotSupport.makeCollectionCell(item: 2, themes: themes, designStyle: .radar)
+        let cell = SnapshotSupport.makeCollectionCell(item: 3, themes: themes, designStyle: .radar)
 
         SnapshotSupport.assertComponent(
-            cell.contentView,
+            cell,
             named: "radar-ai-theme-card",
             size: CGSize(width: 390, height: 140),
             backgroundAppearance: SnapshotSupport.appearance(designStyle: .radar)
@@ -79,7 +111,7 @@ final class HomeCardSnapshotTests: XCTestCase {
     }
 
     func testFeelingLuckyActionCardSnapshot() {
-        let cell = SnapshotSupport.makeCollectionCell(item: 3, themes: themes, designStyle: .radar)
+        let cell = SnapshotSupport.makeCollectionCell(item: 4, themes: themes, designStyle: .radar)
 
         SnapshotSupport.assertComponent(
             cell.contentView,
@@ -91,7 +123,7 @@ final class HomeCardSnapshotTests: XCTestCase {
 
     func testFeelingLuckyLoadingActionCardSnapshot() {
         let cell = SnapshotSupport.makeCollectionCell(
-            item: 3,
+            item: 4,
             themes: themes,
             designStyle: .radar,
             feelingLuckyLoading: true
@@ -113,7 +145,7 @@ final class HomeCardSnapshotTests: XCTestCase {
     }
 
     func testStatisticsCardSnapshot() {
-        let cell = SnapshotSupport.makeCollectionCell(item: 4, themes: themes, designStyle: .classic)
+        let cell = SnapshotSupport.makeCollectionCell(item: 5, themes: themes, designStyle: .classic)
 
         SnapshotSupport.assertComponent(
             cell.contentView,
@@ -125,7 +157,7 @@ final class HomeCardSnapshotTests: XCTestCase {
 
     func testCompactStatisticsCardSnapshot() {
         let cell = SnapshotSupport.makeCollectionCell(
-            item: 4,
+            item: 5,
             themes: themes,
             designStyle: .clean,
             collectionWidth: 375
@@ -137,5 +169,28 @@ final class HomeCardSnapshotTests: XCTestCase {
             size: CGSize(width: 375, height: 180),
             backgroundAppearance: SnapshotSupport.appearance(designStyle: .clean)
         )
+    }
+
+    private func makeSubscriptionPromoCell(
+        designStyle: AppDesignStyle
+    ) -> UIView {
+        SnapshotSupport.setUp(designStyle: designStyle)
+        let cell = SubscriptionPromoBannerCollectionViewCell(
+            frame: CGRect(x: 0, y: 0, width: 342, height: 90)
+        )
+        cell.contentView.frame = cell.bounds
+        cell.configure(appearance: SnapshotSupport.appearance(designStyle: designStyle))
+        cell.contentView.setNeedsLayout()
+        cell.contentView.layoutIfNeeded()
+        cell.setNeedsLayout()
+        cell.layoutIfNeeded()
+
+        let snapshotView = UIView(frame: cell.bounds)
+        snapshotView.backgroundColor = .clear
+        snapshotView.addSubview(cell.contentView)
+        cell.contentView.frame = snapshotView.bounds
+        cell.contentView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+        cell.contentView.layoutIfNeeded()
+        return snapshotView
     }
 }

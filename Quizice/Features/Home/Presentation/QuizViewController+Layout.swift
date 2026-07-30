@@ -9,6 +9,11 @@ extension QuizViewController {
         configureThemesCollectionView()
         configureScreenStack()
         configureInitialStartupVisibilityIfNeeded()
+        registerForTraitChanges([UITraitPreferredContentSizeCategory.self]) {
+            (viewController: QuizViewController, _: UITraitCollection) in
+            viewController.themesCollectionView.collectionViewLayout.invalidateLayout()
+            viewController.updateCollectionScrollAvailability()
+        }
 
         rootView.addSubview(headerStackView)
         rootView.addSubview(screenStackView)
@@ -31,6 +36,10 @@ extension QuizViewController {
         themesCollectionView.register(
             StatisticsCardCollectionViewCell.self,
             forCellWithReuseIdentifier: StatisticsCardCollectionViewCell.reuseIdentifier
+        )
+        themesCollectionView.register(
+            SubscriptionPromoBannerCollectionViewCell.self,
+            forCellWithReuseIdentifier: SubscriptionPromoBannerCollectionViewCell.reuseIdentifier
         )
     }
 

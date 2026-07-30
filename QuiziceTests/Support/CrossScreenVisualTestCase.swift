@@ -238,6 +238,7 @@ final class CrossScreenRouterSpy: QuizRouting {
     func showQuestion() { showQuestionCallCount += 1 }
     func showResult(_ result: QuizResultState) { results.append(result) }
     func showSettings() {}
+    func showSubscription() {}
     func closeQuestion() { closeQuestionCallCount += 1 }
     func replayQuiz() { replayQuizCallCount += 1 }
     func returnToThemes() { returnToThemesCallCount += 1 }

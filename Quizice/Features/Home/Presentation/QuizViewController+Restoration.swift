@@ -250,6 +250,8 @@ extension QuizViewController {
     func makeDebugMenuViewModel() -> DebugMenuViewModel {
         DebugMenuViewModel(
             isInterfaceHidden: isDebugInterfaceHidden,
+            isSubscriptionActive:
+                SubscriptionEntitlementStore.shared.hasActivePlusSubscription,
             appearance: currentAppearance(),
             toggleInterfaceVisibility: { [weak self] in
                 self?.toggleDebugInterfaceVisibility()
@@ -262,6 +264,9 @@ extension QuizViewController {
             },
             toggleDirectAI: { [weak self] in
                 self?.toggleDebugDirectAI()
+            },
+            setSubscriptionActive: { isActive in
+                SubscriptionEntitlementStore.shared.setDebugSubscriptionActive(isActive)
             },
             selectBackgroundStyle: { [weak self] style in
                 self?.selectBackgroundStyle(style)

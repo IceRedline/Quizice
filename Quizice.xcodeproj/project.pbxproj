@@ -13,6 +13,8 @@
 		10E10873BFCA6E405295042A /* ExpandedThemeCardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AFDA7BB1A82A295FE0B9A1FF /* ExpandedThemeCardView.swift */; };
 		12545F479A63D80A0D918B8D /* StatisticsCardCollectionViewCellTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 36D92F522B4FFAF934B84A64 /* StatisticsCardCollectionViewCellTests.swift */; };
 		1657C6347A156D8BD6C35C3C /* SwiftUISnapshotTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BEAE50A34CFC43E6FC3BCD9F /* SwiftUISnapshotTests.swift */; };
+		D20000000000000000000002 /* SwiftUISnapshotFixtures.swift in Sources */ = {isa = PBXBuildFile; fileRef = D20000000000000000000001 /* SwiftUISnapshotFixtures.swift */; };
+		D20000000000000000000004 /* BackendClientTestHelpers.swift in Sources */ = {isa = PBXBuildFile; fileRef = D20000000000000000000003 /* BackendClientTestHelpers.swift */; };
 		1699C2F2D2E5EC410EC27C96 /* ExpandedAIThemeCardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F1750A6B02AB47889E90648F /* ExpandedAIThemeCardView.swift */; };
 		17A10D32F87780AA2F404376 /* QuizResultPresenterProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65A1AACD5ED1CF60CF0C1991 /* QuizResultPresenterProtocol.swift */; };
 		1841FC1FA87741F19AF17910 /* QuizQuestionPresenter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BEE5B6C2DEED5ED1D8C9502 /* QuizQuestionPresenter.swift */; };
@@ -146,6 +148,8 @@
 		C10000000000000000000005 /* HomeCollectionServicePresentationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C10000000000000000000006 /* HomeCollectionServicePresentationTests.swift */; };
 		C10000000000000000000007 /* BackendAIClientSessionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C10000000000000000000008 /* BackendAIClientSessionTests.swift */; };
 		C9D930627D3BF78B2F0263D3 /* ExpandedStatisticsCardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 96D09FAE06BCC927ACC38483 /* ExpandedStatisticsCardView.swift */; };
+		C50000022FA0000100C50002 /* SubscriptionPaywallView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C50000012FA0000100C50001 /* SubscriptionPaywallView.swift */; };
+		C50000042FA0000100C50004 /* SubscriptionPromoBannerCollectionViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = C50000032FA0000100C50003 /* SubscriptionPromoBannerCollectionViewCell.swift */; };
 		CB9033BEC1B9D697369DBEC8 /* Animations.swift in Sources */ = {isa = PBXBuildFile; fileRef = FB00BEA52EDDC012EE25FF62 /* Animations.swift */; };
 		CB94F483D8602A33172BC338 /* GameCenterClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 183C1C2BE4E19509D4653CBA /* GameCenterClient.swift */; };
 		CCBD95A6194C5A507E6E1327 /* ComponentSnapshotTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 87B22704C9841FA1A6955424 /* ComponentSnapshotTests.swift */; };
@@ -331,6 +335,8 @@
 		B87163E818824EBEFD6A6605 /* QuizQuestionPresenterFailureStateTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = QuizQuestionPresenterFailureStateTests.swift; sourceTree = "<group>"; };
 		BEADA391C8787D35DA96DDD0 /* QuizResultViewControllerProtocol.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = QuizResultViewControllerProtocol.swift; sourceTree = "<group>"; };
 		BEAE50A34CFC43E6FC3BCD9F /* SwiftUISnapshotTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = SwiftUISnapshotTests.swift; sourceTree = "<group>"; };
+		D20000000000000000000001 /* SwiftUISnapshotFixtures.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = SwiftUISnapshotFixtures.swift; sourceTree = "<group>"; };
+		D20000000000000000000003 /* BackendClientTestHelpers.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = BackendClientTestHelpers.swift; sourceTree = "<group>"; };
 		C0FE3CA8836CBEED7596B8D0 /* YandexAIQuizThemeResponseTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = YandexAIQuizThemeResponseTests.swift; sourceTree = "<group>"; };
 		C10000000000000000000002 /* ThemesCollectionService+ActionCards.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = "ThemesCollectionService+ActionCards.swift"; sourceTree = "<group>"; };
 		C10000000000000000000004 /* OnboardingPhysicsTopicCard.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = OnboardingPhysicsTopicCard.swift; sourceTree = "<group>"; };
@@ -345,6 +351,8 @@
 		C622321C90C2AFE2CC3990A5 /* UIKitAppearanceSupport.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = UIKitAppearanceSupport.swift; sourceTree = "<group>"; };
 		C6A6BA572428D6EF0638987D /* QuizQuestionTypographyContractTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = QuizQuestionTypographyContractTests.swift; sourceTree = "<group>"; };
 		C7F0E643BE8C1EA92DE20246 /* SwiftDataThemeStore.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = SwiftDataThemeStore.swift; sourceTree = "<group>"; };
+		C50000012FA0000100C50001 /* SubscriptionPaywallView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = SubscriptionPaywallView.swift; sourceTree = "<group>"; };
+		C50000032FA0000100C50003 /* SubscriptionPromoBannerCollectionViewCell.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = SubscriptionPromoBannerCollectionViewCell.swift; sourceTree = "<group>"; };
 		C8F820A9113657A638FA15DA /* SceneDelegate.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = SceneDelegate.swift; sourceTree = "<group>"; };
 		D0184164E200DBF65F2A3318 /* ThemeRepository.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ThemeRepository.swift; sourceTree = "<group>"; };
 		D17C81F5F656F7DC5EA41983 /* QuizQuestionStateContractTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = QuizQuestionStateContractTests.swift; sourceTree = "<group>"; };
@@ -440,6 +448,7 @@
 				4CE837967A7694188D771EF6 /* ExpandedThemeCardView+Layout.swift */,
 				AFDA7BB1A82A295FE0B9A1FF /* ExpandedThemeCardView.swift */,
 				5ACBD4E89C16FB04B88C7B1E /* StatisticsCardCollectionViewCell.swift */,
+				C50000032FA0000100C50003 /* SubscriptionPromoBannerCollectionViewCell.swift */,
 				535641998A813AAACA325295 /* ThemeCardCollectionViewCell.swift */,
 				7DB8908FC001AA551F43E218 /* TwoSidedCardTransitionDriver.swift */,
 			);
@@ -509,6 +518,7 @@
 				F76EA9D7ED1D55E56D03968C /* HomeCardSnapshotTests.swift */,
 				7D414B34E1AE07DFCF983992 /* ScreenSnapshotTests.swift */,
 				FE6331A57745414BDAA1FA80 /* SnapshotSupport.swift */,
+				D20000000000000000000001 /* SwiftUISnapshotFixtures.swift */,
 				BEAE50A34CFC43E6FC3BCD9F /* SwiftUISnapshotTests.swift */,
 			);
 			path = Snapshots;
@@ -554,8 +564,25 @@
 				8D2B59BFE1A9619184DF238B /* QuizPlay */,
 				C80AED5C04D52A58A5A8E986 /* QuizResult */,
 				6A0168D28BFB7B542C68869D /* Settings */,
+				C50000052FA0000100C50005 /* Subscription */,
 			);
 			path = Features;
+			sourceTree = "<group>";
+		};
+		C50000052FA0000100C50005 /* Subscription */ = {
+			isa = PBXGroup;
+			children = (
+				C50000062FA0000100C50006 /* UI */,
+			);
+			path = Subscription;
+			sourceTree = "<group>";
+		};
+		C50000062FA0000100C50006 /* UI */ = {
+			isa = PBXGroup;
+			children = (
+				C50000012FA0000100C50001 /* SubscriptionPaywallView.swift */,
+			);
+			path = UI;
 			sourceTree = "<group>";
 		};
 		448C1EB07280F0425D451FDC /* Interactions */ = {
@@ -1025,6 +1052,7 @@
 				B20000000000000000000003 /* AuthServiceTestSupport.swift */,
 				C10000000000000000000008 /* BackendAIClientSessionTests.swift */,
 				B10000000000000000000006 /* BackendClientTests.swift */,
+				D20000000000000000000003 /* BackendClientTestHelpers.swift */,
 				B20000000000000000000001 /* BackendClientTestSupport.swift */,
 				43967E761EE3C2C1360397EA /* HomeThemeCardFlipTransitionTests.swift */,
 				B20000000000000000000005 /* KeychainSessionStoreTests.swift */,
@@ -1334,6 +1362,7 @@
 				9C7DF2F32C74207FC4C9973F /* ExpandedThemeCardView+Layout.swift in Sources */,
 				10E10873BFCA6E405295042A /* ExpandedThemeCardView.swift in Sources */,
 				51C08241ADF818E36534914E /* StatisticsCardCollectionViewCell.swift in Sources */,
+				C50000042FA0000100C50004 /* SubscriptionPromoBannerCollectionViewCell.swift in Sources */,
 				FCE7854FE40453908C7EF297 /* ThemeCardCollectionViewCell.swift in Sources */,
 				D98BF6E8CE1AD22E159DCDF1 /* TwoSidedCardTransitionDriver.swift in Sources */,
 				8ED0DEC6730254A0617F88A6 /* ThemeCollectionUIKitSupport.swift in Sources */,
@@ -1372,6 +1401,7 @@
 				8BC15009A143DA3FC060F334 /* QuizResultPresenter.swift in Sources */,
 				AE606267FD8640D21154316F /* QuizResultViewController.swift in Sources */,
 				9E0FA6243CD26D1693DBAEC5 /* QuizSettingsView.swift in Sources */,
+				C50000022FA0000100C50002 /* SubscriptionPaywallView.swift in Sources */,
 				7241C8B48AA9226E7A4CA109 /* StatisticsStore.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -1417,6 +1447,7 @@
 				975CB16FF324AFD6F3A882DB /* HomeCardSnapshotTests.swift in Sources */,
 				EA663566673D6EC694C6145F /* ScreenSnapshotTests.swift in Sources */,
 				49BD09C19DF3ABAA0A37DCD7 /* SnapshotSupport.swift in Sources */,
+				D20000000000000000000002 /* SwiftUISnapshotFixtures.swift in Sources */,
 				1657C6347A156D8BD6C35C3C /* SwiftUISnapshotTests.swift in Sources */,
 				875624FD635A9F6166217A79 /* CrossScreenVisualTestCase.swift in Sources */,
 				995571C0045B9E1FB4B6F3BA /* QuizFlowCoordinatorTestCase.swift in Sources */,
@@ -1428,6 +1459,7 @@
 				B20000000000000000000004 /* AuthServiceTestSupport.swift in Sources */,
 				C10000000000000000000007 /* BackendAIClientSessionTests.swift in Sources */,
 				B10000000000000000000007 /* BackendClientTests.swift in Sources */,
+				D20000000000000000000004 /* BackendClientTestHelpers.swift in Sources */,
 				B20000000000000000000002 /* BackendClientTestSupport.swift in Sources */,
 				5D190DABB9C20596EF4666E9 /* HomeThemeCardFlipTransitionTests.swift in Sources */,
 				B20000000000000000000006 /* KeychainSessionStoreTests.swift in Sources */,

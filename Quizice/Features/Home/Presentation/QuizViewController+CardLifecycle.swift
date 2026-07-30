@@ -419,7 +419,7 @@ extension QuizViewController {
             let transitionView = makeAIThemeCardTransitionView(
                 frame: targetFrame,
                 targetFrame: targetFrame,
-                surfaceColor: appearance.card.backgroundColor,
+                surfaceColor: cardView.transitionSurfaceColor,
                 borderColor: appearance.card.borderColor,
                 borderWidth: appearance.card.borderWidth,
                 initialCornerRadius: appearance.card.cornerRadius,

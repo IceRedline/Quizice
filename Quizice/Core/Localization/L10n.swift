@@ -116,6 +116,8 @@ enum L10n {
         static var toolsSectionTitle: String { L10n.localized("debug_menu.section.tools", comment: "Debug menu tools section title") }
         static var hideInterface: String { L10n.localized("debug_menu.hide_interface", comment: "Debug menu hide interface toggle title") }
         static var hideInterfaceSubtitle: String { L10n.localized("debug_menu.hide_interface.subtitle", comment: "Debug menu hide interface toggle subtitle") }
+        static var subscriptionActive: String { L10n.localized("debug_menu.subscription_active", comment: "Debug menu active subscription toggle title") }
+        static var subscriptionActiveSubtitle: String { L10n.localized("debug_menu.subscription_active.subtitle", comment: "Debug menu active subscription toggle subtitle") }
         static var pulse: String { L10n.localized("debug_menu.pulse", comment: "Pulse network console row title") }
         static var pulseSubtitle: String { L10n.localized("debug_menu.pulse.subtitle", comment: "Pulse network console row subtitle") }
     }
@@ -232,6 +234,55 @@ enum L10n {
 
         static func text(correctAnswers: Int, totalQuestions: Int) -> String {
             L10n.formatted("result.text_format", comment: "Quiz result title format", correctAnswers, totalQuestions)
+        }
+    }
+
+    enum Subscription {
+        static var aiCardAccessibilityHint: String { L10n.localized("subscription.ai_card.accessibility_hint", comment: "AI creation card Plus promo accessibility hint") }
+        static var aiCardSubtitle: String { L10n.localized("subscription.ai_card.subtitle", comment: "AI creation card Plus promo subtitle") }
+        static var aiCardTitle: String { L10n.localized("subscription.ai_card.title", comment: "AI creation card Plus promo title") }
+        static var close: String { L10n.localized("subscription.paywall.close", comment: "Subscription paywall close button accessibility label") }
+        static var eyebrow: String { L10n.localized("subscription.paywall.eyebrow", comment: "Subscription paywall eyebrow") }
+        static var flexibilityBenefitSubtitle: String { L10n.localized("subscription.paywall.benefit.flexibility.subtitle", comment: "Subscription flexibility benefit subtitle") }
+        static var flexibilityBenefitTitle: String { L10n.localized("subscription.paywall.benefit.flexibility.title", comment: "Subscription flexibility benefit title") }
+        static var free: String { L10n.localized("subscription.paywall.free", comment: "Free tier label") }
+        static var freeBadge: String { L10n.localized("subscription.badge.free", comment: "Free AI question limit badge") }
+        static var homeAccessibilityHint: String { L10n.localized("subscription.home.accessibility_hint", comment: "Home Plus banner accessibility hint") }
+        static var homePriceBadge: String { L10n.localized("subscription.home.price_badge", comment: "Home Plus banner preview price badge") }
+        static var homeSubtitle: String { L10n.localized("subscription.home.subtitle", comment: "Home Plus banner subtitle") }
+        static var homeTitle: String { L10n.localized("subscription.home.title", comment: "Home Plus banner title") }
+        static var legal: String { L10n.localized("subscription.paywall.legal", comment: "Subscription preview legal note") }
+        static var limitBenefitSubtitle: String { L10n.localized("subscription.paywall.benefit.limit.subtitle", comment: "Subscription AI limit benefit subtitle") }
+        static var limitBenefitTitle: String { L10n.localized("subscription.paywall.benefit.limit.title", comment: "Subscription AI limit benefit title") }
+        static var multiplier: String { L10n.localized("subscription.paywall.multiplier", comment: "Subscription question limit multiplier") }
+        static var planNote: String { L10n.localized("subscription.paywall.plan.note", comment: "Subscription plan note") }
+        static var planTitle: String { L10n.localized("subscription.paywall.plan.title", comment: "Subscription plan title") }
+        static var plus: String { L10n.localized("subscription.paywall.plus", comment: "Plus tier label") }
+        static var generationLimit: String { L10n.localized("subscription.paywall.questions", comment: "Monthly AI generation limit metric label") }
+        static var restore: String { L10n.localized("subscription.paywall.restore", comment: "Restore purchases button title") }
+        static var subtitle: String { L10n.localized("subscription.paywall.subtitle", comment: "Subscription paywall subtitle") }
+        static var title: String { L10n.localized("subscription.paywall.title", comment: "Subscription paywall title") }
+
+        enum ComingSoon {
+            static var action: String { L10n.localized("subscription.paywall.coming_soon.action", comment: "Subscription preview alert action") }
+            static var message: String { L10n.localized("subscription.paywall.coming_soon.message", comment: "Subscription preview alert message") }
+            static var title: String { L10n.localized("subscription.paywall.coming_soon.title", comment: "Subscription preview alert title") }
+        }
+
+        static func pricePerMonth(_ price: String) -> String {
+            L10n.formatted(
+                "subscription.paywall.price_format",
+                comment: "Subscription monthly price format",
+                price
+            )
+        }
+
+        static func subscribeCTA(_ price: String) -> String {
+            L10n.formatted(
+                "subscription.paywall.cta_format",
+                comment: "Subscription primary CTA format",
+                price
+            )
         }
     }
 
