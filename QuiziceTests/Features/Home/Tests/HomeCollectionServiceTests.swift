@@ -535,8 +535,8 @@ final class HomeCollectionServiceTests: HomeScreenVisualStateTestCase {
         let statisticsCell = service.collectionView(collectionView, cellForItemAt: IndexPath(item: 4, section: 0))
         let themeButton = themeCell.contentView.descendant(withAccessibilityIdentifier: "music") as? UIButton
         let aiThemeButton = aiThemeCell.contentView.descendant(withAccessibilityIdentifier: "homeCreateWithAIButton") as? UIButton
-        let aiThemePlusBadge = aiThemeCell.contentView.descendant(
-            withAccessibilityIdentifier: "homeCreateWithAIPlusBadge"
+        let aiThemeBadge = aiThemeCell.contentView.descendant(
+            withAccessibilityIdentifier: "homeCreateWithAIBadge"
         ) as? UILabel
         let aiThemeSubtitle = aiThemeCell.contentView.descendant(
             withAccessibilityIdentifier: "homeCreateWithAISubtitle"
@@ -557,10 +557,10 @@ final class HomeCollectionServiceTests: HomeScreenVisualStateTestCase {
         assertColor(aiThemeButton?.backgroundColor, equals: assetColor("themeWhite"))
         XCTAssertEqual(aiThemeButton?.layer.borderWidth, 0)
         XCTAssertTrue(aiThemeButton?.clipsToBounds ?? false)
-        XCTAssertEqual(aiThemePlusBadge?.text, L10n.Subscription.plus.uppercased())
-        XCTAssertEqual(aiThemePlusBadge?.layer.cornerRadius, 11)
-        XCTAssertEqual(aiThemePlusBadge?.layer.borderWidth, 1)
-        XCTAssertTrue(aiThemePlusBadge?.clipsToBounds ?? false)
+        XCTAssertEqual(aiThemeBadge?.text, L10n.Subscription.freeBadge.uppercased())
+        XCTAssertEqual(aiThemeBadge?.layer.cornerRadius, 11)
+        XCTAssertEqual(aiThemeBadge?.layer.borderWidth, 1)
+        XCTAssertTrue(aiThemeBadge?.clipsToBounds ?? false)
         XCTAssertEqual(aiThemeSubtitle?.text, L10n.Subscription.aiCardSubtitle)
         XCTAssertTrue(aiThemeGradientBorder?.layer.sublayers?.first is CAGradientLayer)
         XCTAssertGreaterThanOrEqual(aiThemeCell.layer.shadowOpacity, 0)

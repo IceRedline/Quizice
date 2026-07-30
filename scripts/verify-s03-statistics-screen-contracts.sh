@@ -19,6 +19,7 @@ readonly RETIRED_STATISTICS_VIEW_CONTROLLER="Quizice/Features/Statistics/UI/Stat
 readonly STATISTICS_STORE="Quizice/Core/Persistence/StatisticsStore.swift"
 readonly STATISTICS_SUMMARY="Quizice/Domain/Statistics/StatisticsSummary.swift"
 readonly THEMES_SERVICE="Quizice/Features/Home/Collection/ThemesCollectionService.swift"
+readonly THEMES_ACTION_CARDS="Quizice/Features/Home/Collection/ThemesCollectionService+ActionCards.swift"
 readonly STATISTICS_CARD_CELL="Quizice/Features/Home/Cards/StatisticsCardCollectionViewCell.swift"
 readonly EXPANDED_STATISTICS_CARD="Quizice/Features/Home/Cards/ExpandedStatisticsCardView.swift"
 readonly STATISTICS_PRESENTATION="Quizice/Features/Home/Cards/StatisticsPresentation.swift"
@@ -153,8 +154,10 @@ require_fixed_string "$STATISTICS_SUMMARY" 'guard totalQuestions > 0 else { retu
 require_fixed_string "$STATISTICS_SUMMARY" 'static let empty' 'Statistics summary must expose an empty-state value'
 
 printf 'Checking home statistics card and inline presentation contract...\n'
-require_fixed_string "$THEMES_SERVICE" 'private let statisticsIndex = 3' 'Statistics card must keep the final fixed slot in the outer home collection'
-require_fixed_string "$THEMES_SERVICE" 'private let outerItemCount = 4' 'Outer home collection must contain the catalog and three action cards'
+require_fixed_string "$THEMES_SERVICE" 'private var statisticsIndex: Int {' 'Statistics card index must adapt to subscription promo visibility'
+require_fixed_string "$THEMES_SERVICE" 'hasActivePlusSubscription ? 3 : 4' 'Statistics card must remain last for both Plus and Free home layouts'
+require_fixed_string "$THEMES_SERVICE" 'private var outerItemCount: Int {' 'Outer home collection count must adapt to subscription promo visibility'
+require_fixed_string "$THEMES_SERVICE" 'hasActivePlusSubscription ? 4 : 5' 'Outer home collection must include the promo only for Free users'
 require_fixed_string "$THEMES_SERVICE" 'if indexPath.item == statisticsIndex' 'Statistics card must be the final home collection item'
 require_fixed_string "$THEMES_SERVICE" 'static let statisticsCardHeight: CGFloat = 112' 'Statistics card height must remain fixed at the polished rectangular-card height'
 require_fixed_string "$THEMES_SERVICE" 'static let lastItemBottomInset: CGFloat = 24' 'Final statistics item must own the release-safe bottom spacing'
@@ -179,7 +182,7 @@ require_fixed_string "$THEMES_SERVICE" 'isSourceHidden: isStatisticsPresented' '
 require_fixed_string "$STATISTICS_CARD_CELL" 'actionButton.accessibilityIdentifier = ThemesCollectionService.Content.statisticsAccessibilityID' 'Statistics card must expose a stable accessibility identifier'
 require_fixed_string "$STATISTICS_CARD_CELL" 'actionButton.accessibilityLabel = L10n.Home.statisticsAccessibilityLabel' 'Statistics card must expose a localized accessibility label'
 require_fixed_string "$STATISTICS_CARD_CELL" 'actionButton.accessibilityHint = L10n.Home.statisticsAccessibilityHint' 'Statistics card must explain its inline expansion action'
-require_fixed_string "$THEMES_SERVICE" 'delegate?.statisticsButtonTouchedUpInside(sender)' 'Statistics card tap must call the delegate callback'
+require_fixed_string "$THEMES_ACTION_CARDS" 'delegate?.statisticsButtonTouchedUpInside(sender)' 'Statistics card tap must call the delegate callback'
 require_fixed_string "$THEME_DELEGATE" 'func statisticsButtonTouchedUpInside(_ sender: UIButton)' 'Theme collection delegate must expose the statistics callback'
 require_fixed_string "$QUIZ_VIEW_ACTIONS" 'func statisticsButtonTouchedUpInside(_ sender: UIButton)' 'Home view controller must implement the statistics callback'
 require_fixed_string "$QUIZ_VIEW_ACTIONS" 'homeStore.send(.presentStatistics)' 'Home statistics callback must present the statistics card inline'
