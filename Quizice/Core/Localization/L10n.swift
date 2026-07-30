@@ -203,12 +203,15 @@ enum L10n {
     }
 
     enum Question {
+        static var answeredCorrect: String { L10n.localized("question.answered.correct", comment: "VoiceOver announcement after a correct answer") }
+        static var answeredWrongUnknown: String { L10n.localized("question.answered.wrong_unknown", comment: "VoiceOver announcement after a wrong answer when the correct option cannot be resolved") }
         static var audioLoadFailure: String { L10n.localized("question.audio_load_failure", comment: "Console message when answer sounds fail to load") }
         static var exitAlertMessage: String { L10n.localized("question.exit_alert.message", comment: "Message shown before discarding current quiz progress") }
         static var exitAlertTitle: String { L10n.localized("question.exit_alert.title", comment: "Title shown before discarding current quiz progress") }
         static var fallbackTheme: String { L10n.localized("question.fallback_theme", comment: "Fallback quiz theme name") }
         static var showExplanation: String { L10n.localized("question.show_explanation", comment: "Show the answer explanation on the back of the question card") }
         static var showQuestion: String { L10n.localized("question.show_question", comment: "Return to the question side of the card") }
+        static var tapToAnswer: String { L10n.localized("question.tap_to_answer.accessibility_hint", comment: "Accessibility hint for a quiz answer button") }
         static var timeRemaining: String { L10n.localized("question.time_remaining", comment: "Quiz timer accessibility label") }
         static var unavailableAnswer: String { L10n.localized("question.unavailable_answer", comment: "Unavailable answer placeholder") }
         static var unavailableMessage: String { L10n.localized("question.unavailable.message", comment: "Message when selected theme has no usable questions") }
@@ -216,6 +219,14 @@ enum L10n {
 
         static func number(_ number: Int) -> String {
             L10n.formatted("question.number_format", comment: "Question number format", number)
+        }
+
+        static func answeredWrong(correctAnswer: String) -> String {
+            L10n.formatted("question.answered.wrong_format", comment: "VoiceOver announcement after a wrong answer with the correct option", correctAnswer)
+        }
+
+        static func loadAnnouncement(number: String, question: String) -> String {
+            L10n.formatted("question.load.announcement_format", comment: "VoiceOver announcement posted when a new question appears", number, question)
         }
     }
 
@@ -234,6 +245,10 @@ enum L10n {
 
         static func text(correctAnswers: Int, totalQuestions: Int) -> String {
             L10n.formatted("result.text_format", comment: "Quiz result title format", correctAnswers, totalQuestions)
+        }
+
+        static func announcement(correctAnswers: Int, totalQuestions: Int) -> String {
+            L10n.formatted("result.announcement_format", comment: "VoiceOver announcement of the final quiz score", correctAnswers, totalQuestions)
         }
     }
 

@@ -104,6 +104,18 @@ final class QuizResultViewController: BaseQuizViewController, QuizResultViewCont
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
         analytics.track(.screenView(screen: .quizResult, theme: presenter?.analyticsTheme ?? .unknown))
+        announceResultIfNeeded()
+    }
+
+    // VO doesn't pick up the score label reliably during the card slide-in —
+    // post it explicitly so users who can't see the number still hear it.
+    private func announceResultIfNeeded() {
+        guard UIAccessibility.isVoiceOverRunning, let presenter else { return }
+        let announcement = L10n.Result.announcement(
+            correctAnswers: max(presenter.correctAnswers, 0),
+            totalQuestions: max(presenter.totalQuestions, 0)
+        )
+        UIAccessibility.post(notification: .announcement, argument: announcement)
     }
 
     func configurePresenter(_ presenter: QuizResultPresenterProtocol) {

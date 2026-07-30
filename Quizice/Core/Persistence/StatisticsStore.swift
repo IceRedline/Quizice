@@ -22,6 +22,50 @@ final class StatisticsStore {
         let correctAnswers: Int
         let totalQuestions: Int
         let completedAt: Date
+        let accessibilityMode: Bool
+
+        init(
+            id: String,
+            correctAnswers: Int,
+            totalQuestions: Int,
+            completedAt: Date,
+            accessibilityMode: Bool = false
+        ) {
+            self.id = id
+            self.correctAnswers = correctAnswers
+            self.totalQuestions = totalQuestions
+            self.completedAt = completedAt
+            self.accessibilityMode = accessibilityMode
+        }
+
+        private enum CodingKeys: String, CodingKey {
+            case id
+            case correctAnswers
+            case totalQuestions
+            case completedAt
+            case accessibilityMode
+        }
+
+        // Decoded attempts persisted before this field existed default to false —
+        // otherwise older UserDefaults data would silently fail to load and drop
+        // pending sync work.
+        init(from decoder: Decoder) throws {
+            let container = try decoder.container(keyedBy: CodingKeys.self)
+            id = try container.decode(String.self, forKey: .id)
+            correctAnswers = try container.decode(Int.self, forKey: .correctAnswers)
+            totalQuestions = try container.decode(Int.self, forKey: .totalQuestions)
+            completedAt = try container.decode(Date.self, forKey: .completedAt)
+            accessibilityMode = try container.decodeIfPresent(Bool.self, forKey: .accessibilityMode) ?? false
+        }
+
+        func encode(to encoder: Encoder) throws {
+            var container = encoder.container(keyedBy: CodingKeys.self)
+            try container.encode(id, forKey: .id)
+            try container.encode(correctAnswers, forKey: .correctAnswers)
+            try container.encode(totalQuestions, forKey: .totalQuestions)
+            try container.encode(completedAt, forKey: .completedAt)
+            try container.encode(accessibilityMode, forKey: .accessibilityMode)
+        }
     }
 
     struct SyncRequest: Codable, Equatable {
@@ -98,7 +142,7 @@ final class StatisticsStore {
         self.dateProvider = dateProvider
     }
 
-    func recordAttempt(correctAnswers: Int, totalQuestions: Int) {
+    func recordAttempt(correctAnswers: Int, totalQuestions: Int, accessibilityMode: Bool = false) {
         guard let attempt = Self.sanitizedAttempt(
             correctAnswers: correctAnswers,
             totalQuestions: totalQuestions
@@ -113,7 +157,8 @@ final class StatisticsStore {
                 id: idGenerator(),
                 correctAnswers: attempt.correctAnswers,
                 totalQuestions: attempt.totalQuestions,
-                completedAt: dateProvider()
+                completedAt: dateProvider(),
+                accessibilityMode: accessibilityMode
             )
         )
         save(state: state, for: principal)

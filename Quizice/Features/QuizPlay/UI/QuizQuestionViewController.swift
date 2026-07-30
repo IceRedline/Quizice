@@ -290,7 +290,16 @@ final class QuizQuestionViewController: BaseQuizViewController, QuizQuestionView
             number: .percent
         )
     }
-    
+
+    /// Removes the countdown bar from the layout AND the accessibility tree when
+    /// the presenter is in accessibility mode. Called before the first question
+    /// is rendered — since the timer never starts, its zeroed progress would
+    /// otherwise look broken and get read out as a stray element.
+    func hideTimerBar() {
+        timerContainerView?.isHidden = true
+        timerContainerView?.accessibilityElementsHidden = true
+    }
+
     func showTimeExpired() {
         let appearance = currentAppearance()
         colorAndDisableButtons()

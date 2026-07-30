@@ -213,6 +213,57 @@ final class StatisticsStoreTests: XCTestCase {
         XCTAssertEqual(harness.store.loadSummary(), .empty)
     }
 
+    func testRecordAttemptPreservesAccessibilityModeInSyncPayload() throws {
+        let harness = makeHarness()
+        harness.store.recordAttempt(correctAnswers: 5, totalQuestions: 5, accessibilityMode: true)
+        harness.store.recordAttempt(correctAnswers: 2, totalQuestions: 5, accessibilityMode: false)
+        harness.store.activateAuthenticatedUser("user-a11y")
+
+        let request = harness.store.makeSyncRequest(for: "user-a11y")
+        let modes = request.attempts.map(\.accessibilityMode)
+        XCTAssertEqual(modes, [true, false])
+    }
+
+    func testDecodingLegacyPendingAttemptWithoutAccessibilityFlagDefaultsToFalse() throws {
+        let harness = makeHarness()
+        // Simulate a PendingAttempt persisted before the accessibilityMode field
+        // existed — must round-trip cleanly so we don't silently drop sync work
+        // for users upgrading from a prior build.
+        let referenceDate = Date(timeIntervalSince1970: 1_700_000_000)
+        let legacyState: [String: Any] = [
+            "baseline": [
+                "playedQuizzes": 0,
+                "correctAnswers": 0,
+                "totalQuestions": 0,
+                "bestCorrectAnswers": 0,
+                "bestTotalQuestions": 0
+            ],
+            "pendingAttempts": [[
+                "id": "legacy-attempt-1",
+                "correctAnswers": 3,
+                "totalQuestions": 5,
+                "completedAt": referenceDate.timeIntervalSinceReferenceDate
+                // no accessibilityMode field
+            ]],
+            "migrationId": "legacy-migration"
+        ]
+        let userSuffix = Data("user-legacy".utf8)
+            .base64EncodedString()
+            .replacingOccurrences(of: "/", with: "_")
+            .replacingOccurrences(of: "+", with: "-")
+            .replacingOccurrences(of: "=", with: "")
+        let userKey = "\(harness.key).user.\(userSuffix)"
+        harness.defaults.set(
+            try JSONSerialization.data(withJSONObject: legacyState),
+            forKey: userKey
+        )
+
+        let request = harness.store.makeSyncRequest(for: "user-legacy")
+        XCTAssertEqual(request.attempts.count, 1)
+        XCTAssertEqual(request.attempts.first?.accessibilityMode, false)
+        XCTAssertEqual(request.attempts.first?.correctAnswers, 3)
+    }
+
     private func makeHarness(
         file: StaticString = #filePath,
         line: UInt = #line

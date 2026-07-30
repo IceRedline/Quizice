@@ -103,13 +103,18 @@
 "home.motivation_prompt.10" = "Commence par\nun choix simple";
 "home.motivation_prompt.11" = "L'heure est\nau fact-check";
 "home.motivation_prompt.12" = "Un quiz\npour quelques minutes";
+"question.answered.correct" = "Correct.";
+"question.answered.wrong_format" = "Incorrect. La bonne réponse est : %@.";
+"question.answered.wrong_unknown" = "Incorrect.";
 "question.audio_load_failure" = "Les fichiers audio n’ont pas été chargés";
 "question.exit_alert.message" = "La progression de cette partie sera perdue.";
 "question.exit_alert.title" = "Quitter le quiz ?";
 "question.fallback_theme" = "Quiz";
+"question.load.announcement_format" = "%@. %@";
 "question.number_format" = "Question n° %d";
 "question.show_explanation" = "Afficher l’explication";
 "question.show_question" = "Afficher la question";
+"question.tap_to_answer.accessibility_hint" = "Appuyez deux fois pour sélectionner cette réponse.";
 "question.unavailable.message" = "Ce thème n’a pas encore de questions disponibles. Revenez en arrière et choisissez un autre thème.";
 "question.unavailable_answer" = "Indisponible";
 "question.unavailable_number" = "Questions indisponibles";
@@ -123,6 +128,7 @@
 "result.description.no_questions" = "Aucune question n’était disponible dans cette tentative. Essayez un autre thème.";
 "result.description.perfect_score" = "Légende, génie, victoire facile.";
 "result.description.very_low_score" = "Vous devriez vraiment réessayer.";
+"result.announcement_format" = "Quiz terminé. Vous avez répondu correctement à %d questions sur %d.";
 "result.play_again" = "Rejouer";
 "result.to_themes" = "Choisir un thème";
 "result.text_format" = "Votre résultat :\n %d/%d";

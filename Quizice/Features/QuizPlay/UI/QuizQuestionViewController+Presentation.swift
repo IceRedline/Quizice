@@ -62,7 +62,7 @@ extension QuizQuestionViewController {
         questionExplanationLabel.text = viewModel.explanation
         questionExplanationScrollView.setContentOffset(.zero, animated: false)
         resetAllColors()
-        
+
         // The incoming card is prepared off-screen. Put its timer in the initial
         // state before the slide begins so no frame can expose the previous value.
         updateProgress(1)
@@ -73,6 +73,19 @@ extension QuizQuestionViewController {
             questionNumberLabel.text = viewModel.questionNumberText
         }
         nextButton.isEnabled = false
+        announceQuestionLoaded(viewModel)
+    }
+
+    // VoiceOver relies on this announcement to know a new question has appeared.
+    // Focus alone isn't enough — the question label is inside a card that
+    // animates in, and by the time VO would find it the user has moved on.
+    func announceQuestionLoaded(_ viewModel: QuizQuestionViewModel) {
+        guard UIAccessibility.isVoiceOverRunning else { return }
+        let announcement = L10n.Question.loadAnnouncement(
+            number: viewModel.questionNumberText,
+            question: viewModel.questionText
+        )
+        UIAccessibility.post(notification: .announcement, argument: announcement)
     }
 
     func resetQuestionScrollPosition() {
@@ -232,6 +245,30 @@ extension QuizQuestionViewController {
             feedbackPlayer.play(.incorrect)
             animateTimerBarColor(timerFeedbackColor(isCorrect: false, appearance: appearance))
         }
+        announceAnswerResult(isCorrect: isTrue)
+    }
+
+    // The audio "correct/wrong" cue doesn't carry meaning for users who rely on
+    // VoiceOver — post an explicit announcement, and when wrong, tell them which
+    // option was correct so they can learn without having to sweep the buttons.
+    func announceAnswerResult(isCorrect: Bool) {
+        guard UIAccessibility.isVoiceOverRunning else { return }
+        let announcement: String
+        if isCorrect {
+            announcement = L10n.Question.answeredCorrect
+        } else if let correctTitle = currentCorrectAnswerTitle() {
+            announcement = L10n.Question.answeredWrong(correctAnswer: correctTitle)
+        } else {
+            announcement = L10n.Question.answeredWrongUnknown
+        }
+        UIAccessibility.post(notification: .announcement, argument: announcement)
+    }
+
+    private func currentCorrectAnswerTitle() -> String? {
+        guard let presenter else { return nil }
+        return currentAnswerOptions.first { option in
+            presenter.answerFeedback(for: option.id) == .correct
+        }?.title
     }
 
     func applyAnswerFeedback(

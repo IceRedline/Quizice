@@ -140,8 +140,9 @@ private struct WelcomeArtwork: View {
                 .overlay {
                     VStack(spacing: 8) {
                         Image(systemName: "questionmark")
-                            .font(.system(size: 44, weight: .black, design: .rounded))
+                            .font(appearance.typography.swiftUIFont(size: 44, weight: .black))
                             .foregroundStyle(Color(uiColor: appearance.screenTextColor))
+                            .accessibilityHidden(true)
 
                         Text("QUIZICE")
                             .font(appearance.typography.swiftUIFont(size: 13, weight: .bold))
@@ -201,7 +202,7 @@ private struct WelcomeArtwork: View {
             .frame(width: size, height: size)
             .overlay {
                 Image(systemName: systemImage)
-                    .font(.system(size: size * 0.36, weight: .semibold))
+                    .font(appearance.typography.swiftUIFont(size: size * 0.36, weight: .semibold))
                     .foregroundStyle(Color(uiColor: appearance.themeCardTextColor(baseColor: color)))
             }
             .onboardingShadow(appearance.themeCardShadow)
@@ -466,8 +467,9 @@ private struct TutorialFeatureRow: View {
             .frame(maxWidth: .infinity, alignment: .leading)
 
             Image(systemName: "chevron.right")
-                .font(.system(size: 13, weight: .bold))
+                .font(appearance.typography.swiftUIFont(size: 13, weight: .bold))
                 .foregroundStyle(Color(uiColor: appearance.secondarySurfaceTextColor).opacity(0.7))
+                .accessibilityHidden(true)
         }
         .padding(14)
         .background(
@@ -522,8 +524,9 @@ private struct TutorialFeatureRow: View {
                 )
                 .overlay {
                     Image(systemName: "sparkles")
-                        .font(.system(size: 28, weight: .semibold))
+                        .font(appearance.typography.swiftUIFont(size: 28, weight: .semibold))
                         .foregroundStyle(Color(uiColor: appearance.screenTextColor))
+                        .accessibilityHidden(true)
                 }
 
         case .statistics:

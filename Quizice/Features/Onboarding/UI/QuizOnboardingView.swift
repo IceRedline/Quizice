@@ -189,7 +189,7 @@ struct QuizOnboardingView: View {
             if selectedPage != .welcome {
                 Button(action: goBack) {
                     Image(systemName: "chevron.left")
-                        .font(.system(size: 18, weight: .bold))
+                        .font(appearance.typography.swiftUIFont(size: 18, weight: .bold))
                         .foregroundStyle(Color(uiColor: appearance.screenTextColor))
                         .frame(width: Layout.backButtonWidth, height: Layout.buttonHeight)
                         .background(
@@ -222,7 +222,8 @@ struct QuizOnboardingView: View {
                         .minimumScaleFactor(0.78)
 
                     Image(systemName: selectedPage == .tutorial ? "sparkles" : "arrow.right")
-                        .font(.system(size: 16, weight: .bold))
+                        .font(appearance.typography.swiftUIFont(size: 16, weight: .bold))
+                        .accessibilityHidden(true)
                 }
                 .font(appearance.typography.swiftUIFont(size: 18, weight: .semibold))
                 .foregroundStyle(
