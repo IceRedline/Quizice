@@ -16,7 +16,7 @@ final class QuizResultPresenter: QuizResultPresenterProtocol {
     
     init(
         result: QuizResultState = QuizResultState(correctAnswers: 0, totalQuestions: 0),
-        session: QuizSessionManaging = QuizSessionStore.shared
+        session: QuizSessionManaging
     ) {
         self.session = session
         self.correctAnswers = result.correctAnswers
