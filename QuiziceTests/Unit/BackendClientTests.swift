@@ -171,11 +171,11 @@ final class BackendClientTests: XCTestCase {
         XCTAssertEqual(metrics.values.first?.result, .contractError)
     }
 
-    func testThemeRepositoryFallsBackToBundledQuestionsAfterInteractiveTimeout() async throws {
+    func testBundledCatalogUsesBundledQuestionsWithoutCallingBackend() async throws {
+        let backend = RecordingBackendContentAPI()
         let repository = ThemeCatalogRepository(
-            backendContentAPI: SlowBackendContentAPI(),
-            seedGenerator: { "seed-1" },
-            remoteQuestionTimeoutNanoseconds: 1_000_000
+            backendContentAPI: backend,
+            seedGenerator: { "seed-1" }
         )
         repository.themes = [Self.localTheme(questionCount: 15)]
 
@@ -189,6 +189,67 @@ final class BackendClientTests: XCTestCase {
         XCTAssertEqual(prepared.questions.count, 5)
         XCTAssertTrue(prepared.questions.allSatisfy { $0.question.hasPrefix("Local") })
         XCTAssertEqual(prepared.questionOrigin, .bundled)
+        XCTAssertEqual(backend.themeRequestCount, 0)
+        XCTAssertTrue(backend.seeds.isEmpty)
+    }
+
+    func testBackendCatalogReplacesTheEntireBundledCatalogInBackendOrder() async {
+        let remoteThemes = (0..<14).map { index in
+            BackendThemeDTO(
+                id: "remote-\(index)",
+                name: "Remote \(index)",
+                description: "Description \(index)",
+                sfSymbol: "star.fill",
+                emoji: "⭐️",
+                colorHex: "#4F46E5",
+                isFavorite: index < 2
+            )
+        }
+        let backend = RecordingBackendContentAPI(catalogThemes: remoteThemes)
+        let repository = ThemeCatalogRepository(backendContentAPI: backend)
+        repository.themes = (0..<4).map { index in
+            QuizTheme(
+                id: "local-\(index)",
+                theme: "Local \(index)",
+                themeDescription: "Local Description",
+                questions: []
+            )
+        }
+        let locale = AppLocalizationStore.shared.resolvedLanguageCode
+
+        let didRefresh = await repository.refreshBackendCatalog(locale: locale)
+
+        XCTAssertTrue(didRefresh)
+        XCTAssertEqual(repository.catalogOrigin, .backend)
+        XCTAssertEqual(repository.themes?.map(\.stableID), remoteThemes.map(\.id))
+        XCTAssertEqual(repository.themes?.map(\.theme), remoteThemes.map(\.name))
+        XCTAssertEqual(repository.themes?.count, 14)
+        XCTAssertTrue(repository.themes?.allSatisfy(\.questions.isEmpty) == true)
+        XCTAssertTrue(repository.themes?.allSatisfy { $0.questionOrigin == .backend } == true)
+        XCTAssertTrue(repository.themes?.allSatisfy { $0.sfSymbolName == "star.fill" } == true)
+    }
+
+    func testBackendCatalogQuestionFailureDoesNotReturnBundledQuestions() async {
+        let backend = RecordingBackendContentAPI(
+            questionError: URLError(.timedOut)
+        )
+        let repository = ThemeCatalogRepository(backendContentAPI: backend)
+        repository.themes = [Self.localTheme(questionCount: 15)]
+        let locale = AppLocalizationStore.shared.resolvedLanguageCode
+        let didRefresh = await repository.refreshBackendCatalog(locale: locale)
+        XCTAssertTrue(didRefresh)
+
+        do {
+            _ = try await repository.prepareQuiz(
+                themeID: "music",
+                questionCount: 5,
+                locale: locale
+            )
+            XCTFail("Backend catalog mode must not fall back to bundled questions")
+        } catch {
+            XCTAssertEqual((error as? URLError)?.code, .timedOut)
+        }
+        XCTAssertEqual(backend.seeds.count, 1)
     }
 
     func testEachQuizPreparationUsesANewLowercaseUUIDSeed() async throws {
@@ -196,6 +257,8 @@ final class BackendClientTests: XCTestCase {
         let repository = ThemeCatalogRepository(backendContentAPI: backend)
         repository.themes = [Self.localTheme(questionCount: 15)]
         let locale = AppLocalizationStore.shared.resolvedLanguageCode
+        let didRefresh = await repository.refreshBackendCatalog(locale: locale)
+        XCTAssertTrue(didRefresh)
 
         let prepared = try await repository.prepareQuiz(themeID: "music", questionCount: 5, locale: locale)
         _ = try await repository.prepareQuiz(themeID: "music", questionCount: 5, locale: locale)
@@ -254,7 +317,8 @@ final class BackendClientTests: XCTestCase {
 
         XCTAssertTrue(didRefresh)
         XCTAssertEqual(themes.map(\.stableID), ["music", "space"])
-        XCTAssertEqual(themes[0].questions.count, 15)
+        XCTAssertTrue(themes[0].questions.isEmpty)
+        XCTAssertEqual(themes[0].questionOrigin, .backend)
         XCTAssertTrue(themes[1].questions.isEmpty)
         XCTAssertEqual(themes[1].questionOrigin, .backend)
         XCTAssertEqual(themes[1].sfSymbolName, "globe")
