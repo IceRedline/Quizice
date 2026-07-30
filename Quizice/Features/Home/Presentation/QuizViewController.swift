@@ -317,7 +317,7 @@ final class QuizViewController: BaseQuizViewController, ThemeCollectionDelegate,
 
     override func loadView() {
         let rootView = UIView()
-        rootView.backgroundColor = .systemBackground
+        rootView.backgroundColor = currentAppearance().backgroundColor
         rootView.accessibilityIdentifier = AccessibilityID.rootView
         view = rootView
         configureProgrammaticSubviews(in: rootView)

@@ -6,11 +6,11 @@ private struct AppMeshGradientPreset {
     let width: Int
     let height: Int
     let points: [SIMD2<Float>]
-    let colorHexes: [UInt32]
-    let backgroundHex: UInt32
+    let assetColors: [AppAssetColor]
+    let backgroundAssetColor: AppAssetColor
 
     var colors: [Color] {
-        colorHexes.map { Color(uiColor: UIColor(hex: $0)) }
+        assetColors.map { Color(uiColor: $0.uiColor) }
     }
 }
 
@@ -26,12 +26,12 @@ private extension AppBackgroundStyle {
                     .init(0.00, 0.50), .init(0.50, 0.50), .init(1.00, 0.50),
                     .init(0.00, 1.00), .init(0.50, 1.00), .init(1.00, 1.00)
                 ],
-                colorHexes: [
-                    0x2A3755, 0x131824, 0x1E263A,
-                    0x121722, 0x111620, 0x161C2A,
-                    0x1C2437, 0x151B29, 0x2B3756
+                assetColors: [
+                    .meshSlateBright, .meshSlateDark, .meshSlateBlue,
+                    .meshSlateNearBlack, .meshSlateBase, .meshSlateMid,
+                    .meshSlateSoft, .meshSlateMuted, .meshSlateEdge
                 ],
-                backgroundHex: 0x111620
+                backgroundAssetColor: .meshSlateBase
             )
         case .slate4x4:
             return AppMeshGradientPreset(
@@ -43,13 +43,13 @@ private extension AppBackgroundStyle {
                     .init(0.00, 0.67), .init(0.38, 0.72), .init(0.64, 0.58), .init(1.00, 0.70),
                     .init(0.00, 1.00), .init(0.33, 1.00), .init(0.67, 1.00), .init(1.00, 1.00)
                 ],
-                colorHexes: [
-                    0x2A3755, 0x131824, 0x131824, 0x1E263A,
-                    0x121722, 0x131824, 0x111620, 0x161C2A,
-                    0x1C2437, 0x111620, 0x151B29, 0x2B3756,
-                    0x1C2437, 0x151B29, 0x151B29, 0x2B3756
+                assetColors: [
+                    .meshSlateBright, .meshSlateDark, .meshSlateDark, .meshSlateBlue,
+                    .meshSlateNearBlack, .meshSlateDark, .meshSlateBase, .meshSlateMid,
+                    .meshSlateSoft, .meshSlateBase, .meshSlateMuted, .meshSlateEdge,
+                    .meshSlateSoft, .meshSlateMuted, .meshSlateMuted, .meshSlateEdge
                 ],
-                backgroundHex: 0x111620
+                backgroundAssetColor: .meshSlateBase
             )
         case .slate5x5:
             return AppMeshGradientPreset(
@@ -62,14 +62,14 @@ private extension AppBackgroundStyle {
                     .init(0.00, 0.75), .init(0.18, 0.82), .init(0.55, 0.68), .init(0.82, 0.80), .init(1.00, 0.75),
                     .init(0.00, 1.00), .init(0.25, 1.00), .init(0.50, 1.00), .init(0.75, 1.00), .init(1.00, 1.00)
                 ],
-                colorHexes: [
-                    0x2A3755, 0x2A3755, 0x131824, 0x1E263A, 0x1E263A,
-                    0x2A3755, 0x121722, 0x131824, 0x161C2A, 0x1E263A,
-                    0x121722, 0x131824, 0x111620, 0x161C2A, 0x161C2A,
-                    0x1C2437, 0x121722, 0x111620, 0x151B29, 0x2B3756,
-                    0x1C2437, 0x1C2437, 0x151B29, 0x2B3756, 0x2B3756
+                assetColors: [
+                    .meshSlateBright, .meshSlateBright, .meshSlateDark, .meshSlateBlue, .meshSlateBlue,
+                    .meshSlateBright, .meshSlateNearBlack, .meshSlateDark, .meshSlateMid, .meshSlateBlue,
+                    .meshSlateNearBlack, .meshSlateDark, .meshSlateBase, .meshSlateMid, .meshSlateMid,
+                    .meshSlateSoft, .meshSlateNearBlack, .meshSlateBase, .meshSlateMuted, .meshSlateEdge,
+                    .meshSlateSoft, .meshSlateSoft, .meshSlateMuted, .meshSlateEdge, .meshSlateEdge
                 ],
-                backgroundHex: 0x111620
+                backgroundAssetColor: .meshSlateBase
             )
         }
     }
@@ -117,7 +117,7 @@ struct AppBackgroundView: View {
                         height: preset.height,
                         points: preset.points,
                         colors: preset.colors,
-                        background: Color(uiColor: UIColor(hex: preset.backgroundHex)),
+                        background: Color(uiColor: preset.backgroundAssetColor.uiColor),
                         smoothsColors: true
                     )
                 }
@@ -225,7 +225,7 @@ private struct AnimatedSlateMeshGradient: View {
 
     var body: some View {
         let colors = preset.colors
-        let background = Color(uiColor: UIColor(hex: preset.backgroundHex))
+        let background = Color(uiColor: preset.backgroundAssetColor.uiColor)
         let animationPaused = reduceMotion || !UIView.areAnimationsEnabled
 
         TimelineView(

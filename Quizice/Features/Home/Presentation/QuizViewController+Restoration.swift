@@ -63,7 +63,8 @@ extension QuizViewController {
             theme: theme,
             appearance: currentAppearance(),
             availableQuestionCounts: homeCardState.availableQuestionCounts,
-            selectedQuestionCount: homeCardState.selectedQuestionCount
+            selectedQuestionCount: homeCardState.selectedQuestionCount,
+            selectedDifficulty: homeCardState.selectedDifficulty
         )
         cardView.setFace(face, animated: false)
         updateExpandedThemeCardParallaxPhase()

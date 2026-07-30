@@ -126,9 +126,11 @@ struct AppSurfaceStyle {
     let shadow: AppShadowStyle
 }
 
-private enum AppThemeColor: String {
+enum AppAssetColor: String {
     case black = "themeBlack"
     case white = "themeWhite"
+    case gray = "themeGray"
+    case classicBackground = "themeClassicBackground"
     case cleanBackground = "themeCleanBackground"
     case cleanScreenText = "themeCleanScreenText"
     case cleanSurfaceText = "themeCleanSurfaceText"
@@ -144,9 +146,32 @@ private enum AppThemeColor: String {
     case radarGreen = "themeRadarGreen"
     case radarDeepGreen = "themeRadarDeepGreen"
     case radarDanger = "themeRadarDanger"
+    case aiGradientStart = "themeAIGradientStart"
+    case aiGradientEnd = "themeAIGradientEnd"
+    case aiAccent = "themeAIAccent"
+    case fallbackIndigo = "themeFallbackIndigo"
+    case fallbackTeal = "themeFallbackTeal"
+    case fallbackOrange = "themeFallbackOrange"
+    case fallbackPink = "themeFallbackPink"
+    case fallbackGreen = "themeFallbackGreen"
+    case fallbackPurple = "themeFallbackPurple"
+    case fallbackBlue = "themeFallbackBlue"
+    case fallbackRed = "themeFallbackRed"
+    case meshSlateBright = "meshSlateBright"
+    case meshSlateDark = "meshSlateDark"
+    case meshSlateBlue = "meshSlateBlue"
+    case meshSlateNearBlack = "meshSlateNearBlack"
+    case meshSlateBase = "meshSlateBase"
+    case meshSlateMid = "meshSlateMid"
+    case meshSlateSoft = "meshSlateSoft"
+    case meshSlateMuted = "meshSlateMuted"
+    case meshSlateEdge = "meshSlateEdge"
 
     var uiColor: UIColor {
-        UIColor(named: rawValue) ?? .systemPink
+        guard let color = UIColor(named: rawValue) else {
+            preconditionFailure("Missing color asset: \(rawValue)")
+        }
+        return color
     }
 }
 
@@ -241,12 +266,12 @@ struct AppAppearance {
             )
         case .classic:
             return AppSurfaceStyle(
-                backgroundColor: UIColor.black.withAlphaComponent(0.82),
-                borderColor: UIColor.white.withAlphaComponent(0.32),
+                backgroundColor: AppAssetColor.black.uiColor.withAlphaComponent(0.82),
+                borderColor: AppAssetColor.white.uiColor.withAlphaComponent(0.32),
                 borderWidth: card.borderWidth,
                 cornerRadius: card.cornerRadius,
                 shadow: AppShadowStyle(
-                    color: .black,
+                    color: AppAssetColor.black.uiColor,
                     opacity: 0.55,
                     radius: 30,
                     offset: CGSize(width: 0, height: 14)
@@ -299,7 +324,7 @@ struct AppAppearance {
         case .clean:
             return card.backgroundColor
         case .radar:
-            return AppThemeColor.black.uiColor.withAlphaComponent(0.84)
+            return AppAssetColor.black.uiColor.withAlphaComponent(0.84)
         case .classic:
             return baseColor.withAlphaComponent(0.20)
         }
@@ -323,7 +348,7 @@ struct AppAppearance {
         case .radar:
             return accentColor
         case .classic:
-            return .white
+            return AppAssetColor.white.uiColor
         }
     }
 
@@ -338,13 +363,13 @@ struct AppAppearance {
         backgroundStyle: AppBackgroundStyle,
         isDark: Bool
     ) -> AppAppearance {
-        let background = isDark ? AppThemeColor.black.uiColor : AppThemeColor.cleanBackground.uiColor
-        let screenText = isDark ? AppThemeColor.white.uiColor : AppThemeColor.cleanScreenText.uiColor
-        let cardBackground = isDark ? AppThemeColor.cleanCardDark.uiColor : AppThemeColor.white.uiColor
-        let surfaceText = isDark ? AppThemeColor.white.uiColor : AppThemeColor.cleanSurfaceText.uiColor
-        let accent = isDark ? AppThemeColor.white.uiColor : AppThemeColor.black.uiColor
-        let accentForeground = isDark ? AppThemeColor.black.uiColor : AppThemeColor.white.uiColor
-        let subtleBorder = isDark ? AppThemeColor.white.uiColor.withAlphaComponent(0.10) : AppThemeColor.black.uiColor.withAlphaComponent(0.04)
+        let background = isDark ? AppAssetColor.black.uiColor : AppAssetColor.cleanBackground.uiColor
+        let screenText = isDark ? AppAssetColor.white.uiColor : AppAssetColor.cleanScreenText.uiColor
+        let cardBackground = isDark ? AppAssetColor.cleanCardDark.uiColor : AppAssetColor.white.uiColor
+        let surfaceText = isDark ? AppAssetColor.white.uiColor : AppAssetColor.cleanSurfaceText.uiColor
+        let accent = isDark ? AppAssetColor.white.uiColor : AppAssetColor.black.uiColor
+        let accentForeground = isDark ? AppAssetColor.black.uiColor : AppAssetColor.white.uiColor
+        let subtleBorder = isDark ? AppAssetColor.white.uiColor.withAlphaComponent(0.10) : AppAssetColor.black.uiColor.withAlphaComponent(0.04)
         return AppAppearance(
             designStyle: .clean,
             cleanColorSchemePreference: cleanColorSchemePreference,
@@ -358,22 +383,22 @@ struct AppAppearance {
             secondarySurfaceTextColor: surfaceText.withAlphaComponent(0.58),
             accentColor: accent,
             accentForegroundColor: accentForeground,
-            destructiveColor: AppThemeColor.cleanDanger.uiColor,
-            answerDefaultColor: isDark ? AppThemeColor.cleanAnswerDark.uiColor : AppThemeColor.white.uiColor,
-            correctAnswerColor: AppThemeColor.cleanCorrect.uiColor,
-            wrongAnswerColor: AppThemeColor.cleanDanger.uiColor,
-            disabledTextColor: AppThemeColor.cleanDisabledText.uiColor,
-            progressTrackColor: isDark ? AppThemeColor.white.uiColor.withAlphaComponent(0.18) : AppThemeColor.black.uiColor.withAlphaComponent(0.12),
+            destructiveColor: AppAssetColor.cleanDanger.uiColor,
+            answerDefaultColor: isDark ? AppAssetColor.cleanAnswerDark.uiColor : AppAssetColor.white.uiColor,
+            correctAnswerColor: AppAssetColor.cleanCorrect.uiColor,
+            wrongAnswerColor: AppAssetColor.cleanDanger.uiColor,
+            disabledTextColor: AppAssetColor.cleanDisabledText.uiColor,
+            progressTrackColor: isDark ? AppAssetColor.white.uiColor.withAlphaComponent(0.18) : AppAssetColor.black.uiColor.withAlphaComponent(0.12),
             card: AppSurfaceStyle(
                 backgroundColor: cardBackground,
                 borderColor: subtleBorder,
                 borderWidth: 1,
                 cornerRadius: 30,
-                shadow: AppShadowStyle(color: .black, opacity: isDark ? 0 : 0.12, radius: 18, offset: CGSize(width: 0, height: 10))
+                shadow: AppShadowStyle(color: AppAssetColor.black.uiColor, opacity: isDark ? 0 : 0.12, radius: 18, offset: CGSize(width: 0, height: 10))
             ),
             row: AppSurfaceStyle(
-                backgroundColor: isDark ? AppThemeColor.cleanRowDark.uiColor : AppThemeColor.white.uiColor,
-                borderColor: isDark ? AppThemeColor.white.uiColor.withAlphaComponent(0.08) : AppThemeColor.black.uiColor.withAlphaComponent(0.06),
+                backgroundColor: isDark ? AppAssetColor.cleanRowDark.uiColor : AppAssetColor.white.uiColor,
+                borderColor: isDark ? AppAssetColor.white.uiColor.withAlphaComponent(0.08) : AppAssetColor.black.uiColor.withAlphaComponent(0.06),
                 borderWidth: 1,
                 cornerRadius: 22,
                 shadow: .none
@@ -383,26 +408,26 @@ struct AppAppearance {
                 borderColor: accent,
                 borderWidth: 1,
                 cornerRadius: 24,
-                shadow: AppShadowStyle(color: .black, opacity: 0.16, radius: 12, offset: CGSize(width: 0, height: 6))
+                shadow: AppShadowStyle(color: AppAssetColor.black.uiColor, opacity: 0.16, radius: 12, offset: CGSize(width: 0, height: 6))
             ),
             secondaryButton: AppSurfaceStyle(
-                backgroundColor: isDark ? AppThemeColor.cleanSecondaryDark.uiColor : AppThemeColor.cleanSecondaryLight.uiColor,
-                borderColor: isDark ? AppThemeColor.white.uiColor.withAlphaComponent(0.12) : AppThemeColor.black.uiColor.withAlphaComponent(0.06),
+                backgroundColor: isDark ? AppAssetColor.cleanSecondaryDark.uiColor : AppAssetColor.cleanSecondaryLight.uiColor,
+                borderColor: isDark ? AppAssetColor.white.uiColor.withAlphaComponent(0.12) : AppAssetColor.black.uiColor.withAlphaComponent(0.06),
                 borderWidth: 1,
                 cornerRadius: 22,
                 shadow: .none
             ),
             iconButton: AppSurfaceStyle(
-                backgroundColor: isDark ? AppThemeColor.white.uiColor.withAlphaComponent(0.12) : AppThemeColor.black.uiColor.withAlphaComponent(0.08),
-                borderColor: isDark ? AppThemeColor.white.uiColor.withAlphaComponent(0.16) : AppThemeColor.black.uiColor.withAlphaComponent(0.08),
+                backgroundColor: isDark ? AppAssetColor.white.uiColor.withAlphaComponent(0.12) : AppAssetColor.black.uiColor.withAlphaComponent(0.08),
+                borderColor: isDark ? AppAssetColor.white.uiColor.withAlphaComponent(0.16) : AppAssetColor.black.uiColor.withAlphaComponent(0.08),
                 borderWidth: 1,
                 cornerRadius: 22,
-                shadow: AppShadowStyle(color: .black, opacity: 0.12, radius: 10, offset: CGSize(width: 0, height: 4))
+                shadow: AppShadowStyle(color: AppAssetColor.black.uiColor, opacity: 0.12, radius: 10, offset: CGSize(width: 0, height: 4))
             ),
             themeCardCornerRadius: 28,
             themeCardBorderWidth: 2,
             themeCardShadow: isDark
-                ? AppShadowStyle(color: .black, opacity: 0.16, radius: 14, offset: CGSize(width: 0, height: 8))
+                ? AppShadowStyle(color: AppAssetColor.black.uiColor, opacity: 0.16, radius: 14, offset: CGSize(width: 0, height: 8))
                 : .none
         )
     }
@@ -411,25 +436,25 @@ struct AppAppearance {
         cleanColorSchemePreference: CleanColorSchemePreference,
         backgroundStyle: AppBackgroundStyle
     ) -> AppAppearance {
-        let green = AppThemeColor.radarGreen.uiColor
-        let deepGreen = AppThemeColor.radarDeepGreen.uiColor
+        let green = AppAssetColor.radarGreen.uiColor
+        let deepGreen = AppAssetColor.radarDeepGreen.uiColor
         return AppAppearance(
             designStyle: .radar,
             cleanColorSchemePreference: cleanColorSchemePreference,
             backgroundStyle: backgroundStyle,
             resolvedInterfaceStyle: .dark,
             typography: AppTypography(fontFamily: .jetBrainsMono),
-            backgroundColor: AppThemeColor.radarBackground.uiColor,
+            backgroundColor: AppAssetColor.radarBackground.uiColor,
             screenTextColor: green,
             secondaryScreenTextColor: green.withAlphaComponent(0.68),
             surfaceTextColor: green,
             secondarySurfaceTextColor: green.withAlphaComponent(0.62),
             accentColor: green,
             accentForegroundColor: green,
-            destructiveColor: AppThemeColor.radarDanger.uiColor,
+            destructiveColor: AppAssetColor.radarDanger.uiColor,
             answerDefaultColor: deepGreen,
             correctAnswerColor: green,
-            wrongAnswerColor: AppThemeColor.radarDanger.uiColor,
+            wrongAnswerColor: AppAssetColor.radarDanger.uiColor,
             disabledTextColor: green.withAlphaComponent(0.36),
             progressTrackColor: green.withAlphaComponent(0.20),
             card: AppSurfaceStyle(
@@ -454,7 +479,7 @@ struct AppAppearance {
                 shadow: AppShadowStyle(color: green, opacity: 0.18, radius: 12, offset: .zero)
             ),
             secondaryButton: AppSurfaceStyle(
-                backgroundColor: AppThemeColor.black.uiColor.withAlphaComponent(0.54),
+                backgroundColor: AppAssetColor.black.uiColor.withAlphaComponent(0.54),
                 borderColor: green.withAlphaComponent(0.62),
                 borderWidth: 1,
                 cornerRadius: 10,
@@ -483,57 +508,57 @@ struct AppAppearance {
             backgroundStyle: backgroundStyle,
             resolvedInterfaceStyle: .dark,
             typography: AppTypography(fontFamily: .manrope),
-            backgroundColor: UIColor(hex: 0x111620),
-            screenTextColor: AppThemeColor.white.uiColor,
-            secondaryScreenTextColor: AppThemeColor.white.uiColor.withAlphaComponent(0.82),
-            surfaceTextColor: AppThemeColor.white.uiColor,
-            secondarySurfaceTextColor: AppThemeColor.white.uiColor.withAlphaComponent(0.90),
+            backgroundColor: AppAssetColor.classicBackground.uiColor,
+            screenTextColor: AppAssetColor.white.uiColor,
+            secondaryScreenTextColor: AppAssetColor.white.uiColor.withAlphaComponent(0.82),
+            surfaceTextColor: AppAssetColor.white.uiColor,
+            secondarySurfaceTextColor: AppAssetColor.white.uiColor.withAlphaComponent(0.90),
             accentColor: .defaultButton,
-            accentForegroundColor: AppThemeColor.white.uiColor,
+            accentForegroundColor: AppAssetColor.white.uiColor,
             destructiveColor: .wrongAnswerButton,
             answerDefaultColor: .defaultButton,
             correctAnswerColor: .correctAnswerButton,
             wrongAnswerColor: .wrongAnswerButton,
-            disabledTextColor: .gray,
-            progressTrackColor: AppThemeColor.white.uiColor.withAlphaComponent(0.25),
+            disabledTextColor: AppAssetColor.gray.uiColor,
+            progressTrackColor: AppAssetColor.white.uiColor.withAlphaComponent(0.25),
             card: AppSurfaceStyle(
-                backgroundColor: AppThemeColor.black.uiColor.withAlphaComponent(0.26),
-                borderColor: AppThemeColor.white.uiColor.withAlphaComponent(0.18),
+                backgroundColor: AppAssetColor.black.uiColor.withAlphaComponent(0.26),
+                borderColor: AppAssetColor.white.uiColor.withAlphaComponent(0.18),
                 borderWidth: 1,
                 cornerRadius: 30,
-                shadow: AppShadowStyle(color: .black, opacity: 0.22, radius: 16, offset: CGSize(width: 0, height: 10))
+                shadow: AppShadowStyle(color: AppAssetColor.black.uiColor, opacity: 0.22, radius: 16, offset: CGSize(width: 0, height: 10))
             ),
             row: AppSurfaceStyle(
-                backgroundColor: AppThemeColor.white.uiColor.withAlphaComponent(0.12),
-                borderColor: AppThemeColor.white.uiColor.withAlphaComponent(0.22),
+                backgroundColor: AppAssetColor.white.uiColor.withAlphaComponent(0.12),
+                borderColor: AppAssetColor.white.uiColor.withAlphaComponent(0.22),
                 borderWidth: 1,
                 cornerRadius: 18,
                 shadow: .none
             ),
             primaryButton: AppSurfaceStyle(
-                backgroundColor: AppThemeColor.white.uiColor.withAlphaComponent(0.22),
-                borderColor: AppThemeColor.white.uiColor.withAlphaComponent(0.50),
+                backgroundColor: AppAssetColor.white.uiColor.withAlphaComponent(0.22),
+                borderColor: AppAssetColor.white.uiColor.withAlphaComponent(0.50),
                 borderWidth: 1,
                 cornerRadius: 22,
-                shadow: AppShadowStyle(color: .black, opacity: 0.20, radius: 10, offset: CGSize(width: 0, height: 6))
+                shadow: AppShadowStyle(color: AppAssetColor.black.uiColor, opacity: 0.20, radius: 10, offset: CGSize(width: 0, height: 6))
             ),
             secondaryButton: AppSurfaceStyle(
-                backgroundColor: AppThemeColor.white.uiColor.withAlphaComponent(0.12),
-                borderColor: AppThemeColor.white.uiColor.withAlphaComponent(0.34),
+                backgroundColor: AppAssetColor.white.uiColor.withAlphaComponent(0.12),
+                borderColor: AppAssetColor.white.uiColor.withAlphaComponent(0.34),
                 borderWidth: 1,
                 cornerRadius: 20,
                 shadow: .none
             ),
             iconButton: AppSurfaceStyle(
-                backgroundColor: AppThemeColor.white.uiColor.withAlphaComponent(0.14),
-                borderColor: AppThemeColor.white.uiColor.withAlphaComponent(0.22),
+                backgroundColor: AppAssetColor.white.uiColor.withAlphaComponent(0.14),
+                borderColor: AppAssetColor.white.uiColor.withAlphaComponent(0.22),
                 borderWidth: 1,
                 cornerRadius: 22,
-                shadow: AppShadowStyle(color: .black, opacity: 0.18, radius: 12, offset: CGSize(width: 0, height: 6))
+                shadow: AppShadowStyle(color: AppAssetColor.black.uiColor, opacity: 0.18, radius: 12, offset: CGSize(width: 0, height: 6))
             ),
             themeCardCornerRadius: 28,
             themeCardBorderWidth: 1,
-            themeCardShadow: AppShadowStyle(color: .black, opacity: 0.22, radius: 22, offset: CGSize(width: 0, height: 12))
+            themeCardShadow: AppShadowStyle(color: AppAssetColor.black.uiColor, opacity: 0.22, radius: 22, offset: CGSize(width: 0, height: 12))
         )
     }
 

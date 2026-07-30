@@ -158,7 +158,7 @@ extension ExpandedAIThemeCardView {
 
         let usesGradient = !isRadar && !isTransitionSurfaceHidden
         [frontOutlineView, backOutlineView].forEach { outlineView in
-            outlineView.colors = [Outline.gradientPink, Outline.gradientBlue]
+            outlineView.colors = AIThemeVisualStyle.gradientColors
             outlineView.lineWidth = Outline.gradientLineWidth
             outlineView.cornerRadius = cardCornerRadius
             outlineView.isHidden = !usesGradient

@@ -42,6 +42,7 @@ struct QuizOnboardingView: View {
         static let footerSpacing: CGFloat = 10
         static let buttonHeight: CGFloat = 56
         static let backButtonWidth: CGFloat = 56
+        static let storyTapWidth: CGFloat = 64
     }
 
     let appearance: AppAppearance
@@ -102,6 +103,20 @@ struct QuizOnboardingView: View {
                 }
                 .tabViewStyle(.page(indexDisplayMode: .never))
                 .indexViewStyle(.page(backgroundDisplayMode: .never))
+                .overlay(alignment: .leading) {
+                    Color.clear
+                        .frame(width: Layout.storyTapWidth)
+                        .contentShape(Rectangle())
+                        .onTapGesture(perform: goBack)
+                        .accessibilityHidden(true)
+                }
+                .overlay(alignment: .trailing) {
+                    Color.clear
+                        .frame(width: Layout.storyTapWidth)
+                        .contentShape(Rectangle())
+                        .onTapGesture(perform: advance)
+                        .accessibilityHidden(true)
+                }
 
                 footer
                     .padding(.horizontal, Layout.horizontalInset)

@@ -23,11 +23,28 @@ protocol ThemeRepository: AnyObject {
     func refreshBackendCatalog(locale: String) async -> Bool
     @discardableResult
     func synchronizeThemePreferences(locale: String) async -> Bool
-    func prepareQuiz(themeID: String, questionCount: Int, locale: String) async throws -> QuizTheme
+    func prepareQuiz(
+        themeID: String,
+        questionCount: Int,
+        locale: String
+    ) async throws -> QuizTheme
+    func prepareQuiz(
+        themeID: String,
+        questionCount: Int,
+        difficulty: AIQuizDifficulty,
+        locale: String
+    ) async throws -> QuizTheme
     func prepareRandomQuiz(
         selectionMode: CrossThemeQuestionSelectionMode,
         localFallback: QuizTheme,
         questionCount: Int,
+        locale: String
+    ) async throws -> QuizTheme
+    func prepareRandomQuiz(
+        selectionMode: CrossThemeQuestionSelectionMode,
+        localFallback: QuizTheme,
+        questionCount: Int,
+        difficulty: AIQuizDifficulty,
         locale: String
     ) async throws -> QuizTheme
 }
@@ -75,6 +92,21 @@ extension ThemeRepository {
         )
     }
 
+    func prepareQuiz(
+        themeID: String,
+        questionCount: Int,
+        difficulty: AIQuizDifficulty,
+        locale: String
+    ) async throws -> QuizTheme {
+        let theme = try await prepareQuiz(
+            themeID: themeID,
+            questionCount: questionCount,
+            locale: locale
+        )
+        theme.difficulty = difficulty
+        return theme
+    }
+
     func prepareRandomQuiz(
         selectionMode: CrossThemeQuestionSelectionMode,
         localFallback: QuizTheme,
@@ -82,5 +114,22 @@ extension ThemeRepository {
         locale: String
     ) async throws -> QuizTheme {
         localFallback
+    }
+
+    func prepareRandomQuiz(
+        selectionMode: CrossThemeQuestionSelectionMode,
+        localFallback: QuizTheme,
+        questionCount: Int,
+        difficulty: AIQuizDifficulty,
+        locale: String
+    ) async throws -> QuizTheme {
+        let theme = try await prepareRandomQuiz(
+            selectionMode: selectionMode,
+            localFallback: localFallback,
+            questionCount: questionCount,
+            locale: locale
+        )
+        theme.difficulty = difficulty
+        return theme
     }
 }

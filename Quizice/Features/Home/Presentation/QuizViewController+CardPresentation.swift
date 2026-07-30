@@ -48,7 +48,8 @@ extension QuizViewController {
             theme: theme,
             appearance: appearance,
             availableQuestionCounts: homeCardState.availableQuestionCounts,
-            selectedQuestionCount: homeCardState.selectedQuestionCount
+            selectedQuestionCount: homeCardState.selectedQuestionCount,
+            selectedDifficulty: homeCardState.selectedDifficulty
         )
         cardView.setParallaxPresentationPhase(homeCardState.phase.parallaxPresentationPhase)
         wireExpandedThemeCardActions(cardView)
@@ -439,6 +440,9 @@ extension QuizViewController {
         }
         cardView.onBack = { [weak self] in
             self?.handleExpandedThemeCardFlipTap()
+        }
+        cardView.onDifficultyChanged = { [weak self] difficulty in
+            self?.sendHomeCardAction(.difficultySelected(difficulty))
         }
         cardView.onQuestionCountChanged = { [weak self] count in
             self?.sendHomeCardAction(.questionCountSelected(count))

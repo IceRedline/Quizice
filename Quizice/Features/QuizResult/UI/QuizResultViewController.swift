@@ -86,7 +86,7 @@ final class QuizResultViewController: BaseQuizViewController, QuizResultViewCont
     
     override func loadView() {
         let rootView = UIView()
-        rootView.backgroundColor = .systemBackground
+        rootView.backgroundColor = currentAppearance().backgroundColor
         rootView.accessibilityIdentifier = AccessibilityID.rootView
         view = rootView
         configureProgrammaticSubviews(in: rootView)
@@ -183,11 +183,15 @@ final class QuizResultViewController: BaseQuizViewController, QuizResultViewCont
     private func configureResultCardView() {
         resultCardView = UIView()
         resultCardView.accessibilityIdentifier = AccessibilityID.cardView
-        resultCardView.backgroundColor = UIColor.black.withAlphaComponent(Appearance.cardBackgroundAlpha)
+        resultCardView.backgroundColor = AppAssetColor.black.uiColor.withAlphaComponent(
+            Appearance.cardBackgroundAlpha
+        )
         resultCardView.layer.cornerRadius = Appearance.cardCornerRadius
         resultCardView.layer.borderWidth = Appearance.cardBorderWidth
-        resultCardView.layer.borderColor = UIColor.white.withAlphaComponent(Appearance.cardBorderAlpha).cgColor
-        resultCardView.layer.shadowColor = UIColor.black.cgColor
+        resultCardView.layer.borderColor = AppAssetColor.white.uiColor
+            .withAlphaComponent(Appearance.cardBorderAlpha)
+            .cgColor
+        resultCardView.layer.shadowColor = AppAssetColor.black.uiColor.cgColor
         resultCardView.layer.shadowOpacity = Appearance.cardShadowOpacity
         resultCardView.layer.shadowRadius = Appearance.cardShadowRadius
         resultCardView.layer.shadowOffset = Appearance.cardShadowOffset
@@ -201,7 +205,9 @@ final class QuizResultViewController: BaseQuizViewController, QuizResultViewCont
         
         resultDescription = makeLabel(font: typography.font(size: Typography.descriptionFontSize, weight: .regular), accessibilityIdentifier: AccessibilityID.descriptionLabel)
         resultDescription.numberOfLines = Typography.unlimitedNumberOfLines
-        resultDescription.textColor = UIColor.white.withAlphaComponent(Appearance.descriptionTextAlpha)
+        resultDescription.textColor = AppAssetColor.white.uiColor.withAlphaComponent(
+            Appearance.descriptionTextAlpha
+        )
 
         replayProgressLabel = makeLabel(
             font: typography.font(size: Typography.progressFontSize, weight: .medium),
@@ -326,7 +332,7 @@ final class QuizResultViewController: BaseQuizViewController, QuizResultViewCont
     private func makeLabel(font: UIFont, accessibilityIdentifier: String) -> UILabel {
         let label = UILabel()
         label.accessibilityIdentifier = accessibilityIdentifier
-        label.textColor = .white
+        label.textColor = AppAssetColor.white.uiColor
         label.font = font
         label.adjustsFontForContentSizeCategory = true
         label.textAlignment = .center
@@ -339,14 +345,21 @@ final class QuizResultViewController: BaseQuizViewController, QuizResultViewCont
         button.accessibilityIdentifier = accessibilityIdentifier
         button.setTitle(title, for: .normal)
         button.setTitleColor(.white, for: .normal)
-        button.setTitleColor(UIColor.white.withAlphaComponent(Appearance.disabledButtonTitleAlpha), for: .disabled)
+        button.setTitleColor(
+            AppAssetColor.white.uiColor.withAlphaComponent(Appearance.disabledButtonTitleAlpha),
+            for: .disabled
+        )
         button.titleLabel?.font = currentAppearance().typography.font(size: Typography.buttonFontSize, weight: .semibold)
         button.titleLabel?.adjustsFontForContentSizeCategory = true
-        button.backgroundColor = UIColor.white.withAlphaComponent(Appearance.buttonBackgroundAlpha)
+        button.backgroundColor = AppAssetColor.white.uiColor.withAlphaComponent(
+            Appearance.buttonBackgroundAlpha
+        )
         button.layer.cornerRadius = Appearance.buttonCornerRadius
         button.layer.borderWidth = Appearance.buttonBorderWidth
-        button.layer.borderColor = UIColor.white.withAlphaComponent(Appearance.buttonBorderAlpha).cgColor
-        button.layer.shadowColor = UIColor.black.cgColor
+        button.layer.borderColor = AppAssetColor.white.uiColor
+            .withAlphaComponent(Appearance.buttonBorderAlpha)
+            .cgColor
+        button.layer.shadowColor = AppAssetColor.black.uiColor.cgColor
         button.layer.shadowOpacity = Appearance.buttonShadowOpacity
         button.layer.shadowRadius = Appearance.buttonShadowRadius
         button.layer.shadowOffset = Appearance.buttonShadowOffset

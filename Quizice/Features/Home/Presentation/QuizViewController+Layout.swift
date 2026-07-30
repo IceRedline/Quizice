@@ -71,7 +71,7 @@ extension QuizViewController {
             ofSize: Typography.backendSourceFontSize,
             weight: .semibold
         )
-        debugCatalogSourceLabel.textColor = .white
+        debugCatalogSourceLabel.textColor = AppAssetColor.white.uiColor
         debugCatalogSourceLabel.layer.cornerRadius = 9
         debugCatalogSourceLabel.clipsToBounds = true
         debugCatalogSourceLabel.isHidden = !DebugBackendSettings.shouldShowSourceIndicators
@@ -94,7 +94,7 @@ extension QuizViewController {
             withConfiguration: UIImage.SymbolConfiguration(pointSize: Typography.settingsIconPointSize, weight: .semibold)
         )
         settingsButton.setImage(settingsIcon, for: .normal)
-        settingsButton.tintColor = .white
+        settingsButton.tintColor = AppAssetColor.white.uiColor
         settingsButton.insertSubview(settingsButtonVisualSurface, at: 0)
         NSLayoutConstraint.activate([
             settingsButtonVisualSurface.centerXAnchor.constraint(equalTo: settingsButton.centerXAnchor),
@@ -132,7 +132,7 @@ extension QuizViewController {
             )
         )
         helpButton.setImage(helpIcon, for: .normal)
-        helpButton.tintColor = .white
+        helpButton.tintColor = AppAssetColor.white.uiColor
         helpButton.insertSubview(helpButtonVisualSurface, at: 0)
         NSLayoutConstraint.activate([
             helpButtonVisualSurface.centerXAnchor.constraint(equalTo: helpButton.centerXAnchor),
@@ -168,13 +168,13 @@ extension QuizViewController {
         debugCatalogSourceLabel.accessibilityLabel = debugCatalogSourceState.title
         switch debugCatalogSourceState {
         case .loading:
-            debugCatalogSourceLabel.backgroundColor = .systemGray
+            debugCatalogSourceLabel.backgroundColor = AppAssetColor.gray.uiColor
         case .backend:
-            debugCatalogSourceLabel.backgroundColor = .systemGreen
+            debugCatalogSourceLabel.backgroundColor = AppAssetColor.fallbackGreen.uiColor
         case .backendStale:
-            debugCatalogSourceLabel.backgroundColor = .systemYellow
+            debugCatalogSourceLabel.backgroundColor = AppAssetColor.fallbackOrange.uiColor
         case .local:
-            debugCatalogSourceLabel.backgroundColor = .systemOrange
+            debugCatalogSourceLabel.backgroundColor = AppAssetColor.fallbackOrange.uiColor
         }
     }
 #endif
@@ -251,7 +251,7 @@ extension QuizViewController {
     func makeLabel(text: String, font: UIFont) -> UILabel {
         let label = UILabel()
         label.text = text
-        label.textColor = .white
+        label.textColor = AppAssetColor.white.uiColor
         label.font = font
         label.textAlignment = .left
         label.numberOfLines = Typography.unlimitedNumberOfLines

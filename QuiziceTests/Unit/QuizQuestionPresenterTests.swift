@@ -228,11 +228,17 @@ final class QuizQuestionPresenterTests: XCTestCase {
 
         viewController.configureDebugQuestionSource(origin: .backend, themeSource: .catalog)
         XCTAssertEqual(viewController.debugQuestionSourceLabel.text, "BACKEND")
-        XCTAssertEqual(viewController.debugQuestionSourceLabel.backgroundColor, .systemGreen)
+        XCTAssertEqual(
+            viewController.debugQuestionSourceLabel.backgroundColor,
+            AppAssetColor.fallbackGreen.uiColor
+        )
 
         viewController.configureDebugQuestionSource(origin: .bundled, themeSource: .catalog)
         XCTAssertEqual(viewController.debugQuestionSourceLabel.text, "LOCAL")
-        XCTAssertEqual(viewController.debugQuestionSourceLabel.backgroundColor, .systemOrange)
+        XCTAssertEqual(
+            viewController.debugQuestionSourceLabel.backgroundColor,
+            AppAssetColor.fallbackOrange.uiColor
+        )
         XCTAssertTrue(viewController.debugQuestionSourceLabel.isHidden)
     }
 

@@ -386,6 +386,7 @@ final class QuizFlowCoordinator: NSObject, QuizRouting, UIViewControllerTransiti
         }
         let themeID = previousTheme.themeID
         let questionCount = session.questionsCount
+        let difficulty = previousTheme.difficulty ?? .medium
         let locale = AppLocalizationStore.shared.resolvedLanguageCode
 
         catalogReplayTask = Task { @MainActor [weak self] in
@@ -394,6 +395,7 @@ final class QuizFlowCoordinator: NSObject, QuizRouting, UIViewControllerTransiti
                 let preparedTheme = try await self.themeRepository.prepareQuiz(
                     themeID: themeID,
                     questionCount: questionCount,
+                    difficulty: difficulty,
                     locale: locale
                 )
                 try Task.checkCancellation()
@@ -456,6 +458,7 @@ final class QuizFlowCoordinator: NSObject, QuizRouting, UIViewControllerTransiti
         }
 
         let selectionMode = randomQuestionSelectionModeProvider()
+        let difficulty = previousTheme.difficulty ?? .medium
         let locale = AppLocalizationStore.shared.resolvedLanguageCode
         AppLog.content.notice(
             "🎲 FEELING LUCKY REPLAY: selected backend mode=\(selectionMode.rawValue, privacy: .public) locale=\(locale, privacy: .public)"
@@ -467,6 +470,7 @@ final class QuizFlowCoordinator: NSObject, QuizRouting, UIViewControllerTransiti
                     selectionMode: selectionMode,
                     localFallback: localFallback,
                     questionCount: RandomQuizSelection.questionCount,
+                    difficulty: difficulty,
                     locale: locale
                 )
                 try Task.checkCancellation()

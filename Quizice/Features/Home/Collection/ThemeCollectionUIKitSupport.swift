@@ -71,7 +71,7 @@ final class GradientBorderView: UIView {
         )
 
         borderMaskLayer.frame = bounds
-        borderMaskLayer.fillColor = UIColor.black.cgColor
+        borderMaskLayer.fillColor = AppAssetColor.black.uiColor.cgColor
         borderMaskLayer.fillRule = .evenOdd
         borderMaskLayer.strokeColor = nil
         borderMaskLayer.lineWidth = 0

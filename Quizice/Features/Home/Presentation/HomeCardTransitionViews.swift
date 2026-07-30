@@ -458,11 +458,11 @@ final class HomeThemesCollectionView: UICollectionView {
         }
 
         let fadeStart = max(1 - bottomFadeHeight / bounds.height, 0)
-        let opaqueColor = UIColor.white.cgColor
+        let opaqueColor = AppAssetColor.white.uiColor.cgColor
         let targetColors = [
             opaqueColor,
             opaqueColor,
-            UIColor.white.withAlphaComponent(1 - bottomFadeVisibility).cgColor
+            AppAssetColor.white.uiColor.withAlphaComponent(1 - bottomFadeVisibility).cgColor
         ]
         let currentColors = bottomFadeMaskLayer.presentation()?.colors
             ?? bottomFadeMaskLayer.colors

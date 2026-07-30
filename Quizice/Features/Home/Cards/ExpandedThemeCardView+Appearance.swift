@@ -34,11 +34,13 @@ extension ExpandedThemeCardView {
             weight: .regular
         )
         backDescriptionLabel.textColor = appearance.secondarySurfaceTextColor
-        questionCountLabel.font = appearance.typography.font(
-            size: Typography.captionSize,
-            weight: .semibold
-        )
-        questionCountLabel.textColor = appearance.secondarySurfaceTextColor
+        [difficultyLabel, questionCountLabel].forEach { label in
+            label.font = appearance.typography.font(
+                size: Typography.captionSize,
+                weight: .semibold
+            )
+            label.textColor = appearance.secondarySurfaceTextColor
+        }
         unavailableLabel.font = appearance.typography.font(
             size: Typography.unavailableSize,
             weight: .medium
@@ -74,39 +76,41 @@ extension ExpandedThemeCardView {
             appearance: appearance
         )
 
-        questionCountControl.backgroundColor = appearance.row.backgroundColor
-        questionCountControl.selectedSegmentTintColor = primaryButtonStyle.backgroundColor
-        questionCountControl.layer.cornerRadius = appearance.row.cornerRadius
-        questionCountControl.layer.borderWidth = appearance.row.borderWidth
-        questionCountControl.layer.borderColor = appearance.row.borderColor.cgColor
         let segmentFont = appearance.typography.font(
             size: Typography.segmentSize,
             weight: .semibold
         )
-        questionCountControl.setTitleTextAttributes(
-            [
-                .font: segmentFont,
-                .foregroundColor: appearance.surfaceTextColor
-            ],
-            for: .normal
-        )
-        questionCountControl.setTitleTextAttributes(
-            [
-                .font: segmentFont,
-                .foregroundColor: QuizThemeAccentStyle.primaryButtonTextColor(
-                    themeID: themeID,
-                    appearance: appearance
-                )
-            ],
-            for: .selected
-        )
-        questionCountControl.setTitleTextAttributes(
-            [
-                .font: segmentFont,
-                .foregroundColor: appearance.disabledTextColor
-            ],
-            for: .disabled
-        )
+        [difficultyControl, questionCountControl].forEach { control in
+            control.backgroundColor = appearance.row.backgroundColor
+            control.selectedSegmentTintColor = primaryButtonStyle.backgroundColor
+            control.layer.cornerRadius = appearance.row.cornerRadius
+            control.layer.borderWidth = appearance.row.borderWidth
+            control.layer.borderColor = appearance.row.borderColor.cgColor
+            control.setTitleTextAttributes(
+                [
+                    .font: segmentFont,
+                    .foregroundColor: appearance.surfaceTextColor
+                ],
+                for: .normal
+            )
+            control.setTitleTextAttributes(
+                [
+                    .font: segmentFont,
+                    .foregroundColor: QuizThemeAccentStyle.primaryButtonTextColor(
+                        themeID: themeID,
+                        appearance: appearance
+                    )
+                ],
+                for: .selected
+            )
+            control.setTitleTextAttributes(
+                [
+                    .font: segmentFont,
+                    .foregroundColor: appearance.disabledTextColor
+                ],
+                for: .disabled
+            )
+        }
     }
 
     func applyConfiguredSurfaceAppearance() {
@@ -151,6 +155,12 @@ extension ExpandedThemeCardView {
         unavailableLabel.accessibilityElementsHidden = isAvailable
         startButton.isEnabled = isAvailable && !isStartLoading
         startButton.accessibilityHint = isAvailable ? nil : L10n.Question.unavailableMessage
+    }
+
+    func configureDifficulty(_ difficulty: AIQuizDifficulty) {
+        selectedDifficulty = difficulty
+        difficultyControl.selectedSegmentIndex =
+            AIQuizDifficulty.allCases.firstIndex(of: difficulty) ?? 1
     }
 
     func setStartLoading(_ isLoading: Bool) {
