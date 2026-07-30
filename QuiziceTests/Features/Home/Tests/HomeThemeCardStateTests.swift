@@ -213,6 +213,7 @@ final class HomeThemeCardStateTests: HomeScreenVisualStateTestCase {
 
 private final class BackendOnlyHomeThemeRepository: ThemeRepository {
     var themes: [QuizTheme]?
+    let catalogOrigin: QuizCatalogOrigin = .backend
     private(set) var preparedThemeIDs: [String] = []
 
     init(metadata: QuizTheme) {

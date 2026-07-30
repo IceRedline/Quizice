@@ -47,20 +47,20 @@ final class HomeCardSnapshotTests: XCTestCase {
     }
 
     func testSubscriptionPromoBannerSnapshot() {
-        let cell = SnapshotSupport.makeCollectionCell(item: 2, themes: themes, designStyle: .clean)
+        let cell = makeSubscriptionPromoCell(designStyle: .clean)
 
         SnapshotSupport.assertComponent(
-            cell.contentView,
+            cell,
             named: "clean-subscription-promo-banner",
             size: CGSize(width: 390, height: 126)
         )
     }
 
     func testClassicSubscriptionPromoBannerSnapshot() {
-        let cell = SnapshotSupport.makeCollectionCell(item: 2, themes: themes, designStyle: .classic)
+        let cell = makeSubscriptionPromoCell(designStyle: .classic)
 
         SnapshotSupport.assertComponent(
-            cell.contentView,
+            cell,
             named: "classic-subscription-promo-banner",
             size: CGSize(width: 390, height: 126),
             backgroundAppearance: SnapshotSupport.appearance(designStyle: .classic)
@@ -68,10 +68,10 @@ final class HomeCardSnapshotTests: XCTestCase {
     }
 
     func testRadarSubscriptionPromoBannerSnapshot() {
-        let cell = SnapshotSupport.makeCollectionCell(item: 2, themes: themes, designStyle: .radar)
+        let cell = makeSubscriptionPromoCell(designStyle: .radar)
 
         SnapshotSupport.assertComponent(
-            cell.contentView,
+            cell,
             named: "radar-subscription-promo-banner",
             size: CGSize(width: 390, height: 126),
             backgroundAppearance: SnapshotSupport.appearance(designStyle: .radar)
@@ -169,5 +169,28 @@ final class HomeCardSnapshotTests: XCTestCase {
             size: CGSize(width: 375, height: 180),
             backgroundAppearance: SnapshotSupport.appearance(designStyle: .clean)
         )
+    }
+
+    private func makeSubscriptionPromoCell(
+        designStyle: AppDesignStyle
+    ) -> UIView {
+        SnapshotSupport.setUp(designStyle: designStyle)
+        let cell = SubscriptionPromoBannerCollectionViewCell(
+            frame: CGRect(x: 0, y: 0, width: 342, height: 90)
+        )
+        cell.contentView.frame = cell.bounds
+        cell.configure(appearance: SnapshotSupport.appearance(designStyle: designStyle))
+        cell.contentView.setNeedsLayout()
+        cell.contentView.layoutIfNeeded()
+        cell.setNeedsLayout()
+        cell.layoutIfNeeded()
+
+        let snapshotView = UIView(frame: cell.bounds)
+        snapshotView.backgroundColor = .clear
+        snapshotView.addSubview(cell.contentView)
+        cell.contentView.frame = snapshotView.bounds
+        cell.contentView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+        cell.contentView.layoutIfNeeded()
+        return snapshotView
     }
 }
