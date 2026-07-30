@@ -44,12 +44,12 @@ struct FakeLaunchVisualStyle {
         switch appearance.designStyle {
         case .classic:
             markStyle = .classicImage
-            backgroundColor = UIColor(hex: 0x111620)
+            backgroundColor = AppAssetColor.classicBackground.uiColor
             foregroundColor = nil
             revealsAppBackground = true
         case .radar:
             markStyle = .radarText
-            backgroundColor = .black
+            backgroundColor = AppAssetColor.black.uiColor
             foregroundColor = appearance.accentColor
             revealsAppBackground = false
         case .clean:

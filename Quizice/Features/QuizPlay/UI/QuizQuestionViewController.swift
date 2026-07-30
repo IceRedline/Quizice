@@ -104,7 +104,7 @@ final class QuizQuestionViewController: BaseQuizViewController, QuizQuestionView
         static let timerCorrectColor = UIColor.correctAnswerBar
         static let timerWrongColor = UIColor.wrongAnswerBar
         
-        static let answerDisabledTitleColor = UIColor.gray
+        static let answerDisabledTitleColor = AppAssetColor.gray.uiColor
         static let answerCornerRadius: CGFloat = 18
         static let answerBorderWidth: CGFloat = 1
         static let answerBorderAlpha: CGFloat = 0.2
@@ -250,7 +250,7 @@ final class QuizQuestionViewController: BaseQuizViewController, QuizQuestionView
     
     override func loadView() {
         let rootView = UIView()
-        rootView.backgroundColor = .systemBackground
+        rootView.backgroundColor = currentAppearance().backgroundColor
         rootView.accessibilityIdentifier = AccessibilityID.rootView
         view = rootView
         configureProgrammaticSubviews(in: rootView)
@@ -327,16 +327,16 @@ final class QuizQuestionViewController: BaseQuizViewController, QuizQuestionView
         switch debugQuestionOrigin {
         case .bundled:
             title = "LOCAL"
-            color = .systemOrange
+            color = AppAssetColor.fallbackOrange.uiColor
         case .backend:
             title = debugThemeSource == .ai ? "AI BACKEND" : "BACKEND"
-            color = .systemGreen
+            color = AppAssetColor.fallbackGreen.uiColor
         case .directAI:
             title = "DIRECT AI"
-            color = .systemBlue
+            color = AppAssetColor.fallbackBlue.uiColor
         case .mock:
             title = "MOCK"
-            color = .systemGray
+            color = AppAssetColor.gray.uiColor
         }
         debugQuestionSourceLabel.text = title
         debugQuestionSourceLabel.accessibilityLabel = "Question source: \(title)"

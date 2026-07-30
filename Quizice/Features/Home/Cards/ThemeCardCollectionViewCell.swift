@@ -142,7 +142,7 @@ final class ThemeCardCollectionViewCell: UICollectionViewCell {
         themeImageView.accessibilityIdentifier = "\(ThemesCollectionService.Content.themeImageAccessibilityIDPrefix)-\(themeID)"
 
         themeIconShadowView.image = isSymbolIcon ? logoImage : nil
-        themeIconShadowView.tintColor = .black
+        themeIconShadowView.tintColor = AppAssetColor.black.uiColor
         themeIconShadowView.alpha = isSymbolIcon ? ThemeIconVisualStyle.shadowAlpha : 0
         themeIconShadowView.transform = isSymbolIcon
             ? CGAffineTransform(translationX: 0, y: ThemeIconVisualStyle.shadowOffset)

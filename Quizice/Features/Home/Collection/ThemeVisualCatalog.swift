@@ -6,9 +6,9 @@ enum ThemeIconVisualStyle {
 }
 
 enum AIThemeVisualStyle {
-    static let gradientStartColor = UIColor(hex: 0xFF4FD8)
-    static let gradientEndColor = UIColor(hex: 0x36A3FF)
-    static let accentColor = UIColor(hex: 0xD66FEC)
+    static let gradientStartColor = AppAssetColor.aiGradientStart.uiColor
+    static let gradientEndColor = AppAssetColor.aiGradientEnd.uiColor
+    static let accentColor = AppAssetColor.aiAccent.uiColor
 
     static let gradientColors = [gradientStartColor, gradientEndColor]
 }
@@ -42,14 +42,14 @@ enum ThemeVisualCatalog {
     }
 
     private static let fallbackTintColors = [
-        UIColor.systemIndigo,
-        UIColor.systemTeal,
-        UIColor.systemOrange,
-        UIColor.systemPink,
-        UIColor.systemGreen,
-        UIColor.systemPurple,
-        UIColor.systemBlue,
-        UIColor.systemRed
+        AppAssetColor.fallbackIndigo.uiColor,
+        AppAssetColor.fallbackTeal.uiColor,
+        AppAssetColor.fallbackOrange.uiColor,
+        AppAssetColor.fallbackPink.uiColor,
+        AppAssetColor.fallbackGreen.uiColor,
+        AppAssetColor.fallbackPurple.uiColor,
+        AppAssetColor.fallbackBlue.uiColor,
+        AppAssetColor.fallbackRed.uiColor
     ]
 
     private static func paletteIndex(for themeID: String) -> Int {

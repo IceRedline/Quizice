@@ -47,7 +47,7 @@ struct AIThemeKeyboardStyle {
         case .clean, .radar:
             doneButtonTintColor = appearance.accentColor
         case .classic:
-            doneButtonTintColor = .systemBlue
+            doneButtonTintColor = AppAssetColor.fallbackBlue.uiColor
         }
     }
 }
@@ -203,7 +203,7 @@ struct QuizAlertAction {
         func tintColor(in appearance: AppAppearance) -> UIColor {
             switch appearance.designStyle {
             case .classic:
-                return .systemRed
+                return AppAssetColor.fallbackRed.uiColor
             case .clean:
                 return appearance.destructiveColor
             case .radar:
@@ -374,7 +374,7 @@ struct QuizAlertOverlay: View {
             )
 
             ZStack {
-                Color.black
+                Color(uiColor: AppAssetColor.black.uiColor)
                     .opacity(appearance.dialogScrimOpacity)
                     .ignoresSafeArea()
                     .accessibilityHidden(true)

@@ -240,7 +240,9 @@ struct DebugMenuView: View {
                         if viewModel.backgroundStyle == style {
                             Image(systemName: "checkmark")
                                 .fontWeight(.semibold)
-                                .foregroundStyle(.blue)
+                                .foregroundStyle(
+                                    Color(uiColor: AppAssetColor.fallbackBlue.uiColor)
+                                )
                         }
                     }
                     .contentShape(Rectangle())

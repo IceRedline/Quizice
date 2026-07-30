@@ -49,6 +49,9 @@ private final class StoredQuizTheme {
     var colorHex: String?
     var isFavorite: Bool?
     var sourceRawValue: String?
+    var questionOriginRawValue: String?
+    var catalogLocale: String?
+    var catalogOriginRawValue: String?
     @Relationship(deleteRule: .cascade) var questions: [StoredQuizQuestion]
 
     init(
@@ -60,6 +63,9 @@ private final class StoredQuizTheme {
         colorHex: String?,
         isFavorite: Bool?,
         sourceRawValue: String?,
+        questionOriginRawValue: String?,
+        catalogLocale: String?,
+        catalogOriginRawValue: String?,
         questions: [StoredQuizQuestion]
     ) {
         self.id = id
@@ -70,10 +76,17 @@ private final class StoredQuizTheme {
         self.colorHex = colorHex
         self.isFavorite = isFavorite
         self.sourceRawValue = sourceRawValue
+        self.questionOriginRawValue = questionOriginRawValue
+        self.catalogLocale = catalogLocale
+        self.catalogOriginRawValue = catalogOriginRawValue
         self.questions = questions
     }
 
-    convenience init(model: QuizTheme) {
+    convenience init(
+        model: QuizTheme,
+        catalogLocale: String,
+        catalogOrigin: QuizCatalogOrigin
+    ) {
         self.init(
             id: model.id,
             theme: model.theme,
@@ -83,6 +96,9 @@ private final class StoredQuizTheme {
             colorHex: model.colorHex,
             isFavorite: model.isFavorite,
             sourceRawValue: model.source.rawValue,
+            questionOriginRawValue: model.questionOrigin.rawValue,
+            catalogLocale: catalogLocale,
+            catalogOriginRawValue: catalogOrigin.rawValue,
             questions: model.questions.map(StoredQuizQuestion.init(model:))
         )
     }
@@ -97,12 +113,19 @@ private final class StoredQuizTheme {
             emoji: emoji ?? QuizTheme.defaultEmoji,
             colorHex: colorHex,
             isFavorite: isFavorite ?? false,
-            source: QuizThemeSource(rawValue: sourceRawValue ?? "") ?? .catalog
+            source: QuizThemeSource(rawValue: sourceRawValue ?? "") ?? .catalog,
+            questionOrigin: QuizQuestionOrigin(rawValue: questionOriginRawValue ?? "") ?? .bundled
         )
     }
 }
 
 final class SwiftDataThemeStore {
+    struct CatalogSnapshot {
+        let themes: [QuizTheme]
+        let locale: String?
+        let origin: QuizCatalogOrigin
+    }
+
     static var schema: Schema {
         Schema([StoredQuizTheme.self, StoredQuizQuestion.self])
     }
@@ -114,20 +137,52 @@ final class SwiftDataThemeStore {
     }
 
     func fetchThemes() -> [QuizTheme] {
+        fetchCatalog().themes
+    }
+
+    func fetchCatalog() -> CatalogSnapshot {
         let descriptor = FetchDescriptor<StoredQuizTheme>(sortBy: [SortDescriptor(\.theme)])
         do {
-            return try context.fetch(descriptor).map { $0.makeDomainModel() }
+            let storedThemes = try context.fetch(descriptor)
+            let firstTheme = storedThemes.first
+            return CatalogSnapshot(
+                themes: storedThemes.map { $0.makeDomainModel() },
+                locale: firstTheme?.catalogLocale,
+                origin: QuizCatalogOrigin(
+                    rawValue: firstTheme?.catalogOriginRawValue ?? ""
+                ) ?? .bundled
+            )
         } catch {
             AppLog.persistence.error("Failed to fetch themes: \(String(describing: error), privacy: .public)")
             AppMetricaAnalyticsTracker.shared.reportOperationalError(error, context: .persistentStore)
-            return []
+            return CatalogSnapshot(themes: [], locale: nil, origin: .bundled)
         }
     }
 
-    func replaceThemes(with themes: [QuizTheme]) {
+    func replaceThemes(
+        with themes: [QuizTheme]
+    ) {
+        replaceThemes(
+            with: themes,
+            locale: AppLocalizationStore.shared.resolvedLanguageCode,
+            catalogOrigin: .bundled
+        )
+    }
+
+    func replaceThemes(
+        with themes: [QuizTheme],
+        locale: String,
+        catalogOrigin: QuizCatalogOrigin
+    ) {
         clearThemes()
         for theme in themes {
-            context.insert(StoredQuizTheme(model: theme))
+            context.insert(
+                StoredQuizTheme(
+                    model: theme,
+                    catalogLocale: locale,
+                    catalogOrigin: catalogOrigin
+                )
+            )
         }
         do {
             try context.save()

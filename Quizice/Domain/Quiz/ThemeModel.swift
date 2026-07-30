@@ -19,6 +19,10 @@ struct ThemeModel {
         quizTheme.questionOrigin
     }
 
+    var difficulty: AIQuizDifficulty? {
+        quizTheme.difficulty
+    }
+
     var themeName: String {
         quizTheme.theme
     }

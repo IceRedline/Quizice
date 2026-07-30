@@ -140,10 +140,24 @@ protocol BackendContentAPI {
         locale: String,
         seed: String
     ) async throws -> BackendQuestionBatchResponse
+    func fetchQuestions(
+        themeID: String,
+        count: Int,
+        locale: String,
+        difficulty: AIQuizDifficulty,
+        seed: String
+    ) async throws -> BackendQuestionBatchResponse
     func fetchRandomQuestions(
         selectionMode: CrossThemeQuestionSelectionMode,
         count: Int,
         locale: String,
+        seed: String
+    ) async throws -> BackendQuestionBatchResponse
+    func fetchRandomQuestions(
+        selectionMode: CrossThemeQuestionSelectionMode,
+        count: Int,
+        locale: String,
+        difficulty: AIQuizDifficulty,
         seed: String
     ) async throws -> BackendQuestionBatchResponse
 }
@@ -158,6 +172,36 @@ extension BackendContentAPI {
         favoriteThemeIDs: [String]
     ) async throws -> BackendThemePreferencesResponse {
         throw BackendContentError.unauthenticated
+    }
+
+    func fetchQuestions(
+        themeID: String,
+        count: Int,
+        locale: String,
+        difficulty: AIQuizDifficulty,
+        seed: String
+    ) async throws -> BackendQuestionBatchResponse {
+        try await fetchQuestions(
+            themeID: themeID,
+            count: count,
+            locale: locale,
+            seed: seed
+        )
+    }
+
+    func fetchRandomQuestions(
+        selectionMode: CrossThemeQuestionSelectionMode,
+        count: Int,
+        locale: String,
+        difficulty: AIQuizDifficulty,
+        seed: String
+    ) async throws -> BackendQuestionBatchResponse {
+        try await fetchRandomQuestions(
+            selectionMode: selectionMode,
+            count: count,
+            locale: locale,
+            seed: seed
+        )
     }
 }
 
@@ -258,6 +302,38 @@ final class HTTPBackendContentAPI: BackendContentAPI {
         locale: String,
         seed: String
     ) async throws -> BackendQuestionBatchResponse {
+        try await fetchQuestionBatch(
+            themeID: themeID,
+            count: count,
+            locale: locale,
+            difficulty: nil,
+            seed: seed
+        )
+    }
+
+    func fetchQuestions(
+        themeID: String,
+        count: Int,
+        locale: String,
+        difficulty: AIQuizDifficulty,
+        seed: String
+    ) async throws -> BackendQuestionBatchResponse {
+        try await fetchQuestionBatch(
+            themeID: themeID,
+            count: count,
+            locale: locale,
+            difficulty: difficulty,
+            seed: seed
+        )
+    }
+
+    private func fetchQuestionBatch(
+        themeID: String,
+        count: Int,
+        locale: String,
+        difficulty: AIQuizDifficulty?,
+        seed: String
+    ) async throws -> BackendQuestionBatchResponse {
         let normalizedThemeID = themeID.trimmingCharacters(in: .whitespacesAndNewlines)
         let normalizedSeed = seed.trimmingCharacters(in: .whitespacesAndNewlines)
         guard
@@ -269,13 +345,19 @@ final class HTTPBackendContentAPI: BackendContentAPI {
             throw BackendContentError.invalidRequest
         }
 
+        var queryItems = [
+            URLQueryItem(name: "count", value: String(count)),
+            URLQueryItem(name: "locale", value: locale)
+        ]
+        if let difficulty {
+            queryItems.append(
+                URLQueryItem(name: "difficulty", value: difficulty.rawValue)
+            )
+        }
+        queryItems.append(URLQueryItem(name: "seed", value: normalizedSeed))
         let url = try makeURL(
             pathComponents: ["v1", "themes", normalizedThemeID, "questions"],
-            queryItems: [
-                URLQueryItem(name: "count", value: String(count)),
-                URLQueryItem(name: "locale", value: locale),
-                URLQueryItem(name: "seed", value: normalizedSeed)
-            ]
+            queryItems: queryItems
         )
         return try await get(
             url: url,
@@ -297,6 +379,38 @@ final class HTTPBackendContentAPI: BackendContentAPI {
         locale: String,
         seed: String
     ) async throws -> BackendQuestionBatchResponse {
+        try await fetchRandomQuestionBatch(
+            selectionMode: selectionMode,
+            count: count,
+            locale: locale,
+            difficulty: nil,
+            seed: seed
+        )
+    }
+
+    func fetchRandomQuestions(
+        selectionMode: CrossThemeQuestionSelectionMode,
+        count: Int,
+        locale: String,
+        difficulty: AIQuizDifficulty,
+        seed: String
+    ) async throws -> BackendQuestionBatchResponse {
+        try await fetchRandomQuestionBatch(
+            selectionMode: selectionMode,
+            count: count,
+            locale: locale,
+            difficulty: difficulty,
+            seed: seed
+        )
+    }
+
+    private func fetchRandomQuestionBatch(
+        selectionMode: CrossThemeQuestionSelectionMode,
+        count: Int,
+        locale: String,
+        difficulty: AIQuizDifficulty?,
+        seed: String
+    ) async throws -> BackendQuestionBatchResponse {
         let normalizedSeed = seed.trimmingCharacters(in: .whitespacesAndNewlines)
         guard
             UUID(uuidString: normalizedSeed)?.uuidString.lowercased() == normalizedSeed,
@@ -306,13 +420,19 @@ final class HTTPBackendContentAPI: BackendContentAPI {
             throw BackendContentError.invalidRequest
         }
 
+        var queryItems = [
+            URLQueryItem(name: "count", value: String(count)),
+            URLQueryItem(name: "locale", value: locale)
+        ]
+        if let difficulty {
+            queryItems.append(
+                URLQueryItem(name: "difficulty", value: difficulty.rawValue)
+            )
+        }
+        queryItems.append(URLQueryItem(name: "seed", value: normalizedSeed))
         let url = try makeURL(
             pathComponents: ["v1", "questions", selectionMode.rawValue],
-            queryItems: [
-                URLQueryItem(name: "count", value: String(count)),
-                URLQueryItem(name: "locale", value: locale),
-                URLQueryItem(name: "seed", value: normalizedSeed)
-            ]
+            queryItems: queryItems
         )
         return try await get(
             url: url,

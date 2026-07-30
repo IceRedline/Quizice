@@ -21,6 +21,8 @@ final class ExpandedThemeCardView: UIView, UIGestureRecognizerDelegate {
         static let backSurfaceButton = "expandedThemeCardBackSurfaceButton"
         static let themeNameLabel = "descriptionThemeNameLabel"
         static let descriptionLabel = "descriptionTextLabel"
+        static let difficultyLabel = "descriptionDifficultyLabel"
+        static let difficultyControl = "descriptionDifficultyPicker"
         static let questionCountLabel = "descriptionPickerCaptionLabel"
         static let questionCountControl = "descriptionQuestionCountPicker"
         static let startButton = "descriptionStartButton"
@@ -73,6 +75,7 @@ final class ExpandedThemeCardView: UIView, UIGestureRecognizerDelegate {
     var onClose: (() -> Void)?
     var onFlip: (() -> Void)?
     var onBack: (() -> Void)?
+    var onDifficultyChanged: ((AIQuizDifficulty) -> Void)?
     var onQuestionCountChanged: ((Int) -> Void)?
     var onStart: (() -> Void)?
     var onAccessibilityEscape: (() -> Void)?
@@ -92,6 +95,7 @@ final class ExpandedThemeCardView: UIView, UIGestureRecognizerDelegate {
     var isParallaxSettling: Bool { parallaxReturnAnimator != nil }
 
     var selectedQuestionCount: Int?
+    var selectedDifficulty = AIQuizDifficulty.medium
     let perspectiveStageView = UIView()
     let parallaxPoseProbeView = UIView()
     let shadowProxyView = UIView()
@@ -118,6 +122,10 @@ final class ExpandedThemeCardView: UIView, UIGestureRecognizerDelegate {
     let backTitleLabel = UILabel()
     let descriptionScrollView = UIScrollView()
     let backDescriptionLabel = UILabel()
+    let difficultyLabel = UILabel()
+    let difficultyControl = UISegmentedControl(
+        items: AIQuizDifficulty.allCases.map(\.title)
+    )
     let questionCountLabel = UILabel()
     let questionCountControl = UISegmentedControl(
         items: ExpandedThemeCardView.supportedQuestionCounts.map { String($0) }
@@ -234,7 +242,8 @@ final class ExpandedThemeCardView: UIView, UIGestureRecognizerDelegate {
         theme: QuizTheme,
         appearance: AppAppearance,
         availableQuestionCounts: [Int],
-        selectedQuestionCount: Int?
+        selectedQuestionCount: Int?,
+        selectedDifficulty: AIQuizDifficulty = .medium
     ) {
         faceTransitionDriver.cancel()
         setStartLoading(false)
@@ -251,7 +260,7 @@ final class ExpandedThemeCardView: UIView, UIGestureRecognizerDelegate {
         )
         let isSymbolIcon = appearance.designStyle != .radar
         frontIconShadowView.image = isSymbolIcon ? frontArtwork : nil
-        frontIconShadowView.tintColor = .black
+        frontIconShadowView.tintColor = AppAssetColor.black.uiColor
         frontIconShadowView.alpha = isSymbolIcon ? ThemeIconVisualStyle.shadowAlpha : 0
         frontIconShadowView.transform = isSymbolIcon
             ? CGAffineTransform(translationX: 0, y: ThemeIconVisualStyle.shadowOffset)
@@ -285,6 +294,7 @@ final class ExpandedThemeCardView: UIView, UIGestureRecognizerDelegate {
             themeTintColor: tintColor,
             borderColor: borderColor
         )
+        configureDifficulty(selectedDifficulty)
         configureQuestionCounts(selectedQuestionCount: selectedQuestionCount)
 
         faceTransitionDriver.reset(to: .front)

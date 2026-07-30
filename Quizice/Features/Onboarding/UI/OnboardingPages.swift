@@ -301,7 +301,7 @@ private struct OnboardingCatalogSourceBadge: View {
     var body: some View {
         Text(title)
             .font(.system(size: 11, weight: .semibold, design: .monospaced))
-            .foregroundStyle(.white)
+            .foregroundStyle(Color(uiColor: AppAssetColor.white.uiColor))
             .padding(.horizontal, 7)
             .padding(.vertical, 4)
             .background(Color(uiColor: backgroundColor))
@@ -319,8 +319,8 @@ private struct OnboardingCatalogSourceBadge: View {
 
     private var backgroundColor: UIColor {
         switch origin {
-        case .backend: .systemGreen
-        case .bundled: .systemOrange
+        case .backend: AppAssetColor.fallbackGreen.uiColor
+        case .bundled: AppAssetColor.fallbackOrange.uiColor
         }
     }
 }
