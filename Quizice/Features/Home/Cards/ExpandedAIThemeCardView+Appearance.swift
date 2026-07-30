@@ -1,6 +1,13 @@
 import UIKit
 
 extension ExpandedAIThemeCardView {
+    var transitionSurfaceColor: UIColor {
+        guard let configuredSurfaceStyle else { return .clear }
+        return configuredAppearance?.designStyle == .radar
+            ? configuredSurfaceStyle.backgroundColor.withAlphaComponent(1)
+            : configuredSurfaceStyle.backgroundColor
+    }
+
     func applyAppearance(_ appearance: AppAppearance) {
         let expandedSurfaceStyle = makeExpandedSurfaceStyle(appearance)
         configuredSurfaceStyle = expandedSurfaceStyle
