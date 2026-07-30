@@ -123,7 +123,6 @@
 "result.description.no_questions" = "There were no available questions in this attempt. Try another theme.";
 "result.description.perfect_score" = "Legendary. Genius. An easy solo win.";
 "result.description.very_low_score" = "You should definitely try again!";
-"result.restart" = "Start again";
 "result.play_again" = "Play again";
 "result.to_themes" = "Choose a theme";
 "result.text_format" = "Your result:\n %d/%d";
