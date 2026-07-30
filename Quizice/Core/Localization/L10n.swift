@@ -116,6 +116,8 @@ enum L10n {
         static var toolsSectionTitle: String { L10n.localized("debug_menu.section.tools", comment: "Debug menu tools section title") }
         static var hideInterface: String { L10n.localized("debug_menu.hide_interface", comment: "Debug menu hide interface toggle title") }
         static var hideInterfaceSubtitle: String { L10n.localized("debug_menu.hide_interface.subtitle", comment: "Debug menu hide interface toggle subtitle") }
+        static var subscriptionActive: String { L10n.localized("debug_menu.subscription_active", comment: "Debug menu active subscription toggle title") }
+        static var subscriptionActiveSubtitle: String { L10n.localized("debug_menu.subscription_active.subtitle", comment: "Debug menu active subscription toggle subtitle") }
         static var pulse: String { L10n.localized("debug_menu.pulse", comment: "Pulse network console row title") }
         static var pulseSubtitle: String { L10n.localized("debug_menu.pulse.subtitle", comment: "Pulse network console row subtitle") }
     }

@@ -8,6 +8,7 @@ enum ThemeIconVisualStyle {
 enum AIThemeVisualStyle {
     static let gradientStartColor = UIColor(hex: 0xFF4FD8)
     static let gradientEndColor = UIColor(hex: 0x36A3FF)
+    static let accentColor = UIColor(hex: 0xD66FEC)
 
     static let gradientColors = [gradientStartColor, gradientEndColor]
 }

@@ -97,7 +97,7 @@ struct HomeCardSourceSnapshotFactory {
         }
         let customContentIdentifiers: Set<String> = [
             ThemesCollectionService.Content.aiThemeTextStackAccessibilityID,
-            ThemesCollectionService.Content.aiThemePlusBadgeAccessibilityID
+            ThemesCollectionService.Content.aiThemeBadgeAccessibilityID
         ]
         for contentView in sourceView.subviews where
             contentView.accessibilityIdentifier.map(customContentIdentifiers.contains) == true {

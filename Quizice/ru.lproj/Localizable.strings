@@ -133,6 +133,8 @@
 "debug_menu.section.tools" = "Инструменты";
 "debug_menu.hide_interface" = "Скрыть интерфейс приложения";
 "debug_menu.hide_interface.subtitle" = "Кнопка настроек останется доступной";
+"debug_menu.subscription_active" = "Подписка активна";
+"debug_menu.subscription_active.subtitle" = "Имитирует активную подписку Quizice Plus";
 "debug_menu.pulse" = "Пульс";
 "debug_menu.pulse.subtitle" = "Лог запросов и ответов URLSession";
 "settings.alert.action" = "Понятно";
@@ -189,7 +191,7 @@
 "subscription.ai_card.accessibility_hint" = "Открывает превью Quizice Plus";
 "subscription.ai_card.subtitle" = "Месячный ИИ-лимит ×20";
 "subscription.ai_card.title" = "Нужно больше 5 вопросов?";
-"subscription.badge.free" = "5 бесплатно";
+"subscription.badge.free" = "FREE";
 "subscription.home.accessibility_hint" = "Открывает превью Quizice Plus";
 "subscription.home.price_badge" = "Превью · $1,99/мес.";
 "subscription.home.subtitle" = "Больше ИИ-генераций каждый месяц";

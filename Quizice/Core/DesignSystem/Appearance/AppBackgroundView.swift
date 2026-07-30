@@ -81,8 +81,15 @@ enum AppBackgroundMotionProfile: Equatable {
 }
 
 struct AppBackgroundView: View {
+    private enum PremiumAccent {
+        static let leadingOpacity = 0.08
+        static let trailingOpacity = 0.025
+    }
+
     let appearance: AppAppearance
     let motionProfile: AppBackgroundMotionProfile
+
+    @State private var hasActivePlusSubscription: Bool
 
     init(
         appearance: AppAppearance,
@@ -90,6 +97,9 @@ struct AppBackgroundView: View {
     ) {
         self.appearance = appearance
         self.motionProfile = motionProfile
+        _hasActivePlusSubscription = State(
+            initialValue: SubscriptionEntitlementStore.shared.hasActivePlusSubscription
+        )
     }
 
     var body: some View {
@@ -115,8 +125,34 @@ struct AppBackgroundView: View {
                 Color(uiColor: appearance.backgroundColor)
             }
         }
+        .overlay {
+            if hasActivePlusSubscription, appearance.designStyle == .classic {
+                LinearGradient(
+                    colors: [
+                        premiumAccentColor.opacity(PremiumAccent.leadingOpacity),
+                        .clear,
+                        premiumAccentColor.opacity(PremiumAccent.trailingOpacity)
+                    ],
+                    startPoint: .topTrailing,
+                    endPoint: .bottomLeading
+                )
+            }
+        }
+        .onReceive(
+            NotificationCenter.default.publisher(
+                for: .subscriptionEntitlementDidChange,
+                object: SubscriptionEntitlementStore.shared
+            )
+        ) { _ in
+            hasActivePlusSubscription =
+                SubscriptionEntitlementStore.shared.hasActivePlusSubscription
+        }
         .ignoresSafeArea()
         .accessibilityHidden(true)
+    }
+
+    private var premiumAccentColor: Color {
+        Color(uiColor: AIThemeVisualStyle.accentColor)
     }
 }
 
