@@ -406,6 +406,22 @@ final class HTTPBackendContentAPI: BackendContentAPI {
                 )
                 throw BackendContentError.contractViolation
             }
+            // If a WAF or captive portal intercepts the request it typically
+            // returns HTML with a 200 code. Refuse anything that is not JSON
+            // before feeding it to the decoder.
+            if (200..<300).contains(httpResponse.statusCode) {
+                let contentType = httpResponse.value(forHTTPHeaderField: "Content-Type")?.lowercased()
+                if let contentType, !contentType.contains("application/json") {
+                    record(
+                        operation: operation,
+                        result: .contractError,
+                        startedAt: startedAt,
+                        statusCode: httpResponse.statusCode,
+                        responseBytes: data.count
+                    )
+                    throw BackendContentError.contractViolation
+                }
+            }
             guard (200..<300).contains(httpResponse.statusCode) else {
                 let envelope = try? decoder.decode(BackendErrorEnvelope.self, from: data)
                 record(

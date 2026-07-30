@@ -53,7 +53,7 @@ final class BackendAIQuizThemeService: AIQuizThemeServiceProtocol {
         sessionStore: SessionStoring = KeychainSessionStore(),
         now: @escaping () -> Date = Date.init,
         idGenerator: @escaping () -> String = { UUID().uuidString },
-        requestTimeout: TimeInterval = 90,
+        requestTimeout: TimeInterval = 30,
         metrics: BackendRequestMetricRecording = NoopBackendRequestMetricRecorder(),
         accessProvider: AIQuizAccessProviding = AIQuizAccessStore.shared,
         notificationCenter: NotificationCenter = .default
@@ -174,6 +174,20 @@ final class BackendAIQuizThemeService: AIQuizThemeServiceProtocol {
             throw YandexAIQuizThemeServiceError.invalidHTTPResponse
         }
         guard data.count <= Self.maxResponseBytes else {
+            record(
+                .contractError,
+                startedAt: startedAt,
+                statusCode: httpResponse.statusCode,
+                responseBytes: data.count
+            )
+            throw YandexAIQuizThemeServiceError.invalidResponseJSON
+        }
+        // Reject non-JSON 2xx bodies (WAF/captive portal HTML injection etc.)
+        // before decoding — decoder would otherwise fail with a cryptic error
+        // and callers would report it as a decoding failure.
+        if (200..<300).contains(httpResponse.statusCode),
+           let contentType = httpResponse.value(forHTTPHeaderField: "Content-Type")?.lowercased(),
+           !contentType.contains("application/json") {
             record(
                 .contractError,
                 startedAt: startedAt,
@@ -435,7 +449,13 @@ final class BackendAIQuizThemeService: AIQuizThemeServiceProtocol {
 
     private func invalidateBackendAuthentication() {
         disableAIQuizAccess()
-        try? sessionStore.clear()
+        do {
+            try sessionStore.clear()
+        } catch {
+            AppLog.auth.error(
+                "Failed to clear AI session on invalidation: \(String(describing: error), privacy: .public)"
+            )
+        }
         notificationCenter.post(name: .backendAuthenticationInvalidated, object: nil)
     }
 
@@ -443,6 +463,9 @@ final class BackendAIQuizThemeService: AIQuizThemeServiceProtocol {
         do {
             return try sessionStore.load() == expectedSession
         } catch {
+            AppLog.auth.error(
+                "Failed to compare AI auth session: \(String(describing: error), privacy: .public)"
+            )
             return false
         }
     }

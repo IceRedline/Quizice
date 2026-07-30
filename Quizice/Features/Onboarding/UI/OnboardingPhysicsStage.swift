@@ -171,8 +171,13 @@ final class TopicsPhysicsView: UIView {
 
     override func layoutSubviews() {
         super.layoutSubviews()
-        guard abs(bounds.width - lastLayoutSize.width) > 1
-                || abs(bounds.height - lastLayoutSize.height) > 1 else { return }
+        // Rebuilding the physics scene is expensive — teardown, new bodies,
+        // new gravity behaviours. A 1pt threshold caused thrashing on
+        // rotation because every intermediate layout pass rebuilt the scene.
+        // 8pt filters sub-integer jitter but still catches real orientation
+        // and size-class changes.
+        guard abs(bounds.width - lastLayoutSize.width) > 8
+                || abs(bounds.height - lastLayoutSize.height) > 8 else { return }
         lastLayoutSize = bounds.size
         rebuildSceneIfPossible()
     }
