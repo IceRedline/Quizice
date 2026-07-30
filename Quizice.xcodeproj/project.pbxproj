@@ -47,6 +47,7 @@
 		4BD5EB954B3A10770346EBD5 /* QuizFlowCoordinatorLaunchTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3600587994A3A9616487C4E4 /* QuizFlowCoordinatorLaunchTests.swift */; };
 		4C58F8E80BBEA12BAABE4239 /* HomeCardTransitionViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1D13B6CD0ACD24EED387E694 /* HomeCardTransitionViews.swift */; };
 		4C948393E9F339D3C4EE3DCF /* AppAppearance.swift in Sources */ = {isa = PBXBuildFile; fileRef = FE9159A06B5AFE6DFD9A3B32 /* AppAppearance.swift */; };
+		4C948394E9F339D3C4EE3DD0 /* AppAssetColor.swift in Sources */ = {isa = PBXBuildFile; fileRef = FE9159A16B5AFE6DFD9A3B33 /* AppAssetColor.swift */; };
 		4D6FAE5E0FDBB639C1424B3F /* GameCenterAuthenticationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = D2D585241C87207E5B21CBD4 /* GameCenterAuthenticationService.swift */; };
 		506C057A41B71F3F47AA495A /* YandexAIQuizThemeResponseTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0FE3CA8836CBEED7596B8D0 /* YandexAIQuizThemeResponseTests.swift */; };
 		513D345C821103A4C859241C /* AIQuizThemePresentationSupport.swift in Sources */ = {isa = PBXBuildFile; fileRef = 592B54A44154CB7B1FFA8DD0 /* AIQuizThemePresentationSupport.swift */; };
@@ -403,6 +404,7 @@
 		FE1E9880DE3F83EFC088B083 /* MockAIQuizThemeServiceHomeTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = MockAIQuizThemeServiceHomeTests.swift; sourceTree = "<group>"; };
 		FE6331A57745414BDAA1FA80 /* SnapshotSupport.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = SnapshotSupport.swift; sourceTree = "<group>"; };
 		FE9159A06B5AFE6DFD9A3B32 /* AppAppearance.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AppAppearance.swift; sourceTree = "<group>"; };
+		FE9159A16B5AFE6DFD9A3B33 /* AppAssetColor.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AppAssetColor.swift; sourceTree = "<group>"; };
 		FFDF5EAAC676FAF75121D412 /* QuizViewController+AIWorkflow.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = "QuizViewController+AIWorkflow.swift"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -1112,6 +1114,7 @@
 			isa = PBXGroup;
 			children = (
 				FE9159A06B5AFE6DFD9A3B32 /* AppAppearance.swift */,
+				FE9159A16B5AFE6DFD9A3B33 /* AppAssetColor.swift */,
 				0BB17A46271A8596DC7329F0 /* AppAppearancePreferences.swift */,
 				34F7750D30567AC10180A09F /* AppBackgroundView.swift */,
 				771B26D898DEF6B36ACCA43E /* SwiftUIAppearanceSupport.swift */,
@@ -1360,6 +1363,7 @@
 				72AC0771449E46F6A060F54D /* HTTPAuthAPI.swift in Sources */,
 				5257D9CB3A9CFBD3BC0A3C32 /* KeychainSessionStore.swift in Sources */,
 				4C948393E9F339D3C4EE3DCF /* AppAppearance.swift in Sources */,
+				4C948394E9F339D3C4EE3DD0 /* AppAssetColor.swift in Sources */,
 				6637A72F2812093F5C5F15C6 /* AppAppearancePreferences.swift in Sources */,
 				AB237CA5640C47B23ABE2FD7 /* AppBackgroundView.swift in Sources */,
 				39C9C2747B883E20A25D42D1 /* SwiftUIAppearanceSupport.swift in Sources */,
