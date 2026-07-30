@@ -37,6 +37,7 @@ final class SubscriptionPromoBannerCollectionViewCell: UICollectionViewCell {
         colors: [Palette.gradientPink, Palette.gradientBlue],
         lineWidth: 1.6
     )
+    private let cardMaskLayer = CAShapeLayer()
     private let iconContainerView = UIView()
     private let iconImageView = UIImageView()
     private let titleLabel = UILabel()
@@ -86,6 +87,12 @@ final class SubscriptionPromoBannerCollectionViewCell: UICollectionViewCell {
 
         let cornerRadius = actionButton.layer.cornerRadius
         applyRoundedClipping(cornerRadius: cornerRadius)
+        cardMaskLayer.frame = actionButton.bounds
+        cardMaskLayer.path = UIBezierPath(
+            roundedRect: actionButton.bounds,
+            cornerRadius: cornerRadius
+        ).cgPath
+        actionButton.layer.mask = cardMaskLayer
         let shadowBounds = actionButton.convert(actionButton.bounds, to: self)
         layer.shadowPath = UIBezierPath(
             roundedRect: shadowBounds,
@@ -147,7 +154,7 @@ final class SubscriptionPromoBannerCollectionViewCell: UICollectionViewCell {
                 Palette.gradientBlue.withAlphaComponent(0.12)
             ]
             gradientBorderView.isHidden = false
-            applyShadow(appearance.themeCardShadow)
+            applyShadow(.none)
         }
 
         iconContainerView.backgroundColor = premiumAccent.withAlphaComponent(0.13)
@@ -168,6 +175,7 @@ final class SubscriptionPromoBannerCollectionViewCell: UICollectionViewCell {
         actionButton.accessibilityIdentifier = AccessibilityID.button
         actionButton.clipsToBounds = true
         actionButton.translatesAutoresizingMaskIntoConstraints = false
+        cardMaskLayer.fillColor = UIColor.black.cgColor
         contentView.addSubview(actionButton)
 
         gradientBackdropView.isUserInteractionEnabled = false
@@ -297,11 +305,11 @@ final class SubscriptionPromoBannerCollectionViewCell: UICollectionViewCell {
 
     private func applyRoundedClipping(cornerRadius: CGFloat) {
         actionButton.layer.cornerRadius = cornerRadius
-        actionButton.layer.cornerCurve = .continuous
+        actionButton.layer.cornerCurve = .circular
         actionButton.layer.masksToBounds = true
         gradientBackdropView.cornerRadius = cornerRadius
         gradientBorderView.layer.cornerRadius = cornerRadius
-        gradientBorderView.layer.cornerCurve = .continuous
+        gradientBorderView.layer.cornerCurve = .circular
         gradientBorderView.layer.masksToBounds = true
     }
 }
@@ -324,9 +332,9 @@ private final class SubscriptionPromoGradientView: UIView {
 
     override init(frame: CGRect) {
         super.init(frame: frame)
-        layer.cornerCurve = .continuous
+        layer.cornerCurve = .circular
         layer.masksToBounds = true
-        gradientLayer.cornerCurve = .continuous
+        gradientLayer.cornerCurve = .circular
         gradientLayer.startPoint = CGPoint(x: 0, y: 0)
         gradientLayer.endPoint = CGPoint(x: 1, y: 1)
         layer.addSublayer(gradientLayer)
