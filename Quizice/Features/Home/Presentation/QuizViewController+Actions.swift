@@ -77,10 +77,11 @@ extension QuizViewController {
         let effect = homeStore.send(
             .present(
                 themeID: themeID,
-                availableQuestionCounts: chosenTheme.questionOrigin == .backend
-                    && chosenTheme.questionsAndAnswers.isEmpty
+                availableQuestionCounts: themeRepository.catalogOrigin == .backend
                     ? QuizQuestionCountPolicy.supportedCounts
-                    : QuizQuestionCountPolicy.availableCounts(for: chosenTheme.questionsAndAnswers),
+                    : QuizQuestionCountPolicy.availableCounts(
+                        for: chosenTheme.questionsAndAnswers
+                    ),
                 preferredQuestionCount: session.questionsCount
             )
         )
@@ -174,14 +175,27 @@ extension QuizViewController {
             return
         }
 
-        guard let randomSelectionTheme = RandomQuizSelection.makeTheme(
-            from: themes,
-            title: L10n.Home.randomSelection,
-            description: L10n.Home.feelingLucky,
-            randomizing: randomQuestionsProvider
-        ) else {
-            motivationLabel.text = L10n.Question.unavailableMessage
-            return
+        let randomSelectionTheme: QuizTheme
+        if themeRepository.catalogOrigin == .backend {
+            randomSelectionTheme = QuizTheme(
+                id: RandomQuizSelection.themeID,
+                theme: L10n.Home.randomSelection,
+                themeDescription: L10n.Home.feelingLucky,
+                questions: [],
+                source: .catalog,
+                questionOrigin: .backend
+            )
+        } else {
+            guard let localTheme = RandomQuizSelection.makeTheme(
+                from: themes,
+                title: L10n.Home.randomSelection,
+                description: L10n.Home.feelingLucky,
+                randomizing: randomQuestionsProvider
+            ) else {
+                motivationLabel.text = L10n.Question.unavailableMessage
+                return
+            }
+            randomSelectionTheme = localTheme
         }
 
         session.chosenTheme = ThemeModel(quizTheme: randomSelectionTheme)

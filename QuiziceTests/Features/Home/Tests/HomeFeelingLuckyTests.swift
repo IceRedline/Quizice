@@ -97,6 +97,71 @@ final class HomeFeelingLuckyTests: HomeScreenVisualStateTestCase {
         XCTAssertEqual(router.showQuestionCallCount, 1)
     }
 
+    func testBackendFeelingLuckyDoesNotRequireBundledQuestions() async throws {
+        let remoteTheme = QuizTheme(
+            id: "music",
+            theme: "Музыка",
+            themeDescription: "Описание",
+            questions: [],
+            questionOrigin: .backend
+        )
+        let repository = FeelingLuckyThemeRepositorySpy(
+            themes: [remoteTheme],
+            catalogOrigin: .backend
+        )
+        let viewController = QuizViewController(
+            themeRepository: repository,
+            feelingLuckyMinimumFeedbackDelay: {}
+        )
+        let router = HomeRouterSpy()
+        viewController.router = router
+        let window = UIWindow(frame: CGRect(x: 0, y: 0, width: 390, height: 844))
+        window.rootViewController = viewController
+        window.makeKeyAndVisible()
+        window.layoutIfNeeded()
+        testWindows.append(window)
+        let luckyButton = try XCTUnwrap(
+            viewController.view.descendant(
+                withAccessibilityIdentifier: "homeFeelingLuckyButton"
+            ) as? UIButton
+        )
+
+        luckyButton.sendActions(for: .touchUpInside)
+        try await waitUntil {
+            router.showQuestionCallCount == 1
+        }
+
+        XCTAssertEqual(repository.requestedSelectionModes.count, 1)
+        XCTAssertEqual(router.showQuestionCallCount, 1)
+    }
+
+    func testBackendThemeOffersEverySupportedQuestionCountWithoutBundledQuestions() {
+        let remoteTheme = QuizTheme(
+            id: "music",
+            theme: "Музыка",
+            themeDescription: "Описание",
+            questions: [],
+            questionOrigin: .backend
+        )
+        let repository = FeelingLuckyThemeRepositorySpy(
+            themes: [remoteTheme],
+            catalogOrigin: .backend
+        )
+        let session = QuizSessionStore(themes: { repository.themes })
+        let viewController = QuizViewController(
+            themeRepository: repository,
+            session: session
+        )
+        let sourceButton = UIButton()
+
+        viewController.themeButtonTouchedUpInside(sourceButton, themeID: remoteTheme.stableID)
+
+        XCTAssertEqual(
+            viewController.homeCardState.availableQuestionCounts,
+            QuizQuestionCountPolicy.supportedCounts
+        )
+    }
+
     func testFeelingLuckySelectsFiveQuestionsFromTheCombinedPoolAndUsesRandomSelectionTitle() throws {
         let music = makeTheme(name: "Музыка", questionCount: 3)
         let technology = makeTheme(name: "Технологии", questionCount: 4)
@@ -280,10 +345,15 @@ final class HomeFeelingLuckyTests: HomeScreenVisualStateTestCase {
 
 private final class FeelingLuckyThemeRepositorySpy: ThemeRepository {
     var themes: [QuizTheme]?
+    let catalogOrigin: QuizCatalogOrigin
     private(set) var requestedSelectionModes: [CrossThemeQuestionSelectionMode] = []
 
-    init(themes: [QuizTheme]) {
+    init(
+        themes: [QuizTheme],
+        catalogOrigin: QuizCatalogOrigin = .bundled
+    ) {
         self.themes = themes
+        self.catalogOrigin = catalogOrigin
     }
 
     func loadData(forceReload: Bool) {}
