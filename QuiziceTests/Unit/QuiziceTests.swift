@@ -168,7 +168,8 @@ final class QuizResultPresenterBoundaryTests: XCTestCase {
         line: UInt = #line
     ) {
         let presenter = QuizResultPresenter(
-            result: QuizResultState(correctAnswers: correctAnswers, totalQuestions: totalQuestions)
+            result: QuizResultState(correctAnswers: correctAnswers, totalQuestions: totalQuestions),
+            session: PresenterTestSession()
         )
         let view = QuizResultViewSpy()
         presenter.view = view

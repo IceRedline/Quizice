@@ -138,7 +138,10 @@ extension ExpandedThemeCardView {
 
         frontTitleLabel.adjustsFontForContentSizeCategory = true
         frontTitleLabel.numberOfLines = 2
-        frontTitleLabel.lineBreakMode = .byWordWrapping
+        // AI-generated themes can exceed two lines. Word-wrapping without a
+        // truncation indicator silently cuts the tail; tail truncation makes
+        // the ellipsis visible to the user.
+        frontTitleLabel.lineBreakMode = .byTruncatingTail
         frontTitleLabel.textAlignment = .center
         frontTitleLabel.isAccessibilityElement = true
         frontTitleLabel.translatesAutoresizingMaskIntoConstraints = false
@@ -266,7 +269,7 @@ extension ExpandedThemeCardView {
         backTitleLabel.accessibilityIdentifier = AccessibilityID.themeNameLabel
         backTitleLabel.adjustsFontForContentSizeCategory = true
         backTitleLabel.numberOfLines = 2
-        backTitleLabel.lineBreakMode = .byWordWrapping
+        backTitleLabel.lineBreakMode = .byTruncatingTail
         backTitleLabel.isAccessibilityElement = true
         backTitleLabel.translatesAutoresizingMaskIntoConstraints = false
 

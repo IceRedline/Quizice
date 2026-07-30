@@ -123,7 +123,6 @@
 "result.description.no_questions" = "Aucune question n’était disponible dans cette tentative. Essayez un autre thème.";
 "result.description.perfect_score" = "Légende, génie, victoire facile.";
 "result.description.very_low_score" = "Vous devriez vraiment réessayer.";
-"result.restart" = "Recommencer";
 "result.play_again" = "Rejouer";
 "result.to_themes" = "Choisir un thème";
 "result.text_format" = "Votre résultat :\n %d/%d";
