@@ -169,12 +169,18 @@ private final class QuizQuestionViewControllerSpy: QuizQuestionViewControllerPro
     private(set) var answerStateUpdates: [Bool] = []
     private(set) var resultsCallCount = 0
 
+    private(set) var hideTimerBarCallCount = 0
+
     func updateProgress(_ progress: Float) {
         progressUpdates.append(progress)
     }
 
     func showTimeExpired() {
         timeExpiredCallCount += 1
+    }
+
+    func hideTimerBar() {
+        hideTimerBarCallCount += 1
     }
 
     func loadQuestionToView(_ viewModel: QuizQuestionViewModel) {

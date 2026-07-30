@@ -6,14 +6,15 @@ final class QuizQuestionPresenter: QuizQuestionPresenterProtocol {
     private let analytics: AnalyticsTracking
     private let timerClient: QuizTimerClient
     private let randomizer: QuizQuestionRandomizer
-    
+    private let accessibilityClient: AccessibilityModeClient
+
     weak var view: QuizQuestionViewControllerProtocol?
-    
+
     private var timerCancellation: QuizTimerCancellation?
     private var remainingTime: TimeInterval = 20
     private let totalTime: TimeInterval = 20
     private let tickInterval: TimeInterval = 0.02
-    
+
     var chosenThemeQuestionsArray: [QuestionModel] = []
     var currentQuestion: QuestionModel?
     var questionsTotalCount: Int?
@@ -23,6 +24,9 @@ final class QuizQuestionPresenter: QuizQuestionPresenterProtocol {
     private var hasRecordedCompletedAttempt = false
     private var currentAnswerOptions: [QuizAnswerOption] = []
     private var questionPhase: QuestionPhase = .unavailable
+    // Captured once when the quiz starts so mid-session assistive-tech toggling
+    // doesn't split a single attempt across two scoring tracks.
+    private var isAccessibilityAtStart = false
     var themeID: String? {
         session.chosenTheme?.themeID
     }
@@ -43,13 +47,15 @@ final class QuizQuestionPresenter: QuizQuestionPresenterProtocol {
         statisticsStore: StatisticsStore = StatisticsStore(),
         analytics: AnalyticsTracking = AppMetricaAnalyticsTracker.shared,
         timerClient: QuizTimerClient = .live,
-        randomizer: QuizQuestionRandomizer = .live
+        randomizer: QuizQuestionRandomizer = .live,
+        accessibilityClient: AccessibilityModeClient = .live
     ) {
         self.session = session
         self.statisticsStore = statisticsStore
         self.analytics = analytics
         self.timerClient = timerClient
         self.randomizer = randomizer
+        self.accessibilityClient = accessibilityClient
     }
 
     deinit {
@@ -59,19 +65,24 @@ final class QuizQuestionPresenter: QuizQuestionPresenterProtocol {
 
     func viewDidLoad() {
         resetGameProgress()
+        isAccessibilityAtStart = accessibilityClient.isActive()
         loadQuestions()
         loadQuestion()
+        if isAccessibilityAtStart {
+            view?.hideTimerBar()
+        }
     }
     
     // MARK: - Timer methods
     
     func startTimer() {
+        guard !isAccessibilityAtStart else { return }
         guard hasActiveQuestion, questionPhase == .awaitingAnswer else {
             stopTimer()
             view?.updateProgress(0)
             return
         }
-        
+
         stopTimer()
         remainingTime = totalTime
         view?.updateProgress(1.0)
@@ -85,6 +96,7 @@ final class QuizQuestionPresenter: QuizQuestionPresenterProtocol {
     }
 
     func resumeTimer() {
+        guard !isAccessibilityAtStart else { return }
         guard timerCancellation == nil, hasActiveQuestion, questionPhase == .awaitingAnswer, remainingTime > 0 else { return }
         scheduleTimer()
     }
@@ -233,12 +245,17 @@ final class QuizQuestionPresenter: QuizQuestionPresenterProtocol {
         currentProgress = 0.2
         hasRecordedCompletedAttempt = false
         questionPhase = .unavailable
+        isAccessibilityAtStart = false
     }
-    
+
     private func recordCompletedAttemptIfNeeded(totalQuestions: Int) {
         guard hasRecordedCompletedAttempt == false, totalQuestions > 0 else { return }
         hasRecordedCompletedAttempt = true
-        statisticsStore.recordAttempt(correctAnswers: correctAnswers, totalQuestions: totalQuestions)
+        statisticsStore.recordAttempt(
+            correctAnswers: correctAnswers,
+            totalQuestions: totalQuestions,
+            accessibilityMode: isAccessibilityAtStart
+        )
         analytics.track(
             .quizCompleted(
                 theme: analyticsTheme,

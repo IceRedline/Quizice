@@ -177,6 +177,62 @@ final class QuizQuestionPresenterTests: XCTestCase {
         XCTAssertLessThan(firstResumedProgress, 1)
     }
 
+    func testAccessibilityModeSkipsTimerAndHidesTimerBar() throws {
+        let session = QuestionPresenterSession()
+        session.questionsCount = 1
+        session.chosenTheme = ThemeModel(quizTheme: SnapshotSupport.makeTheme(
+            id: "a11y",
+            name: "A11y",
+            questions: [makeQuestion("Question?", correctAnswer: "A")]
+        ))
+        let view = QuestionPresenterViewSpy()
+        let clock = TestQuizTimerClient()
+        let harness = makeStatisticsHarness()
+        let presenter = QuizQuestionPresenter(
+            session: session,
+            statisticsStore: harness.store,
+            timerClient: clock.client,
+            accessibilityClient: .stub(active: true)
+        )
+        presenter.view = view
+
+        presenter.viewDidLoad()
+        presenter.startTimer()
+        presenter.resumeTimer()
+
+        XCTAssertEqual(view.hideTimerBarCallCount, 1, "viewDidLoad should hide the timer bar exactly once when a11y is active")
+        XCTAssertFalse(clock.hasScheduledTick, "startTimer must not schedule ticks when a11y is active")
+    }
+
+    func testCompletedAttemptRecordsAccessibilityFlagWhenActive() throws {
+        let harness = makeStatisticsHarness()
+        let session = QuestionPresenterSession()
+        session.questionsCount = 1
+        session.chosenTheme = ThemeModel(quizTheme: SnapshotSupport.makeTheme(
+            id: "a11y-attempt",
+            name: "A11y Attempt",
+            questions: [makeQuestion("Question?", correctAnswer: "A")]
+        ))
+        let view = QuestionPresenterViewSpy()
+        let presenter = QuizQuestionPresenter(
+            session: session,
+            statisticsStore: harness.store,
+            accessibilityClient: .stub(active: true)
+        )
+        presenter.view = view
+
+        presenter.viewDidLoad()
+        let option = try XCTUnwrap(view.loadedViewModels.first?.answers.first { $0.title == "A" })
+        presenter.checkAnswer(optionID: option.id)
+        presenter.checkQuestionNumberAndProceed()
+        presenter.checkQuestionNumberAndProceed()
+
+        harness.store.activateAuthenticatedUser("a11y-user")
+        let request = harness.store.makeSyncRequest(for: "a11y-user")
+        XCTAssertEqual(request.attempts.count, 1)
+        XCTAssertTrue(try XCTUnwrap(request.attempts.first?.accessibilityMode))
+    }
+
     func testAnswerAndTimeoutRaceIsHandledExactlyOnce() throws {
         let session = QuestionPresenterSession()
         session.questionsCount = 1
@@ -278,6 +334,8 @@ final class QuizQuestionPresenterTests: XCTestCase {
 private final class TestQuizTimerClient {
     private var scheduledTick: (() -> Void)?
 
+    var hasScheduledTick: Bool { scheduledTick != nil }
+
     lazy var client = QuizTimerClient { [weak self] _, tick in
         self?.scheduledTick = tick
         return QuizTimerCancellation { [weak self] in self?.scheduledTick = nil }
@@ -312,12 +370,18 @@ private final class QuestionPresenterViewSpy: QuizQuestionViewControllerProtocol
     private(set) var results: [QuizResultState] = []
     private(set) var timeExpiredCallCount = 0
 
+    private(set) var hideTimerBarCallCount = 0
+
     func updateProgress(_ progress: Float) {
         progressUpdates.append(progress)
     }
 
     func showTimeExpired() {
         timeExpiredCallCount += 1
+    }
+
+    func hideTimerBar() {
+        hideTimerBarCallCount += 1
     }
 
     func loadQuestionToView(_ viewModel: QuizQuestionViewModel) {

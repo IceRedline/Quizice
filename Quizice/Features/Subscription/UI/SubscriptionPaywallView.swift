@@ -264,7 +264,8 @@ struct SubscriptionPaywallView: View {
                     .font(appearance.typography.swiftUIFont(size: 13, weight: .bold))
             } icon: {
                 Image(systemName: "sparkles")
-                    .font(.system(size: 14, weight: .semibold))
+                    .font(appearance.typography.swiftUIFont(size: 14, weight: .semibold))
+                    .accessibilityHidden(true)
             }
             .foregroundStyle(premiumAccentColor)
             .padding(.horizontal, 12)
@@ -282,7 +283,7 @@ struct SubscriptionPaywallView: View {
 
             Button(action: close) {
                 Image(systemName: "xmark")
-                    .font(.system(size: 16, weight: .semibold))
+                    .font(appearance.typography.swiftUIFont(size: 16, weight: .semibold))
                     .foregroundStyle(Color(uiColor: appearance.screenTextColor))
                     .frame(
                         width: Layout.closeButtonSize,
@@ -347,7 +348,7 @@ struct SubscriptionPaywallView: View {
                         isPremium: false
                     )
                     Image(systemName: "arrow.down")
-                        .font(.system(size: 15, weight: .bold))
+                        .font(appearance.typography.swiftUIFont(size: 15, weight: .bold))
                         .foregroundStyle(premiumAccentColor)
                         .accessibilityHidden(true)
                     metricCard(
@@ -364,7 +365,7 @@ struct SubscriptionPaywallView: View {
                         isPremium: false
                     )
                     Image(systemName: "arrow.right")
-                        .font(.system(size: 15, weight: .bold))
+                        .font(appearance.typography.swiftUIFont(size: 15, weight: .bold))
                         .foregroundStyle(premiumAccentColor)
                         .accessibilityHidden(true)
                     metricCard(
@@ -391,7 +392,7 @@ struct SubscriptionPaywallView: View {
             HStack(spacing: 5) {
                 if isPremium {
                     Image(systemName: "sparkles")
-                        .font(.system(size: 13, weight: .semibold))
+                        .font(appearance.typography.swiftUIFont(size: 13, weight: .semibold))
                         .foregroundStyle(premiumAccentColor)
                         .accessibilityHidden(true)
                 }
@@ -463,8 +464,9 @@ struct SubscriptionPaywallView: View {
     ) -> some View {
         HStack(alignment: .top, spacing: 13) {
             Image(systemName: systemImage)
-                .font(.system(size: 17, weight: .semibold))
+                .font(appearance.typography.swiftUIFont(size: 17, weight: .semibold))
                 .foregroundStyle(premiumAccentColor)
+                .accessibilityHidden(true)
                 .frame(
                     width: Layout.benefitIconSize,
                     height: Layout.benefitIconSize

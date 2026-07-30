@@ -103,13 +103,18 @@
 "home.motivation_prompt.10" = "Beginne mit\neiner einfachen Wahl";
 "home.motivation_prompt.11" = "Zeit für\neinen Faktencheck";
 "home.motivation_prompt.12" = "Ein Quiz\nfür ein paar Minuten";
+"question.answered.correct" = "Richtig.";
+"question.answered.wrong_format" = "Falsch. Die richtige Antwort ist: %@.";
+"question.answered.wrong_unknown" = "Falsch.";
 "question.audio_load_failure" = "Audiodateien wurden nicht geladen";
 "question.exit_alert.message" = "Der Fortschritt dieser Runde geht verloren.";
 "question.exit_alert.title" = "Quiz verlassen?";
 "question.fallback_theme" = "Quiz";
+"question.load.announcement_format" = "%@. %@";
 "question.number_format" = "Frage Nr. %d";
 "question.show_explanation" = "Erklärung anzeigen";
 "question.show_question" = "Frage anzeigen";
+"question.tap_to_answer.accessibility_hint" = "Doppelt tippen, um diese Antwort auszuwählen.";
 "question.unavailable.message" = "Für dieses Thema gibt es noch keine verfügbaren Fragen. Gehe zurück und wähle ein anderes Thema.";
 "question.unavailable_answer" = "Nicht verfügbar";
 "question.unavailable_number" = "Fragen nicht verfügbar";
@@ -123,6 +128,7 @@
 "result.description.no_questions" = "In diesem Versuch waren keine Fragen verfügbar. Probiere ein anderes Thema.";
 "result.description.perfect_score" = "Legende, Genie, ganz leichter Sieg.";
 "result.description.very_low_score" = "Du solltest es definitiv noch einmal versuchen.";
+"result.announcement_format" = "Quiz beendet. Du hast %d von %d Fragen richtig beantwortet.";
 "result.play_again" = "Nochmal spielen";
 "result.to_themes" = "Thema wählen";
 "result.text_format" = "Dein Ergebnis:\n %d/%d";
