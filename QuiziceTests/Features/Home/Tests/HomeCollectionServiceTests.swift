@@ -270,7 +270,7 @@ final class HomeCollectionServiceTests: HomeScreenVisualStateTestCase {
         XCTAssertEqual(themeSize.width, 163)
         XCTAssertEqual(themeSize.height, 64)
         XCTAssertEqual(subscriptionSize.width, 342)
-        XCTAssertEqual(subscriptionSize.height, 90)
+        XCTAssertEqual(subscriptionSize.height, 72)
         XCTAssertEqual(aiThemeSize.width, 342)
         XCTAssertEqual(aiThemeSize.height, 72)
         XCTAssertEqual(feelingLuckySize.width, 342)
