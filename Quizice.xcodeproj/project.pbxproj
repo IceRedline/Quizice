@@ -304,6 +304,9 @@
 		9BB192ED7F004166BDB7F20D /* QuizQuestionViewController+Layout.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = "QuizQuestionViewController+Layout.swift"; sourceTree = "<group>"; };
 		9C83493B5946FF3E4A04293C /* QuizFactoryTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = QuizFactoryTests.swift; sourceTree = "<group>"; };
 		A10000030000000100000001 /* Quizice.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Quizice.entitlements; sourceTree = "<group>"; };
+		AAC0000000000000000000A1 /* Shared.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Shared.xcconfig; sourceTree = "<group>"; };
+		AAC0000000000000000000A2 /* Secrets.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Secrets.xcconfig; sourceTree = "<group>"; };
+		AAC0000000000000000000A3 /* Secrets.xcconfig.template */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Secrets.xcconfig.template; sourceTree = "<group>"; };
 		A1D1FF1C0A00000100000001 /* AIQuizDifficulty.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AIQuizDifficulty.swift; sourceTree = "<group>"; };
 		A20000022F80000100A20001 /* ru */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = ru; path = ru.lproj/InfoPlist.strings; sourceTree = "<group>"; };
 		A20000032F80000100A20001 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/InfoPlist.strings; sourceTree = "<group>"; };
@@ -835,10 +838,21 @@
 		993C1BA02D8D5E8900AD9BE4 = {
 			isa = PBXGroup;
 			children = (
+				AAC0000000000000000000A0 /* Configurations */,
 				993C1BCA2D8D5EC200AD9BE4 /* Quizice */,
 				99B400002E20000100B40001 /* QuiziceTests */,
 				993C1BAA2D8D5E8900AD9BE4 /* Products */,
 			);
+			sourceTree = "<group>";
+		};
+		AAC0000000000000000000A0 /* Configurations */ = {
+			isa = PBXGroup;
+			children = (
+				AAC0000000000000000000A1 /* Shared.xcconfig */,
+				AAC0000000000000000000A2 /* Secrets.xcconfig */,
+				AAC0000000000000000000A3 /* Secrets.xcconfig.template */,
+			);
+			path = Configurations;
 			sourceTree = "<group>";
 		};
 		993C1BAA2D8D5E8900AD9BE4 /* Products */ = {
@@ -1549,11 +1563,10 @@
 /* Begin XCBuildConfiguration section */
 		993C1BBD2D8D5E8A00AD9BE4 /* Debug */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = AAC0000000000000000000A1 /* Shared.xcconfig */;
 			buildSettings = {
-				APPMETRICA_API_KEY = "f86ee459-cc9e-4cbf-82cc-a3b614e80da7";
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
-				BACKEND_BASE_URL = "https://bbav8b1v6032q53l8360.containers.yandexcloud.net/api";
 				CODE_SIGN_ENTITLEMENTS = Quizice/Quizice.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
@@ -1584,11 +1597,10 @@
 		};
 		993C1BBE2D8D5E8A00AD9BE4 /* Release */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = AAC0000000000000000000A1 /* Shared.xcconfig */;
 			buildSettings = {
-				APPMETRICA_API_KEY = "f86ee459-cc9e-4cbf-82cc-a3b614e80da7";
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
-				BACKEND_BASE_URL = "https://bbav8b1v6032q53l8360.containers.yandexcloud.net/api";
 				CODE_SIGN_ENTITLEMENTS = Quizice/Quizice.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
@@ -1752,7 +1764,7 @@
 					"@loader_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = ru.avtabenskiy.QuiziceTests;
+				PRODUCT_BUNDLE_IDENTIFIER = ru.tabenskii.QuiziceTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
 				SUPPORTS_MACCATALYST = NO;
@@ -1779,7 +1791,7 @@
 					"@loader_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = ru.avtabenskiy.QuiziceTests;
+				PRODUCT_BUNDLE_IDENTIFIER = ru.tabenskii.QuiziceTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
 				SUPPORTS_MACCATALYST = NO;

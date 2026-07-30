@@ -55,6 +55,12 @@ final class ThemeCatalogRepository: ThemeRepository {
         }
     }
 
+    deinit {
+        if let localizationObserver {
+            NotificationCenter.default.removeObserver(localizationObserver)
+        }
+    }
+
     func setModelContext(_ context: ModelContext) {
         themeStore = SwiftDataThemeStore(context: context)
     }

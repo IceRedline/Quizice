@@ -36,6 +36,25 @@ maintenance benefit.
 - [Refactor report](docs/refactor-report.md)
 - [SwiftUI migration assessment](docs/swiftui-migration-assessment.md)
 
+## Build secrets
+
+Credentials that must not appear in source control live in
+`Configurations/Secrets.xcconfig`, which is git-ignored. Copy the template on
+first checkout:
+
+```bash
+cp Configurations/Secrets.xcconfig.template Configurations/Secrets.xcconfig
+# then fill in APPMETRICA_API_KEY and BACKEND_BASE_URL
+```
+
+Both variables are optional — an empty value or missing file lets Xcode build
+normally. Analytics stays disabled and the client falls back to bundled
+catalog data, which is what CI and offline previews rely on.
+
+`Configurations/Shared.xcconfig` is the base configuration for the app target
+and pulls in `Secrets.xcconfig` via an optional include; the project's build
+settings no longer carry those values directly.
+
 ## Yandex AppMetrica
 
 The app uses AppMetrica 6.4.0 for product analytics, sessions, crashes, and
@@ -44,9 +63,10 @@ profiles, and automatic revenue tracking are disabled.
 
 1. Register the iOS app in AppMetrica and copy its API key from
    **Settings → Main**.
-2. In Xcode, select the `Quizice` target and open **Build Settings**.
-3. Keep the user-defined `APPMETRICA_API_KEY` setting synchronized for Debug
-   and Release so local sessions and production sessions reach the same app.
+2. Paste the value into `APPMETRICA_API_KEY` in
+   `Configurations/Secrets.xcconfig` (see **Build secrets** above).
+3. Keep the same value for Debug and Release so local sessions and production
+   sessions reach the same app.
 
 The value is substituted into the `AppMetricaAPIKey` entry in `Info.plist`.
 An empty value or the placeholder leaves analytics disabled. XCTest and SwiftUI
@@ -69,9 +89,10 @@ AppMetrica cross-app tracking and does not request ATT permission.
 
 ## Production backend
 
-The app reads `BackendBaseURL` from the `BACKEND_BASE_URL` build setting. Debug
-can still opt into `http://localhost:8000/api` from the developer menu; normal
-Debug and Release builds use the deployed HTTPS API.
+The app reads `BackendBaseURL` from the `BACKEND_BASE_URL` build setting,
+which comes from `Configurations/Secrets.xcconfig` (see **Build secrets**).
+Debug can still opt into `http://localhost:8000/api` from the developer menu;
+normal Debug and Release builds use the deployed HTTPS API.
 
 Bundled localized quiz data remains the immediate offline fallback. The client
 refreshes localized theme metadata in the background and requests a seeded

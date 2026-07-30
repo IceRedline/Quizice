@@ -42,6 +42,11 @@ final class BackendAIQuizThemeService: AIQuizThemeServiceProtocol {
     private let requestTimeout: TimeInterval
     private let notificationCenter: NotificationCenter
 
+    // AI generation payloads hold N questions with capped prompt/answer lengths.
+    // Legitimate responses are at most a few kilobytes; refuse larger bodies
+    // before JSON decoding balloons memory or crashes on OOM.
+    private static let maxResponseBytes = 10 * 1024 * 1024
+
     init(
         configuration: BackendConfiguration,
         session: URLSession = .shared,
@@ -167,6 +172,15 @@ final class BackendAIQuizThemeService: AIQuizThemeServiceProtocol {
         guard let httpResponse = response as? HTTPURLResponse else {
             record(.transportError, startedAt: startedAt, responseBytes: data.count)
             throw YandexAIQuizThemeServiceError.invalidHTTPResponse
+        }
+        guard data.count <= Self.maxResponseBytes else {
+            record(
+                .contractError,
+                startedAt: startedAt,
+                statusCode: httpResponse.statusCode,
+                responseBytes: data.count
+            )
+            throw YandexAIQuizThemeServiceError.invalidResponseJSON
         }
         if httpResponse.statusCode == 401 {
             guard isCurrentAuthSession(authSession) else {

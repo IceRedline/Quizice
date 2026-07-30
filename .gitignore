@@ -175,3 +175,7 @@ vendor/
 coverage/
 .cache/
 tmp/
+
+# Local build secrets — copy Configurations/Secrets.xcconfig.template to
+# Configurations/Secrets.xcconfig and fill in the values. See README.
+Configurations/Secrets.xcconfig
