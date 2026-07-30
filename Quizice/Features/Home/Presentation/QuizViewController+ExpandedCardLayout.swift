@@ -1,7 +1,11 @@
 import UIKit
 
 extension QuizViewController {
-    func launchQuiz(themeID: String, questionCount: Int) {
+    func launchQuiz(
+        themeID: String,
+        questionCount: Int,
+        difficulty: AIQuizDifficulty
+    ) {
         guard
             !isQuizLaunchPending,
             session.chosenTheme?.themeID == themeID,
@@ -21,6 +25,7 @@ extension QuizViewController {
                 let preparedTheme = try await self.themeRepository.prepareQuiz(
                     themeID: themeID,
                     questionCount: questionCount,
+                    difficulty: difficulty,
                     locale: locale
                 )
                 try Task.checkCancellation()

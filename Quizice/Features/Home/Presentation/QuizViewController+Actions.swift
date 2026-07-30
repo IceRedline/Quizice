@@ -227,6 +227,7 @@ extension QuizViewController {
                     selectionMode: selectionMode,
                     localFallback: randomSelectionTheme,
                     questionCount: RandomQuizSelection.questionCount,
+                    difficulty: .medium,
                     locale: locale
                 )
                 await feedbackDelay
@@ -329,7 +330,11 @@ extension QuizViewController {
 
         case let .launch(themeID, questionCount):
             updateExpandedThemeCardParallaxPhase()
-            launchQuiz(themeID: themeID, questionCount: questionCount)
+            launchQuiz(
+                themeID: themeID,
+                questionCount: questionCount,
+                difficulty: homeCardState.selectedDifficulty
+            )
         }
     }
 

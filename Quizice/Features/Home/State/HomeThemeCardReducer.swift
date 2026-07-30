@@ -106,6 +106,7 @@ struct HomeThemeCardState: Equatable {
     fileprivate(set) var presentedCard: HomePresentedCard?
     fileprivate(set) var availableQuestionCounts: [Int] = []
     fileprivate(set) var selectedQuestionCount: Int?
+    fileprivate(set) var selectedDifficulty: AIQuizDifficulty = .medium
     fileprivate(set) var isFlipAllowed = false
 
     var themeID: String? {
@@ -160,6 +161,7 @@ enum HomeThemeCardAction: Equatable {
     case flipCompleted(HomeThemeCardFace)
     case closeRequested
     case collapseCompleted
+    case difficultySelected(AIQuizDifficulty)
     case questionCountSelected(Int)
     case startRequested
     case launchFailed
@@ -300,6 +302,16 @@ enum HomeThemeCardReducer {
         case .collapseCompleted:
             guard state.phase == .collapsing else { return nil }
             state = HomeThemeCardState()
+            return nil
+
+        case let .difficultySelected(difficulty):
+            guard
+                state.themeID != nil,
+                state.phase == .expandedBack
+            else {
+                return nil
+            }
+            state.selectedDifficulty = difficulty
             return nil
 
         case let .questionCountSelected(questionCount):

@@ -38,7 +38,7 @@ extension QuizQuestionViewController {
             ofSize: Typography.backendSourceFontSize,
             weight: .bold
         )
-        debugQuestionSourceLabel.textColor = .white
+        debugQuestionSourceLabel.textColor = AppAssetColor.white.uiColor
         debugQuestionSourceLabel.textAlignment = .center
         debugQuestionSourceLabel.layer.cornerRadius = 9
         debugQuestionSourceLabel.clipsToBounds = true
@@ -93,7 +93,9 @@ extension QuizQuestionViewController {
     func configureTimerViews() {
         timerContainerView = UIView()
         timerContainerView.accessibilityIdentifier = AccessibilityID.timerContainerView
-        timerContainerView.backgroundColor = UIColor.white.withAlphaComponent(Appearance.timerContainerBackgroundAlpha)
+        timerContainerView.backgroundColor = AppAssetColor.white.uiColor.withAlphaComponent(
+            Appearance.timerContainerBackgroundAlpha
+        )
         timerContainerView.layer.cornerRadius = Appearance.timerContainerCornerRadius
         timerContainerView.translatesAutoresizingMaskIntoConstraints = false
         
@@ -103,7 +105,9 @@ extension QuizQuestionViewController {
         timerBar.isAccessibilityElement = true
         timerBar.translatesAutoresizingMaskIntoConstraints = false
         setTimerBarColor(Appearance.timerActiveColor)
-        timerBar.trackTintColor = UIColor.white.withAlphaComponent(Appearance.timerTrackAlpha)
+        timerBar.trackTintColor = AppAssetColor.white.uiColor.withAlphaComponent(
+            Appearance.timerTrackAlpha
+        )
         timerBar.layer.cornerRadius = Appearance.timerBarCornerRadius
         timerBar.clipsToBounds = true
     }
@@ -386,7 +390,7 @@ extension QuizQuestionViewController {
     
     func makeLabel(font: UIFont) -> UILabel {
         let label = UILabel()
-        label.textColor = .white
+        label.textColor = AppAssetColor.white.uiColor
         label.font = font
         label.adjustsFontForContentSizeCategory = true
         label.textAlignment = .center
@@ -407,7 +411,9 @@ extension QuizQuestionViewController {
         button.backgroundColor = .defaultButton
         button.layer.cornerRadius = Appearance.answerCornerRadius
         button.layer.borderWidth = Appearance.answerBorderWidth
-        button.layer.borderColor = UIColor.white.withAlphaComponent(Appearance.answerBorderAlpha).cgColor
+        button.layer.borderColor = AppAssetColor.white.uiColor
+            .withAlphaComponent(Appearance.answerBorderAlpha)
+            .cgColor
         button.clipsToBounds = true
         button.translatesAutoresizingMaskIntoConstraints = false
         return button
@@ -418,14 +424,21 @@ extension QuizQuestionViewController {
         button.accessibilityIdentifier = accessibilityIdentifier
         button.setTitle(title, for: .normal)
         button.setTitleColor(.white, for: .normal)
-        button.setTitleColor(UIColor.white.withAlphaComponent(Appearance.disabledButtonTitleAlpha), for: .disabled)
+        button.setTitleColor(
+            AppAssetColor.white.uiColor.withAlphaComponent(Appearance.disabledButtonTitleAlpha),
+            for: .disabled
+        )
         button.titleLabel?.font = currentAppearance().typography.font(size: Typography.actionButtonFontSize, weight: .semibold)
         button.titleLabel?.adjustsFontForContentSizeCategory = true
-        button.backgroundColor = UIColor.white.withAlphaComponent(style.backgroundAlpha)
+        button.backgroundColor = AppAssetColor.white.uiColor.withAlphaComponent(
+            style.backgroundAlpha
+        )
         button.layer.cornerRadius = style.cornerRadius
         button.layer.borderWidth = Appearance.actionButtonBorderWidth
-        button.layer.borderColor = UIColor.white.withAlphaComponent(style.borderAlpha).cgColor
-        button.layer.shadowColor = UIColor.black.cgColor
+        button.layer.borderColor = AppAssetColor.white.uiColor
+            .withAlphaComponent(style.borderAlpha)
+            .cgColor
+        button.layer.shadowColor = AppAssetColor.black.uiColor.cgColor
         button.layer.shadowOpacity = style.shadowOpacity
         button.layer.shadowRadius = Appearance.actionButtonShadowRadius
         button.layer.shadowOffset = Appearance.actionButtonShadowOffset
