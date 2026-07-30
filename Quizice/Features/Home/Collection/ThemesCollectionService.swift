@@ -10,7 +10,7 @@ final class ThemesCollectionService: NSObject, UICollectionViewDelegate, UIColle
         static let aiThemeAccessibilityID = "homeCreateWithAIButton"
         static let aiThemeTextStackAccessibilityID = "homeCreateWithAITextStack"
         static let aiThemeTitleAccessibilityID = "homeCreateWithAITitle"
-        static let aiThemePlusBadgeAccessibilityID = "homeCreateWithAIPlusBadge"
+        static let aiThemeBadgeAccessibilityID = "homeCreateWithAIBadge"
         static let aiThemeSubtitleAccessibilityID = "homeCreateWithAISubtitle"
         static let aiThemeGradientBorderAccessibilityID = "homeCreateWithAIGradientBorder"
         static let feelingLuckyAccessibilityID = "homeFeelingLuckyButton"
@@ -72,7 +72,7 @@ final class ThemesCollectionService: NSObject, UICollectionViewDelegate, UIColle
         static let luckyFontSize: CGFloat = 19
         static let aiThemeTitleFontSize: CGFloat = 18
         static let aiThemeSubtitleFontSize: CGFloat = 12
-        static let plusBadgeFontSize: CGFloat = 11
+        static let aiThemeBadgeFontSize: CGFloat = 11
     }
 
     weak var delegate: ThemeCollectionDelegate?
@@ -107,8 +107,11 @@ final class ThemesCollectionService: NSObject, UICollectionViewDelegate, UIColle
 
     private let themeRepository: ThemeRepository
     private let statisticsStore: StatisticsStore
+    private let subscriptionEntitlementProvider: SubscriptionEntitlementProviding
     private let preferredThemeIDsProvider: () -> [String]?
     private let appearanceStore = AppAppearanceStore.shared
+    private var hasActivePlusSubscription: Bool
+    private var subscriptionEntitlementObserver: NSObjectProtocol?
     weak var observedCollectionView: UICollectionView?
     private weak var themeItemsCollectionView: UICollectionView?
     private weak var moreThemesButton: MoreThemesFadeButton?
@@ -178,15 +181,27 @@ final class ThemesCollectionService: NSObject, UICollectionViewDelegate, UIColle
     }
 
     private let themesViewportIndex = 0
-    private let subscriptionPromoIndex = 1
-    private let aiThemeIndex = 2
-    private let feelingLuckyIndex = 3
-    private let statisticsIndex = 4
-    private let outerItemCount = 5
+    private var subscriptionPromoIndex: Int? {
+        hasActivePlusSubscription ? nil : 1
+    }
+    private var aiThemeIndex: Int {
+        hasActivePlusSubscription ? 1 : 2
+    }
+    private var feelingLuckyIndex: Int {
+        hasActivePlusSubscription ? 2 : 3
+    }
+    private var statisticsIndex: Int {
+        hasActivePlusSubscription ? 3 : 4
+    }
+    private var outerItemCount: Int {
+        hasActivePlusSubscription ? 4 : 5
+    }
 
     init(
         themeRepository: ThemeRepository = QuizFactory.shared,
         statisticsStore: StatisticsStore = StatisticsStore(),
+        subscriptionEntitlementProvider: SubscriptionEntitlementProviding =
+            SubscriptionEntitlementStore.shared,
         preferredThemeIDsProvider: @escaping () -> [String]? = {
             OnboardingProgressStore.shared.storedPreferredThemeIDs(
                 locale: AppLocalizationStore.shared.resolvedLanguageCode
@@ -195,12 +210,38 @@ final class ThemesCollectionService: NSObject, UICollectionViewDelegate, UIColle
     ) {
         self.themeRepository = themeRepository
         self.statisticsStore = statisticsStore
+        self.subscriptionEntitlementProvider = subscriptionEntitlementProvider
+        self.hasActivePlusSubscription =
+            subscriptionEntitlementProvider.hasActivePlusSubscription
         self.preferredThemeIDsProvider = preferredThemeIDsProvider
         super.init()
+        subscriptionEntitlementObserver = NotificationCenter.default.addObserver(
+            forName: .subscriptionEntitlementDidChange,
+            object: subscriptionEntitlementProvider,
+            queue: .main
+        ) { [weak self] _ in
+            self?.refreshSubscriptionEntitlement()
+        }
+    }
+
+    deinit {
+        if let subscriptionEntitlementObserver {
+            NotificationCenter.default.removeObserver(subscriptionEntitlementObserver)
+        }
     }
 
     func refreshStatistics() {
         reconfigureStatisticsCell()
+    }
+
+    private func refreshSubscriptionEntitlement() {
+        let newValue = subscriptionEntitlementProvider.hasActivePlusSubscription
+        guard hasActivePlusSubscription != newValue else { return }
+        hasActivePlusSubscription = newValue
+
+        guard let collectionView = observedCollectionView else { return }
+        collectionView.reloadData()
+        collectionView.collectionViewLayout.invalidateLayout()
     }
 
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
@@ -257,7 +298,7 @@ final class ThemesCollectionService: NSObject, UICollectionViewDelegate, UIColle
             return cell
         }
 
-        if indexPath.item == subscriptionPromoIndex {
+        if let subscriptionPromoIndex, indexPath.item == subscriptionPromoIndex {
             guard let cell = collectionView.dequeueReusableCell(
                 withReuseIdentifier: SubscriptionPromoBannerCollectionViewCell.reuseIdentifier,
                 for: indexPath
@@ -358,7 +399,7 @@ final class ThemesCollectionService: NSObject, UICollectionViewDelegate, UIColle
             )
         }
 
-        if indexPath.item == subscriptionPromoIndex {
+        if let subscriptionPromoIndex, indexPath.item == subscriptionPromoIndex {
             let height = collectionView.traitCollection.preferredContentSizeCategory
                 .isAccessibilityCategory
                 ? Layout.accessibilitySubscriptionPromoHeight
@@ -451,9 +492,11 @@ final class ThemesCollectionService: NSObject, UICollectionViewDelegate, UIColle
             .preferredContentSizeCategory
             .isAccessibilityCategory
         let fixedOuterContentHeight =
-            (usesAccessibilityLayout
-                ? Layout.accessibilitySubscriptionPromoHeight
-                : Layout.subscriptionPromoHeight)
+            (hasActivePlusSubscription
+                ? 0
+                : usesAccessibilityLayout
+                    ? Layout.accessibilitySubscriptionPromoHeight
+                    : Layout.subscriptionPromoHeight)
             + (usesAccessibilityLayout
                 ? Layout.accessibilityAIThemeButtonHeight
                 : Layout.aiThemeButtonHeight)
@@ -597,7 +640,7 @@ final class ThemesCollectionService: NSObject, UICollectionViewDelegate, UIColle
         textStack.isUserInteractionEnabled = false
         textStack.translatesAutoresizingMaskIntoConstraints = false
 
-        let plusBadge = InsetLabel(
+        let tierBadge = InsetLabel(
             contentInsets: UIEdgeInsets(
                 top: Layout.aiThemeBadgeVerticalInset,
                 left: Layout.aiThemeBadgeHorizontalInset,
@@ -605,28 +648,43 @@ final class ThemesCollectionService: NSObject, UICollectionViewDelegate, UIColle
                 right: Layout.aiThemeBadgeHorizontalInset
             )
         )
-        plusBadge.accessibilityIdentifier = Content.aiThemePlusBadgeAccessibilityID
-        plusBadge.text = L10n.Subscription.plus.uppercased(
+        tierBadge.accessibilityIdentifier = Content.aiThemeBadgeAccessibilityID
+        tierBadge.text = (
+            hasActivePlusSubscription
+                ? L10n.Subscription.plus
+                : L10n.Subscription.freeBadge
+        ).uppercased(
             with: AppLocalizationStore.shared.resolvedLocale
         )
-        plusBadge.textColor = appearance.screenTextColor
-        plusBadge.font = appearance.typography.font(
-            size: Appearance.plusBadgeFontSize,
+        let tierBadgeAccentColor = appearance.designStyle == .radar
+            ? appearance.accentColor
+            : AIThemeVisualStyle.accentColor
+        tierBadge.textColor = hasActivePlusSubscription
+            ? tierBadgeAccentColor
+            : appearance.screenTextColor
+        tierBadge.font = appearance.typography.font(
+            size: Appearance.aiThemeBadgeFontSize,
             weight: .bold
         )
-        plusBadge.adjustsFontForContentSizeCategory = true
-        plusBadge.textAlignment = .center
-        plusBadge.backgroundColor = appearance.screenTextColor.withAlphaComponent(
-            Appearance.aiThemeBadgeBackgroundAlpha
-        )
-        plusBadge.layer.cornerRadius = Appearance.aiThemeBadgeCornerRadius
-        plusBadge.layer.borderWidth = Appearance.buttonBorderWidth
-        plusBadge.layer.borderColor = appearance.screenTextColor.withAlphaComponent(
+        tierBadge.adjustsFontForContentSizeCategory = true
+        tierBadge.textAlignment = .center
+        tierBadge.backgroundColor = (
+            hasActivePlusSubscription
+                ? tierBadgeAccentColor
+                : appearance.screenTextColor
+        ).withAlphaComponent(Appearance.aiThemeBadgeBackgroundAlpha)
+        tierBadge.layer.cornerRadius = Appearance.aiThemeBadgeCornerRadius
+        tierBadge.layer.borderWidth = Appearance.buttonBorderWidth
+        tierBadge.layer.borderColor = (
+            hasActivePlusSubscription
+                ? tierBadgeAccentColor
+                : appearance.screenTextColor
+        ).withAlphaComponent(
             Appearance.aiThemeBadgeBorderAlpha
         ).cgColor
-        plusBadge.clipsToBounds = true
-        plusBadge.isUserInteractionEnabled = false
-        plusBadge.translatesAutoresizingMaskIntoConstraints = false
+        tierBadge.clipsToBounds = true
+        tierBadge.isUserInteractionEnabled = false
+        tierBadge.translatesAutoresizingMaskIntoConstraints = false
 
         pin(button, to: cell.contentView)
         cell.contentView.layoutIfNeeded()
@@ -634,7 +692,7 @@ final class ThemesCollectionService: NSObject, UICollectionViewDelegate, UIColle
         button.setTitle(nil, for: .normal)
         button.addSubview(textStack)
         if !usesAccessibilityLayout {
-            button.addSubview(plusBadge)
+            button.addSubview(tierBadge)
         }
         let gradientBorderView: GradientBorderView?
         if appearance.designStyle == .radar {
@@ -671,16 +729,16 @@ final class ThemesCollectionService: NSObject, UICollectionViewDelegate, UIColle
             )
         } else {
             contentConstraints.append(contentsOf: [
-                plusBadge.leadingAnchor.constraint(
+                tierBadge.leadingAnchor.constraint(
                     greaterThanOrEqualTo: textStack.trailingAnchor,
                     constant: Layout.aiThemeContentTrailingSpacing
                 ),
-                plusBadge.trailingAnchor.constraint(
+                tierBadge.trailingAnchor.constraint(
                     equalTo: button.trailingAnchor,
                     constant: -Layout.aiThemeBadgeTrailingInset
                 ),
-                plusBadge.centerYAnchor.constraint(equalTo: button.centerYAnchor),
-                plusBadge.widthAnchor.constraint(
+                tierBadge.centerYAnchor.constraint(equalTo: button.centerYAnchor),
+                tierBadge.widthAnchor.constraint(
                     greaterThanOrEqualToConstant: Layout.aiThemeBadgeMinimumWidth
                 )
             ])

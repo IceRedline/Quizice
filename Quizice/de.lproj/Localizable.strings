@@ -133,6 +133,8 @@
 "debug_menu.section.tools" = "Werkzeuge";
 "debug_menu.hide_interface" = "App-Oberfläche ausblenden";
 "debug_menu.hide_interface.subtitle" = "Die Einstellungstaste bleibt verfügbar";
+"debug_menu.subscription_active" = "Abonnement aktiv";
+"debug_menu.subscription_active.subtitle" = "Simuliert ein aktives Quizice-Plus-Abonnement";
 "debug_menu.pulse" = "Pulse";
 "debug_menu.pulse.subtitle" = "URLSession-Anfragen und -Antworten prüfen";
 "settings.alert.action" = "Verstanden";
@@ -189,7 +191,7 @@
 "subscription.ai_card.accessibility_hint" = "Öffnet die Vorschau von Quizice Plus";
 "subscription.ai_card.subtitle" = "20-faches KI-Monatslimit";
 "subscription.ai_card.title" = "Du brauchst mehr als 5 Fragen?";
-"subscription.badge.free" = "5 kostenlos";
+"subscription.badge.free" = "FREE";
 "subscription.home.accessibility_hint" = "Öffnet die Vorschau von Quizice Plus";
 "subscription.home.price_badge" = "Vorschau · 1,99 $/Monat";
 "subscription.home.subtitle" = "Mehr KI-Generierungen jeden Monat";

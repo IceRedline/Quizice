@@ -133,6 +133,8 @@
 "debug_menu.section.tools" = "Outils";
 "debug_menu.hide_interface" = "Masquer l’interface";
 "debug_menu.hide_interface.subtitle" = "Le bouton des réglages reste disponible";
+"debug_menu.subscription_active" = "Abonnement actif";
+"debug_menu.subscription_active.subtitle" = "Simule un abonnement Quizice Plus actif";
 "debug_menu.pulse" = "Pulse";
 "debug_menu.pulse.subtitle" = "Inspecter les requêtes et réponses URLSession";
 "settings.alert.action" = "Compris";
@@ -189,7 +191,7 @@
 "subscription.ai_card.accessibility_hint" = "Ouvre l’aperçu de Quizice Plus";
 "subscription.ai_card.subtitle" = "Limite IA mensuelle ×20";
 "subscription.ai_card.title" = "Besoin de plus de 5 questions ?";
-"subscription.badge.free" = "5 gratuites";
+"subscription.badge.free" = "FREE";
 "subscription.home.accessibility_hint" = "Ouvre l’aperçu de Quizice Plus";
 "subscription.home.price_badge" = "Aperçu · 1,99 $/mois";
 "subscription.home.subtitle" = "Plus de générations IA chaque mois";

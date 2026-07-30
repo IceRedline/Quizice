@@ -1,5 +1,93 @@
 import Foundation
+import StoreKit
 import SwiftUI
+
+extension Notification.Name {
+    static let subscriptionEntitlementDidChange = Notification.Name(
+        "ru.avtabenskiy.Quizice.subscriptionEntitlementDidChange"
+    )
+}
+
+protocol SubscriptionEntitlementProviding: AnyObject {
+    var hasActivePlusSubscription: Bool { get }
+}
+
+final class SubscriptionEntitlementStore: SubscriptionEntitlementProviding, @unchecked Sendable {
+    static let plusMonthlyProductID = "quizice.plus.monthly"
+    static let shared = SubscriptionEntitlementStore()
+#if DEBUG
+    static let debugSubscriptionActiveKey = "quizice.debug.subscription.active"
+#endif
+
+    private let lock = NSLock()
+    private var storeKitHasActivePlus = false
+#if DEBUG
+    private var debugHasActivePlus = UserDefaults.standard.bool(
+        forKey: debugSubscriptionActiveKey
+    )
+#endif
+    private var updatesTask: Task<Void, Never>?
+
+    var hasActivePlusSubscription: Bool {
+        lock.withLock { resolvedHasActivePlus }
+    }
+
+    private init() {
+        updatesTask = Task { [weak self] in
+            await self?.refresh()
+            for await _ in Transaction.updates {
+                await self?.refresh()
+            }
+        }
+    }
+
+    deinit {
+        updatesTask?.cancel()
+    }
+
+    private func refresh() async {
+        var isActive = false
+        let now = Date()
+
+        for await result in Transaction.currentEntitlements {
+            guard case let .verified(transaction) = result else { continue }
+            guard transaction.productID == Self.plusMonthlyProductID else { continue }
+            guard transaction.revocationDate == nil else { continue }
+            guard transaction.expirationDate.map({ $0 > now }) ?? true else { continue }
+            isActive = true
+            break
+        }
+
+        let didChange = lock.withLock {
+            let previousValue = resolvedHasActivePlus
+            storeKitHasActivePlus = isActive
+            return previousValue != resolvedHasActivePlus
+        }
+        guard didChange else { return }
+        NotificationCenter.default.post(name: .subscriptionEntitlementDidChange, object: self)
+    }
+
+    private var resolvedHasActivePlus: Bool {
+#if DEBUG
+        debugHasActivePlus
+#else
+        storeKitHasActivePlus
+#endif
+    }
+
+#if DEBUG
+    func setDebugSubscriptionActive(_ isActive: Bool) {
+        let didChange = lock.withLock {
+            guard debugHasActivePlus != isActive else { return false }
+            debugHasActivePlus = isActive
+            return true
+        }
+        guard didChange else { return }
+        UserDefaults.standard.set(isActive, forKey: Self.debugSubscriptionActiveKey)
+        NotificationCenter.default.post(name: .subscriptionEntitlementDidChange, object: self)
+    }
+#endif
+}
 
 struct SubscriptionOffer: Equatable {
     let productID: String
@@ -19,7 +107,7 @@ struct SubscriptionOffer: Equatable {
         formatter.maximumFractionDigits = 2
 
         return SubscriptionOffer(
-            productID: "quizice.plus.monthly",
+            productID: SubscriptionEntitlementStore.plusMonthlyProductID,
             displayPrice: formatter.string(
                 from: NSDecimalNumber(string: "1.99")
             ) ?? "$1.99",
@@ -57,9 +145,9 @@ struct SubscriptionPaywallView: View {
     }
 
     private enum Palette {
-        static let gradientPink = Color(uiColor: UIColor(hex: 0xFF4FD8))
-        static let gradientBlue = Color(uiColor: UIColor(hex: 0x36A3FF))
-        static let classicAccent = Color(uiColor: UIColor(hex: 0xF08ACF))
+        static let gradientPink = Color(uiColor: AIThemeVisualStyle.gradientStartColor)
+        static let gradientBlue = Color(uiColor: AIThemeVisualStyle.gradientEndColor)
+        static let accent = Color(uiColor: AIThemeVisualStyle.accentColor)
     }
 
     @Environment(\.dismiss) private var dismiss
@@ -551,7 +639,7 @@ struct SubscriptionPaywallView: View {
     private var premiumAccentColor: Color {
         appearance.designStyle == .radar
             ? Color(uiColor: appearance.accentColor)
-            : Palette.classicAccent
+            : Palette.accent
     }
 
     private var primaryButtonTextColor: Color {

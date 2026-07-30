@@ -25,16 +25,11 @@ final class SubscriptionPromoBannerCollectionViewCell: UICollectionViewCell {
         static let subtitleSize: CGFloat = 13
     }
 
-    private enum Palette {
-        static let gradientPink = UIColor(hex: 0xFF4FD8)
-        static let gradientBlue = UIColor(hex: 0x36A3FF)
-    }
-
     let actionButton = UIButton(type: .custom)
 
     private let gradientBackdropView = SubscriptionPromoGradientView()
     private let gradientBorderView = GradientBorderView(
-        colors: [Palette.gradientPink, Palette.gradientBlue],
+        colors: AIThemeVisualStyle.gradientColors,
         lineWidth: 1.6
     )
     private let cardMaskLayer = CAShapeLayer()
@@ -148,10 +143,10 @@ final class SubscriptionPromoBannerCollectionViewCell: UICollectionViewCell {
             )
 
         case .clean, .classic:
-            premiumAccent = Palette.gradientBlue
+            premiumAccent = AIThemeVisualStyle.accentColor
             gradientBackdropView.colors = [
-                Palette.gradientPink.withAlphaComponent(0.10),
-                Palette.gradientBlue.withAlphaComponent(0.12)
+                AIThemeVisualStyle.gradientStartColor.withAlphaComponent(0.10),
+                AIThemeVisualStyle.gradientEndColor.withAlphaComponent(0.12)
             ]
             gradientBorderView.isHidden = false
             applyShadow(.none)
