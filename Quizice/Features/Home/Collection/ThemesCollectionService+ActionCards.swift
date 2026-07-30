@@ -227,7 +227,9 @@ extension ThemesCollectionService {
         button.isEnabled = !isAIThemePresented
         button.isAccessibilityElement = !isAIThemePresented
         button.accessibilityElementsHidden = isAIThemePresented
-        button.accessibilityValue = L10n.Subscription.aiCardSubtitle
+        button.accessibilityValue = hasActivePlusSubscription
+            ? L10n.Subscription.aiCardSubtitle
+            : nil
         button.layer.borderWidth = 0
         button.layer.borderColor = UIColor.clear.cgColor
         let aiThemeCornerRadius = Layout.aiThemeButtonHeight / 2
@@ -257,6 +259,7 @@ extension ThemesCollectionService {
         subtitleLabel.adjustsFontForContentSizeCategory = true
         subtitleLabel.numberOfLines = 2
         subtitleLabel.lineBreakMode = .byWordWrapping
+        subtitleLabel.isHidden = !hasActivePlusSubscription
         subtitleLabel.isUserInteractionEnabled = false
 
         let textStack = UIStackView(arrangedSubviews: [titleLabel, subtitleLabel])
