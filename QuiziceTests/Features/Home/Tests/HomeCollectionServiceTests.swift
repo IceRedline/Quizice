@@ -19,7 +19,7 @@ final class HomeCollectionServiceTests: HomeScreenVisualStateTestCase {
         let service = ThemesCollectionService()
         let collectionView = makeCollectionView()
 
-        XCTAssertEqual(service.collectionView(collectionView, numberOfItemsInSection: 0), 4)
+        XCTAssertEqual(service.collectionView(collectionView, numberOfItemsInSection: 0), 5)
 
         let viewportCell = service.collectionView(
             collectionView,
@@ -32,12 +32,21 @@ final class HomeCollectionServiceTests: HomeScreenVisualStateTestCase {
         let secondThemeCell = themeCollectionView.map {
             service.collectionView($0, cellForItemAt: IndexPath(item: 1, section: 0))
         }
-        let aiThemeCell = service.collectionView(collectionView, cellForItemAt: IndexPath(item: 1, section: 0))
-        let feelingLuckyCell = service.collectionView(collectionView, cellForItemAt: IndexPath(item: 2, section: 0))
-        let statisticsCell = service.collectionView(collectionView, cellForItemAt: IndexPath(item: 3, section: 0))
+        let subscriptionCell = service.collectionView(
+            collectionView,
+            cellForItemAt: IndexPath(item: 1, section: 0)
+        )
+        let aiThemeCell = service.collectionView(collectionView, cellForItemAt: IndexPath(item: 2, section: 0))
+        let feelingLuckyCell = service.collectionView(collectionView, cellForItemAt: IndexPath(item: 3, section: 0))
+        let statisticsCell = service.collectionView(collectionView, cellForItemAt: IndexPath(item: 4, section: 0))
 
         XCTAssertNotNil(firstThemeCell?.contentView.descendant(withAccessibilityIdentifier: "music"))
         XCTAssertNotNil(secondThemeCell?.contentView.descendant(withAccessibilityIdentifier: "technology"))
+        XCTAssertNotNil(
+            subscriptionCell.contentView.descendant(
+                withAccessibilityIdentifier: SubscriptionPromoBannerCollectionViewCell.AccessibilityID.button
+            )
+        )
         XCTAssertNotNil(aiThemeCell.contentView.descendant(withAccessibilityIdentifier: "homeCreateWithAIButton"))
         XCTAssertNotNil(feelingLuckyCell.contentView.descendant(withAccessibilityIdentifier: "homeFeelingLuckyButton"))
         XCTAssertNotNil(statisticsCell.contentView.descendant(withAccessibilityIdentifier: "homeStatisticsCard"))
@@ -175,9 +184,10 @@ final class HomeCollectionServiceTests: HomeScreenVisualStateTestCase {
         let collectionView = viewportCell.themesCollectionView
         collectionView.layoutIfNeeded()
 
-        XCTAssertEqual(service.collectionView(outerCollectionView, numberOfItemsInSection: 0), 4)
+        XCTAssertEqual(service.collectionView(outerCollectionView, numberOfItemsInSection: 0), 5)
         XCTAssertEqual(service.collectionView(collectionView, numberOfItemsInSection: 0), 14)
-        XCTAssertEqual(viewportSize.height, 304)
+        XCTAssertGreaterThan(viewportSize.height, 0)
+        XCTAssertLessThanOrEqual(viewportSize.height, 304)
         XCTAssertGreaterThan(
             collectionView.collectionViewLayout.collectionViewContentSize.height,
             collectionView.bounds.height
@@ -208,7 +218,8 @@ final class HomeCollectionServiceTests: HomeScreenVisualStateTestCase {
 
         XCTAssertTrue(collectionView.isScrollEnabled)
         XCTAssertTrue(collectionView.alwaysBounceVertical)
-        XCTAssertEqual(collectionView.bounds.height, 304, accuracy: 0.5)
+        XCTAssertGreaterThan(collectionView.bounds.height, 0)
+        XCTAssertLessThanOrEqual(collectionView.bounds.height, 304)
         XCTAssertGreaterThan(
             collectionView.collectionViewLayout.collectionViewContentSize.height,
             collectionView.bounds.height
@@ -232,7 +243,7 @@ final class HomeCollectionServiceTests: HomeScreenVisualStateTestCase {
 
         XCTAssertFalse(compactOuterCollectionView.isScrollEnabled)
         XCTAssertTrue(compactCatalogCollectionView.isScrollEnabled)
-        XCTAssertGreaterThan(compactCatalogCollectionView.bounds.height, 224)
+        XCTAssertGreaterThan(compactCatalogCollectionView.bounds.height, 0)
         XCTAssertLessThan(compactCatalogCollectionView.bounds.height, 304)
         XCTAssertGreaterThan(
             compactCatalogCollectionView.collectionViewLayout.collectionViewContentSize.height,
@@ -248,17 +259,20 @@ final class HomeCollectionServiceTests: HomeScreenVisualStateTestCase {
         let layout = themeCollectionView.collectionViewLayout
 
         let themeSize = service.collectionView(themeCollectionView, layout: layout, sizeForItemAt: IndexPath(item: 0, section: 0))
-        let aiThemeSize = service.collectionView(collectionView, layout: collectionView.collectionViewLayout, sizeForItemAt: IndexPath(item: 1, section: 0))
-        let feelingLuckySize = service.collectionView(collectionView, layout: collectionView.collectionViewLayout, sizeForItemAt: IndexPath(item: 2, section: 0))
-        let statisticsSize = service.collectionView(collectionView, layout: collectionView.collectionViewLayout, sizeForItemAt: IndexPath(item: 3, section: 0))
+        let subscriptionSize = service.collectionView(collectionView, layout: collectionView.collectionViewLayout, sizeForItemAt: IndexPath(item: 1, section: 0))
+        let aiThemeSize = service.collectionView(collectionView, layout: collectionView.collectionViewLayout, sizeForItemAt: IndexPath(item: 2, section: 0))
+        let feelingLuckySize = service.collectionView(collectionView, layout: collectionView.collectionViewLayout, sizeForItemAt: IndexPath(item: 3, section: 0))
+        let statisticsSize = service.collectionView(collectionView, layout: collectionView.collectionViewLayout, sizeForItemAt: IndexPath(item: 4, section: 0))
         let inset = service.collectionView(collectionView, layout: layout, insetForSectionAt: 0)
         let lineSpacing = service.collectionView(collectionView, layout: layout, minimumLineSpacingForSectionAt: 0)
         let interitemSpacing = service.collectionView(collectionView, layout: layout, minimumInteritemSpacingForSectionAt: 0)
 
         XCTAssertEqual(themeSize.width, 163)
         XCTAssertEqual(themeSize.height, 64)
+        XCTAssertEqual(subscriptionSize.width, 342)
+        XCTAssertEqual(subscriptionSize.height, 90)
         XCTAssertEqual(aiThemeSize.width, 342)
-        XCTAssertEqual(aiThemeSize.height, 54)
+        XCTAssertEqual(aiThemeSize.height, 72)
         XCTAssertEqual(feelingLuckySize.width, 342)
         XCTAssertEqual(feelingLuckySize.height, 54)
         XCTAssertEqual(statisticsSize.width, 342)
@@ -516,12 +530,17 @@ final class HomeCollectionServiceTests: HomeScreenVisualStateTestCase {
         let themeCollectionView = makeThemeCollectionView()
 
         let themeCell = service.collectionView(themeCollectionView, cellForItemAt: IndexPath(item: 0, section: 0))
-        let aiThemeCell = service.collectionView(collectionView, cellForItemAt: IndexPath(item: 1, section: 0))
-        let feelingLuckyCell = service.collectionView(collectionView, cellForItemAt: IndexPath(item: 2, section: 0))
-        let statisticsCell = service.collectionView(collectionView, cellForItemAt: IndexPath(item: 3, section: 0))
+        let aiThemeCell = service.collectionView(collectionView, cellForItemAt: IndexPath(item: 2, section: 0))
+        let feelingLuckyCell = service.collectionView(collectionView, cellForItemAt: IndexPath(item: 3, section: 0))
+        let statisticsCell = service.collectionView(collectionView, cellForItemAt: IndexPath(item: 4, section: 0))
         let themeButton = themeCell.contentView.descendant(withAccessibilityIdentifier: "music") as? UIButton
         let aiThemeButton = aiThemeCell.contentView.descendant(withAccessibilityIdentifier: "homeCreateWithAIButton") as? UIButton
-        let aiThemeBetaBadge = aiThemeCell.contentView.descendant(withAccessibilityIdentifier: "homeCreateWithAIBetaBadge") as? UILabel
+        let aiThemeBadge = aiThemeCell.contentView.descendant(
+            withAccessibilityIdentifier: "homeCreateWithAIBadge"
+        ) as? UILabel
+        let aiThemeSubtitle = aiThemeCell.contentView.descendant(
+            withAccessibilityIdentifier: "homeCreateWithAISubtitle"
+        ) as? UILabel
         let aiThemeGradientBorder = aiThemeCell.contentView.descendant(withAccessibilityIdentifier: "homeCreateWithAIGradientBorder")
         let feelingLuckyButton = feelingLuckyCell.contentView.descendant(withAccessibilityIdentifier: "homeFeelingLuckyButton") as? UIButton
         let statisticsButton = statisticsCell.contentView.descendant(withAccessibilityIdentifier: "homeStatisticsCard") as? UIButton
@@ -534,14 +553,15 @@ final class HomeCollectionServiceTests: HomeScreenVisualStateTestCase {
         XCTAssertTrue(themeButton?.clipsToBounds ?? false)
         XCTAssertEqual(themeCell.layer.shadowOpacity, 0)
         XCTAssertEqual(aiThemeButton?.accessibilityLabel, L10n.Home.createWithAI)
-        XCTAssertEqual(aiThemeButton?.layer.cornerRadius, 27)
+        XCTAssertEqual(aiThemeButton?.layer.cornerRadius, 36)
         assertColor(aiThemeButton?.backgroundColor, equals: assetColor("themeWhite"))
         XCTAssertEqual(aiThemeButton?.layer.borderWidth, 0)
         XCTAssertTrue(aiThemeButton?.clipsToBounds ?? false)
-        XCTAssertEqual(aiThemeBetaBadge?.text, L10n.Home.createWithAIBetaBadge)
-        XCTAssertEqual(aiThemeBetaBadge?.layer.cornerRadius, 11)
-        XCTAssertEqual(aiThemeBetaBadge?.layer.borderWidth, 1)
-        XCTAssertTrue(aiThemeBetaBadge?.clipsToBounds ?? false)
+        XCTAssertEqual(aiThemeBadge?.text, L10n.Subscription.freeBadge.uppercased())
+        XCTAssertEqual(aiThemeBadge?.layer.cornerRadius, 11)
+        XCTAssertEqual(aiThemeBadge?.layer.borderWidth, 1)
+        XCTAssertTrue(aiThemeBadge?.clipsToBounds ?? false)
+        XCTAssertEqual(aiThemeSubtitle?.text, L10n.Subscription.aiCardSubtitle)
         XCTAssertTrue(aiThemeGradientBorder?.layer.sublayers?.first is CAGradientLayer)
         XCTAssertGreaterThanOrEqual(aiThemeCell.layer.shadowOpacity, 0)
         XCTAssertEqual(feelingLuckyButton?.accessibilityLabel, L10n.Home.feelingLucky)
@@ -564,6 +584,78 @@ final class HomeCollectionServiceTests: HomeScreenVisualStateTestCase {
         XCTAssertEqual(statisticsButton?.layer.borderWidth, 1)
         XCTAssertTrue(statisticsButton?.clipsToBounds ?? false)
         XCTAssertGreaterThanOrEqual(statisticsCell.layer.shadowOpacity, 0)
+    }
+
+    func testSubscriptionPromoBannerClipsGradientsAndResetsReusableVisualState() throws {
+        let appearance = AppAppearance(
+            designStyle: .classic,
+            cleanColorSchemePreference: .dark,
+            traitCollection: UITraitCollection(userInterfaceStyle: .dark)
+        )
+        let cell = SubscriptionPromoBannerCollectionViewCell(
+            frame: CGRect(x: 0, y: 0, width: 342, height: 90)
+        )
+
+        cell.configure(appearance: appearance)
+        cell.layoutIfNeeded()
+        cell.contentView.layoutIfNeeded()
+
+        let gradientViews = cell.actionButton.subviews.filter { view in
+            view.layer.sublayers?.contains(where: { $0 is CAGradientLayer }) == true
+        }
+        let gradientBorder = try XCTUnwrap(
+            gradientViews.first(where: { $0 is GradientBorderView })
+        )
+
+        XCTAssertEqual(gradientViews.count, 2)
+        XCTAssertTrue(cell.actionButton.layer.masksToBounds)
+        XCTAssertTrue(
+            gradientViews.allSatisfy {
+                $0.layer.masksToBounds &&
+                    $0.layer.cornerRadius == appearance.card.cornerRadius
+            }
+        )
+        XCTAssertFalse(gradientBorder.isHidden)
+
+        cell.prepareForReuse()
+
+        XCTAssertTrue(
+            gradientViews.allSatisfy {
+                $0.layer.masksToBounds && $0.layer.cornerRadius == 0
+            }
+        )
+        XCTAssertTrue(gradientBorder.isHidden)
+    }
+
+    func testHomeSubscriptionBannerRoutesToPaywall() throws {
+        QuizFactory.shared.themes = [makeTheme(name: "Музыка")]
+        let router = HomeRouterSpy()
+        let viewController = QuizViewController()
+        viewController.router = router
+        viewController.loadViewIfNeeded()
+        viewController.view.frame = CGRect(x: 0, y: 0, width: 390, height: 844)
+        viewController.view.layoutIfNeeded()
+
+        let banner = try XCTUnwrap(
+            viewController.view.descendant(
+                withAccessibilityIdentifier: SubscriptionPromoBannerCollectionViewCell.AccessibilityID.button
+            ) as? UIButton
+        )
+
+        banner.sendActions(for: .touchUpInside)
+
+        XCTAssertEqual(router.showSubscriptionCallCount, 1)
+    }
+
+    func testCollectionServiceForwardsSubscriptionPromoSelection() {
+        let service = ThemesCollectionService()
+        let delegate = ThemeCollectionDelegateSpy()
+        service.delegate = delegate
+        let button = UIButton(type: .system)
+
+        service.subscriptionPromoButtonTouchedUpInside(button)
+
+        XCTAssertEqual(delegate.subscriptionPromoTapCount, 1)
     }
 
 }

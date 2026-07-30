@@ -95,11 +95,17 @@ struct HomeCardSourceSnapshotFactory {
             containerView.addSubview(titleSnapshot)
             didCopyContent = true
         }
-        if let betaBadge = sourceView.subviews.first(where: {
-            $0.accessibilityIdentifier == ThemesCollectionService.Content.aiThemeBetaBadgeAccessibilityID
-        }), let badgeSnapshot = betaBadge.snapshotView(afterScreenUpdates: false) {
-            badgeSnapshot.frame = betaBadge.convert(betaBadge.bounds, to: sourceView)
-            containerView.addSubview(badgeSnapshot)
+        let customContentIdentifiers: Set<String> = [
+            ThemesCollectionService.Content.aiThemeTextStackAccessibilityID,
+            ThemesCollectionService.Content.aiThemeBadgeAccessibilityID
+        ]
+        for contentView in sourceView.subviews where
+            contentView.accessibilityIdentifier.map(customContentIdentifiers.contains) == true {
+            guard let contentSnapshot = contentView.snapshotView(afterScreenUpdates: false) else {
+                continue
+            }
+            contentSnapshot.frame = contentView.convert(contentView.bounds, to: sourceView)
+            containerView.addSubview(contentSnapshot)
             didCopyContent = true
         }
 

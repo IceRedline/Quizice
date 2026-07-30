@@ -111,16 +111,33 @@ struct SlowBackendContentAPI: BackendContentAPI {
 }
 
 final class RecordingBackendContentAPI: BackendContentAPI {
+    private let catalogThemes: [BackendThemeDTO]
+    private let questionError: Error?
+    private(set) var themeRequestCount = 0
     private(set) var seeds: [String] = []
     private(set) var randomSelectionModes: [CrossThemeQuestionSelectionMode] = []
-    private let catalogThemes: [BackendThemeDTO]
 
-    init(catalogThemes: [BackendThemeDTO] = []) {
+    init(
+        catalogThemes: [BackendThemeDTO] = [
+            BackendThemeDTO(
+                id: "music",
+                name: "Remote Music",
+                description: "Remote Description",
+                sfSymbol: "music.note.list",
+                emoji: "🎵",
+                colorHex: "#FF8252",
+                isFavorite: false
+            )
+        ],
+        questionError: Error? = nil
+    ) {
         self.catalogThemes = catalogThemes
+        self.questionError = questionError
     }
 
     func fetchThemes(locale: String) async throws -> BackendThemeCatalogResponse {
-        BackendThemeCatalogResponse(locale: locale, themes: catalogThemes)
+        themeRequestCount += 1
+        return BackendThemeCatalogResponse(locale: locale, themes: catalogThemes)
     }
 
     func fetchQuestions(
@@ -130,6 +147,9 @@ final class RecordingBackendContentAPI: BackendContentAPI {
         seed: String
     ) async throws -> BackendQuestionBatchResponse {
         seeds.append(seed)
+        if let questionError {
+            throw questionError
+        }
         return BackendQuestionBatchResponse(
             locale: locale,
             seed: seed,
@@ -309,6 +329,8 @@ final class BackendRandomQuestionTests: XCTestCase {
         let backend = RecordingBackendContentAPI()
         let repository = ThemeCatalogRepository(backendContentAPI: backend)
         let locale = AppLocalizationStore.shared.resolvedLanguageCode
+        let didRefresh = await repository.refreshBackendCatalog(locale: locale)
+        XCTAssertTrue(didRefresh)
         let localFallback = QuizTheme(
             id: RandomQuizSelection.themeID,
             theme: L10n.Home.randomSelection,
@@ -332,6 +354,59 @@ final class BackendRandomQuestionTests: XCTestCase {
         XCTAssertEqual(backend.randomSelectionModes, [.random, .randomBalanced])
         XCTAssertEqual(backend.seeds.count, 2)
         XCTAssertNotEqual(backend.seeds[0], backend.seeds[1])
+    }
+
+    func testBundledRandomQuizDoesNotCallBackend() async throws {
+        let backend = RecordingBackendContentAPI()
+        let repository = ThemeCatalogRepository(backendContentAPI: backend)
+        let locale = AppLocalizationStore.shared.resolvedLanguageCode
+        let localFallback = QuizTheme(
+            id: RandomQuizSelection.themeID,
+            theme: L10n.Home.randomSelection,
+            themeDescription: L10n.Home.feelingLucky,
+            questions: Self.localQuestions(count: 5)
+        )
+
+        let prepared = try await repository.prepareRandomQuiz(
+            selectionMode: .random,
+            localFallback: localFallback,
+            questionCount: 5,
+            locale: locale
+        )
+
+        XCTAssertTrue(prepared === localFallback)
+        XCTAssertTrue(backend.randomSelectionModes.isEmpty)
+        XCTAssertTrue(backend.seeds.isEmpty)
+    }
+
+    func testBackendRandomQuestionFailureDoesNotReturnBundledFallback() async {
+        let backend = RecordingBackendContentAPI(
+            questionError: URLError(.timedOut)
+        )
+        let repository = ThemeCatalogRepository(backendContentAPI: backend)
+        let locale = AppLocalizationStore.shared.resolvedLanguageCode
+        let didRefresh = await repository.refreshBackendCatalog(locale: locale)
+        let localFallback = QuizTheme(
+            id: RandomQuizSelection.themeID,
+            theme: L10n.Home.randomSelection,
+            themeDescription: L10n.Home.feelingLucky,
+            questions: Self.localQuestions(count: 5)
+        )
+        XCTAssertTrue(didRefresh)
+
+        do {
+            _ = try await repository.prepareRandomQuiz(
+                selectionMode: .randomBalanced,
+                localFallback: localFallback,
+                questionCount: 5,
+                locale: locale
+            )
+            XCTFail("Backend catalog mode must not fall back to bundled random questions")
+        } catch {
+            XCTAssertEqual((error as? URLError)?.code, .timedOut)
+        }
+        XCTAssertEqual(backend.randomSelectionModes, [.randomBalanced])
+        XCTAssertEqual(backend.seeds.count, 1)
     }
 
     private func makeContentAPI() -> HTTPBackendContentAPI {

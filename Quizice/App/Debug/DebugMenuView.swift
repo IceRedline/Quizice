@@ -8,6 +8,7 @@ final class DebugMenuViewModel: ObservableObject {
     @Published private(set) var usesLocalhostBackend: Bool
     @Published private(set) var usesLocalContentOnly: Bool
     @Published private(set) var usesDirectAI: Bool
+    @Published private(set) var isSubscriptionActive: Bool
     @Published private(set) var backgroundStyle: AppBackgroundStyle
 
     let showsBackgroundStyles: Bool
@@ -16,23 +17,27 @@ final class DebugMenuViewModel: ObservableObject {
     private let toggleLocalhostBackendAction: () -> Void
     private let toggleLocalContentOnlyAction: () -> Void
     private let toggleDirectAIAction: () -> Void
+    private let setSubscriptionActiveAction: (Bool) -> Void
     private let selectBackgroundStyleAction: (AppBackgroundStyle) -> Void
     private let defaults: UserDefaults
 
     init(
         isInterfaceHidden: Bool,
+        isSubscriptionActive: Bool,
         appearance: AppAppearance,
         defaults: UserDefaults = .standard,
         toggleInterfaceVisibility: @escaping () -> Void,
         toggleLocalhostBackend: @escaping () -> Void,
         toggleLocalContentOnly: @escaping () -> Void,
         toggleDirectAI: @escaping () -> Void,
+        setSubscriptionActive: @escaping (Bool) -> Void,
         selectBackgroundStyle: @escaping (AppBackgroundStyle) -> Void
     ) {
         self.isInterfaceHidden = isInterfaceHidden
         self.usesLocalhostBackend = defaults.bool(forKey: DebugBackendSettings.useLocalhostKey)
         self.usesLocalContentOnly = defaults.bool(forKey: DebugBackendSettings.useLocalContentOnlyKey)
         self.usesDirectAI = defaults.bool(forKey: DebugAIRuntimeSettings.useDirectAIKey)
+        self.isSubscriptionActive = isSubscriptionActive
         self.backgroundStyle = appearance.backgroundStyle
         self.showsBackgroundStyles = appearance.designStyle == .classic
         self.defaults = defaults
@@ -40,6 +45,7 @@ final class DebugMenuViewModel: ObservableObject {
         self.toggleLocalhostBackendAction = toggleLocalhostBackend
         self.toggleLocalContentOnlyAction = toggleLocalContentOnly
         self.toggleDirectAIAction = toggleDirectAI
+        self.setSubscriptionActiveAction = setSubscriptionActive
         self.selectBackgroundStyleAction = selectBackgroundStyle
     }
 
@@ -63,6 +69,11 @@ final class DebugMenuViewModel: ObservableObject {
         refreshRuntimeSettings()
     }
 
+    func setSubscriptionActive(_ isActive: Bool) {
+        setSubscriptionActiveAction(isActive)
+        isSubscriptionActive = isActive
+    }
+
     func selectBackgroundStyle(_ style: AppBackgroundStyle) {
         selectBackgroundStyleAction(style)
         backgroundStyle = style
@@ -82,6 +93,7 @@ struct DebugMenuView: View {
         static let localhostToggle = "debugMenuLocalhostToggle"
         static let localContentToggle = "debugMenuLocalContentToggle"
         static let directAIToggle = "debugMenuDirectAIToggle"
+        static let subscriptionActiveToggle = "debugMenuSubscriptionActiveToggle"
         static let pulse = "debugMenuPulse"
         static let backgroundStyle = "debugMenuBackgroundStyle"
     }
@@ -130,6 +142,21 @@ struct DebugMenuView: View {
                 )
             }
             .accessibilityIdentifier(AccessibilityID.interfaceToggle)
+
+            Toggle(
+                isOn: Binding(
+                    get: { viewModel.isSubscriptionActive },
+                    set: { viewModel.setSubscriptionActive($0) }
+                )
+            ) {
+                DebugMenuRowLabel(
+                    title: L10n.DebugMenu.subscriptionActive,
+                    subtitle: L10n.DebugMenu.subscriptionActiveSubtitle,
+                    systemImage: "crown.fill",
+                    color: Color(uiColor: AIThemeVisualStyle.accentColor)
+                )
+            }
+            .accessibilityIdentifier(AccessibilityID.subscriptionActiveToggle)
         }
     }
 

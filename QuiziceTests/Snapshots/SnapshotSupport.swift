@@ -28,6 +28,9 @@ enum SnapshotSupport {
         UserDefaults.standard.set(AppBackgroundStyle.defaultStyle.rawValue, forKey: AppAppearanceStore.Keys.backgroundStyle)
         UserDefaults.standard.removeObject(forKey: OnboardingProgressStore.Keys.completedVersion)
         UserDefaults.standard.removeObject(forKey: OnboardingProgressStore.Keys.preferredThemeIDs)
+#if DEBUG
+        SubscriptionEntitlementStore.shared.setDebugSubscriptionActive(false)
+#endif
         resetLocalizedThemePreferences()
     }
 
@@ -39,6 +42,9 @@ enum SnapshotSupport {
         UserDefaults.standard.removeObject(forKey: AppLocalizationStore.Keys.language)
         UserDefaults.standard.removeObject(forKey: OnboardingProgressStore.Keys.completedVersion)
         UserDefaults.standard.removeObject(forKey: OnboardingProgressStore.Keys.preferredThemeIDs)
+#if DEBUG
+        SubscriptionEntitlementStore.shared.setDebugSubscriptionActive(false)
+#endif
         resetLocalizedThemePreferences()
         resetSharedQuizFactoryForTests()
     }
@@ -284,6 +290,10 @@ enum SnapshotSupport {
         collectionView.register(
             StatisticsCardCollectionViewCell.self,
             forCellWithReuseIdentifier: StatisticsCardCollectionViewCell.reuseIdentifier
+        )
+        collectionView.register(
+            SubscriptionPromoBannerCollectionViewCell.self,
+            forCellWithReuseIdentifier: SubscriptionPromoBannerCollectionViewCell.reuseIdentifier
         )
         return collectionView
     }

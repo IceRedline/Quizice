@@ -8,7 +8,10 @@ final class ThemesCollectionService: NSObject, UICollectionViewDelegate, UIColle
         static let themeCatalogAccessibilityID = "homeThemeCatalogCollectionView"
         static let moreThemesAccessibilityID = "homeMoreThemesButton"
         static let aiThemeAccessibilityID = "homeCreateWithAIButton"
-        static let aiThemeBetaBadgeAccessibilityID = "homeCreateWithAIBetaBadge"
+        static let aiThemeTextStackAccessibilityID = "homeCreateWithAITextStack"
+        static let aiThemeTitleAccessibilityID = "homeCreateWithAITitle"
+        static let aiThemeBadgeAccessibilityID = "homeCreateWithAIBadge"
+        static let aiThemeSubtitleAccessibilityID = "homeCreateWithAISubtitle"
         static let aiThemeGradientBorderAccessibilityID = "homeCreateWithAIGradientBorder"
         static let feelingLuckyAccessibilityID = "homeFeelingLuckyButton"
         static let feelingLuckyProgressAccessibilityID = "homeFeelingLuckyProgressView"
@@ -28,15 +31,21 @@ final class ThemesCollectionService: NSObject, UICollectionViewDelegate, UIColle
         static let compactOuterItemSpacing: CGFloat = 12
         static let visibleThemeRowCount = 4
         static let themeColumnCount = 2
+        static let aiThemeButtonHeight: CGFloat = 72
+        static let accessibilityAIThemeButtonHeight: CGFloat = 272
         static let secondaryActionButtonHeight: CGFloat = 54
+        static let subscriptionPromoHeight: CGFloat = 90
+        static let accessibilitySubscriptionPromoHeight: CGFloat = 288
         static let statisticsCardHeight: CGFloat = 112
         static let lastItemBottomInset: CGFloat = 24
         static let compactLastItemBottomInset: CGFloat = 16
         static let compactAvailableHeightThreshold: CGFloat = 600
         static let aiThemeBadgeTrailingInset: CGFloat = 16
+        static let aiThemeContentLeadingInset: CGFloat = 18
+        static let aiThemeContentTrailingSpacing: CGFloat = 12
         static let aiThemeBadgeHorizontalInset: CGFloat = 10
         static let aiThemeBadgeVerticalInset: CGFloat = 5
-        static let aiThemeBadgeMinimumWidth: CGFloat = 48
+        static let aiThemeBadgeMinimumWidth: CGFloat = 52
         static let cellShadowOffset = CGSize(width: 0, height: 12)
         static let cellShadowRadius: CGFloat = 22
         static let moreThemesButtonHeight: CGFloat = 82
@@ -61,7 +70,9 @@ final class ThemesCollectionService: NSObject, UICollectionViewDelegate, UIColle
         static let titleFontSize: CGFloat = 24
         static let descriptionFontSize: CGFloat = 15
         static let luckyFontSize: CGFloat = 19
-        static let betaBadgeFontSize: CGFloat = 12
+        static let aiThemeTitleFontSize: CGFloat = 18
+        static let aiThemeSubtitleFontSize: CGFloat = 12
+        static let aiThemeBadgeFontSize: CGFloat = 11
     }
 
     weak var delegate: ThemeCollectionDelegate?
@@ -96,8 +107,11 @@ final class ThemesCollectionService: NSObject, UICollectionViewDelegate, UIColle
 
     private let themeRepository: ThemeRepository
     private let statisticsStore: StatisticsStore
+    private let subscriptionEntitlementProvider: SubscriptionEntitlementProviding
     private let preferredThemeIDsProvider: () -> [String]?
     private let appearanceStore = AppAppearanceStore.shared
+    var hasActivePlusSubscription: Bool
+    private var subscriptionEntitlementObserver: NSObjectProtocol?
     weak var observedCollectionView: UICollectionView?
     private weak var themeItemsCollectionView: UICollectionView?
     private weak var moreThemesButton: MoreThemesFadeButton?
@@ -167,14 +181,27 @@ final class ThemesCollectionService: NSObject, UICollectionViewDelegate, UIColle
     }
 
     private let themesViewportIndex = 0
-    private let aiThemeIndex = 1
-    private let feelingLuckyIndex = 2
-    private let statisticsIndex = 3
-    private let outerItemCount = 4
+    private var subscriptionPromoIndex: Int? {
+        hasActivePlusSubscription ? nil : 1
+    }
+    private var aiThemeIndex: Int {
+        hasActivePlusSubscription ? 1 : 2
+    }
+    private var feelingLuckyIndex: Int {
+        hasActivePlusSubscription ? 2 : 3
+    }
+    private var statisticsIndex: Int {
+        hasActivePlusSubscription ? 3 : 4
+    }
+    private var outerItemCount: Int {
+        hasActivePlusSubscription ? 4 : 5
+    }
 
     init(
         themeRepository: ThemeRepository = QuizFactory.shared,
         statisticsStore: StatisticsStore = StatisticsStore(),
+        subscriptionEntitlementProvider: SubscriptionEntitlementProviding =
+            SubscriptionEntitlementStore.shared,
         preferredThemeIDsProvider: @escaping () -> [String]? = {
             OnboardingProgressStore.shared.storedPreferredThemeIDs(
                 locale: AppLocalizationStore.shared.resolvedLanguageCode
@@ -183,12 +210,38 @@ final class ThemesCollectionService: NSObject, UICollectionViewDelegate, UIColle
     ) {
         self.themeRepository = themeRepository
         self.statisticsStore = statisticsStore
+        self.subscriptionEntitlementProvider = subscriptionEntitlementProvider
+        self.hasActivePlusSubscription =
+            subscriptionEntitlementProvider.hasActivePlusSubscription
         self.preferredThemeIDsProvider = preferredThemeIDsProvider
         super.init()
+        subscriptionEntitlementObserver = NotificationCenter.default.addObserver(
+            forName: .subscriptionEntitlementDidChange,
+            object: subscriptionEntitlementProvider,
+            queue: .main
+        ) { [weak self] _ in
+            self?.refreshSubscriptionEntitlement()
+        }
+    }
+
+    deinit {
+        if let subscriptionEntitlementObserver {
+            NotificationCenter.default.removeObserver(subscriptionEntitlementObserver)
+        }
     }
 
     func refreshStatistics() {
         reconfigureStatisticsCell()
+    }
+
+    private func refreshSubscriptionEntitlement() {
+        let newValue = subscriptionEntitlementProvider.hasActivePlusSubscription
+        guard hasActivePlusSubscription != newValue else { return }
+        hasActivePlusSubscription = newValue
+
+        guard let collectionView = observedCollectionView else { return }
+        collectionView.reloadData()
+        collectionView.collectionViewLayout.invalidateLayout()
     }
 
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
@@ -242,6 +295,33 @@ final class ThemesCollectionService: NSObject, UICollectionViewDelegate, UIColle
             )
             installMoreThemesButtonIfNeeded(in: cell)
             configureMoreThemesButton()
+            return cell
+        }
+
+        if let subscriptionPromoIndex, indexPath.item == subscriptionPromoIndex {
+            guard let cell = collectionView.dequeueReusableCell(
+                withReuseIdentifier: SubscriptionPromoBannerCollectionViewCell.reuseIdentifier,
+                for: indexPath
+            ) as? SubscriptionPromoBannerCollectionViewCell else {
+                preconditionFailure("Expected SubscriptionPromoBannerCollectionViewCell")
+            }
+            cell.configure(appearance: appearance)
+            cell.actionButton.removeTarget(self, action: nil, for: .allEvents)
+            cell.actionButton.addTarget(
+                self,
+                action: #selector(buttonTouchedDown(_:)),
+                for: .touchDown
+            )
+            cell.actionButton.addTarget(
+                self,
+                action: #selector(subscriptionPromoButtonTouchedUpInside(_:)),
+                for: .touchUpInside
+            )
+            cell.actionButton.addTarget(
+                self,
+                action: #selector(buttonTouchedUpOutside(_:)),
+                for: .touchUpOutside
+            )
             return cell
         }
 
@@ -319,7 +399,23 @@ final class ThemesCollectionService: NSObject, UICollectionViewDelegate, UIColle
             )
         }
 
-        if indexPath.item == aiThemeIndex || indexPath.item == feelingLuckyIndex {
+        if let subscriptionPromoIndex, indexPath.item == subscriptionPromoIndex {
+            let height = collectionView.traitCollection.preferredContentSizeCategory
+                .isAccessibilityCategory
+                ? Layout.accessibilitySubscriptionPromoHeight
+                : Layout.subscriptionPromoHeight
+            return CGSize(width: availableWidth, height: height)
+        }
+
+        if indexPath.item == aiThemeIndex {
+            let height = collectionView.traitCollection.preferredContentSizeCategory
+                .isAccessibilityCategory
+                ? Layout.accessibilityAIThemeButtonHeight
+                : Layout.aiThemeButtonHeight
+            return CGSize(width: availableWidth, height: height)
+        }
+
+        if indexPath.item == feelingLuckyIndex {
             return CGSize(width: availableWidth, height: Layout.secondaryActionButtonHeight)
         }
 
@@ -392,8 +488,19 @@ final class ThemesCollectionService: NSObject, UICollectionViewDelegate, UIColle
                 traitCollection: traitCollection
             )
         }
+        let usesAccessibilityLayout = traitCollection
+            .preferredContentSizeCategory
+            .isAccessibilityCategory
         let fixedOuterContentHeight =
-            Layout.secondaryActionButtonHeight * 2
+            (hasActivePlusSubscription
+                ? 0
+                : usesAccessibilityLayout
+                    ? Layout.accessibilitySubscriptionPromoHeight
+                    : Layout.subscriptionPromoHeight)
+            + (usesAccessibilityLayout
+                ? Layout.accessibilityAIThemeButtonHeight
+                : Layout.aiThemeButtonHeight)
+            + Layout.secondaryActionButtonHeight
             + Layout.statisticsCardHeight
             + lastItemBottomInset(availableHeight: availableOuterHeight)
             + outerItemSpacing(availableHeight: availableOuterHeight)
@@ -460,98 +567,6 @@ final class ThemesCollectionService: NSObject, UICollectionViewDelegate, UIColle
         cell.backgroundColor = .clear
         cell.layer.masksToBounds = false
         cell.applyShadow(appearance.themeCardShadow)
-    }
-
-    private func configureFeelingLuckyCard(in cell: UICollectionViewCell, appearance: AppAppearance) {
-        cell.applyShadow(.none)
-        let button = configureSecondaryActionCard(
-            in: cell,
-            accessibilityIdentifier: Content.feelingLuckyAccessibilityID,
-            accessibilityLabel: L10n.Home.feelingLucky,
-            accessibilityHint: L10n.Home.feelingLuckyAccessibilityHint,
-            title: L10n.Home.feelingLucky,
-            action: #selector(feelingLuckyButtonTouchedUpInside(_:)),
-            appearance: appearance
-        )
-        configureFeelingLuckyContent(in: button, appearance: appearance)
-    }
-
-    private func configureAIThemeCard(in cell: UICollectionViewCell, appearance: AppAppearance) {
-        cell.applyShadow(.none)
-        let button = makeSecondaryActionButton(
-            accessibilityIdentifier: Content.aiThemeAccessibilityID,
-            accessibilityLabel: L10n.Home.createWithAI,
-            accessibilityHint: L10n.Home.createWithAIAccessibilityHint,
-            title: L10n.Home.createWithAI,
-            action: #selector(aiThemeButtonTouchedUpInside(_:)),
-            appearance: appearance
-        )
-        button.isHidden = isAIThemePresented
-        button.isEnabled = !isAIThemePresented
-        button.isAccessibilityElement = !isAIThemePresented
-        button.accessibilityElementsHidden = isAIThemePresented
-        button.layer.borderWidth = 0
-        button.layer.borderColor = UIColor.clear.cgColor
-        let aiThemeCornerRadius = Layout.secondaryActionButtonHeight / 2
-
-        let betaBadge = InsetLabel(
-            contentInsets: UIEdgeInsets(
-                top: Layout.aiThemeBadgeVerticalInset,
-                left: Layout.aiThemeBadgeHorizontalInset,
-                bottom: Layout.aiThemeBadgeVerticalInset,
-                right: Layout.aiThemeBadgeHorizontalInset
-            )
-        )
-        betaBadge.accessibilityIdentifier = Content.aiThemeBetaBadgeAccessibilityID
-        betaBadge.text = L10n.Home.createWithAIBetaBadge
-        betaBadge.textColor = appearance.screenTextColor
-        betaBadge.font = appearance.typography.font(size: Appearance.betaBadgeFontSize, weight: .bold)
-        betaBadge.adjustsFontForContentSizeCategory = true
-        betaBadge.textAlignment = .center
-        betaBadge.backgroundColor = appearance.screenTextColor.withAlphaComponent(Appearance.aiThemeBadgeBackgroundAlpha)
-        betaBadge.layer.cornerRadius = Appearance.aiThemeBadgeCornerRadius
-        betaBadge.layer.borderWidth = Appearance.buttonBorderWidth
-        betaBadge.layer.borderColor = appearance.screenTextColor.withAlphaComponent(Appearance.aiThemeBadgeBorderAlpha).cgColor
-        betaBadge.clipsToBounds = true
-        betaBadge.isUserInteractionEnabled = false
-        betaBadge.translatesAutoresizingMaskIntoConstraints = false
-
-        pin(button, to: cell.contentView)
-        cell.contentView.layoutIfNeeded()
-        applyRadarGreenGlowStyleIfNeeded(to: button, appearance: appearance)
-        button.addSubview(betaBadge)
-        let gradientBorderView: GradientBorderView?
-        if appearance.designStyle == .radar {
-            gradientBorderView = nil
-        } else {
-            let borderView = GradientBorderView(
-                colors: AIThemeVisualStyle.gradientColors,
-                lineWidth: Appearance.aiThemeGradientBorderWidth,
-                cornerRadius: aiThemeCornerRadius
-            )
-            button.layer.cornerRadius = aiThemeCornerRadius
-            borderView.accessibilityIdentifier = Content.aiThemeGradientBorderAccessibilityID
-            borderView.translatesAutoresizingMaskIntoConstraints = false
-            button.addSubview(borderView)
-            gradientBorderView = borderView
-        }
-
-        NSLayoutConstraint.activate([
-            betaBadge.trailingAnchor.constraint(equalTo: button.trailingAnchor, constant: -Layout.aiThemeBadgeTrailingInset),
-            betaBadge.centerYAnchor.constraint(equalTo: button.centerYAnchor),
-
-            betaBadge.leadingAnchor.constraint(greaterThanOrEqualTo: button.centerXAnchor),
-            betaBadge.widthAnchor.constraint(greaterThanOrEqualToConstant: Layout.aiThemeBadgeMinimumWidth)
-        ])
-
-        if let gradientBorderView {
-            NSLayoutConstraint.activate([
-                gradientBorderView.leadingAnchor.constraint(equalTo: button.leadingAnchor),
-                gradientBorderView.trailingAnchor.constraint(equalTo: button.trailingAnchor),
-                gradientBorderView.topAnchor.constraint(equalTo: button.topAnchor),
-                gradientBorderView.bottomAnchor.constraint(equalTo: button.bottomAnchor)
-            ])
-        }
     }
 
     private func reconfigureThemeCells(withIDs themeIDs: [String]) {
@@ -676,18 +691,6 @@ final class ThemesCollectionService: NSObject, UICollectionViewDelegate, UIColle
 
     @objc func buttonTouchedUpOutside(_ sender: UIButton) {
         delegate?.themeButtonTouchedUpOutside(sender)
-    }
-
-    @objc func feelingLuckyButtonTouchedUpInside(_ sender: UIButton) {
-        delegate?.feelingLuckyButtonTouchedUpInside(sender)
-    }
-
-    @objc func aiThemeButtonTouchedUpInside(_ sender: UIButton) {
-        delegate?.aiThemeButtonTouchedUpInside(sender)
-    }
-
-    @objc func statisticsButtonTouchedUpInside(_ sender: UIButton) {
-        delegate?.statisticsButtonTouchedUpInside(sender)
     }
 
 }

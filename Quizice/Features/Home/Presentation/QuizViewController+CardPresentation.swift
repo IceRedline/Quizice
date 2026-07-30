@@ -334,6 +334,7 @@ extension QuizViewController {
         cardView.configure(state: homeAIThemeCardState, appearance: appearance)
         wireExpandedAIThemeCardActions(cardView)
         cardView.layoutIfNeeded()
+        let expandedSurfaceColor = cardView.transitionSurfaceColor
         expandedAIThemeCardView = cardView
 
         if reduceMotion {
@@ -409,7 +410,7 @@ extension QuizViewController {
                     cornerRadius: appearance.card.cornerRadius,
                     visualState: HomeThemeCardTransitionVisualState(progress: 1),
                     shadow: appearance.card.shadow,
-                    surfaceColor: appearance.card.backgroundColor,
+                    surfaceColor: expandedSurfaceColor,
                     borderColor: appearance.card.borderColor,
                     borderWidth: appearance.card.borderWidth
                 )

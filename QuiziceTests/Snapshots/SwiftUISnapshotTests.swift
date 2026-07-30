@@ -66,6 +66,115 @@ final class SwiftUISnapshotTests: XCTestCase {
         )
     }
 
+    func testSubscriptionPaywallSnapshot() throws {
+        let appearance = SnapshotSupport.appearance(designStyle: .clean)
+        let analytics = HomeAnalyticsTrackingSpy()
+        let viewController = makeHostingController(
+            rootView: SubscriptionPaywallView(
+                appearance: appearance,
+                analytics: analytics,
+                onSubscribe: {},
+                onRestore: {}
+            )
+        )
+
+        SnapshotSupport.assertScreen(
+            viewController,
+            named: "clean-subscription-paywall",
+            device: SnapshotSupport.iPhone17Pro
+        )
+
+        XCTAssertEqual(analytics.events.count, 1)
+        let event = try XCTUnwrap(analytics.events.first)
+        guard case let .screenView(screen, theme) = event else {
+            XCTFail("Expected subscription screen view analytics event")
+            return
+        }
+        XCTAssertEqual(screen.rawValue, AnalyticsScreen.subscription.rawValue)
+        XCTAssertEqual(theme, .unknown)
+    }
+
+    func testCompactSubscriptionPaywallSnapshot() {
+        let appearance = SnapshotSupport.appearance(designStyle: .clean)
+        let viewController = makeHostingController(
+            rootView: SubscriptionPaywallView(
+                appearance: appearance,
+                analytics: HomeAnalyticsTrackingSpy(),
+                onSubscribe: {},
+                onRestore: {}
+            )
+        )
+
+        SnapshotSupport.assertScreen(
+            viewController,
+            named: "clean-subscription-paywall-iphone-se",
+            device: .iPhone8
+        )
+    }
+
+    func testAccessibilityXXXLSubscriptionPaywallSnapshot() {
+        let appearance = SnapshotSupport.appearance(designStyle: .clean)
+        let viewController = makeHostingController(
+            rootView: SubscriptionPaywallView(
+                appearance: appearance,
+                analytics: HomeAnalyticsTrackingSpy(),
+                onSubscribe: {},
+                onRestore: {}
+            )
+        )
+
+        SnapshotSupport.assertScreen(
+            viewController,
+            named: "clean-subscription-paywall-accessibility-xxxl",
+            device: SnapshotSupport.iPhone17Pro,
+            contentSizeCategory: .accessibilityExtraExtraExtraLarge
+        )
+    }
+
+    func testClassicSubscriptionPaywallSnapshot() {
+        SnapshotSupport.setUp(designStyle: .classic, cleanColorScheme: .dark)
+        let appearance = SnapshotSupport.appearance(
+            designStyle: .classic,
+            cleanColorScheme: .dark
+        )
+        let viewController = makeHostingController(
+            rootView: SubscriptionPaywallView(
+                appearance: appearance,
+                analytics: HomeAnalyticsTrackingSpy(),
+                onSubscribe: {},
+                onRestore: {}
+            )
+        )
+
+        SnapshotSupport.assertScreen(
+            viewController,
+            named: "classic-subscription-paywall",
+            device: SnapshotSupport.iPhone17Pro
+        )
+    }
+
+    func testRadarSubscriptionPaywallSnapshot() {
+        SnapshotSupport.setUp(designStyle: .radar, cleanColorScheme: .dark)
+        let appearance = SnapshotSupport.appearance(
+            designStyle: .radar,
+            cleanColorScheme: .dark
+        )
+        let viewController = makeHostingController(
+            rootView: SubscriptionPaywallView(
+                appearance: appearance,
+                analytics: HomeAnalyticsTrackingSpy(),
+                onSubscribe: {},
+                onRestore: {}
+            )
+        )
+
+        SnapshotSupport.assertScreen(
+            viewController,
+            named: "radar-subscription-paywall",
+            device: SnapshotSupport.iPhone17Pro
+        )
+    }
+
     func testFakeLaunchScreenSnapshot() {
         SnapshotSupport.setUp(designStyle: .classic)
         let viewController = makeHostingController(
@@ -276,66 +385,6 @@ final class SwiftUISnapshotTests: XCTestCase {
             named: "classic-ai-theme-service-alert-iphone-se",
             device: .iPhone8
         )
-    }
-
-    private var denseOnboardingThemes: [OnboardingTheme] {
-        let titles = [
-            "Математика",
-            "Автомобили",
-            "Биология",
-            "Космос",
-            "Физика",
-            "Химия",
-            "Литература",
-            "География",
-            "Кино",
-            "Видеоигры",
-            "История и культура",
-            "Политика и бизнес",
-            "Музыка",
-            "Технологии"
-        ]
-        let symbols = [
-            "function",
-            "car.fill",
-            "asterisk",
-            "moon.stars.fill",
-            "atom",
-            "flask.fill",
-            "book.fill",
-            "globe",
-            "film.fill",
-            "gamecontroller.fill",
-            "theatermask.and.paintbrush.fill",
-            "briefcase.fill",
-            "music.note.list",
-            "cpu.fill"
-        ]
-        let colors = [
-            "#FF2D55",
-            "#FF453A",
-            "#30D158",
-            "#BF5AF2",
-            "#5E5CE6",
-            "#64D2FF",
-            "#C7A97B",
-            "#00C7BE",
-            "#FF375F",
-            "#34C759",
-            "#FF9F0A",
-            "#5E5CE6",
-            "#AF52DE",
-            "#0A84FF"
-        ]
-
-        return titles.indices.map { index in
-            OnboardingTheme(
-                id: "compact-\(index)",
-                title: titles[index],
-                sfSymbolName: symbols[index],
-                colorHex: colors[index]
-            )
-        }
     }
 
     func testClassicAIThemeRefusalAlertSnapshot() {

@@ -256,6 +256,82 @@ final class QuizFlowCoordinatorNavigationTests: QuizFlowCoordinatorTestCase {
         XCTAssertEqual(harness.navigationController.presentedAnimationFlags.last, true)
     }
 
+    func testSubscriptionRoutePresentsLargePageSheet() throws {
+        let harness = makeHarness()
+        harness.coordinator.start()
+        harness.navigationController.topViewControllerOverride = harness.navigationController
+
+        harness.coordinator.showSubscription()
+
+        let paywall = try XCTUnwrap(
+            harness.navigationController.presentedControllers.last
+                as? UIHostingController<SubscriptionPaywallView>
+        )
+        XCTAssertEqual(paywall.modalPresentationStyle, .pageSheet)
+        XCTAssertEqual(paywall.sheetPresentationController?.detents, [.large()])
+        XCTAssertEqual(harness.navigationController.presentedAnimationFlags.last, true)
+
+        paywall.rootView.subscribe()
+
+        let subscribeAlert = try XCTUnwrap(
+            harness.navigationController.presentedControllers.last as? UIAlertController
+        )
+        XCTAssertEqual(subscribeAlert.preferredStyle, .alert)
+        XCTAssertEqual(subscribeAlert.title, L10n.Subscription.ComingSoon.title)
+        XCTAssertEqual(subscribeAlert.message, L10n.Subscription.ComingSoon.message)
+        XCTAssertEqual(subscribeAlert.actions.map(\.title), [L10n.Subscription.ComingSoon.action])
+        XCTAssertEqual(subscribeAlert.actions.map(\.style), [.default])
+        XCTAssertEqual(harness.navigationController.presentedControllers.count, 2)
+        XCTAssertEqual(harness.navigationController.presentedAnimationFlags, [true, true])
+
+        let restoreHarness = makeHarness()
+        restoreHarness.coordinator.start()
+        restoreHarness.navigationController.topViewControllerOverride =
+            restoreHarness.navigationController
+        restoreHarness.coordinator.showSubscription()
+        let restorePaywall = try XCTUnwrap(
+            restoreHarness.navigationController.presentedControllers.last
+                as? UIHostingController<SubscriptionPaywallView>
+        )
+
+        restorePaywall.rootView.restore()
+
+        let restoreAlert = try XCTUnwrap(
+            restoreHarness.navigationController.presentedControllers.last
+                as? UIAlertController
+        )
+        XCTAssertEqual(restoreAlert.preferredStyle, .alert)
+        XCTAssertEqual(restoreAlert.title, L10n.Subscription.ComingSoon.title)
+        XCTAssertEqual(restoreAlert.message, L10n.Subscription.ComingSoon.message)
+        XCTAssertEqual(restoreAlert.actions.map(\.title), [L10n.Subscription.ComingSoon.action])
+        XCTAssertEqual(restoreAlert.actions.map(\.style), [.default])
+        XCTAssertEqual(restoreHarness.navigationController.presentedControllers.count, 2)
+        XCTAssertEqual(
+            restoreHarness.navigationController.presentedAnimationFlags,
+            [true, true]
+        )
+    }
+
+    func testSubscriptionPaywallForwardsActionCallbacks() {
+        var receivedActions: [String] = []
+        let paywall = SubscriptionPaywallView(
+            appearance: makeLaunchAppearance(designStyle: .clean),
+            analytics: HomeAnalyticsTrackingSpy(),
+            onSubscribe: { receivedActions.append("subscribe") },
+            onRestore: { receivedActions.append("restore") },
+            onClose: { receivedActions.append("close") }
+        )
+
+        paywall.subscribe()
+        XCTAssertEqual(receivedActions, ["subscribe"])
+
+        paywall.restore()
+        XCTAssertEqual(receivedActions, ["subscribe", "restore"])
+
+        paywall.close()
+        XCTAssertEqual(receivedActions, ["subscribe", "restore", "close"])
+    }
+
     func testResultRouteUsesTheCoordinatorSession() throws {
         let harness = makeHarness()
         harness.session.chosenTheme = ThemeModel(
