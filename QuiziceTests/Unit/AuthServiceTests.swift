@@ -340,12 +340,10 @@ final class HTTPAuthAPITests: XCTestCase {
             )
             let attempts = try XCTUnwrap(json["attempts"] as? [[String: Any]])
             XCTAssertEqual(attempts.count, 1)
-            XCTAssertEqual(Set(attempts[0].keys), ["id", "correctAnswers", "totalQuestions", "completedAt", "accessibilityMode"])
-            XCTAssertEqual(attempts[0]["id"] as? String, "attempt-1")
-            XCTAssertEqual(attempts[0]["correctAnswers"] as? Int, 3)
-            XCTAssertEqual(attempts[0]["totalQuestions"] as? Int, 5)
-            XCTAssertEqual(attempts[0]["completedAt"] as? String, "1970-01-01T00:20:34Z")
-            XCTAssertEqual(attempts[0]["accessibilityMode"] as? Bool, false)
+            XCTAssertEqual(attempts[0] as NSDictionary, [
+                "id": "attempt-1", "correctAnswers": 3, "totalQuestions": 5,
+                "completedAt": "1970-01-01T00:20:34Z", "accessibilityMode": false
+            ] as NSDictionary)
             let data = Data(
                 #"{"summary":{"playedQuizzes":2,"correctAnswers":7,"totalQuestions":10,"bestCorrectAnswers":4,"bestTotalQuestions":5},"acceptedAttemptIds":["attempt-1"],"legacySummaryAccepted":true}"#.utf8
             )
