@@ -7,6 +7,7 @@ final class QuizResultPresenter: QuizResultPresenterProtocol {
     
     var correctAnswers: Int = 0
     var totalQuestions: Int = 0
+    private(set) var resultAnnouncement: String = ""
     var themeID: String? {
         session.chosenTheme?.themeID
     }
@@ -31,6 +32,10 @@ final class QuizResultPresenter: QuizResultPresenterProtocol {
         let normalizedCorrectAnswers = max(correctAnswers, 0)
         let normalizedTotalQuestions = max(totalQuestions, 0)
         let resultText = L10n.Result.text(correctAnswers: normalizedCorrectAnswers, totalQuestions: normalizedTotalQuestions)
+        resultAnnouncement = L10n.Result.announcement(
+            correctAnswers: normalizedCorrectAnswers,
+            totalQuestions: normalizedTotalQuestions
+        )
         var descriptionText = L10n.Result.fallbackDescription
 
         guard normalizedTotalQuestions > 0 else {
