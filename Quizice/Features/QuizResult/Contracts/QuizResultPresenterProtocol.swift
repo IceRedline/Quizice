@@ -6,7 +6,12 @@ protocol QuizResultPresenterProtocol {
     var analyticsTheme: AnalyticsTheme { get }
     var correctAnswers: Int { get set }
     var totalQuestions: Int { get set }
-    
+    // Pre-built VoiceOver announcement string. The result screen cannot
+    // build this itself — S03 contract forbids it from referencing
+    // total-question fields — so the presenter formats it and hands over
+    // an opaque string.
+    var resultAnnouncement: String { get }
+
     func viewDidLoad()
 }
 
