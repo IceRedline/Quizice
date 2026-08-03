@@ -451,7 +451,6 @@ extension ExpandedThemeCardView {
             difficultyControl,
             questionCountLabel,
             questionCountControl,
-            unavailableLabel,
             startButton,
             backButton
         ]

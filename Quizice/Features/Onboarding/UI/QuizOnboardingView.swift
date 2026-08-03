@@ -52,6 +52,7 @@ struct QuizOnboardingView: View {
 
     @State private var selectedPage: OnboardingPage
     @State private var selectedThemeIDs: Set<String>
+    @AccessibilityFocusState private var focusedHeaderPage: OnboardingPage?
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     init(
@@ -83,7 +84,8 @@ struct QuizOnboardingView: View {
                 TabView(selection: $selectedPage) {
                     OnboardingWelcomePage(
                         themes: themes,
-                        isActive: selectedPage == .welcome
+                        isActive: selectedPage == .welcome,
+                        focusedHeaderPage: $focusedHeaderPage
                     )
                         .tag(OnboardingPage.welcome)
 
@@ -91,13 +93,15 @@ struct QuizOnboardingView: View {
                         themes: themes,
                         catalogOrigin: catalogOrigin,
                         selectedThemeIDs: $selectedThemeIDs,
-                        isActive: selectedPage == .topics
+                        isActive: selectedPage == .topics,
+                        focusedHeaderPage: $focusedHeaderPage
                     )
                     .tag(OnboardingPage.topics)
 
                     OnboardingTutorialPage(
                         themePreview: themes.first,
-                        isActive: selectedPage == .tutorial
+                        isActive: selectedPage == .tutorial,
+                        focusedHeaderPage: $focusedHeaderPage
                     )
                         .tag(OnboardingPage.tutorial)
                 }
@@ -128,6 +132,9 @@ struct QuizOnboardingView: View {
         .environment(\.appAppearance, appearance)
         .preferredColorScheme(appearance.swiftUIColorScheme)
         .tint(Color(uiColor: appearance.screenTextColor))
+        .onAppear {
+            focusedHeaderPage = selectedPage
+        }
         .onChange(of: selectedPage) { _, page in
             UIAccessibility.post(
                 notification: .pageScrolled,
@@ -136,6 +143,7 @@ struct QuizOnboardingView: View {
                     total: OnboardingPage.allCases.count
                 )
             )
+            focusedHeaderPage = page
         }
     }
 

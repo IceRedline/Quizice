@@ -18,13 +18,15 @@ final class LaunchOverlayPresenter {
     private var activeReadiness: FakeLaunchReadiness?
     private weak var coveredAccessibilityView: UIView?
     private var coveredViewWasAccessibilityHidden = false
+    private var onDismissed: (() -> Void)?
 
     func present(
         in window: UIWindow,
         appearance: AppAppearance,
         holdDuration: TimeInterval = Timing.holdDuration,
         motion: FakeLaunchMotion = .standard,
-        preparation: (@MainActor () async -> Void)? = nil
+        preparation: (@MainActor () async -> Void)? = nil,
+        onDismissed: (() -> Void)? = nil
     ) {
         guard
             overlayWindow == nil,
@@ -62,6 +64,7 @@ final class LaunchOverlayPresenter {
         coveredAccessibilityView = coveredView
         coveredViewWasAccessibilityHidden = coveredView.accessibilityElementsHidden
         coveredView.accessibilityElementsHidden = true
+        self.onDismissed = onDismissed
         activePresentationID = presentationID
         activeReadiness = readiness
         self.overlayWindow = overlayWindow
@@ -150,6 +153,8 @@ final class LaunchOverlayPresenter {
 
         coveredAccessibilityView?.accessibilityElementsHidden = coveredViewWasAccessibilityHidden
         coveredAccessibilityView = nil
-        UIAccessibility.post(notification: .screenChanged, argument: nil)
+        let dismissedHandler = onDismissed
+        onDismissed = nil
+        dismissedHandler?()
     }
 }

@@ -46,6 +46,7 @@ extension QuizQuestionViewController {
         debugQuestionSourceLabel.isHidden = !DebugBackendSettings.shouldShowSourceIndicators
         debugQuestionSourceLabel.setContentHuggingPriority(.required, for: .horizontal)
         debugQuestionSourceLabel.setContentCompressionResistancePriority(.required, for: .horizontal)
+        debugQuestionSourceLabel.isAccessibilityElement = false
         updateDebugQuestionSourceIndicator()
 #endif
     }

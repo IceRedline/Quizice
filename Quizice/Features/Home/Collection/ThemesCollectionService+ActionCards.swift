@@ -217,7 +217,7 @@ extension ThemesCollectionService {
             .isAccessibilityCategory
         let button = makeSecondaryActionButton(
             accessibilityIdentifier: Content.aiThemeAccessibilityID,
-            accessibilityLabel: L10n.Home.createWithAI,
+            accessibilityLabel: L10n.Home.createWithAIAccessibilityLabel,
             accessibilityHint: L10n.Home.createWithAIAccessibilityHint,
             title: L10n.Home.createWithAI,
             action: #selector(aiThemeButtonTouchedUpInside(_:)),

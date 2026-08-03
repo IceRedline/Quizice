@@ -11,6 +11,7 @@ struct OnboardingWelcomePage: View {
 
     let themes: [OnboardingTheme]
     let isActive: Bool
+    var focusedHeaderPage: AccessibilityFocusState<OnboardingPage?>.Binding
 
     @Environment(\.appAppearance) private var appearance
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
@@ -60,6 +61,7 @@ struct OnboardingWelcomePage: View {
                         .minimumScaleFactor(0.76)
                         .accessibilityAddTraits(.isHeader)
                         .accessibilityIdentifier("onboardingWelcomeTitle")
+                        .accessibilityFocused(focusedHeaderPage, equals: .welcome)
 
                     Text(L10n.Onboarding.welcomeSubtitle)
                         .font(
@@ -219,6 +221,7 @@ struct OnboardingTopicsPage: View {
     let catalogOrigin: QuizCatalogOrigin
     @Binding var selectedThemeIDs: Set<String>
     let isActive: Bool
+    var focusedHeaderPage: AccessibilityFocusState<OnboardingPage?>.Binding
 
     @Environment(\.appAppearance) private var appearance
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
@@ -241,6 +244,7 @@ struct OnboardingTopicsPage: View {
                         .minimumScaleFactor(0.8)
                         .accessibilityAddTraits(.isHeader)
                         .accessibilityIdentifier("onboardingTopicsTitle")
+                        .accessibilityFocused(focusedHeaderPage, equals: .topics)
 
                     Text(L10n.Onboarding.topicsSubtitle)
                         .font(
@@ -330,6 +334,7 @@ private struct OnboardingCatalogSourceBadge: View {
 struct OnboardingTutorialPage: View {
     let themePreview: OnboardingTheme?
     let isActive: Bool
+    var focusedHeaderPage: AccessibilityFocusState<OnboardingPage?>.Binding
 
     @Environment(\.appAppearance) private var appearance
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
@@ -349,6 +354,7 @@ struct OnboardingTutorialPage: View {
                         .minimumScaleFactor(0.8)
                         .accessibilityAddTraits(.isHeader)
                         .accessibilityIdentifier("onboardingTutorialTitle")
+                        .accessibilityFocused(focusedHeaderPage, equals: .tutorial)
 
                     Text(L10n.Onboarding.tutorialSubtitle)
                         .font(appearance.typography.swiftUIFont(size: 17, weight: .regular))

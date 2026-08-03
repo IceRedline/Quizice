@@ -70,6 +70,7 @@
 "ai_theme.title" = "Mit KI erstellen";
 "home.choose_theme" = "Thema auswählen";
 "home.create_with_ai" = "Mit KI erstellen";
+"home.create_with_ai.accessibility_label" = "Mit künstlicher Intelligenz erstellen";
 "home.create_with_ai.accessibility_hint" = "Öffnet den Bildschirm zum Erstellen eines Quizthemas mit KI";
 "home.create_with_ai.beta_badge" = "Beta";
 "home.exit_alert.message" = "Möchtest du wirklich beenden?";

@@ -58,6 +58,7 @@ enum L10n {
         static var backgroundStyleSwitcher: String { L10n.localized("home.background_style.switcher", comment: "Experimental home background style switcher label") }
         static var chooseTheme: String { L10n.localized("home.choose_theme", comment: "Home screen theme selection title") }
         static var createWithAI: String { L10n.localized("home.create_with_ai", comment: "Create quiz theme with AI button title") }
+        static var createWithAIAccessibilityLabel: String { L10n.localized("home.create_with_ai.accessibility_label", comment: "Create quiz theme with AI accessibility label, spelling out the abbreviation for VoiceOver") }
         static var createWithAIAccessibilityHint: String { L10n.localized("home.create_with_ai.accessibility_hint", comment: "Create quiz theme with AI accessibility hint") }
         static var createWithAIBetaBadge: String { L10n.localized("home.create_with_ai.beta_badge", comment: "Create quiz theme with AI beta badge") }
         static var exitAlertMessage: String { L10n.localized("home.exit_alert.message", comment: "Exit confirmation message") }

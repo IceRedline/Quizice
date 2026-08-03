@@ -374,6 +374,11 @@ final class QuizViewController: BaseQuizViewController, ThemeCollectionDelegate,
         }
     }
 
+    func restoreAccessibilityFocusAfterLaunch() {
+        guard isViewLoaded else { return }
+        UIAccessibility.post(notification: .screenChanged, argument: motivationLabel)
+    }
+
     override func applyAppearance() {
         guard isViewLoaded else { return }
         let appearance = currentAppearance()
