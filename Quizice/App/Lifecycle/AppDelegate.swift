@@ -44,6 +44,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         if let modelContainer {
             themeRepository.setModelContext(modelContainer.mainContext)
         }
+        Task { await PersistentQuestionAnswerOutbox.shared.synchronize() }
         return true
     }
 

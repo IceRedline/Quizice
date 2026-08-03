@@ -117,6 +117,7 @@
 "question.show_question" = "Показать вопрос";
 "question.tap_to_answer.accessibility_hint" = "Дважды коснитесь, чтобы выбрать этот ответ.";
 "question.unavailable.message" = "В этой теме пока нет доступных вопросов. Вернитесь назад и выберите другую тему.";
+"question.progress_complete.message" = "Вы прошли все вопросы для выбранного режима повторов. Измените режим или выберите другую тему.";
 "question.unavailable_answer" = "Недоступно";
 "question.unavailable_number" = "Вопросы недоступны";
 "question.time_remaining" = "Осталось времени";
@@ -225,3 +226,9 @@
 "subscription.paywall.title" = "Больше ИИ-квизов. Больше игры.";
 "theme.card.accessibility_hint" = "Открывает карточку этой темы";
 "theme.card.accessibility_label_format" = "%@, тема викторины";
+"settings.questionStrategy.section" = "Вопросы";
+"settings.questionStrategy.title" = "Стратегия повторения";
+"settings.questionStrategy.subtitle" = "Выберите, какие пройденные вопросы скрывать";
+"settings.questionStrategy.showAll" = "Показывать все";
+"settings.questionStrategy.hideAnswered" = "Скрывать отвеченные";
+"settings.questionStrategy.retryIncorrect" = "Повторять ошибки";

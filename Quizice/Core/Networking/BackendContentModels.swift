@@ -6,7 +6,40 @@ enum BackendOperation: String, Equatable {
     case themes
     case themePreferences = "theme_preferences"
     case questions
+    case questionAnswers = "question_answers"
     case aiGeneration = "ai_generation"
+}
+
+enum QuestionProgressMode: String, Codable, Equatable {
+    case allAnswered = "all_answered"
+    case correctOnly = "correct_only"
+}
+
+enum QuestionRepeatStrategy: String, Codable, CaseIterable {
+    case showAll
+    case hideAnswered
+    case retryIncorrect
+
+    var progressMode: QuestionProgressMode? {
+        switch self {
+        case .showAll: nil
+        case .hideAnswered: .allAnswered
+        case .retryIncorrect: .correctOnly
+        }
+    }
+}
+
+final class QuestionRepeatStrategyStore {
+    static let shared = QuestionRepeatStrategyStore()
+    static let defaultsKey = "quizice.question-repeat-strategy"
+    private let defaults: UserDefaults
+
+    init(defaults: UserDefaults = .standard) { self.defaults = defaults }
+
+    var strategy: QuestionRepeatStrategy {
+        get { QuestionRepeatStrategy(rawValue: defaults.string(forKey: Self.defaultsKey) ?? "") ?? .showAll }
+        set { defaults.set(newValue.rawValue, forKey: Self.defaultsKey) }
+    }
 }
 
 enum BackendRequestResult: String, Equatable {
@@ -75,6 +108,48 @@ protocol BackendAccessTokenProviding {
     func validAccessToken() -> String?
 }
 
+protocol BackendAuthenticationRecovering {
+    func reauthenticate(afterRejectedAccessToken accessToken: String) async throws -> String
+}
+
+struct NotificationBackendAuthenticationRecoverer: BackendAuthenticationRecovering {
+    private let sessionStore: SessionStoring
+    private let notificationCenter: NotificationCenter
+    private let now: () -> Date
+    private let timeoutNanoseconds: UInt64
+
+    init(
+        sessionStore: SessionStoring = KeychainSessionStore(),
+        notificationCenter: NotificationCenter = .default,
+        now: @escaping () -> Date = Date.init,
+        timeoutNanoseconds: UInt64 = 15_000_000_000
+    ) {
+        self.sessionStore = sessionStore
+        self.notificationCenter = notificationCenter
+        self.now = now
+        self.timeoutNanoseconds = timeoutNanoseconds
+    }
+
+    func reauthenticate(afterRejectedAccessToken accessToken: String) async throws -> String {
+        try? sessionStore.clear()
+        notificationCenter.post(name: .backendAuthenticationInvalidated, object: nil)
+
+        let clock = ContinuousClock()
+        let deadline = clock.now.advanced(by: .nanoseconds(Int64(timeoutNanoseconds)))
+        while clock.now < deadline {
+            try Task.checkCancellation()
+            if let session = try? sessionStore.load(),
+               session.expiresAt > now(),
+               !session.accessToken.isEmpty,
+               session.accessToken != accessToken {
+                return session.accessToken
+            }
+            try await Task.sleep(nanoseconds: 50_000_000)
+        }
+        throw BackendContentError.unauthenticated
+    }
+}
+
 struct NoopBackendAccessTokenProvider: BackendAccessTokenProviding {
     func validAccessToken() -> String? { nil }
 }
@@ -106,13 +181,34 @@ struct StoredBackendAccessTokenProvider: BackendAccessTokenProviding {
 }
 
 struct BackendQuestionDTO: Decodable, Equatable {
+    let questionId: String?
+    let questionVersion: Int?
     let question: String
     let answers: [String]
     let correctAnswer: String
     let explanation: String?
 
-    func makeModel() -> QuizQuestion {
+    init(
+        questionId: String? = nil,
+        questionVersion: Int? = nil,
+        question: String,
+        answers: [String],
+        correctAnswer: String,
+        explanation: String?
+    ) {
+        self.questionId = questionId
+        self.questionVersion = questionVersion
+        self.question = question
+        self.answers = answers
+        self.correctAnswer = correctAnswer
+        self.explanation = explanation
+    }
+
+    func makeModel(locale: String? = nil) -> QuizQuestion {
         QuizQuestion(
+            questionID: questionId,
+            questionVersion: questionVersion,
+            locale: locale,
             question: question,
             answers: answers,
             correctAnswer: correctAnswer,
@@ -124,5 +220,71 @@ struct BackendQuestionDTO: Decodable, Equatable {
 struct BackendQuestionBatchResponse: Decodable, Equatable {
     let locale: String
     let seed: String
+    let progressMode: QuestionProgressMode?
+    let availableCount: Int
     let questions: [BackendQuestionDTO]
+
+    enum CodingKeys: String, CodingKey {
+        case locale, seed, progressMode, availableCount, questions
+    }
+
+    init(
+        locale: String,
+        seed: String,
+        progressMode: QuestionProgressMode? = nil,
+        availableCount: Int? = nil,
+        questions: [BackendQuestionDTO]
+    ) {
+        self.locale = locale
+        self.seed = seed
+        self.progressMode = progressMode
+        self.availableCount = availableCount ?? questions.count
+        self.questions = questions
+    }
+
+    init(from decoder: Decoder) throws {
+        let values = try decoder.container(keyedBy: CodingKeys.self)
+        locale = try values.decode(String.self, forKey: .locale)
+        seed = try values.decode(String.self, forKey: .seed)
+        progressMode = try values.decodeIfPresent(QuestionProgressMode.self, forKey: .progressMode)
+        questions = try values.decode([BackendQuestionDTO].self, forKey: .questions)
+        availableCount = try values.decodeIfPresent(Int.self, forKey: .availableCount) ?? questions.count
+    }
+}
+
+struct QuestionAnswerEvent: Codable, Equatable, Identifiable {
+    let eventId: UUID
+    let questionId: String
+    let questionVersion: Int
+    let locale: String
+    let answer: String?
+    let answeredAt: Date
+
+    var id: UUID { eventId }
+
+    enum CodingKeys: String, CodingKey {
+        case eventId, questionId, questionVersion, locale, answer, answeredAt
+    }
+
+    func encode(to encoder: Encoder) throws {
+        var values = encoder.container(keyedBy: CodingKeys.self)
+        try values.encode(eventId, forKey: .eventId)
+        try values.encode(questionId, forKey: .questionId)
+        try values.encode(questionVersion, forKey: .questionVersion)
+        try values.encode(locale, forKey: .locale)
+        if let answer {
+            try values.encode(answer, forKey: .answer)
+        } else {
+            try values.encodeNil(forKey: .answer)
+        }
+        try values.encode(answeredAt, forKey: .answeredAt)
+    }
+}
+
+struct QuestionAnswerBatchRequest: Encodable, Equatable {
+    let events: [QuestionAnswerEvent]
+}
+
+struct QuestionAnswerBatchResponse: Decodable, Equatable {
+    let processedEventIds: [UUID]
 }
