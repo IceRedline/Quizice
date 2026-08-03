@@ -7,7 +7,8 @@ struct BackendConfiguration: Equatable {
 
     static func load(
         bundle: Bundle = .main,
-        userDefaults: UserDefaults = .standard
+        userDefaults: UserDefaults = .standard,
+        environment: [String: String] = ProcessInfo.processInfo.environment
     ) -> BackendConfiguration? {
         #if DEBUG
         if userDefaults.bool(forKey: DebugBackendSettings.useLocalContentOnlyKey) {
@@ -15,6 +16,9 @@ struct BackendConfiguration: Equatable {
         }
         if userDefaults.bool(forKey: DebugBackendSettings.useLocalhostKey) {
             return BackendConfiguration(baseURL: DebugBackendSettings.localhostBaseURL)
+        }
+        if let environmentConfiguration = configuration(from: environment["API_BASE_URL"]) {
+            return environmentConfiguration
         }
         #endif
         return configuration(from: bundle.object(forInfoDictionaryKey: infoPlistKey))

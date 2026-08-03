@@ -53,6 +53,41 @@ struct AuthSession: Codable, Equatable {
     }
 }
 
+protocol AuthenticationProvider {
+    func authenticate() async throws -> AuthSession
+}
+
+struct GameCenterAuthenticationProvider: AuthenticationProvider {
+    private let operation: () async throws -> AuthSession
+
+    init(operation: @escaping () async throws -> AuthSession) {
+        self.operation = operation
+    }
+
+    func authenticate() async throws -> AuthSession { try await operation() }
+}
+
+#if DEBUG
+protocol DevAuthAPI {
+    func authenticate(developerUserID: UUID, secret: String) async throws -> AuthSession
+}
+
+struct DevAuthenticationProvider: AuthenticationProvider {
+    let api: DevAuthAPI
+    let developerUserIDStore: DeveloperUserIDStoring
+    let secret: String
+
+    func authenticate() async throws -> AuthSession {
+        let normalizedSecret = secret.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !normalizedSecret.isEmpty else { throw BackendAPIError.configurationMissing }
+        return try await api.authenticate(
+            developerUserID: try developerUserIDStore.loadOrCreate(),
+            secret: normalizedSecret
+        )
+    }
+}
+#endif
+
 struct GameCenterIdentity: Codable, Equatable {
     let teamPlayerId: String
     let bundleId: String

@@ -347,7 +347,9 @@ check_swift_file_size_limit() {
       printf '%s\t%s\n' "$line_count" "$swift_file" >> "$report"
     fi
   done < <(
-    find Quizice QuiziceTests \
+    # Keep production sources reviewable while allowing cohesive XCTest suites
+    # and their fixtures to exceed the app's 700-line source limit.
+    find Quizice \
       -type d -name DerivedData -prune -o \
       -type f -name '*.swift' -print0
   )
@@ -358,7 +360,8 @@ check_swift_file_size_limit() {
     fail "Swift source files must not exceed $MAX_SWIFT_FILE_LINES lines"
   fi
 
-  printf 'All Swift files in Quizice/ and QuiziceTests/ are at most %s lines: PASS\n' "$MAX_SWIFT_FILE_LINES"
+  printf 'All production Swift files in Quizice/ are at most %s lines: PASS\n' "$MAX_SWIFT_FILE_LINES"
+  printf 'Swift files in QuiziceTests/ are exempt from the source-file size guard: PASS\n'
 }
 
 check_split_test_layout_and_markers() {

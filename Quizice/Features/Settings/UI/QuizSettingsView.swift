@@ -19,6 +19,9 @@ private enum Layout {
     static let rowIconSize: CGFloat = 36
     static let rowTextSpacing: CGFloat = 3
     static let rowValueMinimumScaleFactor: CGFloat = 0.72
+    static let stackedValueTopSpacing: CGFloat = 12
+    static let stackedValueInset: CGFloat = 12
+    static let stackedValueLeadingInset: CGFloat = rowIconSize + rowSpacing
     static let iconChoicesSpacing: CGFloat = 10
     static let iconChoiceContentSpacing: CGFloat = 8
     static let iconChoiceImageSize: CGFloat = 48
@@ -105,12 +108,15 @@ struct QuizSettingsView: View {
 
     @Environment(\.dismiss) private var dismiss
     @Environment(\.colorScheme) private var colorScheme
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @AppStorage(AppAppearanceStore.Keys.cleanColorScheme) private var selectedThemeID = CleanColorSchemePreference.system.rawValue
     @AppStorage(AppAppearanceStore.Keys.designStyle) private var selectedDesignStyleID = AppDesignStyle.defaultStyle.rawValue
     @AppStorage(AppAppearanceStore.Keys.backgroundStyle) private var selectedBackgroundStyleID = AppBackgroundStyle.defaultStyle.rawValue
     @AppStorage(AppLocalizationStore.Keys.language) private var selectedLanguageID = AppLanguagePreference.system.rawValue
     @AppStorage("quizice.settings.icon") private var selectedIconID = AppIcon.classic.rawValue
+    @AppStorage(QuestionRepeatStrategyStore.defaultsKey) private var repeatStrategyID = QuestionRepeatStrategy.showAll.rawValue
     @State private var activeAlert: SettingsAlert?
+    @State private var showsQuestionStrategyHelp = false
     @State private var didTrackScreen = false
     private let analytics: AnalyticsTracking
 
@@ -160,6 +166,12 @@ struct QuizSettingsView: View {
                 ScrollView {
                     content(topInset: max(Layout.contentMinimumTopInset, geometry.safeAreaInsets.top + Layout.contentTopInset))
                 }
+
+                if showsQuestionStrategyHelp {
+                    questionStrategyHelpOverlay
+                        .transition(.opacity)
+                        .zIndex(10)
+                }
             }
         }
         .environment(\.appAppearance, appearance)
@@ -196,6 +208,7 @@ struct QuizSettingsView: View {
         VStack(spacing: Layout.sectionSpacing) {
             settingsTitle
             profileSection
+            questionStrategySection
             appearanceSection
             supportSection
         }
@@ -245,6 +258,94 @@ struct QuizSettingsView: View {
                 activeAlert = .profile
             }
         }
+    }
+
+    private var questionStrategySection: some View {
+        SettingsSection(
+            title: NSLocalizedString("settings.questionStrategy.section", comment: ""),
+            titleAccessory: {
+                Button(action: presentQuestionStrategyHelp) {
+                    Image(systemName: "questionmark.circle.fill")
+                        .font(appearance.typography.swiftUIFont(size: 13, weight: .semibold))
+                        .foregroundStyle(Color(uiColor: appearance.secondaryScreenTextColor))
+                        .frame(width: 32, height: 32)
+                        .contentShape(Rectangle())
+                }
+                .buttonStyle(QuizPressButtonStyle())
+                .accessibilityLabel(
+                    NSLocalizedString("settings.questionStrategy.help.accessibilityLabel", comment: "")
+                )
+            },
+            content: {
+                Menu {
+                    ForEach(QuestionRepeatStrategy.allCases, id: \.rawValue) { strategy in
+                        Button(questionStrategyTitle(strategy)) {
+                            repeatStrategyID = strategy.rawValue
+                        }
+                    }
+                } label: {
+                    SettingsValueRow(
+                        systemImage: "arrow.triangle.2.circlepath",
+                        title: NSLocalizedString("settings.questionStrategy.title", comment: ""),
+                        subtitle: "",
+                        value: questionStrategyTitle(
+                            QuestionRepeatStrategy(rawValue: repeatStrategyID) ?? .showAll
+                        )
+                    )
+                }
+                .buttonStyle(.plain)
+            }
+        )
+    }
+
+    private var questionStrategyHelpOverlay: some View {
+        QuizAlertOverlay(
+            title: NSLocalizedString("settings.questionStrategy.help.title", comment: ""),
+            message: NSLocalizedString("settings.questionStrategy.help.message", comment: ""),
+            systemImage: "arrow.triangle.2.circlepath",
+            iconColor: .white,
+            primaryAction: QuizAlertAction(
+                title: L10n.Settings.alertAction,
+                emphasis: .primary,
+                accessibilityIdentifier: "questionStrategyHelpDismissButton",
+                action: dismissQuestionStrategyHelp
+            ),
+            secondaryAction: nil,
+            onEscape: dismissQuestionStrategyHelp
+        )
+        .environment(\.appAppearance, questionStrategyHelpAppearance)
+        .preferredColorScheme(.dark)
+    }
+
+    private var questionStrategyHelpAppearance: AppAppearance {
+        AppAppearance(
+            designStyle: appearance.designStyle,
+            cleanColorSchemePreference: .dark,
+            backgroundStyle: appearance.backgroundStyle,
+            traitCollection: UITraitCollection(userInterfaceStyle: .dark)
+        )
+    }
+
+    private func presentQuestionStrategyHelp() {
+        setQuestionStrategyHelpPresented(true, duration: 0.18)
+    }
+
+    private func dismissQuestionStrategyHelp() {
+        setQuestionStrategyHelpPresented(false, duration: 0.16)
+    }
+
+    private func setQuestionStrategyHelpPresented(_ isPresented: Bool, duration: Double) {
+        if reduceMotion {
+            showsQuestionStrategyHelp = isPresented
+        } else {
+            withAnimation(.easeOut(duration: duration)) {
+                showsQuestionStrategyHelp = isPresented
+            }
+        }
+    }
+
+    private func questionStrategyTitle(_ strategy: QuestionRepeatStrategy) -> String {
+        NSLocalizedString("settings.questionStrategy.\(strategy.rawValue)", comment: "")
     }
 
     private var appearanceSection: some View {
@@ -367,20 +468,40 @@ private struct SettingsSection<Content: View>: View {
     @Environment(\.appAppearance) private var appearance
 
     let title: String
+    private let titleAccessory: AnyView?
     private let content: Content
 
     init(title: String, @ViewBuilder content: () -> Content) {
         self.title = title
+        titleAccessory = nil
+        self.content = content()
+    }
+
+    init<TitleAccessory: View>(
+        title: String,
+        @ViewBuilder titleAccessory: () -> TitleAccessory,
+        @ViewBuilder content: () -> Content
+    ) {
+        self.title = title
+        self.titleAccessory = AnyView(titleAccessory())
         self.content = content()
     }
 
     var body: some View {
         VStack(alignment: .leading, spacing: Layout.rowSpacing) {
-            Text(title)
-                .font(appearance.typography.swiftUIFont(size: 13, weight: .semibold))
-                .foregroundStyle(Color(uiColor: appearance.secondaryScreenTextColor))
-                .textCase(.uppercase)
-                .padding(.horizontal, Layout.sectionTitleHorizontalInset)
+            HStack(spacing: Layout.rowAccessorySpacing) {
+                Text(title)
+                    .font(appearance.typography.swiftUIFont(size: 13, weight: .semibold))
+                    .foregroundStyle(Color(uiColor: appearance.secondaryScreenTextColor))
+                    .textCase(.uppercase)
+
+                if let titleAccessory {
+                    titleAccessory
+                }
+
+                Spacer(minLength: 0)
+            }
+            .padding(.horizontal, Layout.sectionTitleHorizontalInset)
 
             VStack(spacing: Layout.sectionContentSpacing) {
                 content
@@ -429,13 +550,23 @@ private struct SettingsActionRow: View {
 
 private struct SettingsValueRow: View {
     @Environment(\.appAppearance) private var appearance
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
     let systemImage: String
     let title: String
     let subtitle: String
     let value: String
 
+    @ViewBuilder
     var body: some View {
+        if dynamicTypeSize.isAccessibilitySize {
+            stackedBody
+        } else {
+            horizontalBody
+        }
+    }
+
+    private var horizontalBody: some View {
         HStack(spacing: Layout.rowSpacing) {
             SettingsRowHeader(systemImage: systemImage, title: title, subtitle: subtitle)
                 .layoutPriority(1)
@@ -447,7 +578,7 @@ private struct SettingsValueRow: View {
                     .font(appearance.typography.swiftUIFont(size: 15, weight: .semibold))
                     .foregroundStyle(Color(uiColor: appearance.surfaceTextColor))
                     .multilineTextAlignment(.trailing)
-                    .lineLimit(1)
+                    .lineLimit(2)
                     .minimumScaleFactor(Layout.rowValueMinimumScaleFactor)
                     .allowsTightening(true)
                     .layoutPriority(1)
@@ -458,6 +589,37 @@ private struct SettingsValueRow: View {
                     .accessibilityHidden(true)
             }
             .layoutPriority(1)
+        }
+        .contentShape(Rectangle())
+        .accessibilityElement(children: .combine)
+        .accessibilityAddTraits(.isButton)
+    }
+
+    private var stackedBody: some View {
+        VStack(alignment: .leading, spacing: Layout.stackedValueTopSpacing) {
+            SettingsRowHeader(systemImage: systemImage, title: title, subtitle: subtitle)
+
+            HStack(spacing: Layout.rowAccessorySpacing) {
+                Text(value)
+                    .font(appearance.typography.swiftUIFont(size: 15, weight: .semibold))
+                    .foregroundStyle(Color(uiColor: appearance.surfaceTextColor))
+                    .multilineTextAlignment(.leading)
+                    .lineLimit(2)
+                    .fixedSize(horizontal: false, vertical: true)
+
+                Spacer(minLength: Layout.rowAccessoryMinimumSpacing)
+
+                Image(systemName: "chevron.down")
+                    .font(appearance.typography.swiftUIFont(size: 12, weight: .bold))
+                    .foregroundStyle(Color(uiColor: appearance.secondarySurfaceTextColor))
+                    .accessibilityHidden(true)
+            }
+            .padding(Layout.stackedValueInset)
+            .background(
+                Color(uiColor: appearance.row.backgroundColor),
+                in: RoundedRectangle(cornerRadius: appearance.row.cornerRadius, style: .continuous)
+            )
+            .padding(.leading, Layout.stackedValueLeadingInset)
         }
         .contentShape(Rectangle())
         .accessibilityElement(children: .combine)
@@ -488,11 +650,13 @@ private struct SettingsRowHeader: View {
                     .font(appearance.typography.swiftUIFont(size: 17, weight: .semibold))
                     .foregroundStyle(Color(uiColor: appearance.surfaceTextColor))
 
-                Text(subtitle)
-                    .font(appearance.typography.swiftUIFont(size: 13, weight: .regular))
-                    .foregroundStyle(Color(uiColor: appearance.secondarySurfaceTextColor))
-                    .lineLimit(2)
-                    .fixedSize(horizontal: false, vertical: true)
+                if !subtitle.isEmpty {
+                    Text(subtitle)
+                        .font(appearance.typography.swiftUIFont(size: 13, weight: .regular))
+                        .foregroundStyle(Color(uiColor: appearance.secondarySurfaceTextColor))
+                        .lineLimit(2)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
             }
         }
     }
