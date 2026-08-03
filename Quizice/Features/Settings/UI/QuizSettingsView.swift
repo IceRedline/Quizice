@@ -110,6 +110,7 @@ struct QuizSettingsView: View {
     @AppStorage(AppAppearanceStore.Keys.backgroundStyle) private var selectedBackgroundStyleID = AppBackgroundStyle.defaultStyle.rawValue
     @AppStorage(AppLocalizationStore.Keys.language) private var selectedLanguageID = AppLanguagePreference.system.rawValue
     @AppStorage("quizice.settings.icon") private var selectedIconID = AppIcon.classic.rawValue
+    @AppStorage(QuestionRepeatStrategyStore.defaultsKey) private var repeatStrategyID = QuestionRepeatStrategy.showAll.rawValue
     @State private var activeAlert: SettingsAlert?
     @State private var didTrackScreen = false
     private let analytics: AnalyticsTracking
@@ -196,6 +197,7 @@ struct QuizSettingsView: View {
         VStack(spacing: Layout.sectionSpacing) {
             settingsTitle
             profileSection
+            questionStrategySection
             appearanceSection
             supportSection
         }
@@ -245,6 +247,32 @@ struct QuizSettingsView: View {
                 activeAlert = .profile
             }
         }
+    }
+
+    private var questionStrategySection: some View {
+        SettingsSection(title: NSLocalizedString("settings.questionStrategy.section", comment: "")) {
+            Menu {
+                ForEach(QuestionRepeatStrategy.allCases, id: \.rawValue) { strategy in
+                    Button(questionStrategyTitle(strategy)) {
+                        repeatStrategyID = strategy.rawValue
+                    }
+                }
+            } label: {
+                SettingsValueRow(
+                    systemImage: "arrow.triangle.2.circlepath",
+                    title: NSLocalizedString("settings.questionStrategy.title", comment: ""),
+                    subtitle: NSLocalizedString("settings.questionStrategy.subtitle", comment: ""),
+                    value: questionStrategyTitle(
+                        QuestionRepeatStrategy(rawValue: repeatStrategyID) ?? .showAll
+                    )
+                )
+            }
+            .buttonStyle(.plain)
+        }
+    }
+
+    private func questionStrategyTitle(_ strategy: QuestionRepeatStrategy) -> String {
+        NSLocalizedString("settings.questionStrategy.\(strategy.rawValue)", comment: "")
     }
 
     private var appearanceSection: some View {

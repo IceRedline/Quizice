@@ -129,6 +129,8 @@ final class BackendClientTests: XCTestCase {
         )
 
         XCTAssertEqual(response.questions.count, 5)
+        XCTAssertEqual(response.questions.first?.questionId, "question-0")
+        XCTAssertEqual(response.questions.first?.questionVersion, 1)
         XCTAssertEqual(response.questions.first?.correctAnswer, "B0")
     }
 
@@ -582,6 +584,187 @@ final class BackendClientTests: XCTestCase {
         XCTAssertEqual(store.session, storedSession)
         XCTAssertFalse(access.isAIQuizAvailable)
         XCTAssertEqual(invalidationCount, 0)
+    }
+
+    func testPersonalizedQuestionStrategiesMapToProgressModeAndBearer() async throws {
+        let seed = "550e8400-e29b-41d4-a716-446655440000"
+        for (strategy, expectedMode) in [
+            (QuestionRepeatStrategy.hideAnswered, "all_answered"),
+            (.retryIncorrect, "correct_only")
+        ] {
+            let api = makeContentAPI(accessToken: "progress-token")
+            BackendTestURLProtocol.requestHandler = { request in
+                let items = URLComponents(url: request.url!, resolvingAgainstBaseURL: false)?.queryItems
+                XCTAssertEqual(items?.first(where: { $0.name == "progressMode" })?.value, expectedMode)
+                XCTAssertEqual(request.value(forHTTPHeaderField: "Authorization"), "Bearer progress-token")
+                let body = try JSONSerialization.data(withJSONObject: [
+                    "locale": "ru",
+                    "seed": seed,
+                    "progressMode": expectedMode,
+                    "availableCount": 1,
+                    "questions": [Self.questionJSON(index: 0)]
+                ])
+                return Self.response(for: request, data: body)
+            }
+            let response = try await api.fetchQuestions(
+                themeID: "music",
+                count: 5,
+                locale: "ru",
+                difficulty: .medium,
+                seed: seed,
+                strategy: strategy
+            )
+            XCTAssertEqual(response.questions.count, 1)
+            XCTAssertEqual(response.availableCount, 1)
+        }
+    }
+
+    func testShowAllOmitsProgressModeAndAllowsEmptyGuestBatch() async throws {
+        let seed = "550e8400-e29b-41d4-a716-446655440000"
+        let api = makeContentAPI()
+        BackendTestURLProtocol.requestHandler = { request in
+            XCTAssertFalse(request.url?.query?.contains("progressMode") ?? false)
+            XCTAssertNil(request.value(forHTTPHeaderField: "Authorization"))
+            let body = Data(
+                "{\"locale\":\"ru\",\"seed\":\"\(seed)\",\"availableCount\":0,\"questions\":[]}".utf8
+            )
+            return Self.response(for: request, data: body)
+        }
+        let response = try await api.fetchQuestions(
+            themeID: "music",
+            count: 5,
+            locale: "ru",
+            difficulty: .medium,
+            seed: seed,
+            strategy: .showAll
+        )
+        XCTAssertTrue(response.questions.isEmpty)
+    }
+
+    func testQuestionAnswerBatchUsesBearerAndEncodesTimeoutAsNull() async throws {
+        let eventID = UUID()
+        let api = makeContentAPI(accessToken: "answer-token")
+        BackendTestURLProtocol.requestHandler = { request in
+            XCTAssertEqual(request.url?.path, "/api/v1/me/question-answers")
+            XCTAssertEqual(request.value(forHTTPHeaderField: "Authorization"), "Bearer answer-token")
+            let body = try XCTUnwrap(Self.bodyData(from: request))
+            let json = try XCTUnwrap(JSONSerialization.jsonObject(with: body) as? [String: Any])
+            let events = try XCTUnwrap(json["events"] as? [[String: Any]])
+            XCTAssertTrue(events[0]["answer"] is NSNull)
+            return Self.response(
+                for: request,
+                data: Data("{\"processedEventIds\":[\"\(eventID.uuidString)\"]}".utf8)
+            )
+        }
+        let response = try await api.submitQuestionAnswers([
+            QuestionAnswerEvent(
+                eventId: eventID,
+                questionId: "music:0001",
+                questionVersion: 1,
+                locale: "ru",
+                answer: nil,
+                answeredAt: Date(timeIntervalSince1970: 1_000)
+            )
+        ])
+        XCTAssertEqual(response.processedEventIds, [eventID])
+    }
+
+    func testProtectedRequestReauthenticatesAndRetriesExactlyOnceAfter401() async throws {
+        let recoverer = BackendAuthenticationRecovererSpy(refreshedToken: "fresh-token")
+        let api = makeContentAPI(
+            accessToken: "rejected-token",
+            authenticationRecoverer: recoverer
+        )
+        var authorizationHeaders: [String?] = []
+        BackendTestURLProtocol.requestHandler = { request in
+            authorizationHeaders.append(request.value(forHTTPHeaderField: "Authorization"))
+            if authorizationHeaders.count == 1 {
+                return Self.response(
+                    for: request,
+                    statusCode: 401,
+                    data: Data(#"{"code":"unauthorized"}"#.utf8)
+                )
+            }
+            return Self.response(
+                for: request,
+                data: Data(#"{"locale":"ru","favoriteThemeIds":["music"]}"#.utf8)
+            )
+        }
+
+        let response = try await api.fetchThemePreferences(locale: "ru")
+
+        XCTAssertEqual(response.favoriteThemeIds, ["music"])
+        XCTAssertEqual(authorizationHeaders, ["Bearer rejected-token", "Bearer fresh-token"])
+        XCTAssertEqual(recoverer.rejectedTokens, ["rejected-token"])
+    }
+
+    func testSecond401DoesNotStartAnotherAuthenticationCycle() async {
+        let recoverer = BackendAuthenticationRecovererSpy(refreshedToken: "fresh-token")
+        let api = makeContentAPI(
+            accessToken: "rejected-token",
+            authenticationRecoverer: recoverer
+        )
+        var requestCount = 0
+        BackendTestURLProtocol.requestHandler = { request in
+            requestCount += 1
+            return Self.response(
+                for: request,
+                statusCode: 401,
+                data: Data(#"{"code":"unauthorized"}"#.utf8)
+            )
+        }
+
+        await assertBackendContentError(.httpStatus(401, nil)) {
+            try await api.fetchThemePreferences(locale: "ru")
+        }
+
+        XCTAssertEqual(requestCount, 2)
+        XCTAssertEqual(recoverer.rejectedTokens, ["rejected-token"])
+    }
+
+    func testAnswerOutboxRetriesTheSameEventIDAndDeletesOnlyProcessedEvents() async {
+        let processedID = UUID()
+        let pendingID = UUID()
+        let api = QuestionAnswerBackendContentAPI(submitResults: [
+            .failure(BackendContentError.transport(.notConnectedToInternet)),
+            .success(QuestionAnswerBatchResponse(processedEventIds: [processedID])),
+            .success(QuestionAnswerBatchResponse(processedEventIds: []))
+        ])
+        let fileURL = FileManager.default.temporaryDirectory
+            .appendingPathComponent("QuiziceTests-(UUID().uuidString)")
+            .appendingPathComponent("outbox.json")
+        let outbox = PersistentQuestionAnswerOutbox(
+            api: api,
+            fileURL: fileURL,
+            automaticallySynchronizesOnEnqueue: false
+        )
+        let processedEvent = QuestionAnswerEvent(
+            eventId: processedID,
+            questionId: "music:1",
+            questionVersion: 1,
+            locale: "ru",
+            answer: "A",
+            answeredAt: Date(timeIntervalSince1970: 1_000)
+        )
+        let pendingEvent = QuestionAnswerEvent(
+            eventId: pendingID,
+            questionId: "music:2",
+            questionVersion: 1,
+            locale: "ru",
+            answer: "B",
+            answeredAt: Date(timeIntervalSince1970: 2_000)
+        )
+        outbox.enqueue(processedEvent)
+        outbox.enqueue(pendingEvent)
+
+        await outbox.synchronize()
+        await outbox.synchronize()
+
+        XCTAssertEqual(api.submittedBatches.count, 3)
+        XCTAssertEqual(api.submittedBatches[0].map(\.eventId), [processedID, pendingID])
+        XCTAssertEqual(api.submittedBatches[1].map(\.eventId), [processedID, pendingID])
+        XCTAssertEqual(api.submittedBatches[2].map(\.eventId), [pendingID])
+        XCTAssertEqual(outbox.pendingEvents().map(\.eventId), [pendingID])
     }
 
 }

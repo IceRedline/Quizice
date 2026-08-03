@@ -117,6 +117,7 @@
 "question.show_question" = "Frage anzeigen";
 "question.tap_to_answer.accessibility_hint" = "Doppelt tippen, um diese Antwort auszuwählen.";
 "question.unavailable.message" = "Für dieses Thema gibt es noch keine verfügbaren Fragen. Gehe zurück und wähle ein anderes Thema.";
+"question.progress_complete.message" = "Du hast alle Fragen für diese Wiederholungseinstellung abgeschlossen. Wähle eine andere Einstellung oder ein anderes Thema.";
 "question.unavailable_answer" = "Nicht verfügbar";
 "question.unavailable_number" = "Fragen nicht verfügbar";
 "question.time_remaining" = "Verbleibende Zeit";
@@ -225,3 +226,9 @@
 "subscription.paywall.title" = "Mehr KI-Quizze. Mehr Quizspaß.";
 "theme.card.accessibility_hint" = "Öffnet die Karte zu diesem Thema";
 "theme.card.accessibility_label_format" = "%@, Quizthema";
+"settings.questionStrategy.section" = "Fragen";
+"settings.questionStrategy.title" = "Wiederholungsstrategie";
+"settings.questionStrategy.subtitle" = "Abgeschlossene Fragen ausblenden";
+"settings.questionStrategy.showAll" = "Alle anzeigen";
+"settings.questionStrategy.hideAnswered" = "Beantwortete ausblenden";
+"settings.questionStrategy.retryIncorrect" = "Falsche wiederholen";

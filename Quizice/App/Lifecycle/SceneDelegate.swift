@@ -77,6 +77,7 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
 
     func sceneDidBecomeActive(_ scene: UIScene) {
         authenticationService?.retrySynchronization()
+        Task { await PersistentQuestionAnswerOutbox.shared.synchronize() }
     }
 
     func sceneWillResignActive(_ scene: UIScene) {

@@ -18,7 +18,8 @@ final class ThemeCatalogRepository: ThemeRepository {
             HTTPBackendContentAPI(
                 configuration: $0,
                 metrics: AppMetricaAnalyticsTracker.shared,
-                accessTokenProvider: StoredBackendAccessTokenProvider()
+                accessTokenProvider: StoredBackendAccessTokenProvider(),
+                authenticationRecoverer: NotificationBackendAuthenticationRecoverer()
             )
         }
         return ThemeCatalogRepository(backendContentAPI: api)
@@ -303,7 +304,8 @@ final class ThemeCatalogRepository: ThemeRepository {
                     count: questionCount,
                     locale: locale,
                     difficulty: difficulty,
-                    seed: seed
+                    seed: seed,
+                    strategy: QuestionRepeatStrategyStore.shared.strategy
                 )
             }
             try Task.checkCancellation()
@@ -311,7 +313,7 @@ final class ThemeCatalogRepository: ThemeRepository {
                 throw CancellationError()
             }
 
-            let questions = response.questions.map { $0.makeModel() }
+            let questions = response.questions.map { $0.makeModel(locale: response.locale) }
             AppLog.content.notice(
                 "✅ BACKEND QUESTIONS: received theme=\(themeID, privacy: .public) locale=\(locale, privacy: .public) requested=\(questionCount, privacy: .public) received=\(questions.count, privacy: .public) seed=\(seed, privacy: .public) duration_ms=\(Self.durationMilliseconds(since: startedAt), privacy: .public)"
             )
@@ -382,7 +384,8 @@ final class ThemeCatalogRepository: ThemeRepository {
                     count: questionCount,
                     locale: locale,
                     difficulty: difficulty,
-                    seed: seed
+                    seed: seed,
+                    strategy: QuestionRepeatStrategyStore.shared.strategy
                 )
             }
             try Task.checkCancellation()
@@ -390,7 +393,7 @@ final class ThemeCatalogRepository: ThemeRepository {
                 throw CancellationError()
             }
 
-            let questions = response.questions.map { $0.makeModel() }
+            let questions = response.questions.map { $0.makeModel(locale: response.locale) }
             AppLog.content.notice(
                 "✅ BACKEND RANDOM QUESTIONS: received mode=\(selectionMode.rawValue, privacy: .public) locale=\(locale, privacy: .public) requested=\(questionCount, privacy: .public) received=\(questions.count, privacy: .public) seed=\(seed, privacy: .public) duration_ms=\(Self.durationMilliseconds(since: startedAt), privacy: .public)"
             )

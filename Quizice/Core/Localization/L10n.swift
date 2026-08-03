@@ -216,6 +216,7 @@ enum L10n {
         static var timeRemaining: String { L10n.localized("question.time_remaining", comment: "Quiz timer accessibility label") }
         static var unavailableAnswer: String { L10n.localized("question.unavailable_answer", comment: "Unavailable answer placeholder") }
         static var unavailableMessage: String { L10n.localized("question.unavailable.message", comment: "Message when selected theme has no usable questions") }
+        static var progressCompleteMessage: String { L10n.localized("question.progress_complete.message", comment: "Message when repeat filtering leaves no questions") }
         static var unavailableNumber: String { L10n.localized("question.unavailable_number", comment: "Unavailable question number label") }
 
         static func number(_ number: Int) -> String {

@@ -1,17 +1,26 @@
 import Foundation
 
 class QuizQuestion {
+    var questionID: String?
+    var questionVersion: Int?
+    var locale: String?
     var question: String
     var answers: [String]
     var correctAnswer: String
     var explanation: String?
     
     init(
+        questionID: String? = nil,
+        questionVersion: Int? = nil,
+        locale: String? = nil,
         question: String,
         answers: [String],
         correctAnswer: String,
         explanation: String? = nil
     ) {
+        self.questionID = questionID
+        self.questionVersion = questionVersion
+        self.locale = locale
         self.question = question
         self.answers = answers
         self.correctAnswer = correctAnswer

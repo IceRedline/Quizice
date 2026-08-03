@@ -117,6 +117,7 @@
 "question.show_question" = "Mostrar pregunta";
 "question.tap_to_answer.accessibility_hint" = "Toca dos veces para seleccionar esta respuesta.";
 "question.unavailable.message" = "Este tema aún no tiene preguntas disponibles. Vuelve atrás y elige otro tema.";
+"question.progress_complete.message" = "Has completado todas las preguntas disponibles con este ajuste de repetición. Elige otro ajuste o tema.";
 "question.unavailable_answer" = "No disponible";
 "question.unavailable_number" = "Preguntas no disponibles";
 "question.time_remaining" = "Tiempo restante";
@@ -225,3 +226,9 @@
 "subscription.paywall.title" = "Más quizzes con IA. Más diversión.";
 "theme.card.accessibility_hint" = "Abre la tarjeta de este tema";
 "theme.card.accessibility_label_format" = "%@, tema del quiz";
+"settings.questionStrategy.section" = "Preguntas";
+"settings.questionStrategy.title" = "Estrategia de repetición";
+"settings.questionStrategy.subtitle" = "Oculta las preguntas completadas";
+"settings.questionStrategy.showAll" = "Mostrar todas";
+"settings.questionStrategy.hideAnswered" = "Ocultar respondidas";
+"settings.questionStrategy.retryIncorrect" = "Repetir incorrectas";

@@ -5,13 +5,15 @@ import XCTest
 extension BackendClientTests {
     func makeContentAPI(
         metrics: BackendRequestMetricRecording = NoopBackendRequestMetricRecorder(),
-        accessToken: String? = nil
+        accessToken: String? = nil,
+        authenticationRecoverer: BackendAuthenticationRecovering? = nil
     ) -> HTTPBackendContentAPI {
         HTTPBackendContentAPI(
             configuration: Self.configuration,
             session: makeSession(),
             metrics: metrics,
-            accessTokenProvider: BackendAccessTokenStub(token: accessToken)
+            accessTokenProvider: BackendAccessTokenStub(token: accessToken),
+            authenticationRecoverer: authenticationRecoverer
         )
     }
 
@@ -86,6 +88,8 @@ extension BackendClientTests {
 
     static func questionJSON(index: Int) -> [String: Any] {
         [
+            "questionId": "question-\(index)",
+            "questionVersion": 1,
             "question": "Question \(index)",
             "answers": ["A\(index)", "B\(index)", "C\(index)", "D\(index)"],
             "correctAnswer": "B\(index)",
