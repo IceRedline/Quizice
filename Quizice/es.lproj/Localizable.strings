@@ -70,6 +70,7 @@
 "ai_theme.title" = "Crear con IA";
 "home.choose_theme" = "Elige un tema";
 "home.create_with_ai" = "Crear con IA";
+"home.create_with_ai.accessibility_label" = "Crear con inteligencia artificial";
 "home.create_with_ai.accessibility_hint" = "Abre la pantalla para crear un tema de quiz con IA";
 "home.create_with_ai.beta_badge" = "Beta";
 "home.exit_alert.message" = "¿Seguro que quieres salir?";

@@ -70,6 +70,7 @@
 "ai_theme.title" = "Create with AI";
 "home.choose_theme" = "Choose a theme";
 "home.create_with_ai" = "Create with AI";
+"home.create_with_ai.accessibility_label" = "Create with artificial intelligence";
 "home.create_with_ai.accessibility_hint" = "Opens the AI quiz theme creation screen";
 "home.create_with_ai.beta_badge" = "Beta";
 "home.exit_alert.message" = "Are you sure you want to exit?";
@@ -88,7 +89,7 @@
 "home.themes_collection.accessibility_label" = "Quiz themes";
 "home.unavailable_themes" = "Themes are not available yet";
 "theme.card.close_accessibility_label" = "Close theme card";
-"theme.card.show_description_accessibility_label" = "Show theme description";
+"theme.card.show_description_accessibility_label" = "Continue";
 "theme.card.show_front_accessibility_label" = "Return to theme card front";
 "home.welcome" = "Welcome to";
 "home.motivation_prompt.1" = "Pick a topic\nand start";

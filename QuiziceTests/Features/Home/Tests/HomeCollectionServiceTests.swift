@@ -552,7 +552,7 @@ final class HomeCollectionServiceTests: HomeScreenVisualStateTestCase {
         XCTAssertEqual(themeButton?.layer.borderWidth, 2)
         XCTAssertTrue(themeButton?.clipsToBounds ?? false)
         XCTAssertEqual(themeCell.layer.shadowOpacity, 0)
-        XCTAssertEqual(aiThemeButton?.accessibilityLabel, L10n.Home.createWithAI)
+        XCTAssertEqual(aiThemeButton?.accessibilityLabel, L10n.Home.createWithAIAccessibilityLabel)
         XCTAssertEqual(aiThemeButton?.layer.cornerRadius, 36)
         assertColor(aiThemeButton?.backgroundColor, equals: assetColor("themeWhite"))
         XCTAssertEqual(aiThemeButton?.layer.borderWidth, 0)

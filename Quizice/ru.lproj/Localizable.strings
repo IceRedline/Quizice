@@ -70,6 +70,7 @@
 "ai_theme.title" = "Создать с ИИ";
 "home.choose_theme" = "Выберите тему";
 "home.create_with_ai" = "Создать с ИИ";
+"home.create_with_ai.accessibility_label" = "Создать с искусственным интеллектом";
 "home.create_with_ai.accessibility_hint" = "Открывает экран создания темы квиза с ИИ";
 "home.create_with_ai.beta_badge" = "Бета";
 "home.exit_alert.message" = "Вы уверены что хотите выйти?";
@@ -88,7 +89,7 @@
 "home.themes_collection.accessibility_label" = "Темы викторины";
 "home.unavailable_themes" = "Темы пока недоступны";
 "theme.card.close_accessibility_label" = "Закрыть карточку темы";
-"theme.card.show_description_accessibility_label" = "Показать описание темы";
+"theme.card.show_description_accessibility_label" = "Продолжить";
 "theme.card.show_front_accessibility_label" = "Вернуться к лицевой стороне карточки";
 "home.welcome" = "Добро пожаловать в";
 "home.motivation_prompt.1" = "Выбери тему\nи начнем";

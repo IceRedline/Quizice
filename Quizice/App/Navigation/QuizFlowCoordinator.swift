@@ -182,6 +182,12 @@ final class QuizFlowCoordinator: NSObject, QuizRouting, UIViewControllerTransiti
         presentOnboarding(animated: false)
     }
 
+    func restoreInitialAccessibilityFocusAfterLaunch() {
+        guard activeOnboardingViewController == nil else { return }
+        (navigationController.viewControllers.first as? QuizViewController)?
+            .restoreAccessibilityFocusAfterLaunch()
+    }
+
     func showOnboarding() {
         presentOnboarding(animated: true)
     }
