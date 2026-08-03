@@ -228,6 +228,9 @@
 "theme.card.accessibility_label_format" = "%@, tema del quiz";
 "settings.questionStrategy.section" = "Preguntas";
 "settings.questionStrategy.title" = "Estrategia de repetición";
+"settings.questionStrategy.help.title" = "Estrategia de repetición";
+"settings.questionStrategy.help.message" = "Mostrar todas — las preguntas pueden repetirse sin restricciones.\n\nOcultar respondidas — las preguntas completadas no volverán a aparecer.\n\nRepetir errores — se ocultan las respuestas correctas y se conservan las falladas.";
+"settings.questionStrategy.help.accessibilityLabel" = "Qué es una estrategia de repetición";
 "settings.questionStrategy.subtitle" = "Oculta las preguntas completadas";
 "settings.questionStrategy.showAll" = "Mostrar todas";
 "settings.questionStrategy.hideAnswered" = "Ocultar respondidas";

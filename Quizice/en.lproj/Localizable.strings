@@ -228,6 +228,9 @@
 "theme.card.accessibility_label_format" = "%@, quiz theme";
 "settings.questionStrategy.section" = "Questions";
 "settings.questionStrategy.title" = "Repeat strategy";
+"settings.questionStrategy.help.title" = "Repeat strategy";
+"settings.questionStrategy.help.message" = "Show all — questions may repeat without restrictions.\n\nHide answered — completed questions will not appear again.\n\nRetry mistakes — correctly answered questions are hidden while missed questions remain.";
+"settings.questionStrategy.help.accessibilityLabel" = "What is a repeat strategy?";
 "settings.questionStrategy.subtitle" = "Choose which completed questions to hide";
 "settings.questionStrategy.showAll" = "Show all";
 "settings.questionStrategy.hideAnswered" = "Hide answered";
