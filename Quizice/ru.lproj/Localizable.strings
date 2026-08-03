@@ -70,6 +70,7 @@
 "ai_theme.title" = "Создать с ИИ";
 "home.choose_theme" = "Выберите тему";
 "home.create_with_ai" = "Создать с ИИ";
+"home.create_with_ai.accessibility_label" = "Создать с искусственным интеллектом";
 "home.create_with_ai.accessibility_hint" = "Открывает экран создания темы квиза с ИИ";
 "home.create_with_ai.beta_badge" = "Бета";
 "home.exit_alert.message" = "Вы уверены что хотите выйти?";
@@ -88,7 +89,7 @@
 "home.themes_collection.accessibility_label" = "Темы викторины";
 "home.unavailable_themes" = "Темы пока недоступны";
 "theme.card.close_accessibility_label" = "Закрыть карточку темы";
-"theme.card.show_description_accessibility_label" = "Показать описание темы";
+"theme.card.show_description_accessibility_label" = "Продолжить";
 "theme.card.show_front_accessibility_label" = "Вернуться к лицевой стороне карточки";
 "home.welcome" = "Добро пожаловать в";
 "home.motivation_prompt.1" = "Выбери тему\nи начнем";
@@ -103,13 +104,18 @@
 "home.motivation_prompt.10" = "Начнем\nс простого выбора";
 "home.motivation_prompt.11" = "Время\nпроверить факты";
 "home.motivation_prompt.12" = "Квиз\nна пару минут";
+"question.answered.correct" = "Правильно.";
+"question.answered.wrong_format" = "Неправильно. Правильный ответ: %@.";
+"question.answered.wrong_unknown" = "Неправильно.";
 "question.audio_load_failure" = "Аудиофайлы не были загружены";
 "question.exit_alert.message" = "Прогресс текущего раунда будет потерян.";
 "question.exit_alert.title" = "Выйти из викторины?";
 "question.fallback_theme" = "Викторина";
+"question.load.announcement_format" = "%@. %@";
 "question.number_format" = "Вопрос №%d";
 "question.show_explanation" = "Показать объяснение";
 "question.show_question" = "Показать вопрос";
+"question.tap_to_answer.accessibility_hint" = "Дважды коснитесь, чтобы выбрать этот ответ.";
 "question.unavailable.message" = "В этой теме пока нет доступных вопросов. Вернитесь назад и выберите другую тему.";
 "question.unavailable_answer" = "Недоступно";
 "question.unavailable_number" = "Вопросы недоступны";
@@ -123,6 +129,7 @@
 "result.description.no_questions" = "В этой попытке не было доступных вопросов. Попробуй выбрать другую тему.";
 "result.description.perfect_score" = "Легенда, гений, соло легчайше для величайшего!";
 "result.description.very_low_score" = "Тебе точно стоит попробовать ещё раз!";
+"result.announcement_format" = "Викторина завершена. Правильных ответов: %d из %d.";
 "result.play_again" = "Сыграть ещё раз";
 "result.to_themes" = "К выбору темы";
 "result.text_format" = "Твой результат:\n %d/%d";

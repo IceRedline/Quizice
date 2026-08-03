@@ -52,6 +52,7 @@ struct QuizOnboardingView: View {
 
     @State private var selectedPage: OnboardingPage
     @State private var selectedThemeIDs: Set<String>
+    @AccessibilityFocusState private var focusedHeaderPage: OnboardingPage?
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     init(
@@ -83,7 +84,8 @@ struct QuizOnboardingView: View {
                 TabView(selection: $selectedPage) {
                     OnboardingWelcomePage(
                         themes: themes,
-                        isActive: selectedPage == .welcome
+                        isActive: selectedPage == .welcome,
+                        focusedHeaderPage: $focusedHeaderPage
                     )
                         .tag(OnboardingPage.welcome)
 
@@ -91,13 +93,15 @@ struct QuizOnboardingView: View {
                         themes: themes,
                         catalogOrigin: catalogOrigin,
                         selectedThemeIDs: $selectedThemeIDs,
-                        isActive: selectedPage == .topics
+                        isActive: selectedPage == .topics,
+                        focusedHeaderPage: $focusedHeaderPage
                     )
                     .tag(OnboardingPage.topics)
 
                     OnboardingTutorialPage(
                         themePreview: themes.first,
-                        isActive: selectedPage == .tutorial
+                        isActive: selectedPage == .tutorial,
+                        focusedHeaderPage: $focusedHeaderPage
                     )
                         .tag(OnboardingPage.tutorial)
                 }
@@ -128,6 +132,9 @@ struct QuizOnboardingView: View {
         .environment(\.appAppearance, appearance)
         .preferredColorScheme(appearance.swiftUIColorScheme)
         .tint(Color(uiColor: appearance.screenTextColor))
+        .onAppear {
+            focusedHeaderPage = selectedPage
+        }
         .onChange(of: selectedPage) { _, page in
             UIAccessibility.post(
                 notification: .pageScrolled,
@@ -136,6 +143,7 @@ struct QuizOnboardingView: View {
                     total: OnboardingPage.allCases.count
                 )
             )
+            focusedHeaderPage = page
         }
     }
 
@@ -189,7 +197,7 @@ struct QuizOnboardingView: View {
             if selectedPage != .welcome {
                 Button(action: goBack) {
                     Image(systemName: "chevron.left")
-                        .font(.system(size: 18, weight: .bold))
+                        .font(appearance.typography.swiftUIFont(size: 18, weight: .bold))
                         .foregroundStyle(Color(uiColor: appearance.screenTextColor))
                         .frame(width: Layout.backButtonWidth, height: Layout.buttonHeight)
                         .background(
@@ -222,7 +230,8 @@ struct QuizOnboardingView: View {
                         .minimumScaleFactor(0.78)
 
                     Image(systemName: selectedPage == .tutorial ? "sparkles" : "arrow.right")
-                        .font(.system(size: 16, weight: .bold))
+                        .font(appearance.typography.swiftUIFont(size: 16, weight: .bold))
+                        .accessibilityHidden(true)
                 }
                 .font(appearance.typography.swiftUIFont(size: 18, weight: .semibold))
                 .foregroundStyle(

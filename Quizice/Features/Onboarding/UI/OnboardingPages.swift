@@ -11,6 +11,7 @@ struct OnboardingWelcomePage: View {
 
     let themes: [OnboardingTheme]
     let isActive: Bool
+    var focusedHeaderPage: AccessibilityFocusState<OnboardingPage?>.Binding
 
     @Environment(\.appAppearance) private var appearance
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
@@ -60,6 +61,7 @@ struct OnboardingWelcomePage: View {
                         .minimumScaleFactor(0.76)
                         .accessibilityAddTraits(.isHeader)
                         .accessibilityIdentifier("onboardingWelcomeTitle")
+                        .accessibilityFocused(focusedHeaderPage, equals: .welcome)
 
                     Text(L10n.Onboarding.welcomeSubtitle)
                         .font(
@@ -140,8 +142,9 @@ private struct WelcomeArtwork: View {
                 .overlay {
                     VStack(spacing: 8) {
                         Image(systemName: "questionmark")
-                            .font(.system(size: 44, weight: .black, design: .rounded))
+                            .font(appearance.typography.swiftUIFont(size: 44, weight: .black))
                             .foregroundStyle(Color(uiColor: appearance.screenTextColor))
+                            .accessibilityHidden(true)
 
                         Text("QUIZICE")
                             .font(appearance.typography.swiftUIFont(size: 13, weight: .bold))
@@ -201,7 +204,7 @@ private struct WelcomeArtwork: View {
             .frame(width: size, height: size)
             .overlay {
                 Image(systemName: systemImage)
-                    .font(.system(size: size * 0.36, weight: .semibold))
+                    .font(appearance.typography.swiftUIFont(size: size * 0.36, weight: .semibold))
                     .foregroundStyle(Color(uiColor: appearance.themeCardTextColor(baseColor: color)))
             }
             .onboardingShadow(appearance.themeCardShadow)
@@ -218,6 +221,7 @@ struct OnboardingTopicsPage: View {
     let catalogOrigin: QuizCatalogOrigin
     @Binding var selectedThemeIDs: Set<String>
     let isActive: Bool
+    var focusedHeaderPage: AccessibilityFocusState<OnboardingPage?>.Binding
 
     @Environment(\.appAppearance) private var appearance
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
@@ -240,6 +244,7 @@ struct OnboardingTopicsPage: View {
                         .minimumScaleFactor(0.8)
                         .accessibilityAddTraits(.isHeader)
                         .accessibilityIdentifier("onboardingTopicsTitle")
+                        .accessibilityFocused(focusedHeaderPage, equals: .topics)
 
                     Text(L10n.Onboarding.topicsSubtitle)
                         .font(
@@ -329,6 +334,7 @@ private struct OnboardingCatalogSourceBadge: View {
 struct OnboardingTutorialPage: View {
     let themePreview: OnboardingTheme?
     let isActive: Bool
+    var focusedHeaderPage: AccessibilityFocusState<OnboardingPage?>.Binding
 
     @Environment(\.appAppearance) private var appearance
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
@@ -348,6 +354,7 @@ struct OnboardingTutorialPage: View {
                         .minimumScaleFactor(0.8)
                         .accessibilityAddTraits(.isHeader)
                         .accessibilityIdentifier("onboardingTutorialTitle")
+                        .accessibilityFocused(focusedHeaderPage, equals: .tutorial)
 
                     Text(L10n.Onboarding.tutorialSubtitle)
                         .font(appearance.typography.swiftUIFont(size: 17, weight: .regular))
@@ -466,8 +473,9 @@ private struct TutorialFeatureRow: View {
             .frame(maxWidth: .infinity, alignment: .leading)
 
             Image(systemName: "chevron.right")
-                .font(.system(size: 13, weight: .bold))
+                .font(appearance.typography.swiftUIFont(size: 13, weight: .bold))
                 .foregroundStyle(Color(uiColor: appearance.secondarySurfaceTextColor).opacity(0.7))
+                .accessibilityHidden(true)
         }
         .padding(14)
         .background(
@@ -522,8 +530,9 @@ private struct TutorialFeatureRow: View {
                 )
                 .overlay {
                     Image(systemName: "sparkles")
-                        .font(.system(size: 28, weight: .semibold))
+                        .font(appearance.typography.swiftUIFont(size: 28, weight: .semibold))
                         .foregroundStyle(Color(uiColor: appearance.screenTextColor))
+                        .accessibilityHidden(true)
                 }
 
         case .statistics:

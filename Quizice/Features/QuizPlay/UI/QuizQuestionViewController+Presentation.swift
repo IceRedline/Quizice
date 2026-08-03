@@ -3,10 +3,18 @@ import AVKit
 import SwiftUI
 
 extension QuizQuestionViewController {
-    func colorAndDisableButtons() {
+    // `exceptFocused` lets the caller keep one button (the one the user just
+    // double-tapped, which still holds real VoiceOver focus) enabled a
+    // little longer. Disabling the currently-focused element immediately
+    // makes VoiceOver auto-jump to a neighbor and announce it, talking over
+    // the correct/wrong announcement below. `announceAnswerResult` disables
+    // it for real once that announcement has actually finished.
+    func colorAndDisableButtons(exceptFocused focusedButton: UIButton? = nil) {
         let appearance = currentAppearance()
         for (index, button) in answerButtons.enumerated() {
-            button.isEnabled = false
+            if button !== focusedButton {
+                button.isEnabled = false
+            }
             guard
                 let presenter,
                 currentAnswerOptions.indices.contains(index)
@@ -62,7 +70,7 @@ extension QuizQuestionViewController {
         questionExplanationLabel.text = viewModel.explanation
         questionExplanationScrollView.setContentOffset(.zero, animated: false)
         resetAllColors()
-        
+
         // The incoming card is prepared off-screen. Put its timer in the initial
         // state before the slide begins so no frame can expose the previous value.
         updateProgress(1)
@@ -72,7 +80,37 @@ extension QuizQuestionViewController {
         if updatesQuestionNumber {
             questionNumberLabel.text = viewModel.questionNumberText
         }
-        nextButton.isEnabled = false
+        announceQuestionLoaded(viewModel)
+    }
+
+    // VoiceOver relies on this announcement to know a new question has appeared.
+    // Focus alone isn't enough — the question label is inside a card that
+    // animates in, and by the time VO would find it the user has moved on.
+    //
+    // The Next button from the previous question can still hold real
+    // VoiceOver focus at this point. Disabling it while it's focused makes
+    // VoiceOver jump in on its own and announce whatever neighbor it lands
+    // on, talking over this sequence — so focus is moved to the close button
+    // *first*, and Next is only disabled once that's settled. Reading order:
+    // exit, theme, question number, then the question itself (ending with
+    // real focus on the question, not stuck back on Next).
+    func announceQuestionLoaded(_ viewModel: QuizQuestionViewModel) {
+        guard UIAccessibility.isVoiceOverRunning else {
+            nextButton.isEnabled = false
+            return
+        }
+
+        VoiceOverAnnouncer.focus(closeButton, label: closeButton.accessibilityLabel) { [weak self] in
+            guard let self else { return }
+            self.nextButton.isEnabled = false
+            VoiceOverAnnouncer.announce([
+                viewModel.themeName,
+                viewModel.questionNumberText
+            ]) { [weak self] in
+                guard let self else { return }
+                UIAccessibility.post(notification: .layoutChanged, argument: self.questionLabel)
+            }
+        }
     }
 
     func resetQuestionScrollPosition() {
@@ -94,7 +132,6 @@ extension QuizQuestionViewController {
 
         isQuestionTransitionInProgress = true
         questionCardView.isUserInteractionEnabled = false
-        nextButton.isEnabled = false
 
         outgoingCardSnapshot.frame = questionCardView.frame
         containerView.insertSubview(outgoingCardSnapshot, aboveSubview: questionCardView)
@@ -232,6 +269,48 @@ extension QuizQuestionViewController {
             feedbackPlayer.play(.incorrect)
             animateTimerBarColor(timerFeedbackColor(isCorrect: false, appearance: appearance))
         }
+        announceAnswerResult(isCorrect: isTrue)
+    }
+
+    // The audio "correct/wrong" cue doesn't carry meaning for users who rely on
+    // VoiceOver — post an explicit announcement, and when wrong, tell them which
+    // option was correct so they can learn without having to sweep the buttons.
+    // The explanation is read automatically afterwards, and only once all of
+    // that has actually finished speaking does focus move to Next — moving
+    // focus any earlier would cut the explanation off mid-sentence.
+    func announceAnswerResult(isCorrect: Bool) {
+        guard UIAccessibility.isVoiceOverRunning else {
+            answerButtons.forEach { $0.isEnabled = false }
+            return
+        }
+        let announcement: String
+        if isCorrect {
+            announcement = L10n.Question.answeredCorrect
+        } else if let correctTitle = currentCorrectAnswerTitle() {
+            announcement = L10n.Question.answeredWrong(correctAnswer: correctTitle)
+        } else {
+            announcement = L10n.Question.answeredWrongUnknown
+        }
+
+        var followUpMessages: [String] = []
+        if let explanation = questionExplanationLabel.text?
+            .trimmingCharacters(in: .whitespacesAndNewlines),
+           !explanation.isEmpty {
+            followUpMessages.append(explanation)
+        }
+
+        VoiceOverAnnouncer.announce([announcement] + followUpMessages) { [weak self] in
+            guard let self else { return }
+            self.answerButtons.forEach { $0.isEnabled = false }
+            UIAccessibility.post(notification: .layoutChanged, argument: self.nextButton)
+        }
+    }
+
+    private func currentCorrectAnswerTitle() -> String? {
+        guard let presenter else { return nil }
+        return currentAnswerOptions.first { option in
+            presenter.answerFeedback(for: option.id) == .correct
+        }?.title
     }
 
     func applyAnswerFeedback(

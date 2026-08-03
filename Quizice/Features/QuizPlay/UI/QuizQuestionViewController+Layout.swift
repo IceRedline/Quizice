@@ -46,6 +46,7 @@ extension QuizQuestionViewController {
         debugQuestionSourceLabel.isHidden = !DebugBackendSettings.shouldShowSourceIndicators
         debugQuestionSourceLabel.setContentHuggingPriority(.required, for: .horizontal)
         debugQuestionSourceLabel.setContentCompressionResistancePriority(.required, for: .horizontal)
+        debugQuestionSourceLabel.isAccessibilityElement = false
         updateDebugQuestionSourceIndicator()
 #endif
     }
@@ -401,6 +402,7 @@ extension QuizQuestionViewController {
     func makeAnswerButton(accessibilityIdentifier: String) -> UIButton {
         let button = UIButton(type: .system)
         button.accessibilityIdentifier = accessibilityIdentifier
+        button.accessibilityHint = L10n.Question.tapToAnswer
         button.setTitleColor(.white, for: .normal)
         button.setTitleColor(Appearance.answerDisabledTitleColor, for: .disabled)
         button.titleLabel?.font = currentAppearance().typography.font(size: Typography.answerButtonFontSize, weight: .semibold)
