@@ -32,6 +32,7 @@ final class ThemeCatalogRepository: ThemeRepository {
     private let preferenceStore: OnboardingProgressStoring
     private let seedGenerator: () -> String
     private let remoteQuestionTimeoutNanoseconds: UInt64
+    private let accessTokenProvider: BackendAccessTokenProviding
 
     var themes: [QuizTheme]?
     private(set) var catalogOrigin: QuizCatalogOrigin = .bundled
@@ -41,12 +42,14 @@ final class ThemeCatalogRepository: ThemeRepository {
         backendContentAPI: BackendContentAPI? = nil,
         preferenceStore: OnboardingProgressStoring = OnboardingProgressStore.shared,
         seedGenerator: @escaping () -> String = { UUID().uuidString.lowercased() },
-        remoteQuestionTimeoutNanoseconds: UInt64 = 3_000_000_000
+        remoteQuestionTimeoutNanoseconds: UInt64 = 3_000_000_000,
+        accessTokenProvider: BackendAccessTokenProviding = StoredBackendAccessTokenProvider()
     ) {
         self.backendContentAPI = backendContentAPI
         self.preferenceStore = preferenceStore
         self.seedGenerator = seedGenerator
         self.remoteQuestionTimeoutNanoseconds = remoteQuestionTimeoutNanoseconds
+        self.accessTokenProvider = accessTokenProvider
         localizationObserver = NotificationCenter.default.addObserver(
             forName: .appLocalizationDidChange,
             object: nil,
@@ -305,7 +308,7 @@ final class ThemeCatalogRepository: ThemeRepository {
                     locale: locale,
                     difficulty: difficulty,
                     seed: seed,
-                    strategy: QuestionRepeatStrategyStore.shared.strategy
+                    strategy: self.effectiveQuestionRepeatStrategy
                 )
             }
             try Task.checkCancellation()
@@ -385,7 +388,7 @@ final class ThemeCatalogRepository: ThemeRepository {
                     locale: locale,
                     difficulty: difficulty,
                     seed: seed,
-                    strategy: QuestionRepeatStrategyStore.shared.strategy
+                    strategy: self.effectiveQuestionRepeatStrategy
                 )
             }
             try Task.checkCancellation()
@@ -492,6 +495,12 @@ final class ThemeCatalogRepository: ThemeRepository {
     private func handleAuthenticationFailureIfNeeded(_ error: Error) {
         guard case BackendContentError.httpStatus(401, _) = error else { return }
         NotificationCenter.default.post(name: .backendAuthenticationInvalidated, object: nil)
+    }
+
+    private var effectiveQuestionRepeatStrategy: QuestionRepeatStrategy {
+        QuestionRepeatStrategyStore.shared.strategy.effective(
+            hasValidBackendSession: accessTokenProvider.validAccessToken() != nil
+        )
     }
 
     private static func durationMilliseconds(since startDate: Date) -> Int {

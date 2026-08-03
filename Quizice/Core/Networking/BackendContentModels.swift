@@ -27,6 +27,10 @@ enum QuestionRepeatStrategy: String, Codable, CaseIterable {
         case .retryIncorrect: .correctOnly
         }
     }
+
+    func effective(hasValidBackendSession: Bool) -> QuestionRepeatStrategy {
+        hasValidBackendSession ? self : .showAll
+    }
 }
 
 final class QuestionRepeatStrategyStore {

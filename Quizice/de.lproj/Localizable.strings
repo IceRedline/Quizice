@@ -228,6 +228,9 @@
 "theme.card.accessibility_label_format" = "%@, Quizthema";
 "settings.questionStrategy.section" = "Fragen";
 "settings.questionStrategy.title" = "Wiederholungsstrategie";
+"settings.questionStrategy.help.title" = "Wiederholungsstrategie";
+"settings.questionStrategy.help.message" = "Alle anzeigen — Fragen dürfen sich ohne Einschränkung wiederholen.\n\nBeantwortete ausblenden — abgeschlossene Fragen erscheinen nicht erneut.\n\nFehler wiederholen — richtig beantwortete Fragen werden ausgeblendet, falsch beantwortete bleiben erhalten.";
+"settings.questionStrategy.help.accessibilityLabel" = "Was ist eine Wiederholungsstrategie?";
 "settings.questionStrategy.subtitle" = "Abgeschlossene Fragen ausblenden";
 "settings.questionStrategy.showAll" = "Alle anzeigen";
 "settings.questionStrategy.hideAnswered" = "Beantwortete ausblenden";

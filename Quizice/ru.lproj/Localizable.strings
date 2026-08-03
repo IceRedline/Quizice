@@ -228,6 +228,9 @@
 "theme.card.accessibility_label_format" = "%@, тема викторины";
 "settings.questionStrategy.section" = "Вопросы";
 "settings.questionStrategy.title" = "Стратегия повторения";
+"settings.questionStrategy.help.title" = "Стратегия повторения";
+"settings.questionStrategy.help.message" = "Показывать все — вопросы могут повторяться без ограничений.\n\nСкрывать отвеченные — уже пройденные вопросы не появятся снова.\n\nПовторять ошибки — правильно отвеченные вопросы скрываются, а вопросы с ошибками остаются.";
+"settings.questionStrategy.help.accessibilityLabel" = "Что такое стратегия повторения";
 "settings.questionStrategy.subtitle" = "Выберите, какие пройденные вопросы скрывать";
 "settings.questionStrategy.showAll" = "Показывать все";
 "settings.questionStrategy.hideAnswered" = "Скрывать отвеченные";

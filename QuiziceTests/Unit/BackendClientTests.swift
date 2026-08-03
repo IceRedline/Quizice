@@ -619,6 +619,21 @@ final class BackendClientTests: XCTestCase {
         }
     }
 
+    func testGuestRepeatStrategyAlwaysFallsBackToShowAll() {
+        XCTAssertEqual(
+            QuestionRepeatStrategy.hideAnswered.effective(hasValidBackendSession: false),
+            .showAll
+        )
+        XCTAssertEqual(
+            QuestionRepeatStrategy.retryIncorrect.effective(hasValidBackendSession: false),
+            .showAll
+        )
+        XCTAssertEqual(
+            QuestionRepeatStrategy.hideAnswered.effective(hasValidBackendSession: true),
+            .hideAnswered
+        )
+    }
+
     func testShowAllOmitsProgressModeAndAllowsEmptyGuestBatch() async throws {
         let seed = "550e8400-e29b-41d4-a716-446655440000"
         let api = makeContentAPI()
