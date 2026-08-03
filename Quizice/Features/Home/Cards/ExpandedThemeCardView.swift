@@ -246,7 +246,6 @@ final class ExpandedThemeCardView: UIView, UIGestureRecognizerDelegate {
         selectedDifficulty: AIQuizDifficulty = .medium
     ) {
         faceTransitionDriver.cancel()
-        setStartLoading(false)
 
         let themeID = theme.stableID
         let tintColor = ThemeVisualCatalog.tintColor(for: theme)
@@ -295,7 +294,15 @@ final class ExpandedThemeCardView: UIView, UIGestureRecognizerDelegate {
             borderColor: borderColor
         )
         configureDifficulty(selectedDifficulty)
+        // `configureQuestionCounts` must run before `setStartLoading` so the
+        // Start button's enabled state is only ever written once, using the
+        // freshly-resolved `selectedQuestionCount`. Doing it the other way
+        // around (as before) briefly set `isEnabled` from whatever stale
+        // `selectedQuestionCount` a recycled card happened to carry, which
+        // could make VoiceOver latch onto a transient "unavailable" state
+        // even though the button settles on the correct value moments later.
         configureQuestionCounts(selectedQuestionCount: selectedQuestionCount)
+        setStartLoading(false)
 
         faceTransitionDriver.reset(to: .front)
     }
