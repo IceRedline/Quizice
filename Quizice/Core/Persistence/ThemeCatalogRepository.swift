@@ -90,7 +90,15 @@ final class ThemeCatalogRepository: ThemeRepository {
                 ? cachedCatalog?.themes ?? []
                 : []
 
-            if !forceReload, localizedHash == savedHash, !existingThemes.isEmpty {
+            // Guards against a stale/corrupted SwiftData cache (e.g. left over
+            // from an older build) where themes were persisted with no usable
+            // questions: the JSON hash would still match, so without this
+            // check every theme's "Start" button would be permanently
+            // disabled until the next forced reload.
+            if !forceReload,
+               localizedHash == savedHash,
+               !existingThemes.isEmpty,
+               hasThemeWithUsableQuestions(existingThemes) {
                 AppLog.content.debug("JSON unchanged, loading \(existingThemes.count) themes from SwiftData")
                 themes = existingThemes
                 catalogOrigin = .bundled
@@ -116,6 +124,16 @@ final class ThemeCatalogRepository: ThemeRepository {
     func sha256Hash(for data: Data) -> String {
         let hash = SHA256.hash(data: data)
         return hash.compactMap { String(format: "%02x", $0) }.joined()
+    }
+
+    private func hasThemeWithUsableQuestions(_ themes: [QuizTheme]) -> Bool {
+        guard let minimumSupportedCount = QuizQuestionCountPolicy.supportedCounts.min() else {
+            return true
+        }
+        return themes.contains { theme in
+            QuizQuestionCountPolicy.usableQuestionCount(in: theme.questions.map(QuestionModel.init(quizQuestion:)))
+                >= minimumSupportedCount
+        }
     }
 
     func fetchQuizThemes() -> [QuizTheme] {

@@ -46,6 +46,18 @@ extension QuizViewController {
             if self.expandedCardNeedsRefresh {
                 self.refreshExpandedThemeCardAppearance()
             }
+            if completedStableFlip {
+                // Without this, VoiceOver can keep announcing traits (e.g. the
+                // Start button's enabled/disabled state) it cached before the
+                // flip, since nothing else tells it to re-scan the face that
+                // just became visible.
+                UIAccessibility.post(
+                    notification: .layoutChanged,
+                    argument: completedFace == .front
+                        ? self.expandedThemeCardView?.frontFocusView
+                        : self.expandedThemeCardView?.backFocusView
+                )
+            }
             if self.closeAfterFlipToFront, completedFace == .front {
                 self.closeAfterFlipToFront = false
                 self.sendHomeCardAction(.closeRequested)

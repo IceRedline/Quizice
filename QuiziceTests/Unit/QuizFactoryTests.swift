@@ -70,4 +70,80 @@ final class QuizFactoryTests: XCTestCase {
 
         XCTAssertTrue(store.fetchThemes().isEmpty)
     }
+
+    func testLoadDataFromRealBundledJSONProducesThemesWithEnoughUsableQuestions() throws {
+        let container = try ModelContainer(
+            for: SwiftDataThemeStore.schema,
+            configurations: ModelConfiguration(isStoredInMemoryOnly: true)
+        )
+        let repository = ThemeCatalogRepository(backendContentAPI: nil)
+        repository.setModelContext(container.mainContext)
+
+        repository.loadData(forceReload: true)
+
+        let themes = try XCTUnwrap(repository.themes)
+        XCTAssertFalse(themes.isEmpty)
+        XCTAssertEqual(repository.catalogOrigin, .bundled)
+        for theme in themes {
+            let usableCount = QuizQuestionCountPolicy.usableQuestionCount(
+                in: theme.questions.map(QuestionModel.init(quizQuestion:))
+            )
+            XCTAssertGreaterThanOrEqual(
+                usableCount,
+                QuizQuestionCountPolicy.supportedCounts.min() ?? 0,
+                "Theme '\(theme.theme)' has too few usable questions for the Start button to ever be enabled"
+            )
+        }
+    }
+
+    func testLoadDataSelfHealsWhenCachedBundledCatalogHasNoUsableQuestions() throws {
+        let container = try ModelContainer(
+            for: SwiftDataThemeStore.schema,
+            configurations: ModelConfiguration(isStoredInMemoryOnly: true)
+        )
+        let context = container.mainContext
+        let store = SwiftDataThemeStore(context: context)
+
+        // Simulate a stale/corrupted cache left over from an older build:
+        // themes persisted under the bundled origin but with no questions,
+        // paired with a hash that matches the current JSON so a naive
+        // hash-only check would wrongly trust it.
+        let locale = AppLocalizationStore.shared.resolvedLanguageCode
+        let loader = LocalizedThemeDataLoader()
+        let loadedData = try loader.load()
+        let corruptedThemes = loadedData.themes.map { theme in
+            QuizTheme(
+                id: theme.id,
+                theme: theme.theme,
+                themeDescription: theme.themeDescription,
+                questions: [],
+                sfSymbolName: theme.sfSymbolName,
+                emoji: theme.emoji,
+                colorHex: theme.colorHex,
+                isFavorite: theme.isFavorite,
+                source: theme.source,
+                questionOrigin: theme.questionOrigin
+            )
+        }
+        store.replaceThemes(with: corruptedThemes, locale: loadedData.languageCode, catalogOrigin: .bundled)
+        UserDefaults.standard.set(
+            "\(loadedData.languageCode):\(loadedData.hash)",
+            forKey: ThemeCatalogRepository.Content.localizedDataHashKey
+        )
+
+        let repository = ThemeCatalogRepository(backendContentAPI: nil)
+        repository.setModelContext(context)
+        repository.loadData(forceReload: false)
+
+        let themes = try XCTUnwrap(repository.themes)
+        XCTAssertEqual(repository.catalogOrigin, .bundled)
+        XCTAssertTrue(
+            themes.contains { theme in
+                QuizQuestionCountPolicy.usableQuestionCount(
+                    in: theme.questions.map(QuestionModel.init(quizQuestion:))
+                ) >= (QuizQuestionCountPolicy.supportedCounts.min() ?? 0)
+            },
+            "Stale cache with no usable questions should have triggered a fresh reload from JSON, locale=\(locale)"
+        )
+    }
 }

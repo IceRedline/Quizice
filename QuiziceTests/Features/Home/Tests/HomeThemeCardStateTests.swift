@@ -1,3 +1,4 @@
+import SwiftData
 import SwiftUI
 import XCTest
 @testable import Quizice
@@ -209,6 +210,93 @@ final class HomeThemeCardStateTests: HomeScreenVisualStateTestCase {
         XCTAssertFalse(activityIndicator.isAnimating)
     }
 
+    // These two exercise the real production `ThemeCatalogRepository` end to
+    // end (real JSON load / real backend-refresh bookkeeping) instead of a
+    // hand-populated theme list, to catch regressions in the actual
+    // availability pipeline behind the reported "Start always announces
+    // unavailable" bug that a fully-mocked repository can't see.
+    func testRealBundledCatalogEnablesStartButtonForDefaultThemes() async throws {
+        let repository = ThemeCatalogRepository(backendContentAPI: nil)
+        repository.loadData(forceReload: true)
+        XCTAssertEqual(repository.catalogOrigin, .bundled)
+
+        let session = RoutingSession()
+        let viewController = QuizViewController(
+            themeRepository: repository,
+            session: session,
+            cardReduceMotionProvider: { true }
+        )
+        let window = UIWindow(frame: CGRect(x: 0, y: 0, width: 390, height: 844))
+        window.rootViewController = viewController
+        window.makeKeyAndVisible()
+        window.layoutIfNeeded()
+        testWindows.append(window)
+
+        let sourceButton = try XCTUnwrap(
+            viewController.view.descendant(withAccessibilityIdentifier: "music") as? UIButton
+        )
+        sourceButton.sendActions(for: .touchUpInside)
+        try await waitUntil { viewController.homeCardState.phase == .expandedFront }
+
+        let infoButton = try XCTUnwrap(
+            viewController.view.descendant(withAccessibilityIdentifier: "expandedThemeCardInfoButton") as? UIButton
+        )
+        infoButton.sendActions(for: .touchUpInside)
+        try await waitUntil { viewController.homeCardState.phase == .expandedBack }
+
+        let startButton = try XCTUnwrap(
+            viewController.view.descendant(withAccessibilityIdentifier: "descriptionStartButton") as? UIButton
+        )
+        let unavailableLabel = try XCTUnwrap(
+            viewController.view.descendant(withAccessibilityIdentifier: "expandedThemeCardUnavailableLabel") as? UILabel
+        )
+        XCTAssertTrue(startButton.isEnabled, "Start should be enabled: the real bundled catalog has plenty of usable questions")
+        XCTAssertTrue(unavailableLabel.isHidden)
+    }
+
+    func testRealBackendCatalogEnablesStartButtonEvenBeforeQuestionsAreFetched() async throws {
+        let repository = ThemeCatalogRepository(
+            backendContentAPI: RecordingBackendContentAPI()
+        )
+        repository.loadData(forceReload: true)
+        let locale = AppLocalizationStore.shared.resolvedLanguageCode
+        let didRefresh = await repository.refreshBackendCatalog(locale: locale)
+        XCTAssertTrue(didRefresh)
+        XCTAssertEqual(repository.catalogOrigin, .backend)
+        XCTAssertTrue(repository.themes?.first?.questions.isEmpty == true)
+
+        let session = RoutingSession()
+        let viewController = QuizViewController(
+            themeRepository: repository,
+            session: session,
+            cardReduceMotionProvider: { true }
+        )
+        let window = UIWindow(frame: CGRect(x: 0, y: 0, width: 390, height: 844))
+        window.rootViewController = viewController
+        window.makeKeyAndVisible()
+        window.layoutIfNeeded()
+        testWindows.append(window)
+
+        let sourceButton = try XCTUnwrap(
+            viewController.view.descendant(withAccessibilityIdentifier: "music") as? UIButton
+        )
+        sourceButton.sendActions(for: .touchUpInside)
+        try await waitUntil { viewController.homeCardState.phase == .expandedFront }
+
+        let infoButton = try XCTUnwrap(
+            viewController.view.descendant(withAccessibilityIdentifier: "expandedThemeCardInfoButton") as? UIButton
+        )
+        infoButton.sendActions(for: .touchUpInside)
+        try await waitUntil { viewController.homeCardState.phase == .expandedBack }
+
+        let startButton = try XCTUnwrap(
+            viewController.view.descendant(withAccessibilityIdentifier: "descriptionStartButton") as? UIButton
+        )
+        XCTAssertTrue(
+            startButton.isEnabled,
+            "Start should be enabled for backend-origin themes even though their questions aren't fetched yet"
+        )
+    }
 }
 
 private final class BackendOnlyHomeThemeRepository: ThemeRepository {
