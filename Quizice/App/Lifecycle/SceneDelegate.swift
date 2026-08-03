@@ -1,6 +1,8 @@
 import UIKit
 
 class SceneDelegate: UIResponder, UIWindowSceneDelegate {
+    private static let gameCenterBannerSettleDelay: TimeInterval = 2.5
+
     var window: UIWindow?
     private var coordinator: QuizFlowCoordinator?
     private let launchOverlayPresenter = LaunchOverlayPresenter()
@@ -38,12 +40,24 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
             launchOverlayPresenter.present(
                 in: window,
                 appearance: appearance,
-                preparation: { [weak coordinator, weak authenticationService] in
+                preparation: { [weak coordinator] in
                     await coordinator?.prepareInitialCatalog()
                     guard !Task.isCancelled else { return }
                     coordinator?.presentInitialOnboardingIfNeeded()
+                },
+                onDismissed: { [weak coordinator, weak authenticationService] in
+                    coordinator?.restoreInitialAccessibilityFocusAfterLaunch()
                     authenticationService?.start { [weak coordinator] viewController in
                         coordinator?.presentSystemViewController(viewController)
+                    }
+                    // If the player is already signed in, GameKit shows its own
+                    // "welcome back" banner in a system-owned window right after
+                    // this call — outside our control — which steals VoiceOver
+                    // focus and leaves it stuck on the status bar area once the
+                    // banner disappears. Reclaim focus once it's had time to
+                    // show and auto-dismiss.
+                    DispatchQueue.main.asyncAfter(deadline: .now() + Self.gameCenterBannerSettleDelay) { [weak coordinator] in
+                        coordinator?.restoreInitialAccessibilityFocusAfterLaunch()
                     }
                 }
             )

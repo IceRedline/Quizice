@@ -155,6 +155,24 @@ extension ExpandedThemeCardView {
         unavailableLabel.accessibilityElementsHidden = isAvailable
         startButton.isEnabled = isAvailable && !isStartLoading
         startButton.accessibilityHint = isAvailable ? nil : L10n.Question.unavailableMessage
+        updateBackFaceAccessibilityElements(isAvailable: isAvailable)
+    }
+
+    func updateBackFaceAccessibilityElements(isAvailable: Bool) {
+        var elements: [Any] = [
+            backTitleLabel,
+            backDescriptionLabel,
+            difficultyLabel,
+            difficultyControl,
+            questionCountLabel,
+            questionCountControl
+        ]
+        if !isAvailable {
+            elements.append(unavailableLabel)
+        }
+        elements.append(startButton)
+        elements.append(backButton)
+        backFaceView.accessibilityElements = elements
     }
 
     func configureDifficulty(_ difficulty: AIQuizDifficulty) {

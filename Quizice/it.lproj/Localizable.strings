@@ -70,6 +70,7 @@
 "ai_theme.title" = "Crea con IA";
 "home.choose_theme" = "Scegli un tema";
 "home.create_with_ai" = "Crea con IA";
+"home.create_with_ai.accessibility_label" = "Crea con intelligenza artificiale";
 "home.create_with_ai.accessibility_hint" = "Apre la schermata per creare un tema del quiz con IA";
 "home.create_with_ai.beta_badge" = "Beta";
 "home.exit_alert.message" = "Vuoi davvero uscire?";
@@ -103,13 +104,18 @@
 "home.motivation_prompt.10" = "Inizia con\nuna scelta semplice";
 "home.motivation_prompt.11" = "È ora di\nverificare i fatti";
 "home.motivation_prompt.12" = "Un quiz\nper qualche minuto";
+"question.answered.correct" = "Corretto.";
+"question.answered.wrong_format" = "Sbagliato. La risposta corretta è: %@.";
+"question.answered.wrong_unknown" = "Sbagliato.";
 "question.audio_load_failure" = "I file audio non sono stati caricati";
 "question.exit_alert.message" = "I progressi di questo round andranno persi.";
 "question.exit_alert.title" = "Uscire dal quiz?";
 "question.fallback_theme" = "Quiz";
+"question.load.announcement_format" = "%@. %@";
 "question.number_format" = "Domanda n. %d";
 "question.show_explanation" = "Mostra spiegazione";
 "question.show_question" = "Mostra domanda";
+"question.tap_to_answer.accessibility_hint" = "Tocca due volte per selezionare questa risposta.";
 "question.unavailable.message" = "Questo tema non ha ancora domande disponibili. Torna indietro e scegli un altro tema.";
 "question.unavailable_answer" = "Non disponibile";
 "question.unavailable_number" = "Domande non disponibili";
@@ -123,6 +129,7 @@
 "result.description.no_questions" = "In questo tentativo non c’erano domande disponibili. Prova un altro tema.";
 "result.description.perfect_score" = "Leggenda, genio, vittoria facilissima.";
 "result.description.very_low_score" = "Dovresti assolutamente riprovare.";
+"result.announcement_format" = "Quiz completato. Hai risposto correttamente a %d domande su %d.";
 "result.play_again" = "Gioca di nuovo";
 "result.to_themes" = "Scegli un tema";
 "result.text_format" = "Il tuo risultato:\n %d/%d";

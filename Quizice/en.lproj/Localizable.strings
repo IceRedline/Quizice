@@ -70,6 +70,7 @@
 "ai_theme.title" = "Create with AI";
 "home.choose_theme" = "Choose a theme";
 "home.create_with_ai" = "Create with AI";
+"home.create_with_ai.accessibility_label" = "Create with artificial intelligence";
 "home.create_with_ai.accessibility_hint" = "Opens the AI quiz theme creation screen";
 "home.create_with_ai.beta_badge" = "Beta";
 "home.exit_alert.message" = "Are you sure you want to exit?";
@@ -88,7 +89,7 @@
 "home.themes_collection.accessibility_label" = "Quiz themes";
 "home.unavailable_themes" = "Themes are not available yet";
 "theme.card.close_accessibility_label" = "Close theme card";
-"theme.card.show_description_accessibility_label" = "Show theme description";
+"theme.card.show_description_accessibility_label" = "Continue";
 "theme.card.show_front_accessibility_label" = "Return to theme card front";
 "home.welcome" = "Welcome to";
 "home.motivation_prompt.1" = "Pick a topic\nand start";
@@ -103,13 +104,18 @@
 "home.motivation_prompt.10" = "Start with\na simple choice";
 "home.motivation_prompt.11" = "Time to\ncheck the facts";
 "home.motivation_prompt.12" = "A quiz\nfor the next few minutes";
+"question.answered.correct" = "Correct.";
+"question.answered.wrong_format" = "Incorrect. The correct answer is: %@.";
+"question.answered.wrong_unknown" = "Incorrect.";
 "question.audio_load_failure" = "Audio files were not loaded";
 "question.exit_alert.message" = "Progress in this round will be lost.";
 "question.exit_alert.title" = "Leave quiz?";
 "question.fallback_theme" = "Quiz";
+"question.load.announcement_format" = "%@. %@";
 "question.number_format" = "Question #%d";
 "question.show_explanation" = "Show explanation";
 "question.show_question" = "Show question";
+"question.tap_to_answer.accessibility_hint" = "Double tap to select this answer.";
 "question.unavailable.message" = "This theme has no available questions yet. Go back and choose another theme.";
 "question.unavailable_answer" = "Unavailable";
 "question.unavailable_number" = "Questions unavailable";
@@ -123,6 +129,7 @@
 "result.description.no_questions" = "There were no available questions in this attempt. Try another theme.";
 "result.description.perfect_score" = "Legendary. Genius. An easy solo win.";
 "result.description.very_low_score" = "You should definitely try again!";
+"result.announcement_format" = "Quiz complete. You answered %d out of %d correctly.";
 "result.play_again" = "Play again";
 "result.to_themes" = "Choose a theme";
 "result.text_format" = "Your result:\n %d/%d";

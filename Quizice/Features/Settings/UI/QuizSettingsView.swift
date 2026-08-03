@@ -417,10 +417,13 @@ private struct SettingsActionRow: View {
                 Image(systemName: "chevron.right")
                     .font(appearance.typography.swiftUIFont(size: 13, weight: .bold))
                     .foregroundStyle(Color(uiColor: appearance.secondarySurfaceTextColor))
+                    .accessibilityHidden(true)
             }
             .contentShape(Rectangle())
         }
         .buttonStyle(QuizPressButtonStyle())
+        .accessibilityElement(children: .combine)
+        .accessibilityAddTraits(.isButton)
     }
 }
 
@@ -452,10 +455,13 @@ private struct SettingsValueRow: View {
                 Image(systemName: "chevron.down")
                     .font(appearance.typography.swiftUIFont(size: 12, weight: .bold))
                     .foregroundStyle(Color(uiColor: appearance.secondarySurfaceTextColor))
+                    .accessibilityHidden(true)
             }
             .layoutPriority(1)
         }
         .contentShape(Rectangle())
+        .accessibilityElement(children: .combine)
+        .accessibilityAddTraits(.isButton)
     }
 }
 

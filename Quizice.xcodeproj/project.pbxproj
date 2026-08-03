@@ -36,6 +36,7 @@
 		2CDC0F89012E1DF42C18CF95 /* LocalizationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 15CCD31365CAC105EA3F080B /* LocalizationTests.swift */; };
 		32E93EBA824B668FA7664B84 /* QuizViewController+ExpandedCardLayout.swift in Sources */ = {isa = PBXBuildFile; fileRef = 234014B7F69FD8EF9E2D8773 /* QuizViewController+ExpandedCardLayout.swift */; };
 		348751C4EF8365D8D4B96816 /* AppLog.swift in Sources */ = {isa = PBXBuildFile; fileRef = 66D5CA48023F681ADB2A9AA7 /* AppLog.swift */; };
+		A11ACC5503000000000000C1 /* AccessibilityModeMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = A11ACC5502000000000000B1 /* AccessibilityModeMonitor.swift */; };
 		35330A8814A86EC279725334 /* HomeAIThemeCardState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8462CEEBEA2C10276F40E922 /* HomeAIThemeCardState.swift */; };
 		36132641D7CF805F726C6A0B /* ExpandedAIThemeCardView+Keyboard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6E014925A2F120F6D3109CFC /* ExpandedAIThemeCardView+Keyboard.swift */; };
 		39C9C2747B883E20A25D42D1 /* SwiftUIAppearanceSupport.swift in Sources */ = {isa = PBXBuildFile; fileRef = 771B26D898DEF6B36ACCA43E /* SwiftUIAppearanceSupport.swift */; };
@@ -256,6 +257,7 @@
 		64BBF15E64825D76BF18269F /* QuizQuestionViewController+Presentation.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = "QuizQuestionViewController+Presentation.swift"; sourceTree = "<group>"; };
 		65A1AACD5ED1CF60CF0C1991 /* QuizResultPresenterProtocol.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = QuizResultPresenterProtocol.swift; sourceTree = "<group>"; };
 		66D5CA48023F681ADB2A9AA7 /* AppLog.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AppLog.swift; sourceTree = "<group>"; };
+		A11ACC5502000000000000B1 /* AccessibilityModeMonitor.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AccessibilityModeMonitor.swift; sourceTree = "<group>"; };
 		66FB84EEF6A4EB07DF89DC96 /* HomeFeelingLuckyTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = HomeFeelingLuckyTests.swift; sourceTree = "<group>"; };
 		6A7E73CC187A089F6D5215B1 /* AppAppearanceTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AppAppearanceTests.swift; sourceTree = "<group>"; };
 		6A7E73CD187A089F6D5215B2 /* AppAppearanceStorePersistenceTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AppAppearanceStorePersistenceTests.swift; sourceTree = "<group>"; };
@@ -482,6 +484,14 @@
 			path = Logging;
 			sourceTree = "<group>";
 		};
+		A11ACC5501000000000000A1 /* Accessibility */ = {
+			isa = PBXGroup;
+			children = (
+				A11ACC5502000000000000B1 /* AccessibilityModeMonitor.swift */,
+			);
+			path = Accessibility;
+			sourceTree = "<group>";
+		};
 		249D06AB945008605582AEBF /* AIQuiz */ = {
 			isa = PBXGroup;
 			children = (
@@ -652,6 +662,7 @@
 		599B93B302C2350EC68DA55A /* Core */ = {
 			isa = PBXGroup;
 			children = (
+				A11ACC5501000000000000A1 /* Accessibility */,
 				8FACE564A254F4C77C213CE3 /* Analytics */,
 				C3460A14A4ADDFB137F4BAA3 /* Authentication */,
 				4E8FAAF492BFADE68107EB49 /* DesignSystem */,
@@ -1372,6 +1383,7 @@
 				1F9249914418600DE7A312F8 /* AppLocalization.swift in Sources */,
 				DA8C90DB1757ACEA2355533A /* L10n.swift in Sources */,
 				348751C4EF8365D8D4B96816 /* AppLog.swift in Sources */,
+				A11ACC5503000000000000C1 /* AccessibilityModeMonitor.swift in Sources */,
 				3DDC472840B7385838C51F94 /* LocalizedThemeDataLoader.swift in Sources */,
 				6A668D805C9EEBEA0A13A881 /* QuizFactoryCompatibility.swift in Sources */,
 				DD9696B94E579FE56722F4E3 /* SwiftDataThemeStore.swift in Sources */,

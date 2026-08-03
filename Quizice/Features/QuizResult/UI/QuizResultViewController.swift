@@ -104,6 +104,17 @@ final class QuizResultViewController: BaseQuizViewController, QuizResultViewCont
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
         analytics.track(.screenView(screen: .quizResult, theme: presenter?.analyticsTheme ?? .unknown))
+        announceResultIfNeeded()
+    }
+
+    // VO doesn't pick up the score label reliably during the card slide-in —
+    // post the pre-built announcement so users who can't see the number
+    // still hear it. The string is formatted by the presenter (this view is
+    // forbidden from referencing score fields directly by S03 contract).
+    private func announceResultIfNeeded() {
+        guard UIAccessibility.isVoiceOverRunning else { return }
+        guard let announcement = presenter?.resultAnnouncement, !announcement.isEmpty else { return }
+        UIAccessibility.post(notification: .announcement, argument: announcement)
     }
 
     func configurePresenter(_ presenter: QuizResultPresenterProtocol) {

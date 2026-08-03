@@ -310,6 +310,7 @@ private final class AnalyticsQuestionViewSpy: QuizQuestionViewControllerProtocol
 
     func updateProgress(_ progress: Float) {}
     func showTimeExpired() {}
+    func hideTimerBar() {}
     func loadQuestionToView(_ viewModel: QuizQuestionViewModel) { loadedQuestion = viewModel }
     func showQuestionUnavailable(themeName: String?, message: String) {}
     func correctAnswerTapped(isTrue: Bool) {}

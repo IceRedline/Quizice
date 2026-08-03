@@ -12,7 +12,7 @@ extension QuizQuestionViewController {
         
         feedbackPlayer.prepare()
         feedbackPlayer.reset()
-        colorAndDisableButtons()
+        colorAndDisableButtons(exceptFocused: UIAccessibility.isVoiceOverRunning ? sender : nil)
         presenter?.checkAnswer(optionID: currentAnswerOptions[selectedIndex].id)
         presenter?.stopTimer()
         nextButton.isEnabled = true
