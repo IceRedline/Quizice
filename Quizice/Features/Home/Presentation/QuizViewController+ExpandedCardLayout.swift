@@ -72,26 +72,11 @@ extension QuizViewController {
     }
 
     private func startQuizPreparationProgress(for cardView: ExpandedThemeCardView) {
-        quizPreparationProgressTask?.cancel()
-        let delay = quizPreparationProgressDelay
-        quizPreparationProgressTask = Task { @MainActor [weak self, weak cardView] in
-            await delay()
-            guard
-                !Task.isCancelled,
-                let self,
-                let cardView,
-                self.quizPreparationTask != nil,
-                self.isQuizLaunchPending,
-                self.expandedThemeCardView === cardView
-            else { return }
-            cardView.setStartLoading(true)
-        }
+        cardView.setStartLoading(true)
     }
 
     private func stopQuizPreparationProgress() {
         quizPreparationTask = nil
-        quizPreparationProgressTask?.cancel()
-        quizPreparationProgressTask = nil
         expandedThemeCardView?.setStartLoading(false)
     }
 

@@ -80,6 +80,40 @@ final class QuizResultViewContractTests: CrossScreenVisualTestCase {
         XCTAssertEqual(router.returnToThemesCallCount, 1)
     }
 
+    func testPerfectScoreEffectIsOnlyShownWhenRequested() throws {
+        let viewController = QuizResultViewController()
+        viewController.loadViewIfNeeded()
+        let effect = try XCTUnwrap(
+            viewController.view.descendant(
+                withAccessibilityIdentifier: "resultPerfectScoreEffect"
+            )
+        )
+
+        XCTAssertTrue(effect.isHidden)
+
+        viewController.setPerfectScoreEffectVisible(true)
+        XCTAssertFalse(effect.isHidden)
+        let borderLayer = try XCTUnwrap(effect.layer.sublayers?.last as? CAGradientLayer)
+        XCTAssertEqual(borderLayer.opacity, 0.45, accuracy: 0.001)
+
+        viewController.viewDidAppear(false)
+        let washLayer = try XCTUnwrap(effect.layer.sublayers?.first as? CAGradientLayer)
+        let sweep = try XCTUnwrap(
+            washLayer.animation(forKey: "perfectScoreSweep") as? CABasicAnimation
+        )
+        let startLocations = try XCTUnwrap(sweep.fromValue as? [NSNumber])
+        XCTAssertLessThan(try XCTUnwrap(startLocations.last).doubleValue, 0)
+        XCTAssertEqual(sweep.repeatCount, 0)
+        XCTAssertGreaterThan(try XCTUnwrap(washLayer.locations?.first).doubleValue, 1)
+        let glow = try XCTUnwrap(
+            borderLayer.animation(forKey: "perfectScoreGlow") as? CABasicAnimation
+        )
+        XCTAssertEqual(try XCTUnwrap(glow.fromValue as? NSNumber).floatValue, 0.45)
+
+        viewController.setPerfectScoreEffectVisible(false)
+        XCTAssertTrue(effect.isHidden)
+    }
+
     func testResultReplayShowsSameAIProgressPhasesAsCreationCard() throws {
         let viewController = QuizResultViewController()
         viewController.loadViewIfNeeded()

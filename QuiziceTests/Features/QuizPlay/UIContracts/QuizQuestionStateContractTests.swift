@@ -410,7 +410,7 @@ final class QuizQuestionStateContractTests: CrossScreenVisualTestCase {
         XCTAssertTrue(nextButton.isEnabled)
     }
 
-    func testQuestionExitCancellationKeepsQuizAndResumesTimer() async throws {
+    func testQuestionExitCancellationKeepsQuizAndLeavesTimerRunning() async throws {
         let (viewController, presenter, router, analytics, window) = makeExitConfirmationHarness()
         defer { window.isHidden = true }
 
@@ -430,13 +430,13 @@ final class QuizQuestionStateContractTests: CrossScreenVisualTestCase {
         XCTAssertEqual(overlay.primaryAction.emphasis, .destructive)
         XCTAssertEqual(overlay.secondaryAction?.title, L10n.Common.no)
         XCTAssertEqual(overlay.secondaryAction?.emphasis, .secondary)
-        XCTAssertEqual(presenter.pauseTimerCallCount, 1)
+        XCTAssertEqual(presenter.pauseTimerCallCount, 0)
 
         try XCTUnwrap(overlay.secondaryAction).action()
 
         try await waitUntil { viewController.presentedViewController == nil }
         XCTAssertNil(viewController.presentedViewController)
-        XCTAssertEqual(presenter.resumeTimerCallCount, 1)
+        XCTAssertEqual(presenter.resumeTimerCallCount, 0)
         XCTAssertEqual(presenter.resetGameProgressCallCount, 0)
         XCTAssertEqual(router.closeQuestionCallCount, 0)
         XCTAssertEqual(analytics.exitEventNames, ["quiz_exit_requested", "quiz_exit_cancelled"])
@@ -456,7 +456,7 @@ final class QuizQuestionStateContractTests: CrossScreenVisualTestCase {
 
         try await waitUntil { viewController.presentedViewController == nil }
         XCTAssertNil(viewController.presentedViewController)
-        XCTAssertEqual(presenter.pauseTimerCallCount, 1)
+        XCTAssertEqual(presenter.pauseTimerCallCount, 0)
         XCTAssertEqual(presenter.resumeTimerCallCount, 0)
         XCTAssertEqual(presenter.resetGameProgressCallCount, 1)
         XCTAssertEqual(router.closeQuestionCallCount, 1)
@@ -475,7 +475,7 @@ final class QuizQuestionStateContractTests: CrossScreenVisualTestCase {
 
         try await waitUntil { viewController.presentedViewController == nil }
         XCTAssertNil(viewController.presentedViewController)
-        XCTAssertEqual(presenter.resumeTimerCallCount, 1)
+        XCTAssertEqual(presenter.resumeTimerCallCount, 0)
         XCTAssertEqual(presenter.resetGameProgressCallCount, 0)
         XCTAssertEqual(router.closeQuestionCallCount, 0)
         XCTAssertEqual(analytics.exitEventNames, ["quiz_exit_requested", "quiz_exit_cancelled"])

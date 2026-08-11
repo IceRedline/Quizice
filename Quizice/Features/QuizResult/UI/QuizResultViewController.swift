@@ -3,10 +3,115 @@ import UIKit
 import SwiftUI
 #endif
 
+private final class PerfectScoreCardEffectView: UIView {
+    private enum Constants {
+        static let borderWidth: CGFloat = 2
+        static let animationDuration: CFTimeInterval = 1.8
+        static let borderGlowRepeatCount: Float = 4
+        static let dimBorderOpacity: Float = 0.45
+        static let sweepStartLocations: [NSNumber] = [-1, -0.74, -0.52, -0.3, -0.05]
+        static let sweepEndLocations: [NSNumber] = [1.05, 1.3, 1.52, 1.74, 2]
+    }
+
+    private let colorWashLayer = CAGradientLayer()
+    private let borderGradientLayer = CAGradientLayer()
+    private let borderMaskLayer = CAShapeLayer()
+
+    override init(frame: CGRect) {
+        super.init(frame: frame)
+        isUserInteractionEnabled = false
+        isAccessibilityElement = false
+        clipsToBounds = true
+        backgroundColor = .clear
+
+        colorWashLayer.colors = [
+            UIColor.clear.cgColor,
+            UIColor.systemPurple.withAlphaComponent(0.18).cgColor,
+            UIColor.systemCyan.withAlphaComponent(0.24).cgColor,
+            UIColor.systemYellow.withAlphaComponent(0.16).cgColor,
+            UIColor.clear.cgColor
+        ]
+        colorWashLayer.startPoint = CGPoint(x: 0, y: 0)
+        colorWashLayer.endPoint = CGPoint(x: 1, y: 1)
+        colorWashLayer.locations = Constants.sweepEndLocations
+        layer.addSublayer(colorWashLayer)
+
+        borderGradientLayer.colors = [
+            UIColor.systemPurple.cgColor,
+            UIColor.systemCyan.cgColor,
+            UIColor.systemYellow.cgColor,
+            UIColor.systemPink.cgColor
+        ]
+        borderGradientLayer.startPoint = CGPoint(x: 0, y: 0)
+        borderGradientLayer.endPoint = CGPoint(x: 1, y: 1)
+        borderGradientLayer.opacity = Constants.dimBorderOpacity
+        borderGradientLayer.mask = borderMaskLayer
+        layer.addSublayer(borderGradientLayer)
+    }
+
+    @available(*, unavailable)
+    required init?(coder: NSCoder) {
+        nil
+    }
+
+    override func layoutSubviews() {
+        super.layoutSubviews()
+        colorWashLayer.frame = bounds
+        borderGradientLayer.frame = bounds
+        borderMaskLayer.frame = bounds
+        borderMaskLayer.fillColor = UIColor.clear.cgColor
+        borderMaskLayer.strokeColor = UIColor.white.cgColor
+        borderMaskLayer.lineWidth = Constants.borderWidth
+        borderMaskLayer.path = UIBezierPath(
+            roundedRect: bounds.insetBy(
+                dx: Constants.borderWidth / 2,
+                dy: Constants.borderWidth / 2
+            ),
+            cornerRadius: max(layer.cornerRadius - Constants.borderWidth / 2, 0)
+        ).cgPath
+    }
+
+    func start(reduceMotion: Bool) {
+        stop()
+        CATransaction.begin()
+        CATransaction.setDisableActions(true)
+        // The model layer rests fully past the trailing edge. This prevents a
+        // colored frame before the animation starts and leaves the card clear
+        // after the one-shot sweep is removed.
+        colorWashLayer.locations = Constants.sweepEndLocations
+        borderGradientLayer.opacity = reduceMotion ? 0.72 : 1
+        CATransaction.commit()
+        guard !reduceMotion else { return }
+
+        let sweep = CABasicAnimation(keyPath: "locations")
+        sweep.fromValue = Constants.sweepStartLocations
+        sweep.toValue = Constants.sweepEndLocations
+        sweep.duration = Constants.animationDuration
+        sweep.repeatCount = 0
+        sweep.timingFunction = CAMediaTimingFunction(name: .easeInEaseOut)
+        colorWashLayer.add(sweep, forKey: "perfectScoreSweep")
+
+        let glow = CABasicAnimation(keyPath: "opacity")
+        glow.fromValue = Constants.dimBorderOpacity
+        glow.toValue = 1
+        glow.duration = Constants.animationDuration / 2
+        glow.autoreverses = true
+        glow.repeatCount = Constants.borderGlowRepeatCount
+        glow.timingFunction = CAMediaTimingFunction(name: .easeInEaseOut)
+        borderGradientLayer.add(glow, forKey: "perfectScoreGlow")
+    }
+
+    func stop() {
+        colorWashLayer.removeAllAnimations()
+        borderGradientLayer.removeAllAnimations()
+    }
+}
+
 final class QuizResultViewController: BaseQuizViewController, QuizResultViewControllerProtocol, QuizCardSlideTransitionDestination {
     private enum AccessibilityID {
         static let rootView = "resultRootView"
         static let cardView = "resultCardView"
+        static let perfectScoreEffect = "resultPerfectScoreEffect"
         static let scoreLabel = "resultScoreLabel"
         static let descriptionLabel = "resultDescriptionLabel"
         static let replayButton = "resultReplayButton"
@@ -64,6 +169,7 @@ final class QuizResultViewController: BaseQuizViewController, QuizResultViewCont
 
     private var scrollView: UIScrollView!
     private var resultCardView: UIView!
+    private var perfectScoreEffectView: PerfectScoreCardEffectView!
     private var contentStackView: UIStackView!
     private var resultLabel: UILabel!
     private var resultDescription: UILabel!
@@ -76,6 +182,8 @@ final class QuizResultViewController: BaseQuizViewController, QuizResultViewCont
     private var themesButton: UIButton!
     private var replayGenerationPhase: AIQuizGenerationPhase?
     private var isReplayLoading = false
+    private var isPerfectScoreEffectVisible = false
+    private var hasPlayedPerfectScoreEffect = false
     weak var router: QuizResultRouting?
     var analytics: AnalyticsTracking = AppMetricaAnalyticsTracker.shared
     
@@ -104,7 +212,13 @@ final class QuizResultViewController: BaseQuizViewController, QuizResultViewCont
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
         analytics.track(.screenView(screen: .quizResult, theme: presenter?.analyticsTheme ?? .unknown))
+        startPerfectScoreEffectIfNeeded()
         announceResultIfNeeded()
+    }
+
+    override func viewDidDisappear(_ animated: Bool) {
+        super.viewDidDisappear(animated)
+        perfectScoreEffectView.stop()
     }
 
     // VO doesn't pick up the score label reliably during the card slide-in —
@@ -126,6 +240,20 @@ final class QuizResultViewController: BaseQuizViewController, QuizResultViewCont
     func updateResultLabels(resultText: String, descriptionText: String) {
         resultLabel.text = resultText
         resultDescription.text = descriptionText
+    }
+
+    func setPerfectScoreEffectVisible(_ isVisible: Bool) {
+        isPerfectScoreEffectVisible = isVisible
+        perfectScoreEffectView.isHidden = !isVisible
+        if !isVisible {
+            perfectScoreEffectView.stop()
+        }
+    }
+
+    private func startPerfectScoreEffectIfNeeded() {
+        guard isPerfectScoreEffectVisible, !hasPlayedPerfectScoreEffect else { return }
+        hasPlayedPerfectScoreEffect = true
+        perfectScoreEffectView.start(reduceMotion: UIAccessibility.isReduceMotionEnabled)
     }
 
     func setReplayGenerationPhase(_ phase: AIQuizGenerationPhase?) {
@@ -207,6 +335,20 @@ final class QuizResultViewController: BaseQuizViewController, QuizResultViewCont
         resultCardView.layer.shadowRadius = Appearance.cardShadowRadius
         resultCardView.layer.shadowOffset = Appearance.cardShadowOffset
         resultCardView.translatesAutoresizingMaskIntoConstraints = false
+
+        perfectScoreEffectView = PerfectScoreCardEffectView()
+        perfectScoreEffectView.accessibilityIdentifier = AccessibilityID.perfectScoreEffect
+        perfectScoreEffectView.layer.cornerRadius = Appearance.cardCornerRadius
+        perfectScoreEffectView.layer.cornerCurve = .continuous
+        perfectScoreEffectView.isHidden = true
+        perfectScoreEffectView.translatesAutoresizingMaskIntoConstraints = false
+        resultCardView.addSubview(perfectScoreEffectView)
+        NSLayoutConstraint.activate([
+            perfectScoreEffectView.leadingAnchor.constraint(equalTo: resultCardView.leadingAnchor),
+            perfectScoreEffectView.trailingAnchor.constraint(equalTo: resultCardView.trailingAnchor),
+            perfectScoreEffectView.topAnchor.constraint(equalTo: resultCardView.topAnchor),
+            perfectScoreEffectView.bottomAnchor.constraint(equalTo: resultCardView.bottomAnchor)
+        ])
     }
     
     private func configureLabels() {
@@ -386,6 +528,8 @@ final class QuizResultViewController: BaseQuizViewController, QuizResultViewCont
         overrideUserInterfaceStyle = appearance.resolvedInterfaceStyle
 
         resultCardView?.applySurfaceStyle(appearance.card)
+        perfectScoreEffectView?.layer.cornerRadius = resultCardView?.layer.cornerRadius
+            ?? Appearance.cardCornerRadius
         resultLabel?.textColor = appearance.surfaceTextColor
         resultLabel?.font = appearance.typography.font(size: Typography.resultFontSize, weight: .bold)
         resultDescription?.textColor = appearance.secondarySurfaceTextColor
