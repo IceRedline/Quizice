@@ -7,6 +7,7 @@ final class QuizQuestionPresenter: QuizQuestionPresenterProtocol {
     private let timerClient: QuizTimerClient
     private let randomizer: QuizQuestionRandomizer
     private let accessibilityClient: AccessibilityModeClient
+    private let answerOutbox: QuestionAnswerOutboxing
 
     weak var view: QuizQuestionViewControllerProtocol?
 
@@ -48,7 +49,8 @@ final class QuizQuestionPresenter: QuizQuestionPresenterProtocol {
         analytics: AnalyticsTracking = AppMetricaAnalyticsTracker.shared,
         timerClient: QuizTimerClient = .live,
         randomizer: QuizQuestionRandomizer = .live,
-        accessibilityClient: AccessibilityModeClient = .live
+        accessibilityClient: AccessibilityModeClient = .live,
+        answerOutbox: QuestionAnswerOutboxing = PersistentQuestionAnswerOutbox.shared
     ) {
         self.session = session
         self.statisticsStore = statisticsStore
@@ -56,6 +58,7 @@ final class QuizQuestionPresenter: QuizQuestionPresenterProtocol {
         self.timerClient = timerClient
         self.randomizer = randomizer
         self.accessibilityClient = accessibilityClient
+        self.answerOutbox = answerOutbox
     }
 
     deinit {
@@ -118,6 +121,7 @@ final class QuizQuestionPresenter: QuizQuestionPresenterProtocol {
     
     func timeExpired() {
         guard beginAnswering() else { return }
+        enqueueCurrentAnswer(nil)
         trackAnswer(outcome: .timeout)
         view?.showTimeExpired()
         updateQuizState(isCorrect: false)
@@ -164,7 +168,10 @@ final class QuizQuestionPresenter: QuizQuestionPresenterProtocol {
             currentAnswerOptions = []
             stopTimer()
             view?.updateProgress(0)
-            view?.showQuestionUnavailable(themeName: session.chosenTheme?.themeName, message: L10n.Question.unavailableMessage)
+            let message = QuestionRepeatStrategyStore.shared.strategy == .showAll
+                ? L10n.Question.unavailableMessage
+                : L10n.Question.progressCompleteMessage
+            view?.showQuestionUnavailable(themeName: session.chosenTheme?.themeName, message: message)
             return
         }
         
@@ -212,7 +219,8 @@ final class QuizQuestionPresenter: QuizQuestionPresenterProtocol {
     
     func checkAnswer(optionID: String) {
         guard beginAnswering() else { return }
-        
+        let selectedAnswer = currentAnswerOptions.first(where: { $0.id == optionID })?.title
+        enqueueCurrentAnswer(selectedAnswer)
         let isCorrect = isCorrectAnswer(optionID: optionID)
         trackAnswer(outcome: isCorrect ? .correct : .incorrect)
         view?.correctAnswerTapped(isTrue: isCorrect)
@@ -291,6 +299,25 @@ final class QuizQuestionPresenter: QuizQuestionPresenterProtocol {
         questionPhase = .answered
         stopTimer()
         return true
+    }
+
+    private func enqueueCurrentAnswer(_ answer: String?) {
+        guard
+            let question = currentQuestion,
+            let questionID = question.questionID,
+            let questionVersion = question.questionVersion,
+            let locale = question.locale
+        else { return }
+        answerOutbox.enqueue(
+            QuestionAnswerEvent(
+                eventId: UUID(),
+                questionId: questionID,
+                questionVersion: questionVersion,
+                locale: locale,
+                answer: answer,
+                answeredAt: Date()
+            )
+        )
     }
     
     private var hasActiveQuestion: Bool {

@@ -121,3 +121,43 @@ enum KeychainSessionStoreError: Error, Equatable {
     case status(OSStatus)
     case invalidData
 }
+
+#if DEBUG
+protocol DeveloperUserIDStoring {
+    func loadOrCreate() throws -> UUID
+    func replace() throws -> UUID
+}
+
+final class KeychainDeveloperUserIDStore: DeveloperUserIDStoring {
+    private let service: String
+    private let account = "developer-user-id"
+    private let client: KeychainClient
+
+    init(
+        service: String = "ru.avtabenskiy.Quizice.auth",
+        client: KeychainClient = SecurityKeychainClient()
+    ) {
+        self.service = service
+        self.client = client
+    }
+
+    func loadOrCreate() throws -> UUID {
+        if let data = try client.loadData(service: service, account: account),
+           let value = String(data: data, encoding: .utf8),
+           let identifier = UUID(uuidString: value) {
+            return identifier
+        }
+        return try replace()
+    }
+
+    func replace() throws -> UUID {
+        let identifier = UUID()
+        try client.saveData(
+            Data(identifier.uuidString.lowercased().utf8),
+            service: service,
+            account: account
+        )
+        return identifier
+    }
+}
+#endif

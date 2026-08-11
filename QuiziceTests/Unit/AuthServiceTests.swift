@@ -383,6 +383,34 @@ final class HTTPAuthAPITests: XCTestCase {
         XCTAssertTrue(metrics.values.allSatisfy { $0.durationMilliseconds >= 0 })
     }
 
+#if DEBUG
+    func testDeveloperAuthenticationUsesDevEndpointUUIDBodyAndSecretHeader() async throws {
+        let developerUserID = UUID(uuidString: "550e8400-e29b-41d4-a716-446655440000")!
+        let api = makeAPI()
+        AuthURLProtocol.requestHandler = { request in
+            XCTAssertEqual(request.url?.path, "/api/v1/auth/dev")
+            XCTAssertEqual(request.value(forHTTPHeaderField: "X-Dev-Auth-Secret"), "local-secret")
+            let body = try XCTUnwrap(Self.bodyData(from: request))
+            let json = try XCTUnwrap(JSONSerialization.jsonObject(with: body) as? [String: String])
+            XCTAssertEqual(json, ["developerUserId": developerUserID.uuidString])
+            return (
+                HTTPURLResponse(url: request.url!, statusCode: 200, httpVersion: nil, headerFields: nil)!,
+                Data(
+                    #"{"userId":"018f4f5e-7b6a-7c8d-9e0f-123456789abc","accessToken":"dev-token","expiresAt":"2030-01-01T00:00:00Z"}"#.utf8
+                )
+            )
+        }
+
+        let session = try await api.authenticate(
+            developerUserID: developerUserID,
+            secret: "local-secret"
+        )
+
+        XCTAssertEqual(session.accessToken, "dev-token")
+        XCTAssertEqual(session.teamPlayerID, "dev:\(developerUserID.uuidString.lowercased())")
+    }
+#endif
+
     func testAuthenticationDecodesRFC3339ExpirationWithAndWithoutFractionalSeconds() async throws {
         let fixtures: [(value: String, expectedTimestamp: TimeInterval)] = [
             ("2030-01-01T00:00:00Z", 1_893_456_000),
@@ -666,6 +694,22 @@ final class BackendConfigurationTests: XCTestCase {
     }
 
     #if DEBUG
+    func testSchemeAPIBaseURLOverridesBundledConfiguration() throws {
+        let suiteName = "BackendConfigurationTests.\(UUID().uuidString)"
+        let defaults = try XCTUnwrap(UserDefaults(suiteName: suiteName))
+        defer { defaults.removePersistentDomain(forName: suiteName) }
+
+        let configuration = try XCTUnwrap(
+            BackendConfiguration.load(
+                bundle: .main,
+                userDefaults: defaults,
+                environment: ["API_BASE_URL": "http://localhost:9000/api"]
+            )
+        )
+
+        XCTAssertEqual(configuration.baseURL, URL(string: "http://localhost:9000/api"))
+    }
+
     func testLocalhostOverrideWinsWhenEnabled() throws {
         let suiteName = "BackendConfigurationTests.\(UUID().uuidString)"
         let defaults = try XCTUnwrap(UserDefaults(suiteName: suiteName))

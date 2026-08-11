@@ -22,6 +22,9 @@ final class GameCenterAuthenticationService {
     private var authenticationInvalidationObserver: NSObjectProtocol?
     private var currentTeamPlayerID: String?
     private var started = false
+#if DEBUG
+    private var devAuthenticationProvider: AuthenticationProvider?
+#endif
 
     init(
         gameCenter: GameCenterAuthenticating,
@@ -73,20 +76,40 @@ final class GameCenterAuthenticationService {
     static func live(bundle: Bundle = .main) -> GameCenterAuthenticationService {
         let api: AuthAPI
         if let configuration = BackendConfiguration.load(bundle: bundle) {
-            api = HTTPAuthAPI(
+            let httpAPI = HTTPAuthAPI(
                 configuration: configuration,
                 metrics: AppMetricaAnalyticsTracker.shared
             )
+            api = httpAPI
         } else {
             api = UnavailableAuthAPI()
         }
-        return GameCenterAuthenticationService(
+        let service = GameCenterAuthenticationService(
             gameCenter: GameCenterClient(),
             api: api,
             sessionStore: KeychainSessionStore(),
             bundleIdentifier: bundle.bundleIdentifier ?? "ru.avtabenskiy.Quizice",
             aiQuizAccessStore: .shared
         )
+#if DEBUG
+        let environment = ProcessInfo.processInfo.environment
+        let enabled = ["1", "true", "yes"].contains(
+            environment["DEV_AUTH_ENABLED"]?.lowercased() ?? ""
+        )
+        if enabled,
+           let configuration = BackendConfiguration.load(bundle: bundle),
+           let secret = environment["DEV_AUTH_SECRET"] {
+            service.devAuthenticationProvider = DevAuthenticationProvider(
+                api: HTTPAuthAPI(
+                    configuration: configuration,
+                    metrics: AppMetricaAnalyticsTracker.shared
+                ),
+                developerUserIDStore: KeychainDeveloperUserIDStore(),
+                secret: secret
+            )
+        }
+#endif
+        return service
     }
 
     func start(present: @escaping (UIViewController) -> Void) {
@@ -94,10 +117,58 @@ final class GameCenterAuthenticationService {
         started = true
         state = .initializing
         aiQuizAccessStore.update(isAuthenticated: false)
+#if DEBUG
+        if let devAuthenticationProvider {
+            beginDevAuthentication(using: devAuthenticationProvider)
+            return
+        }
+#endif
         gameCenter.start(present: present) { [weak self] playerState in
             self?.handle(playerState)
         }
     }
+
+#if DEBUG
+    private func beginDevAuthentication(using provider: AuthenticationProvider) {
+        authenticationTask?.cancel()
+        let attemptID = UUID()
+        authenticationAttemptID = attemptID
+        state = .authenticating
+        authenticationTask = Task { [weak self] in
+            guard let self else { return }
+            do {
+                if let cached = self.loadStoredSession(),
+                   cached.teamPlayerID.hasPrefix("dev:"),
+                   cached.expiresAt > self.now() {
+                    self.currentTeamPlayerID = cached.teamPlayerID
+                    self.completeAuthentication(
+                        with: cached,
+                        attemptID: attemptID,
+                        statisticsMayRefreshToken: false
+                    )
+                    return
+                }
+                self.clearStoredSession()
+                let session = try await provider.authenticate()
+                try Task.checkCancellation()
+                try self.sessionStore.save(session)
+                self.currentTeamPlayerID = session.teamPlayerID
+                self.completeAuthentication(
+                    with: session,
+                    attemptID: attemptID,
+                    statisticsMayRefreshToken: false
+                )
+            } catch is CancellationError {
+                return
+            } catch {
+                AppLog.auth.error(
+                    "DEBUG dev authentication failed: \(String(describing: error), privacy: .public)"
+                )
+                self.enterGuestMode()
+            }
+        }
+    }
+#endif
 
     func retrySynchronization() {
         if case .guest = state, let teamPlayerID = currentTeamPlayerID {
@@ -323,6 +394,13 @@ final class GameCenterAuthenticationService {
     }
 
     private func handleBackendAuthenticationInvalidation() {
+#if DEBUG
+        if let devAuthenticationProvider {
+            clearStoredSession()
+            beginDevAuthentication(using: devAuthenticationProvider)
+            return
+        }
+#endif
         guard let teamPlayerID = currentTeamPlayerID else {
             enterGuestMode()
             return

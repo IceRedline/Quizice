@@ -12,6 +12,12 @@ final class HTTPAuthAPI: AuthAPI {
         let expiresAt: Date
     }
 
+#if DEBUG
+    private struct DevAuthRequest: Encodable {
+        let developerUserId: UUID
+    }
+#endif
+
     private let baseURL: URL
     private let session: URLSession
     private let encoder: JSONEncoder
@@ -64,6 +70,30 @@ final class HTTPAuthAPI: AuthAPI {
         }
     }
 
+#if DEBUG
+    func authenticate(developerUserID: UUID, secret: String) async throws -> AuthSession {
+        try await post(
+            path: "v1/auth/dev",
+            body: DevAuthRequest(developerUserId: developerUserID),
+            accessToken: nil,
+            additionalHeaders: ["X-Dev-Auth-Secret": secret],
+            operation: .authentication
+        ) { [now] (response: AuthResponse) in
+            guard
+                UUID(uuidString: response.userId) != nil,
+                !response.accessToken.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty,
+                response.expiresAt > now()
+            else { throw BackendAPIError.contractViolation }
+            return AuthSession(
+                userID: response.userId,
+                accessToken: response.accessToken,
+                expiresAt: response.expiresAt,
+                teamPlayerID: "dev:\(developerUserID.uuidString.lowercased())"
+            )
+        }
+    }
+#endif
+
     func syncStatistics(
         request: StatisticsStore.SyncRequest,
         accessToken: String
@@ -109,6 +139,7 @@ final class HTTPAuthAPI: AuthAPI {
         path: String,
         body: Body,
         accessToken: String?,
+        additionalHeaders: [String: String] = [:],
         operation: BackendOperation,
         transform: (Response) throws -> Output
     ) async throws -> Output {
@@ -121,6 +152,7 @@ final class HTTPAuthAPI: AuthAPI {
         if let accessToken {
             request.setValue("Bearer \(accessToken)", forHTTPHeaderField: "Authorization")
         }
+        additionalHeaders.forEach { request.setValue($0.value, forHTTPHeaderField: $0.key) }
         do {
             request.httpBody = try encoder.encode(body)
         } catch {
@@ -311,6 +343,10 @@ final class HTTPAuthAPI: AuthAPI {
             Set(acceptedIDs) == requestIDs
     }
 }
+
+#if DEBUG
+extension HTTPAuthAPI: DevAuthAPI {}
+#endif
 
 struct UnavailableAuthAPI: AuthAPI {
     func authenticate(identity: GameCenterIdentity) async throws -> AuthSession {

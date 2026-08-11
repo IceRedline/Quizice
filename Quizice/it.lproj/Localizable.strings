@@ -117,6 +117,7 @@
 "question.show_question" = "Mostra domanda";
 "question.tap_to_answer.accessibility_hint" = "Tocca due volte per selezionare questa risposta.";
 "question.unavailable.message" = "Questo tema non ha ancora domande disponibili. Torna indietro e scegli un altro tema.";
+"question.progress_complete.message" = "Hai completato tutte le domande disponibili per questa impostazione di ripetizione. Scegli un’altra impostazione o tema.";
 "question.unavailable_answer" = "Non disponibile";
 "question.unavailable_number" = "Domande non disponibili";
 "question.time_remaining" = "Tempo rimanente";
@@ -225,3 +226,12 @@
 "subscription.paywall.title" = "Più quiz con l’IA. Più divertimento.";
 "theme.card.accessibility_hint" = "Apre la scheda di questo tema";
 "theme.card.accessibility_label_format" = "%@, tema del quiz";
+"settings.questionStrategy.section" = "Domande";
+"settings.questionStrategy.title" = "Strategia di ripetizione";
+"settings.questionStrategy.help.title" = "Strategia di ripetizione";
+"settings.questionStrategy.help.message" = "Mostra tutte — le domande possono ripetersi senza limiti.\n\nNascondi risposte — le domande completate non ricompariranno.\n\nRipeti errori — le risposte corrette vengono nascoste, mentre gli errori restano disponibili.";
+"settings.questionStrategy.help.accessibilityLabel" = "Cos’è una strategia di ripetizione?";
+"settings.questionStrategy.subtitle" = "Nascondi le domande completate";
+"settings.questionStrategy.showAll" = "Mostra tutte";
+"settings.questionStrategy.hideAnswered" = "Nascondi risposte";
+"settings.questionStrategy.retryIncorrect" = "Ripeti errori";

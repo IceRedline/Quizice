@@ -56,4 +56,8 @@ struct QuestionModel {
     var explanation: String? {
         quizQuestion.explanation
     }
+
+    var questionID: String? { quizQuestion.questionID }
+    var questionVersion: Int? { quizQuestion.questionVersion }
+    var locale: String? { quizQuestion.locale }
 }
