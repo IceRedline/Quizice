@@ -4,6 +4,29 @@ import XCTest
 
 @MainActor
 final class HomeAIThemeCardInteractionTests: HomeScreenVisualStateTestCase {
+    func testPromptPlaceholderMatchesTextEntryOrigin() {
+        let cardView = ExpandedAIThemeCardView(
+            frame: CGRect(x: 0, y: 0, width: 342, height: 640)
+        )
+        let appearance = AppAppearance(
+            designStyle: .clean,
+            cleanColorSchemePreference: .dark,
+            traitCollection: UITraitCollection(userInterfaceStyle: .dark)
+        )
+        cardView.configure(state: HomeAIThemeCardState(), appearance: appearance)
+        cardView.layoutIfNeeded()
+
+        let textView = cardView.promptTextView
+        let placeholder = cardView.promptPlaceholderLabel
+        let expectedX = textView.frame.minX
+            + textView.textContainerInset.left
+            + textView.textContainer.lineFragmentPadding
+        let expectedY = textView.frame.minY + textView.textContainerInset.top
+
+        XCTAssertEqual(placeholder.frame.minX, expectedX, accuracy: 0.5)
+        XCTAssertEqual(placeholder.frame.minY, expectedY, accuracy: 0.5)
+    }
+
     func testGuestTapShowsAuthenticationAlertWithoutOpeningAIThemeCard() async throws {
         QuizFactory.shared.themes = [makeTheme(name: "Музыка")]
         let viewController = QuizViewController(

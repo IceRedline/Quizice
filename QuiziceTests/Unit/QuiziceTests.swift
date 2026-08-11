@@ -160,6 +160,22 @@ final class QuizResultPresenterBoundaryTests: XCTestCase {
         assertDescription(correctAnswers: 0, totalQuestions: 0, expected: L10n.Result.noQuestionsDescription)
     }
 
+    func testPerfectScoreEffectRequiresAnExactNonEmptyScore() {
+        let view = QuizResultViewSpy()
+        let presenter = QuizResultPresenter(
+            result: QuizResultState(correctAnswers: 5, totalQuestions: 5),
+            session: PresenterTestSession()
+        )
+        presenter.view = view
+
+        presenter.viewDidLoad()
+        XCTAssertEqual(view.perfectScoreEffectValues, [true])
+
+        presenter.correctAnswers = 6
+        presenter.viewDidLoad()
+        XCTAssertEqual(view.perfectScoreEffectValues, [true, false])
+    }
+
     private func assertDescription(
         correctAnswers: Int,
         totalQuestions: Int,
@@ -205,9 +221,14 @@ final class QuizFlowCoordinatorTests: XCTestCase {
 private final class QuizResultViewSpy: QuizResultViewControllerProtocol {
     var presenter: QuizResultPresenterProtocol?
     private(set) var descriptionTexts: [String] = []
+    private(set) var perfectScoreEffectValues: [Bool] = []
 
     func updateResultLabels(resultText: String, descriptionText: String) {
         descriptionTexts.append(descriptionText)
+    }
+
+    func setPerfectScoreEffectVisible(_ isVisible: Bool) {
+        perfectScoreEffectValues.append(isVisible)
     }
 }
 

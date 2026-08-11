@@ -810,26 +810,6 @@ final class HTTPBackendContentAPI: BackendContentAPI {
     }
 }
 
-func withBackendTimeout<Value>(
-    nanoseconds: UInt64,
-    operation: @escaping () async throws -> Value
-) async throws -> Value {
-    try await withThrowingTaskGroup(of: Value.self) { group in
-        group.addTask {
-            try await operation()
-        }
-        group.addTask {
-            try await Task.sleep(nanoseconds: nanoseconds)
-            throw BackendContentError.timedOut
-        }
-        guard let result = try await group.next() else {
-            throw BackendContentError.timedOut
-        }
-        group.cancelAll()
-        return result
-    }
-}
-
 protocol QuestionAnswerOutboxing {
     func enqueue(_ event: QuestionAnswerEvent)
     func synchronize() async

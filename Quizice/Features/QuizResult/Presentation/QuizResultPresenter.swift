@@ -31,6 +31,8 @@ final class QuizResultPresenter: QuizResultPresenterProtocol {
     func getResultText() {
         let normalizedCorrectAnswers = max(correctAnswers, 0)
         let normalizedTotalQuestions = max(totalQuestions, 0)
+        let isPerfectScore = normalizedTotalQuestions > 0
+            && normalizedCorrectAnswers == normalizedTotalQuestions
         let resultText = L10n.Result.text(correctAnswers: normalizedCorrectAnswers, totalQuestions: normalizedTotalQuestions)
         resultAnnouncement = L10n.Result.announcement(
             correctAnswers: normalizedCorrectAnswers,
@@ -41,6 +43,7 @@ final class QuizResultPresenter: QuizResultPresenterProtocol {
         guard normalizedTotalQuestions > 0 else {
             descriptionText = L10n.Result.noQuestionsDescription
             view?.updateResultLabels(resultText: resultText, descriptionText: descriptionText)
+            view?.setPerfectScoreEffectVisible(false)
             return
         }
         
@@ -63,5 +66,6 @@ final class QuizResultPresenter: QuizResultPresenterProtocol {
         }
         
         view?.updateResultLabels(resultText: resultText, descriptionText: descriptionText)
+        view?.setPerfectScoreEffectVisible(isPerfectScore)
     }
 }

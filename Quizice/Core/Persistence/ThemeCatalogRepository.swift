@@ -31,7 +31,6 @@ final class ThemeCatalogRepository: ThemeRepository {
     private let backendContentAPI: BackendContentAPI?
     private let preferenceStore: OnboardingProgressStoring
     private let seedGenerator: () -> String
-    private let remoteQuestionTimeoutNanoseconds: UInt64
     private let accessTokenProvider: BackendAccessTokenProviding
 
     var themes: [QuizTheme]?
@@ -42,13 +41,11 @@ final class ThemeCatalogRepository: ThemeRepository {
         backendContentAPI: BackendContentAPI? = nil,
         preferenceStore: OnboardingProgressStoring = OnboardingProgressStore.shared,
         seedGenerator: @escaping () -> String = { UUID().uuidString.lowercased() },
-        remoteQuestionTimeoutNanoseconds: UInt64 = 3_000_000_000,
         accessTokenProvider: BackendAccessTokenProviding = StoredBackendAccessTokenProvider()
     ) {
         self.backendContentAPI = backendContentAPI
         self.preferenceStore = preferenceStore
         self.seedGenerator = seedGenerator
-        self.remoteQuestionTimeoutNanoseconds = remoteQuestionTimeoutNanoseconds
         self.accessTokenProvider = accessTokenProvider
         localizationObserver = NotificationCenter.default.addObserver(
             forName: .appLocalizationDidChange,
@@ -299,18 +296,14 @@ final class ThemeCatalogRepository: ThemeRepository {
         let seed = seedGenerator()
         let startedAt = Date()
         do {
-            let response = try await withBackendTimeout(
-                nanoseconds: remoteQuestionTimeoutNanoseconds
-            ) {
-                try await backendContentAPI.fetchQuestions(
-                    themeID: themeID,
-                    count: questionCount,
-                    locale: locale,
-                    difficulty: difficulty,
-                    seed: seed,
-                    strategy: self.effectiveQuestionRepeatStrategy
-                )
-            }
+            let response = try await backendContentAPI.fetchQuestions(
+                themeID: themeID,
+                count: questionCount,
+                locale: locale,
+                difficulty: difficulty,
+                seed: seed,
+                strategy: effectiveQuestionRepeatStrategy
+            )
             try Task.checkCancellation()
             guard AppLocalizationStore.shared.resolvedLanguageCode == locale else {
                 throw CancellationError()
@@ -379,18 +372,14 @@ final class ThemeCatalogRepository: ThemeRepository {
         let seed = seedGenerator()
         let startedAt = Date()
         do {
-            let response = try await withBackendTimeout(
-                nanoseconds: remoteQuestionTimeoutNanoseconds
-            ) {
-                try await backendContentAPI.fetchRandomQuestions(
-                    selectionMode: selectionMode,
-                    count: questionCount,
-                    locale: locale,
-                    difficulty: difficulty,
-                    seed: seed,
-                    strategy: self.effectiveQuestionRepeatStrategy
-                )
-            }
+            let response = try await backendContentAPI.fetchRandomQuestions(
+                selectionMode: selectionMode,
+                count: questionCount,
+                locale: locale,
+                difficulty: difficulty,
+                seed: seed,
+                strategy: effectiveQuestionRepeatStrategy
+            )
             try Task.checkCancellation()
             guard AppLocalizationStore.shared.resolvedLanguageCode == locale else {
                 throw CancellationError()
