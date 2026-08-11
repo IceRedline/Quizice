@@ -131,7 +131,6 @@ extension QuizQuestionViewController {
             return
         }
 
-        presenter?.pauseTimer()
         analytics.track(.quizExitRequested(presenter?.analyticsProgress ?? .empty))
     }
 
@@ -174,7 +173,6 @@ extension QuizQuestionViewController {
             guard let self, self.activeExitAlertID == alertID else { return }
             self.activeExitAlertID = nil
             self.analytics.track(.quizExitCancelled(self.presenter?.analyticsProgress ?? .empty))
-            self.presenter?.resumeTimer()
         }
     }
 

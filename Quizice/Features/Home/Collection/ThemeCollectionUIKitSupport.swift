@@ -151,6 +151,12 @@ final class MoreThemesFadeButton: UIControl {
         }
     }
 
+    override func accessibilityActivate() -> Bool {
+        guard isVisibilityTargetVisible else { return false }
+        sendActions(for: .touchUpInside)
+        return true
+    }
+
     func configure(appearance: AppAppearance) {
         accessibilityIdentifier = ThemesCollectionService.Content.moreThemesAccessibilityID
         accessibilityLabel = L10n.Home.moreThemes
@@ -173,7 +179,6 @@ final class MoreThemesFadeButton: UIControl {
     func setVisible(_ isVisible: Bool, animated: Bool) {
         guard isVisibilityTargetVisible != isVisible else { return }
         isVisibilityTargetVisible = isVisible
-        isUserInteractionEnabled = isVisible
 
         visibilityAnimator?.stopAnimation(false)
         visibilityAnimator?.finishAnimation(at: .current)

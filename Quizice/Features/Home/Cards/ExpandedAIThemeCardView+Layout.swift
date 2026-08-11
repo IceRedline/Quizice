@@ -190,8 +190,8 @@ extension ExpandedAIThemeCardView {
                 constant: -(Layout.promptTextInset + 5)
             ),
             promptPlaceholderLabel.topAnchor.constraint(
-                equalTo: promptContainerView.topAnchor,
-                constant: Layout.promptTextInset + 8
+                equalTo: promptTextView.topAnchor,
+                constant: Layout.promptTextInset
             )
         ])
 
