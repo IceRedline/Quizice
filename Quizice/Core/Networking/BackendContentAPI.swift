@@ -1,4 +1,5 @@
 import Foundation
+import Network
 
 protocol BackendContentAPI {
     func fetchThemes(locale: String) async throws -> BackendThemeCatalogResponse
@@ -26,6 +27,7 @@ protocol BackendContentAPI {
         locale: String,
         seed: String
     ) async throws -> BackendQuestionBatchResponse
+    func submitQuestionAnswers(_ events: [QuestionAnswerEvent]) async throws -> QuestionAnswerBatchResponse
     func fetchRandomQuestions(
         selectionMode: CrossThemeQuestionSelectionMode,
         count: Int,
@@ -33,9 +35,61 @@ protocol BackendContentAPI {
         difficulty: AIQuizDifficulty,
         seed: String
     ) async throws -> BackendQuestionBatchResponse
+    func fetchQuestions(
+        themeID: String,
+        count: Int,
+        locale: String,
+        difficulty: AIQuizDifficulty,
+        seed: String,
+        strategy: QuestionRepeatStrategy
+    ) async throws -> BackendQuestionBatchResponse
+    func fetchRandomQuestions(
+        selectionMode: CrossThemeQuestionSelectionMode,
+        count: Int,
+        locale: String,
+        difficulty: AIQuizDifficulty,
+        seed: String,
+        strategy: QuestionRepeatStrategy
+    ) async throws -> BackendQuestionBatchResponse
 }
 
 extension BackendContentAPI {
+    func submitQuestionAnswers(_ events: [QuestionAnswerEvent]) async throws -> QuestionAnswerBatchResponse {
+        throw BackendContentError.unauthenticated
+    }
+    func fetchQuestions(
+        themeID: String,
+        count: Int,
+        locale: String,
+        difficulty: AIQuizDifficulty,
+        seed: String,
+        strategy: QuestionRepeatStrategy
+    ) async throws -> BackendQuestionBatchResponse {
+        try await fetchQuestions(
+            themeID: themeID,
+            count: count,
+            locale: locale,
+            difficulty: difficulty,
+            seed: seed
+        )
+    }
+
+    func fetchRandomQuestions(
+        selectionMode: CrossThemeQuestionSelectionMode,
+        count: Int,
+        locale: String,
+        difficulty: AIQuizDifficulty,
+        seed: String,
+        strategy: QuestionRepeatStrategy
+    ) async throws -> BackendQuestionBatchResponse {
+        try await fetchRandomQuestions(
+            selectionMode: selectionMode,
+            count: count,
+            locale: locale,
+            difficulty: difficulty,
+            seed: seed
+        )
+    }
     func fetchThemePreferences(locale: String) async throws -> BackendThemePreferencesResponse {
         throw BackendContentError.unauthenticated
     }
@@ -86,6 +140,7 @@ final class HTTPBackendContentAPI: BackendContentAPI {
     private let requestTimeout: TimeInterval
     private let metrics: BackendRequestMetricRecording
     private let accessTokenProvider: BackendAccessTokenProviding
+    private let authenticationRecoverer: BackendAuthenticationRecovering?
     private let clock = ContinuousClock()
 
     // Content responses (themes, preferences, question batches) are a few
@@ -98,13 +153,15 @@ final class HTTPBackendContentAPI: BackendContentAPI {
         session: URLSession = .shared,
         requestTimeout: TimeInterval = 15,
         metrics: BackendRequestMetricRecording = NoopBackendRequestMetricRecorder(),
-        accessTokenProvider: BackendAccessTokenProviding = NoopBackendAccessTokenProvider()
+        accessTokenProvider: BackendAccessTokenProviding = NoopBackendAccessTokenProvider(),
+        authenticationRecoverer: BackendAuthenticationRecovering? = nil
     ) {
         baseURL = configuration.baseURL
         self.session = session
         self.requestTimeout = requestTimeout
         self.metrics = metrics
         self.accessTokenProvider = accessTokenProvider
+        self.authenticationRecoverer = authenticationRecoverer
         encoder = JSONEncoder()
         decoder = JSONDecoder()
     }
@@ -174,6 +231,27 @@ final class HTTPBackendContentAPI: BackendContentAPI {
         )
     }
 
+    func submitQuestionAnswers(_ events: [QuestionAnswerEvent]) async throws -> QuestionAnswerBatchResponse {
+        guard !events.isEmpty, events.count <= 100 else { throw BackendContentError.invalidRequest }
+        guard let accessToken = accessTokenProvider.validAccessToken() else {
+            throw BackendContentError.unauthenticated
+        }
+        let url = try makeURL(
+            pathComponents: ["v1", "me", "question-answers"],
+            queryItems: []
+        )
+        return try await post(
+            url: url,
+            operation: .questionAnswers,
+            accessToken: accessToken,
+            body: QuestionAnswerBatchRequest(events: events),
+            validate: { response in
+                let requested = Set(events.map(\.eventId))
+                return Set(response.processedEventIds).isSubset(of: requested)
+            }
+        )
+    }
+
     func fetchQuestions(
         themeID: String,
         count: Int,
@@ -185,7 +263,8 @@ final class HTTPBackendContentAPI: BackendContentAPI {
             count: count,
             locale: locale,
             difficulty: nil,
-            seed: seed
+            seed: seed,
+            strategy: .showAll
         )
     }
 
@@ -201,7 +280,26 @@ final class HTTPBackendContentAPI: BackendContentAPI {
             count: count,
             locale: locale,
             difficulty: difficulty,
-            seed: seed
+            seed: seed,
+            strategy: .showAll
+        )
+    }
+
+    func fetchQuestions(
+        themeID: String,
+        count: Int,
+        locale: String,
+        difficulty: AIQuizDifficulty,
+        seed: String,
+        strategy: QuestionRepeatStrategy
+    ) async throws -> BackendQuestionBatchResponse {
+        try await fetchQuestionBatch(
+            themeID: themeID,
+            count: count,
+            locale: locale,
+            difficulty: difficulty,
+            seed: seed,
+            strategy: strategy
         )
     }
 
@@ -210,7 +308,8 @@ final class HTTPBackendContentAPI: BackendContentAPI {
         count: Int,
         locale: String,
         difficulty: AIQuizDifficulty?,
-        seed: String
+        seed: String,
+        strategy: QuestionRepeatStrategy
     ) async throws -> BackendQuestionBatchResponse {
         let normalizedThemeID = themeID.trimmingCharacters(in: .whitespacesAndNewlines)
         let normalizedSeed = seed.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -233,13 +332,21 @@ final class HTTPBackendContentAPI: BackendContentAPI {
             )
         }
         queryItems.append(URLQueryItem(name: "seed", value: normalizedSeed))
+        if let progressMode = strategy.progressMode {
+            queryItems.append(URLQueryItem(name: "progressMode", value: progressMode.rawValue))
+        }
         let url = try makeURL(
             pathComponents: ["v1", "themes", normalizedThemeID, "questions"],
             queryItems: queryItems
         )
+        let accessToken = accessTokenProvider.validAccessToken()
+        if strategy.progressMode != nil, accessToken == nil {
+            throw BackendContentError.unauthenticated
+        }
         return try await get(
             url: url,
             operation: .questions,
+            accessToken: accessToken,
             validate: {
                 Self.isValid(
                     $0,
@@ -262,7 +369,8 @@ final class HTTPBackendContentAPI: BackendContentAPI {
             count: count,
             locale: locale,
             difficulty: nil,
-            seed: seed
+            seed: seed,
+            strategy: .showAll
         )
     }
 
@@ -278,7 +386,26 @@ final class HTTPBackendContentAPI: BackendContentAPI {
             count: count,
             locale: locale,
             difficulty: difficulty,
-            seed: seed
+            seed: seed,
+            strategy: .showAll
+        )
+    }
+
+    func fetchRandomQuestions(
+        selectionMode: CrossThemeQuestionSelectionMode,
+        count: Int,
+        locale: String,
+        difficulty: AIQuizDifficulty,
+        seed: String,
+        strategy: QuestionRepeatStrategy
+    ) async throws -> BackendQuestionBatchResponse {
+        try await fetchRandomQuestionBatch(
+            selectionMode: selectionMode,
+            count: count,
+            locale: locale,
+            difficulty: difficulty,
+            seed: seed,
+            strategy: strategy
         )
     }
 
@@ -287,7 +414,8 @@ final class HTTPBackendContentAPI: BackendContentAPI {
         count: Int,
         locale: String,
         difficulty: AIQuizDifficulty?,
-        seed: String
+        seed: String,
+        strategy: QuestionRepeatStrategy
     ) async throws -> BackendQuestionBatchResponse {
         let normalizedSeed = seed.trimmingCharacters(in: .whitespacesAndNewlines)
         guard
@@ -308,13 +436,21 @@ final class HTTPBackendContentAPI: BackendContentAPI {
             )
         }
         queryItems.append(URLQueryItem(name: "seed", value: normalizedSeed))
+        if let progressMode = strategy.progressMode {
+            queryItems.append(URLQueryItem(name: "progressMode", value: progressMode.rawValue))
+        }
         let url = try makeURL(
             pathComponents: ["v1", "questions", selectionMode.rawValue],
             queryItems: queryItems
         )
+        let accessToken = accessTokenProvider.validAccessToken()
+        if strategy.progressMode != nil, accessToken == nil {
+            throw BackendContentError.unauthenticated
+        }
         return try await get(
             url: url,
             operation: .questions,
+            accessToken: accessToken,
             validate: {
                 Self.isValid(
                     $0,
@@ -330,7 +466,7 @@ final class HTTPBackendContentAPI: BackendContentAPI {
         url: URL,
         operation: BackendOperation,
         accessToken: String? = nil,
-        validate: (Response) -> Bool
+        validate: @escaping (Response) -> Bool
     ) async throws -> Response {
         var request = URLRequest(url: url, timeoutInterval: requestTimeout)
 #if DEBUG
@@ -353,7 +489,7 @@ final class HTTPBackendContentAPI: BackendContentAPI {
         operation: BackendOperation,
         accessToken: String,
         body: Body,
-        validate: (Response) -> Bool
+        validate: @escaping (Response) -> Bool
     ) async throws -> Response {
         let bodyData: Data
         do {
@@ -378,10 +514,34 @@ final class HTTPBackendContentAPI: BackendContentAPI {
         )
     }
 
+    private func post<Response: Decodable, Body: Encodable>(
+        url: URL,
+        operation: BackendOperation,
+        accessToken: String,
+        body: Body,
+        validate: @escaping (Response) -> Bool
+    ) async throws -> Response {
+        let bodyData: Data
+        do {
+            encoder.dateEncodingStrategy = .iso8601
+            bodyData = try encoder.encode(body)
+        } catch {
+            throw BackendContentError.encoding
+        }
+        var request = URLRequest(url: url, timeoutInterval: requestTimeout)
+        request.httpMethod = "POST"
+        request.httpBody = bodyData
+        request.setValue("application/json", forHTTPHeaderField: "Accept")
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.setValue("Bearer \(accessToken)", forHTTPHeaderField: "Authorization")
+        return try await perform(request: request, operation: operation, validate: validate)
+    }
+
     private func perform<Response: Decodable>(
         request: URLRequest,
         operation: BackendOperation,
-        validate: (Response) -> Bool
+        validate: @escaping (Response) -> Bool,
+        allowsAuthenticationRetry: Bool = true
     ) async throws -> Response {
         let startedAt = clock.now
         do {
@@ -431,6 +591,27 @@ final class HTTPBackendContentAPI: BackendContentAPI {
                     statusCode: httpResponse.statusCode,
                     responseBytes: data.count
                 )
+                if httpResponse.statusCode == 401,
+                   allowsAuthenticationRetry,
+                   let authenticationRecoverer,
+                   let authorization = request.value(forHTTPHeaderField: "Authorization"),
+                   authorization.hasPrefix("Bearer ") {
+                    let rejectedToken = String(authorization.dropFirst("Bearer ".count))
+                    let refreshedToken = try await authenticationRecoverer.reauthenticate(
+                        afterRejectedAccessToken: rejectedToken
+                    )
+                    var retryRequest = request
+                    retryRequest.setValue(
+                        "Bearer \(refreshedToken)",
+                        forHTTPHeaderField: "Authorization"
+                    )
+                    return try await perform(
+                        request: retryRequest,
+                        operation: operation,
+                        validate: validate,
+                        allowsAuthenticationRetry: false
+                    )
+                }
                 throw BackendContentError.httpStatus(httpResponse.statusCode, envelope)
             }
             do {
@@ -594,17 +775,23 @@ final class HTTPBackendContentAPI: BackendContentAPI {
         guard
             response.locale == requestedLocale,
             response.seed == requestedSeed,
-            response.questions.count == requestedCount
+            response.questions.count <= requestedCount,
+            response.availableCount >= response.questions.count
         else { return false }
 
         var prompts = Set<String>()
+        var questionIDs = Set<String>()
         return response.questions.allSatisfy { question in
+            let questionID = question.questionId?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
             let prompt = question.question.trimmingCharacters(in: .whitespacesAndNewlines)
             let answers = question.answers.map {
                 $0.trimmingCharacters(in: .whitespacesAndNewlines)
             }
             let correctAnswer = question.correctAnswer.trimmingCharacters(in: .whitespacesAndNewlines)
-            return !prompt.isEmpty
+            return !questionID.isEmpty
+                && questionIDs.insert(questionID).inserted
+                && (question.questionVersion ?? 0) > 0
+                && !prompt.isEmpty
                 && prompt.count <= 500
                 && prompts.insert(prompt).inserted
                 && answers.count == 4
@@ -640,5 +827,124 @@ func withBackendTimeout<Value>(
         }
         group.cancelAll()
         return result
+    }
+}
+
+protocol QuestionAnswerOutboxing {
+    func enqueue(_ event: QuestionAnswerEvent)
+    func synchronize() async
+}
+
+struct NoopQuestionAnswerOutbox: QuestionAnswerOutboxing {
+    func enqueue(_ event: QuestionAnswerEvent) {}
+    func synchronize() async {}
+}
+
+final class PersistentQuestionAnswerOutbox: QuestionAnswerOutboxing, @unchecked Sendable {
+    static let shared = PersistentQuestionAnswerOutbox.live()
+
+    private let api: BackendContentAPI?
+    private let fileURL: URL
+    private let lock = NSLock()
+    private let encoder: JSONEncoder
+    private let decoder: JSONDecoder
+    private var networkMonitor: NWPathMonitor?
+    private let automaticallySynchronizesOnEnqueue: Bool
+
+    init(
+        api: BackendContentAPI?,
+        fileURL: URL,
+        automaticallySynchronizesOnEnqueue: Bool = true
+    ) {
+        self.api = api
+        self.fileURL = fileURL
+        self.automaticallySynchronizesOnEnqueue = automaticallySynchronizesOnEnqueue
+        encoder = JSONEncoder()
+        encoder.dateEncodingStrategy = .iso8601
+        decoder = JSONDecoder()
+        decoder.dateDecodingStrategy = .iso8601
+    }
+
+    static func live(bundle: Bundle = .main) -> PersistentQuestionAnswerOutbox {
+        let directory = FileManager.default.urls(
+            for: .applicationSupportDirectory,
+            in: .userDomainMask
+        ).first ?? FileManager.default.temporaryDirectory
+        let fileURL = directory
+            .appendingPathComponent("Quizice", isDirectory: true)
+            .appendingPathComponent("question-answer-outbox.json")
+        guard let configuration = BackendConfiguration.load(bundle: bundle) else {
+            return PersistentQuestionAnswerOutbox(api: nil, fileURL: fileURL)
+        }
+        let outbox = PersistentQuestionAnswerOutbox(
+            api: HTTPBackendContentAPI(
+                configuration: configuration,
+                metrics: AppMetricaAnalyticsTracker.shared,
+                accessTokenProvider: StoredBackendAccessTokenProvider(),
+                authenticationRecoverer: NotificationBackendAuthenticationRecoverer()
+            ),
+            fileURL: fileURL
+        )
+        outbox.startNetworkMonitoring()
+        return outbox
+    }
+
+    func enqueue(_ event: QuestionAnswerEvent) {
+        lock.withLock {
+            var events = loadLocked()
+            guard !events.contains(where: { $0.eventId == event.eventId }) else { return }
+            events.append(event)
+            saveLocked(events)
+        }
+        if automaticallySynchronizesOnEnqueue {
+            Task { await synchronize() }
+        }
+    }
+
+    func synchronize() async {
+        guard let api else { return }
+        while !Task.isCancelled {
+            let batch = lock.withLock { Array(loadLocked().prefix(100)) }
+            guard !batch.isEmpty else { return }
+            do {
+                let response = try await api.submitQuestionAnswers(batch)
+                let processed = Set(response.processedEventIds)
+                guard !processed.isEmpty else { return }
+                lock.withLock {
+                    saveLocked(loadLocked().filter { !processed.contains($0.eventId) })
+                }
+            } catch {
+                return
+            }
+        }
+    }
+
+    private func loadLocked() -> [QuestionAnswerEvent] {
+        guard let data = try? Data(contentsOf: fileURL) else { return [] }
+        return (try? decoder.decode([QuestionAnswerEvent].self, from: data)) ?? []
+    }
+
+    func pendingEvents() -> [QuestionAnswerEvent] {
+        lock.withLock { loadLocked() }
+    }
+
+    private func saveLocked(_ events: [QuestionAnswerEvent]) {
+        do {
+            let directory = fileURL.deletingLastPathComponent()
+            try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+            try encoder.encode(events).write(to: fileURL, options: .atomic)
+        } catch {
+            AppLog.persistence.error("Question answer outbox persistence failed")
+        }
+    }
+
+    private func startNetworkMonitoring() {
+        let monitor = NWPathMonitor()
+        networkMonitor = monitor
+        monitor.pathUpdateHandler = { [weak self] path in
+            guard path.status == .satisfied else { return }
+            Task { await self?.synchronize() }
+        }
+        monitor.start(queue: DispatchQueue(label: "ru.avtabenskiy.Quizice.answer-outbox-network"))
     }
 }

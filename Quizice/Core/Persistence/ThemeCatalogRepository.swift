@@ -18,7 +18,8 @@ final class ThemeCatalogRepository: ThemeRepository {
             HTTPBackendContentAPI(
                 configuration: $0,
                 metrics: AppMetricaAnalyticsTracker.shared,
-                accessTokenProvider: StoredBackendAccessTokenProvider()
+                accessTokenProvider: StoredBackendAccessTokenProvider(),
+                authenticationRecoverer: NotificationBackendAuthenticationRecoverer()
             )
         }
         return ThemeCatalogRepository(backendContentAPI: api)
@@ -31,6 +32,7 @@ final class ThemeCatalogRepository: ThemeRepository {
     private let preferenceStore: OnboardingProgressStoring
     private let seedGenerator: () -> String
     private let remoteQuestionTimeoutNanoseconds: UInt64
+    private let accessTokenProvider: BackendAccessTokenProviding
 
     var themes: [QuizTheme]?
     private(set) var catalogOrigin: QuizCatalogOrigin = .bundled
@@ -40,12 +42,14 @@ final class ThemeCatalogRepository: ThemeRepository {
         backendContentAPI: BackendContentAPI? = nil,
         preferenceStore: OnboardingProgressStoring = OnboardingProgressStore.shared,
         seedGenerator: @escaping () -> String = { UUID().uuidString.lowercased() },
-        remoteQuestionTimeoutNanoseconds: UInt64 = 3_000_000_000
+        remoteQuestionTimeoutNanoseconds: UInt64 = 3_000_000_000,
+        accessTokenProvider: BackendAccessTokenProviding = StoredBackendAccessTokenProvider()
     ) {
         self.backendContentAPI = backendContentAPI
         self.preferenceStore = preferenceStore
         self.seedGenerator = seedGenerator
         self.remoteQuestionTimeoutNanoseconds = remoteQuestionTimeoutNanoseconds
+        self.accessTokenProvider = accessTokenProvider
         localizationObserver = NotificationCenter.default.addObserver(
             forName: .appLocalizationDidChange,
             object: nil,
@@ -303,7 +307,8 @@ final class ThemeCatalogRepository: ThemeRepository {
                     count: questionCount,
                     locale: locale,
                     difficulty: difficulty,
-                    seed: seed
+                    seed: seed,
+                    strategy: self.effectiveQuestionRepeatStrategy
                 )
             }
             try Task.checkCancellation()
@@ -311,7 +316,7 @@ final class ThemeCatalogRepository: ThemeRepository {
                 throw CancellationError()
             }
 
-            let questions = response.questions.map { $0.makeModel() }
+            let questions = response.questions.map { $0.makeModel(locale: response.locale) }
             AppLog.content.notice(
                 "✅ BACKEND QUESTIONS: received theme=\(themeID, privacy: .public) locale=\(locale, privacy: .public) requested=\(questionCount, privacy: .public) received=\(questions.count, privacy: .public) seed=\(seed, privacy: .public) duration_ms=\(Self.durationMilliseconds(since: startedAt), privacy: .public)"
             )
@@ -382,7 +387,8 @@ final class ThemeCatalogRepository: ThemeRepository {
                     count: questionCount,
                     locale: locale,
                     difficulty: difficulty,
-                    seed: seed
+                    seed: seed,
+                    strategy: self.effectiveQuestionRepeatStrategy
                 )
             }
             try Task.checkCancellation()
@@ -390,7 +396,7 @@ final class ThemeCatalogRepository: ThemeRepository {
                 throw CancellationError()
             }
 
-            let questions = response.questions.map { $0.makeModel() }
+            let questions = response.questions.map { $0.makeModel(locale: response.locale) }
             AppLog.content.notice(
                 "✅ BACKEND RANDOM QUESTIONS: received mode=\(selectionMode.rawValue, privacy: .public) locale=\(locale, privacy: .public) requested=\(questionCount, privacy: .public) received=\(questions.count, privacy: .public) seed=\(seed, privacy: .public) duration_ms=\(Self.durationMilliseconds(since: startedAt), privacy: .public)"
             )
@@ -489,6 +495,12 @@ final class ThemeCatalogRepository: ThemeRepository {
     private func handleAuthenticationFailureIfNeeded(_ error: Error) {
         guard case BackendContentError.httpStatus(401, _) = error else { return }
         NotificationCenter.default.post(name: .backendAuthenticationInvalidated, object: nil)
+    }
+
+    private var effectiveQuestionRepeatStrategy: QuestionRepeatStrategy {
+        QuestionRepeatStrategyStore.shared.strategy.effective(
+            hasValidBackendSession: accessTokenProvider.validAccessToken() != nil
+        )
     }
 
     private static func durationMilliseconds(since startDate: Date) -> Int {

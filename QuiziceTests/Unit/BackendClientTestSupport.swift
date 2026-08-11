@@ -34,6 +34,20 @@ struct BackendAccessTokenStub: BackendAccessTokenProviding {
     func validAccessToken() -> String? { token }
 }
 
+final class BackendAuthenticationRecovererSpy: BackendAuthenticationRecovering, @unchecked Sendable {
+    let refreshedToken: String
+    private(set) var rejectedTokens: [String] = []
+
+    init(refreshedToken: String) {
+        self.refreshedToken = refreshedToken
+    }
+
+    func reauthenticate(afterRejectedAccessToken accessToken: String) async throws -> String {
+        rejectedTokens.append(accessToken)
+        return refreshedToken
+    }
+}
+
 final class BackendMemorySessionStore: SessionStoring {
     var session: AuthSession?
 
@@ -177,6 +191,42 @@ final class RecordingBackendContentAPI: BackendContentAPI {
             locale: locale,
             seed: seed
         )
+    }
+}
+
+final class QuestionAnswerBackendContentAPI: BackendContentAPI {
+    var submitResults: [Result<QuestionAnswerBatchResponse, Error>]
+    private(set) var submittedBatches: [[QuestionAnswerEvent]] = []
+
+    init(submitResults: [Result<QuestionAnswerBatchResponse, Error>]) {
+        self.submitResults = submitResults
+    }
+
+    func submitQuestionAnswers(_ events: [QuestionAnswerEvent]) async throws -> QuestionAnswerBatchResponse {
+        submittedBatches.append(events)
+        return try submitResults.removeFirst().get()
+    }
+
+    func fetchThemes(locale: String) async throws -> BackendThemeCatalogResponse {
+        BackendThemeCatalogResponse(locale: locale, themes: [])
+    }
+
+    func fetchQuestions(
+        themeID: String,
+        count: Int,
+        locale: String,
+        seed: String
+    ) async throws -> BackendQuestionBatchResponse {
+        BackendQuestionBatchResponse(locale: locale, seed: seed, questions: [])
+    }
+
+    func fetchRandomQuestions(
+        selectionMode: CrossThemeQuestionSelectionMode,
+        count: Int,
+        locale: String,
+        seed: String
+    ) async throws -> BackendQuestionBatchResponse {
+        BackendQuestionBatchResponse(locale: locale, seed: seed, questions: [])
     }
 }
 
