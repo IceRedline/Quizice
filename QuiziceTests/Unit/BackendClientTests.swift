@@ -745,8 +745,10 @@ final class BackendClientTests: XCTestCase {
             .success(QuestionAnswerBatchResponse(processedEventIds: [processedID])),
             .success(QuestionAnswerBatchResponse(processedEventIds: []))
         ])
-        let fileURL = FileManager.default.temporaryDirectory
-            .appendingPathComponent("QuiziceTests-(UUID().uuidString)")
+        let testDirectory = FileManager.default.temporaryDirectory
+            .appendingPathComponent("QuiziceTests-\(UUID().uuidString)", isDirectory: true)
+        defer { try? FileManager.default.removeItem(at: testDirectory) }
+        let fileURL = testDirectory
             .appendingPathComponent("outbox.json")
         let outbox = PersistentQuestionAnswerOutbox(
             api: api,

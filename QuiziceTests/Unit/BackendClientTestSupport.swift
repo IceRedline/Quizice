@@ -487,6 +487,8 @@ final class BackendRandomQuestionTests: XCTestCase {
 
     private static func questionJSON(index: Int) -> [String: Any] {
         [
+            "questionId": "question-\(index)",
+            "questionVersion": 1,
             "question": "Question \(index)",
             "answers": ["A\(index)", "B\(index)", "C\(index)", "D\(index)"],
             "correctAnswer": "B\(index)",
