@@ -115,16 +115,20 @@ printf 'Checking upstream S02 quiz flow contracts first...\n'
 require_executable "$S02_VERIFIER"
 "$S02_VERIFIER"
 
-printf 'Checking S03 iOS build contract...\n'
-xcodebuild \
-  -quiet \
-  -skipPackagePluginValidation \
-  -skipMacroValidation \
-  -project Quizice.xcodeproj \
-  -scheme Quizice \
-  -destination 'generic/platform=iOS Simulator' \
-  CODE_SIGNING_ALLOWED=NO \
-  build
+if [[ "${QUIZICE_SKIP_XCODEBUILD:-0}" == "1" ]]; then
+  printf 'S03 iOS build contract delegated to CI.\n'
+else
+  printf 'Checking S03 iOS build contract...\n'
+  xcodebuild \
+    -quiet \
+    -skipPackagePluginValidation \
+    -skipMacroValidation \
+    -project Quizice.xcodeproj \
+    -scheme Quizice \
+    -destination 'generic/platform=iOS Simulator' \
+    CODE_SIGNING_ALLOWED=NO \
+    build
+fi
 
 printf 'Checking inline statistics source files and project membership...\n'
 require_file "$STATISTICS_STORE"
