@@ -1,6 +1,6 @@
 import UIKit
 
-final class ThemesCollectionService: NSObject, UICollectionViewDelegate, UICollectionViewDataSource, UICollectionViewDelegateFlowLayout {
+final class ThemesCollectionService: NSObject, UICollectionViewDelegate, UICollectionViewDataSource, UICollectionViewDelegateFlowLayout, UIGestureRecognizerDelegate {
     enum Content {
         static let themeCellReuseIdentifier = "themeCell"
         static let themeImageAccessibilityIDPrefix = "homeThemeImageView"
@@ -117,6 +117,7 @@ final class ThemesCollectionService: NSObject, UICollectionViewDelegate, UIColle
     weak var observedCollectionView: UICollectionView?
     private weak var themeItemsCollectionView: UICollectionView?
     private weak var moreThemesButton: MoreThemesFadeButton?
+    private weak var moreThemesTapGestureRecognizer: UITapGestureRecognizer?
 
     var catalogCollectionView: UICollectionView? {
         themeItemsCollectionView
@@ -611,13 +612,24 @@ final class ThemesCollectionService: NSObject, UICollectionViewDelegate, UIColle
     }
 
     private func installMoreThemesButtonIfNeeded(in cell: ThemesViewportCollectionViewCell) {
+        let collectionView = cell.themesCollectionView
         if moreThemesButton?.superview === cell.contentView {
             return
         }
 
         moreThemesButton?.removeFromSuperview()
+        if let previousTapGesture = moreThemesTapGestureRecognizer {
+            previousTapGesture.view?.removeGestureRecognizer(previousTapGesture)
+        }
+
         let button = MoreThemesFadeButton()
         button.translatesAutoresizingMaskIntoConstraints = false
+        // The visual overlay must not participate in hit testing: touches then
+        // reach the collection view underneath and its native pan gesture keeps
+        // scrolling with full momentum. A dedicated tap recognizer below keeps
+        // the "More themes" action available without putting the label under
+        // the collection view's fade mask.
+        button.isUserInteractionEnabled = false
         button.addTarget(self, action: #selector(moreThemesButtonTapped), for: .touchUpInside)
         cell.contentView.addSubview(button)
         NSLayoutConstraint.activate([
@@ -626,7 +638,16 @@ final class ThemesCollectionService: NSObject, UICollectionViewDelegate, UIColle
             button.bottomAnchor.constraint(equalTo: cell.contentView.bottomAnchor),
             button.heightAnchor.constraint(equalToConstant: Layout.moreThemesButtonHeight)
         ])
+
+        let tapGesture = UITapGestureRecognizer(
+            target: self,
+            action: #selector(moreThemesOverlayTapped(_:))
+        )
+        tapGesture.delegate = self
+        collectionView.addGestureRecognizer(tapGesture)
+
         moreThemesButton = button
+        moreThemesTapGestureRecognizer = tapGesture
     }
 
     private func configureMoreThemesButton() {
@@ -677,6 +698,28 @@ final class ThemesCollectionService: NSObject, UICollectionViewDelegate, UIColle
             at: .top,
             animated: true
         )
+    }
+
+    @objc private func moreThemesOverlayTapped(_ gestureRecognizer: UITapGestureRecognizer) {
+        guard gestureRecognizer.state == .ended else { return }
+        moreThemesButtonTapped()
+    }
+
+    func gestureRecognizer(
+        _ gestureRecognizer: UIGestureRecognizer,
+        shouldReceive touch: UITouch
+    ) -> Bool {
+        guard gestureRecognizer === moreThemesTapGestureRecognizer else { return true }
+        guard
+            let button = moreThemesButton,
+            !button.isHidden,
+            button.alpha > 0.01
+        else {
+            return false
+        }
+
+        let location = touch.location(in: button)
+        return button.point(inside: location, with: nil)
     }
 
     @objc func buttonTouchedDown(_ sender: UIButton) {

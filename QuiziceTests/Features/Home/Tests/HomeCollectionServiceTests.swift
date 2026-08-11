@@ -192,6 +192,16 @@ final class HomeCollectionServiceTests: HomeScreenVisualStateTestCase {
             collectionView.collectionViewLayout.collectionViewContentSize.height,
             collectionView.bounds.height
         )
+        let moreThemesFade = try XCTUnwrap(
+            viewportCell.contentView.descendant(
+                withAccessibilityIdentifier: ThemesCollectionService.Content.moreThemesAccessibilityID
+            )
+        )
+        XCTAssertTrue(moreThemesFade.superview === viewportCell.contentView)
+        XCTAssertFalse(moreThemesFade.isUserInteractionEnabled)
+        XCTAssertTrue(
+            collectionView.gestureRecognizers?.contains { $0 is UITapGestureRecognizer } == true
+        )
         let lastThemeCell = service.collectionView(
             collectionView,
             cellForItemAt: IndexPath(item: 13, section: 0)

@@ -125,8 +125,7 @@ final class HomeThemeCardStateTests: HomeScreenVisualStateTestCase {
         let viewController = QuizViewController(
             themeRepository: repository,
             session: session,
-            cardReduceMotionProvider: { true },
-            quizPreparationProgressDelay: {}
+            cardReduceMotionProvider: { true }
         )
         let router = HomeRouterSpy()
         viewController.router = router
@@ -164,7 +163,7 @@ final class HomeThemeCardStateTests: HomeScreenVisualStateTestCase {
         XCTAssertEqual(session.chosenTheme?.questionsAndAnswers.count, 5)
     }
 
-    func testSlowQuizPreparationShowsStartIndicatorAfterConfiguredDelay() async throws {
+    func testSlowQuizPreparationShowsStartIndicatorImmediately() async throws {
         let theme = makeTheme(name: "Музыка", questionCount: 15)
         let repository = HangingRoutingThemeRepository(themes: [theme])
         let session = RoutingSession()
@@ -172,8 +171,7 @@ final class HomeThemeCardStateTests: HomeScreenVisualStateTestCase {
         let viewController = QuizViewController(
             themeRepository: repository,
             session: session,
-            cardReduceMotionProvider: { true },
-            quizPreparationProgressDelay: {}
+            cardReduceMotionProvider: { true }
         )
         let router = HomeRouterSpy()
         viewController.router = router
@@ -202,9 +200,9 @@ final class HomeThemeCardStateTests: HomeScreenVisualStateTestCase {
         )
 
         startButton.sendActions(for: .touchUpInside)
-        try await waitUntil { repository.prepareQuizCallCount == 1 && activityIndicator.isAnimating }
-
         XCTAssertFalse(startButton.isEnabled)
+        XCTAssertTrue(activityIndicator.isAnimating)
+        try await waitUntil { repository.prepareQuizCallCount == 1 }
         XCTAssertEqual(router.showQuestionCallCount, 0)
         viewController.removeExpandedThemeCardViews()
         XCTAssertFalse(activityIndicator.isAnimating)
