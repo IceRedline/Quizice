@@ -42,6 +42,12 @@ final class LocalizationTests: XCTestCase {
 
         AppLocalizationStore.shared.languagePreference = .russian
         XCTAssertEqual(L10n.Common.next, "Далее")
+        XCTAssertEqual(L10n.Settings.QuestionStrategy.section, "Вопросы")
+        XCTAssertEqual(L10n.Settings.QuestionStrategy.title, "Стратегия повторения")
+        XCTAssertEqual(
+            L10n.Settings.QuestionStrategy.title(for: .showAll),
+            "Показывать все"
+        )
 
         AppLocalizationStore.shared.languagePreference = .french
         XCTAssertEqual(L10n.Settings.language, "Langue")
