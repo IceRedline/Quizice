@@ -262,7 +262,7 @@ struct QuizSettingsView: View {
 
     private var questionStrategySection: some View {
         SettingsSection(
-            title: NSLocalizedString("settings.questionStrategy.section", comment: ""),
+            title: L10n.Settings.QuestionStrategy.section,
             titleAccessory: {
                 Button(action: presentQuestionStrategyHelp) {
                     Image(systemName: "questionmark.circle.fill")
@@ -272,9 +272,7 @@ struct QuizSettingsView: View {
                         .contentShape(Rectangle())
                 }
                 .buttonStyle(QuizPressButtonStyle())
-                .accessibilityLabel(
-                    NSLocalizedString("settings.questionStrategy.help.accessibilityLabel", comment: "")
-                )
+                .accessibilityLabel(L10n.Settings.QuestionStrategy.helpAccessibilityLabel)
             },
             content: {
                 Menu {
@@ -286,7 +284,7 @@ struct QuizSettingsView: View {
                 } label: {
                     SettingsValueRow(
                         systemImage: "arrow.triangle.2.circlepath",
-                        title: NSLocalizedString("settings.questionStrategy.title", comment: ""),
+                        title: L10n.Settings.QuestionStrategy.title,
                         subtitle: "",
                         value: questionStrategyTitle(
                             QuestionRepeatStrategy(rawValue: repeatStrategyID) ?? .showAll
@@ -300,8 +298,8 @@ struct QuizSettingsView: View {
 
     private var questionStrategyHelpOverlay: some View {
         QuizAlertOverlay(
-            title: NSLocalizedString("settings.questionStrategy.help.title", comment: ""),
-            message: NSLocalizedString("settings.questionStrategy.help.message", comment: ""),
+            title: L10n.Settings.QuestionStrategy.helpTitle,
+            message: L10n.Settings.QuestionStrategy.helpMessage,
             systemImage: "arrow.triangle.2.circlepath",
             iconColor: .white,
             primaryAction: QuizAlertAction(
@@ -345,7 +343,7 @@ struct QuizSettingsView: View {
     }
 
     private func questionStrategyTitle(_ strategy: QuestionRepeatStrategy) -> String {
-        NSLocalizedString("settings.questionStrategy.\(strategy.rawValue)", comment: "")
+        L10n.Settings.QuestionStrategy.title(for: strategy)
     }
 
     private var appearanceSection: some View {

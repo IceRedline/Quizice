@@ -2,8 +2,6 @@ name: iOS Tests
 
 on:
   pull_request:
-  push:
-    branches: [main]
 
 permissions:
   contents: read
@@ -16,9 +14,11 @@ jobs:
   ios-tests:
     name: Build and test
     runs-on: macos-26
-    timeout-minutes: 30
+    timeout-minutes: 45
     env:
       DEVELOPER_DIR: /Applications/Xcode_26.2.app/Contents/Developer
+      QUIZICE_DERIVED_DATA_PATH: DerivedData/CI
+      QUIZICE_TEST_ACTION: test-without-building
     steps:
       - name: Checkout
         uses: actions/checkout@v7
@@ -28,5 +28,102 @@ jobs:
       - name: Show Xcode version
         run: xcodebuild -version
 
-      - name: Run verifier
-        run: ./scripts/verify-s04-tests-and-failure-states.sh
+      - name: Static test contracts
+        env:
+          QUIZICE_SKIP_XCODEBUILD: "1"
+        run: ./scripts/verify-s04-tests-and-failure-states.sh --checks-only
+
+      - name: Build for testing
+        run: |
+          xcodebuild \
+            -quiet \
+            -skipPackagePluginValidation \
+            -skipMacroValidation \
+            -project Quizice.xcodeproj \
+            -scheme Quizice \
+            -configuration Debug \
+            -destination 'generic/platform=iOS Simulator' \
+            -derivedDataPath "$QUIZICE_DERIVED_DATA_PATH" \
+            CODE_SIGNING_ALLOWED=NO \
+            -enableCodeCoverage YES \
+            build-for-testing
+
+      - name: Unit tests — iPhone 17
+        id: unit_tests
+        continue-on-error: true
+        env:
+          QUIZICE_RESULT_BUNDLE_PATH: DerivedData/CI/TestResults/unit.xcresult
+        run: ./scripts/run-ios-test-category.sh unit "iPhone 17" 26.2
+
+      - name: UI contract tests — iPhone SE
+        id: ui_tests_se
+        continue-on-error: true
+        env:
+          QUIZICE_RESULT_BUNDLE_PATH: DerivedData/CI/TestResults/ui-se.xcresult
+        run: ./scripts/run-ios-test-category.sh ui "iPhone SE (3rd generation)" 26.2
+
+      - name: UI contract tests — iPhone 17 Pro Max
+        id: ui_tests_pro_max
+        continue-on-error: true
+        env:
+          QUIZICE_RESULT_BUNDLE_PATH: DerivedData/CI/TestResults/ui-17-pro-max.xcresult
+        run: ./scripts/run-ios-test-category.sh ui "iPhone 17 Pro Max" 26.2
+
+      - name: Snapshot tests — iPhone 16e
+        id: snapshot_tests
+        continue-on-error: true
+        env:
+          QUIZICE_RESULT_BUNDLE_PATH: DerivedData/CI/TestResults/snapshots.xcresult
+        run: ./scripts/run-ios-test-category.sh snapshots "iPhone 16e" 26.2
+
+      - name: Combined coverage
+        id: combined_coverage
+        if: always()
+        continue-on-error: true
+        run: |
+          ./scripts/merge-ios-test-results.sh \
+            DerivedData/CI/TestResults/unit.xcresult \
+            DerivedData/CI/TestResults/ui-se.xcresult \
+            DerivedData/CI/TestResults/ui-17-pro-max.xcresult \
+            DerivedData/CI/TestResults/snapshots.xcresult
+
+      - name: Upload failed test results
+        if: >-
+          always() &&
+          (steps.unit_tests.outcome != 'success' ||
+          steps.ui_tests_se.outcome != 'success' ||
+          steps.ui_tests_pro_max.outcome != 'success' ||
+          steps.snapshot_tests.outcome != 'success' ||
+          steps.combined_coverage.outcome != 'success')
+        uses: actions/upload-artifact@v7
+        with:
+          name: ios-test-results
+          path: DerivedData/CI/TestResults
+          if-no-files-found: warn
+          retention-days: 7
+          compression-level: 0
+
+      - name: Enforce category results
+        if: always()
+        env:
+          UNIT_OUTCOME: ${{ steps.unit_tests.outcome }}
+          UI_SE_OUTCOME: ${{ steps.ui_tests_se.outcome }}
+          UI_PRO_MAX_OUTCOME: ${{ steps.ui_tests_pro_max.outcome }}
+          SNAPSHOT_OUTCOME: ${{ steps.snapshot_tests.outcome }}
+          COVERAGE_OUTCOME: ${{ steps.combined_coverage.outcome }}
+        run: |
+          status=0
+          for result in \
+            "Unit:$UNIT_OUTCOME" \
+            "UI iPhone SE:$UI_SE_OUTCOME" \
+            "UI iPhone 17 Pro Max:$UI_PRO_MAX_OUTCOME" \
+            "Snapshots:$SNAPSHOT_OUTCOME" \
+            "Coverage:$COVERAGE_OUTCOME"; do
+            name="${result%%:*}"
+            outcome="${result#*:}"
+            if [[ "$outcome" != "success" ]]; then
+              printf '❌ %s outcome: %s\n' "$name" "$outcome" >&2
+              status=1
+            fi
+          done
+          exit "$status"

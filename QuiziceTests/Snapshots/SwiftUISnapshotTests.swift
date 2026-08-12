@@ -52,7 +52,11 @@ final class SwiftUISnapshotTests: XCTestCase {
     func testSettingsViewSnapshot() {
         let viewController = makeHostingController(rootView: QuizSettingsView())
 
-        SnapshotSupport.assertScreen(viewController, named: "clean-settings")
+        SnapshotSupport.assertScreen(
+            viewController,
+            named: "clean-settings",
+            afterPrepare: prepareSettingsSnapshot
+        )
     }
 
     func testClassicSettingsCompactPortraitSnapshot() {
@@ -62,7 +66,8 @@ final class SwiftUISnapshotTests: XCTestCase {
         SnapshotSupport.assertScreen(
             viewController,
             named: "classic-settings-iphone-se",
-            device: .iPhone8
+            device: .iPhone8,
+            afterPrepare: prepareSettingsSnapshot
         )
     }
 
@@ -505,6 +510,23 @@ final class SwiftUISnapshotTests: XCTestCase {
             .appearance(compatibleWith: viewController.traitCollection)
             .resolvedInterfaceStyle
         return viewController
+    }
+
+    private func prepareSettingsSnapshot(_ viewController: UIViewController) {
+        resetScrollViewsToTop(in: viewController.view)
+    }
+
+    private func resetScrollViewsToTop(in view: UIView) {
+        if let scrollView = view as? UIScrollView {
+            scrollView.setContentOffset(
+                CGPoint(
+                    x: -scrollView.adjustedContentInset.left,
+                    y: -scrollView.adjustedContentInset.top
+                ),
+                animated: false
+            )
+        }
+        view.subviews.forEach(resetScrollViewsToTop)
     }
 
     private func makeAlertSnapshotViewController(
