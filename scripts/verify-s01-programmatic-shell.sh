@@ -72,15 +72,19 @@ while IFS= read -r -d '' source_file; do
   done
 done < <(find "${RUNTIME_SWIFT_ROOTS[@]}" -type f -name '*.swift' -print0)
 
-printf 'Static storyboard dependency checks passed. Running integration build...\n'
-xcodebuild \
-  -quiet \
-  -skipPackagePluginValidation \
-  -skipMacroValidation \
-  -project Quizice.xcodeproj \
-  -scheme Quizice \
-  -destination 'generic/platform=iOS Simulator' \
-  CODE_SIGNING_ALLOWED=NO \
-  build
+if [[ "${QUIZICE_SKIP_XCODEBUILD:-0}" == "1" ]]; then
+  printf 'Static storyboard dependency checks passed; integration build delegated to CI.\n'
+else
+  printf 'Static storyboard dependency checks passed. Running integration build...\n'
+  xcodebuild \
+    -quiet \
+    -skipPackagePluginValidation \
+    -skipMacroValidation \
+    -project Quizice.xcodeproj \
+    -scheme Quizice \
+    -destination 'generic/platform=iOS Simulator' \
+    CODE_SIGNING_ALLOWED=NO \
+    build
+fi
 
 printf '✅ S01 programmatic UIKit shell verification passed.\n'

@@ -358,6 +358,21 @@ enum L10n {
             static var system: String { L10n.localized("settings.language.system", comment: "System app language option title") }
         }
 
+        enum QuestionStrategy {
+            static var section: String { L10n.localized("settings.questionStrategy.section", comment: "Settings question strategy section title") }
+            static var title: String { L10n.localized("settings.questionStrategy.title", comment: "Settings question repeat strategy row title") }
+            static var helpTitle: String { L10n.localized("settings.questionStrategy.help.title", comment: "Question repeat strategy help title") }
+            static var helpMessage: String { L10n.localized("settings.questionStrategy.help.message", comment: "Question repeat strategy help message") }
+            static var helpAccessibilityLabel: String { L10n.localized("settings.questionStrategy.help.accessibilityLabel", comment: "Question repeat strategy help button accessibility label") }
+
+            static func title(for strategy: QuestionRepeatStrategy) -> String {
+                L10n.localized(
+                    "settings.questionStrategy.\(strategy.rawValue)",
+                    comment: "Question repeat strategy option title"
+                )
+            }
+        }
+
         enum Design {
             static var classic: String { L10n.localized("settings.design.classic", comment: "Classic design option title") }
             static var clean: String { L10n.localized("settings.design.clean", comment: "Clean design option title") }

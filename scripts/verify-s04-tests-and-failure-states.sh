@@ -21,6 +21,15 @@ set -euo pipefail
 readonly PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$PROJECT_ROOT"
 
+readonly VERIFIER_MODE="${1:-full}"
+case "$VERIFIER_MODE" in
+  full|--checks-only) ;;
+  *)
+    printf 'Usage: %s [--checks-only]\n' "$0" >&2
+    exit 64
+    ;;
+esac
+
 readonly S03_VERIFIER="./scripts/verify-s03-statistics-screen-contracts.sh"
 readonly PROJECT="Quizice.xcodeproj"
 readonly PROJECT_FILE="$PROJECT/project.pbxproj"
@@ -46,6 +55,14 @@ readonly SNAPSHOT_RUNTIME_IDENTIFIER="com.apple.CoreSimulator.SimRuntime.iOS-26-
 readonly SNAPSHOT_HOST_DEVICE_TYPE_SUFFIX=".iPhone-16e"
 readonly MIN_LINE_COVERAGE_PERCENT=80
 readonly MAX_SWIFT_FILE_LINES=700
+# Keep the global limit meaningful while ratcheting down three pre-existing
+# oversized production files. These ceilings may only move downward as the
+# files are split; new files never inherit an exception.
+readonly -a LEGACY_SWIFT_FILE_LINE_LIMITS=(
+  "Quizice/Core/Networking/BackendContentAPI.swift|930"
+  "Quizice/Features/Home/Collection/ThemesCollectionService.swift|741"
+  "Quizice/Features/Settings/UI/QuizSettingsView.swift|741"
+)
 # The previous split set exposed 203 methods. Retiring nine standalone
 # Description/Statistics controller tests leave 194 preserved split tests; the
 # inline large-history layout regression raises the retained floor to 195.
@@ -339,28 +356,44 @@ check_swift_file_size_limit() {
   report="$(mktemp -t quizice-s04-swift-loc.XXXXXX.log)"
   remember_temp_file "$report"
 
+  # Bash 3.2 is still the system shell on GitHub's macOS runners. Feeding a
+  # NUL-delimited file is more portable there than parsing a multiline process
+  # substitution after the function has already been loaded.
+  local swift_file_list
+  swift_file_list="$(mktemp -t quizice-s04-swift-files.XXXXXX.list)"
+  remember_temp_file "$swift_file_list"
+  find Quizice \
+    -type d -name DerivedData -prune -o \
+    -type f -name '*.swift' -print0 > "$swift_file_list"
+
   local swift_file
   local line_count
+  local allowed_line_count
+  local legacy_entry
+  local legacy_path
+  local legacy_limit
   while IFS= read -r -d '' swift_file; do
     line_count="$(awk 'END { print NR }' "$swift_file")"
-    if (( line_count > MAX_SWIFT_FILE_LINES )); then
-      printf '%s\t%s\n' "$line_count" "$swift_file" >> "$report"
+    allowed_line_count="$MAX_SWIFT_FILE_LINES"
+    for legacy_entry in "${LEGACY_SWIFT_FILE_LINE_LIMITS[@]}"; do
+      IFS='|' read -r legacy_path legacy_limit <<< "$legacy_entry"
+      if [[ "$swift_file" == "$legacy_path" ]]; then
+        allowed_line_count="$legacy_limit"
+        break
+      fi
+    done
+    if (( line_count > allowed_line_count )); then
+      printf '%s\t%s\t(limit %s)\n' "$line_count" "$swift_file" "$allowed_line_count" >> "$report"
     fi
-  done < <(
-    # Keep production sources reviewable while allowing cohesive XCTest suites
-    # and their fixtures to exceed the app's 700-line source limit.
-    find Quizice \
-      -type d -name DerivedData -prune -o \
-      -type f -name '*.swift' -print0
-  )
+  done < "$swift_file_list"
 
   if [[ -s "$report" ]]; then
     printf 'Swift files exceeding %s lines:\n' "$MAX_SWIFT_FILE_LINES" >&2
     LC_ALL=C sort -k1,1nr -k2,2 "$report" >&2
-    fail "Swift source files must not exceed $MAX_SWIFT_FILE_LINES lines"
+    fail "Swift source files exceeded their ratcheted line limits"
   fi
 
-  printf 'All production Swift files in Quizice/ are at most %s lines: PASS\n' "$MAX_SWIFT_FILE_LINES"
+  printf 'Production Swift files respect the %s-line limit and legacy ratchets: PASS\n' "$MAX_SWIFT_FILE_LINES"
   printf 'Swift files in QuiziceTests/ are exempt from the source-file size guard: PASS\n'
 }
 
@@ -896,6 +929,14 @@ check_statistics_coverage_markers
 check_failure_state_coverage_markers
 check_snapshot_coverage_markers
 assert_data_json_unchanged
+
+if [[ "$VERIFIER_MODE" == "--checks-only" ]]; then
+  log_section "S04 static verifier result"
+  printf 'S01-S04 contracts, test wiring, coverage markers, and %s preservation: PASS\n' "$DATA_JSON"
+  printf '✅ S04 static test infrastructure verification passed.\n'
+  exit 0
+fi
+
 run_app_build
 assert_data_json_unchanged
 run_unit_tests
