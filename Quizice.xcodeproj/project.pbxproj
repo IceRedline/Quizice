@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		55AF62AF27204B888E377FAB /* QuestionAnswerOutbox.swift in Sources */ = {isa = PBXBuildFile; fileRef = F7BB544353014B47B422AFE9 /* QuestionAnswerOutbox.swift */; };
+		61BFEB8637BF4683B80003B4 /* HTTPBackendContentAPI.swift in Sources */ = {isa = PBXBuildFile; fileRef = 28A0A20CEE1B4198B8D492FF /* HTTPBackendContentAPI.swift */; };
 		F93000000000000000000003 /* ResultMessagesTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F92000000000000000000003 /* ResultMessagesTests.swift */; };
 		F93000000000000000000002 /* ResultMessagesRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = F92000000000000000000002 /* ResultMessagesRepository.swift */; };
 		F93000000000000000000001 /* HTTPResultMessagesAPI.swift in Sources */ = {isa = PBXBuildFile; fileRef = F92000000000000000000001 /* HTTPResultMessagesAPI.swift */; };
@@ -209,6 +211,8 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		F7BB544353014B47B422AFE9 /* QuestionAnswerOutbox.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = QuestionAnswerOutbox.swift; sourceTree = "<group>"; };
+		28A0A20CEE1B4198B8D492FF /* HTTPBackendContentAPI.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = HTTPBackendContentAPI.swift; sourceTree = "<group>"; };
 		F92000000000000000000003 /* ResultMessagesTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ResultMessagesTests.swift; sourceTree = "<group>"; };
 		F92000000000000000000002 /* ResultMessagesRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ResultMessagesRepository.swift; sourceTree = "<group>"; };
 		F92000000000000000000001 /* HTTPResultMessagesAPI.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HTTPResultMessagesAPI.swift; sourceTree = "<group>"; };
@@ -978,6 +982,7 @@
 			children = (
 				F92000000000000000000001 /* HTTPResultMessagesAPI.swift */,
 				B10000000000000000000001 /* BackendContentAPI.swift */,
+				28A0A20CEE1B4198B8D492FF /* HTTPBackendContentAPI.swift */,
 				B1000000000000000000000A /* BackendContentModels.swift */,
 				B10000000000000000000011 /* BackendRetry.swift */,
 			);
@@ -1213,6 +1218,7 @@
 				A40000012FA0000100A40001 /* OnboardingProgressStore.swift */,
 				F7F56DA885D3B6FAAC9A7C58 /* QuizFactoryCompatibility.swift */,
 				16F873EE286CA20A0A821D9A /* StatisticsStore.swift */,
+				F7BB544353014B47B422AFE9 /* QuestionAnswerOutbox.swift */,
 				C7F0E643BE8C1EA92DE20246 /* SwiftDataThemeStore.swift */,
 				F92000000000000000000002 /* ResultMessagesRepository.swift */,
 				E4F5C9AEE4154929D64725B7 /* ThemeCatalogRepository.swift */,
@@ -1374,6 +1380,8 @@
 				2465B215AD94E69D77F872BB /* AnalyticsService.swift in Sources */,
 				F93000000000000000000001 /* HTTPResultMessagesAPI.swift in Sources */,
 				B10000000000000000000002 /* BackendContentAPI.swift in Sources */,
+				55AF62AF27204B888E377FAB /* QuestionAnswerOutbox.swift in Sources */,
+				61BFEB8637BF4683B80003B4 /* HTTPBackendContentAPI.swift in Sources */,
 				B1000000000000000000000B /* BackendContentModels.swift in Sources */,
 				B10000000000000000000012 /* BackendRetry.swift in Sources */,
 				D7E82CFA753F341CAA0395AD /* AuthModels.swift in Sources */,

@@ -174,7 +174,7 @@ iOS 18+, Swift (language mode 5), UIKit + SwiftUI, SwiftData. Навигацие
 - AI при `401` очищает сессию и инициирует переавторизацию; сам запрос генерации не повторяет. При `403` отключает AI access. `429`/`5xx` дают ошибку сервиса с ручным повтором.
 - Statistics sync повторяет transport/`5xx` ошибки до 3 попыток: задержки 300 и 600 мс + jitter до 75 мс. `401` может вызвать один цикл повторной авторизации; повторный отказ переводит в guest. Неотправленные попытки сохраняются.
 
-Источники: [content transport](../Quizice/Core/Networking/BackendContentAPI.swift), [auth recovery](../Quizice/Core/Networking/BackendContentModels.swift), [retry](../Quizice/Core/Networking/BackendRetry.swift), [auth service](../Quizice/Core/Authentication/GameCenterAuthenticationService.swift).
+Источники: [content transport](../Quizice/Core/Networking/HTTPBackendContentAPI.swift), [auth recovery](../Quizice/Core/Networking/BackendContentModels.swift), [retry](../Quizice/Core/Networking/BackendRetry.swift), [auth service](../Quizice/Core/Authentication/GameCenterAuthenticationService.swift).
 
 ## Хранение и синхронизация
 
@@ -205,7 +205,7 @@ Transport/`429`/`5xx` повторяются до 3 попыток с задер
 
 При ошибке открытия постоянной SwiftData базы приложение пытается создать in-memory контейнер, затем может продолжить без контейнера с данными в памяти.
 
-Источники: [StatisticsStore](../Quizice/Core/Persistence/StatisticsStore.swift), [KeychainSessionStore](../Quizice/Core/Authentication/KeychainSessionStore.swift), [outbox](../Quizice/Core/Networking/BackendContentAPI.swift), [OnboardingProgressStore](../Quizice/Core/Persistence/OnboardingProgressStore.swift).
+Источники: [StatisticsStore](../Quizice/Core/Persistence/StatisticsStore.swift), [KeychainSessionStore](../Quizice/Core/Authentication/KeychainSessionStore.swift), [outbox](../Quizice/Core/Persistence/QuestionAnswerOutbox.swift), [OnboardingProgressStore](../Quizice/Core/Persistence/OnboardingProgressStore.swift).
 
 ## Настройки, подписка и аналитика
 
