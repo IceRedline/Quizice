@@ -235,3 +235,6 @@
 "settings.questionStrategy.showAll" = "Alle anzeigen";
 "settings.questionStrategy.hideAnswered" = "Beantwortete ausblenden";
 "settings.questionStrategy.retryIncorrect" = "Falsche wiederholen";
+
+"debug_menu.show_subscription_promo" = "Pro-Button anzeigen";
+"debug_menu.show_subscription_promo.subtitle" = "Zeigt das Abo-Angebot auf der Startseite nur im Debug-Modus.";
