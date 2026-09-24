@@ -34,6 +34,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         }
         NetworkLogger.enableProxy()
 #endif
+        ResultMessagesRepository.shared.start()
         AppMetricaAnalyticsTracker.shared.activate()
         modelContainer = makeModelContainer()
         let themeRepository = ThemeCatalogRepository.shared
