@@ -4,7 +4,7 @@ import XCTest
 
 @MainActor
 final class HomeFeelingLuckyTests: HomeScreenVisualStateTestCase {
-    func testFeelingLuckyStartsFiveQuestionsWithoutDescription() throws {
+    func testFeelingLuckyStartsFiveQuestionsWithoutDescription() async throws {
         QuizFactory.shared.themes = [makeTheme(name: "Музыка", questionCount: 15)]
         QuizFactory.shared.questionsCount = 15
 
@@ -25,13 +25,14 @@ final class HomeFeelingLuckyTests: HomeScreenVisualStateTestCase {
 
         luckyButton.sendActions(for: .touchUpInside)
         luckyButton.sendActions(for: .touchUpInside)
-        drainAnimations(0.01)
+        let launchTask = try XCTUnwrap(viewController.feelingLuckyTask)
+        await launchTask.value
 
         XCTAssertEqual(QuizFactory.shared.questionsCount, 5)
         XCTAssertEqual(router.showQuestionCallCount, 1)
     }
 
-    func testFeelingLuckyAnalyticsTracksRandomFiveQuestionStart() throws {
+    func testFeelingLuckyAnalyticsTracksRandomFiveQuestionStart() async throws {
         QuizFactory.shared.themes = [makeTheme(name: "Музыка", questionCount: 15)]
         let analytics = HomeAnalyticsTrackingSpy()
         let viewController = QuizViewController(
@@ -53,7 +54,8 @@ final class HomeFeelingLuckyTests: HomeScreenVisualStateTestCase {
             viewController.view.descendant(withAccessibilityIdentifier: "homeFeelingLuckyButton") as? UIButton
         )
         luckyButton.sendActions(for: .touchUpInside)
-        drainAnimations(0.01)
+        let launchTask = try XCTUnwrap(viewController.feelingLuckyTask)
+        await launchTask.value
 
         let luckyEvents = analytics.events.filter { event in
             !(event.name == "screen_view" && event.parameters["screen"] as? String == "home")
@@ -67,7 +69,7 @@ final class HomeFeelingLuckyTests: HomeScreenVisualStateTestCase {
         XCTAssertEqual(router.showQuestionCallCount, 1)
     }
 
-    func testFeelingLuckyForwardsSelectedBackendMode() throws {
+    func testFeelingLuckyForwardsSelectedBackendMode() async throws {
         let repository = FeelingLuckyThemeRepositorySpy(
             themes: [makeTheme(name: "Музыка", questionCount: 15)]
         )
@@ -91,7 +93,8 @@ final class HomeFeelingLuckyTests: HomeScreenVisualStateTestCase {
         )
 
         luckyButton.sendActions(for: .touchUpInside)
-        drainAnimations(0.01)
+        let launchTask = try XCTUnwrap(viewController.feelingLuckyTask)
+        await launchTask.value
 
         XCTAssertEqual(repository.requestedSelectionModes, [.randomBalanced])
         XCTAssertEqual(router.showQuestionCallCount, 1)
@@ -162,7 +165,7 @@ final class HomeFeelingLuckyTests: HomeScreenVisualStateTestCase {
         )
     }
 
-    func testFeelingLuckySelectsFiveQuestionsFromTheCombinedPoolAndUsesRandomSelectionTitle() throws {
+    func testFeelingLuckySelectsFiveQuestionsFromTheCombinedPoolAndUsesRandomSelectionTitle() async throws {
         let music = makeTheme(name: "Музыка", questionCount: 3)
         let technology = makeTheme(name: "Технологии", questionCount: 4)
         QuizFactory.shared.themes = [music, technology]
@@ -186,7 +189,8 @@ final class HomeFeelingLuckyTests: HomeScreenVisualStateTestCase {
         )
 
         luckyButton.sendActions(for: .touchUpInside)
-        drainAnimations(0.01)
+        let launchTask = try XCTUnwrap(viewController.feelingLuckyTask)
+        await launchTask.value
 
         XCTAssertEqual(offeredQuestions.count, 7)
         XCTAssertTrue(music.questions.allSatisfy { question in offeredQuestions.contains { $0 === question } })
@@ -205,16 +209,14 @@ final class HomeFeelingLuckyTests: HomeScreenVisualStateTestCase {
         XCTAssertEqual(router.showQuestionCallCount, 1)
     }
 
-    func testFeelingLuckyShowsProgressUntilMinimumFeedbackDelayCompletes() throws {
+    func testFeelingLuckyShowsProgressUntilMinimumFeedbackDelayCompletes() async throws {
         QuizFactory.shared.themes = [makeTheme(name: "Музыка", questionCount: 15)]
-        var releaseDelay: (() -> Void)?
+        let delayStarted = expectation(description: "Minimum feedback delay started")
+        let delay = FeelingLuckyFeedbackDelay(started: delayStarted)
+        defer { delay.release() }
         let viewController = QuizViewController(
             randomQuestionsProvider: { $0 },
-            feelingLuckyMinimumFeedbackDelay: {
-                await withCheckedContinuation { continuation in
-                    releaseDelay = { continuation.resume() }
-                }
-            }
+            feelingLuckyMinimumFeedbackDelay: { await delay.wait() }
         )
         let router = HomeRouterSpy()
         viewController.router = router
@@ -238,7 +240,8 @@ final class HomeFeelingLuckyTests: HomeScreenVisualStateTestCase {
 
         luckyButton.sendActions(for: .touchUpInside)
         luckyButton.sendActions(for: .touchUpInside)
-        drainAnimations(0.01)
+        let launchTask = try XCTUnwrap(viewController.feelingLuckyTask)
+        await fulfillment(of: [delayStarted], timeout: 2)
 
         XCTAssertFalse(luckyButton.isEnabled)
         XCTAssertTrue(progressView.isAnimating)
@@ -246,27 +249,24 @@ final class HomeFeelingLuckyTests: HomeScreenVisualStateTestCase {
         XCTAssertFalse(collectionView.isUserInteractionEnabled)
         XCTAssertEqual(router.showQuestionCallCount, 0)
         XCTAssertTrue(viewController.cardSlideTransitionSourceView === luckyButton)
-        XCTAssertNotNil(releaseDelay)
 
         QuizFactory.shared.questionsCount = 10
-        releaseDelay?()
-        drainAnimations(0.01)
+        delay.release()
+        await launchTask.value
 
         XCTAssertEqual(router.showQuestionCallCount, 1)
         XCTAssertTrue(progressView.isAnimating)
         XCTAssertEqual(QuizFactory.shared.questionsCount, 5)
     }
 
-    func testFeelingLuckyCancellationRestoresHomeAndIgnoresStaleDelayCompletion() throws {
+    func testFeelingLuckyCancellationRestoresHomeAndIgnoresStaleDelayCompletion() async throws {
         QuizFactory.shared.themes = [makeTheme(name: "Музыка", questionCount: 15)]
-        var releaseDelay: (() -> Void)?
+        let delayStarted = expectation(description: "Minimum feedback delay started")
+        let delay = FeelingLuckyFeedbackDelay(started: delayStarted)
+        defer { delay.release() }
         let viewController = QuizViewController(
             randomQuestionsProvider: { $0 },
-            feelingLuckyMinimumFeedbackDelay: {
-                await withCheckedContinuation { continuation in
-                    releaseDelay = { continuation.resume() }
-                }
-            }
+            feelingLuckyMinimumFeedbackDelay: { await delay.wait() }
         )
         let router = HomeRouterSpy()
         viewController.router = router
@@ -293,8 +293,8 @@ final class HomeFeelingLuckyTests: HomeScreenVisualStateTestCase {
         )
 
         luckyButton.sendActions(for: .touchUpInside)
-        drainAnimations(0.01)
-        XCTAssertNotNil(releaseDelay)
+        let launchTask = try XCTUnwrap(viewController.feelingLuckyTask)
+        await fulfillment(of: [delayStarted], timeout: 2)
         XCTAssertTrue(progressView.isAnimating)
 
         viewController.quizFlowWillReturnToThemes()
@@ -306,8 +306,8 @@ final class HomeFeelingLuckyTests: HomeScreenVisualStateTestCase {
         XCTAssertTrue(settingsButton.isEnabled)
         XCTAssertEqual(router.showQuestionCallCount, 0)
 
-        releaseDelay?()
-        drainAnimations(0.01)
+        delay.release()
+        await launchTask.value
 
         XCTAssertEqual(router.showQuestionCallCount, 0)
         XCTAssertTrue(luckyButton.isEnabled)
@@ -370,5 +370,30 @@ private final class FeelingLuckyThemeRepositorySpy: ThemeRepository {
     ) async throws -> QuizTheme {
         requestedSelectionModes.append(selectionMode)
         return localFallback
+    }
+}
+
+/// Keeps the feedback delay suspended until the test releases it. Main-actor
+/// isolation also prevents the async-let child from racing with test assertions.
+@MainActor
+private final class FeelingLuckyFeedbackDelay {
+    private let started: XCTestExpectation
+    private var continuation: CheckedContinuation<Void, Never>?
+    private var isReleased = false
+
+    init(started: XCTestExpectation) { self.started = started }
+
+    func wait() async {
+        guard !isReleased else { return }
+        await withCheckedContinuation { continuation in
+            self.continuation = continuation
+            started.fulfill()
+        }
+    }
+
+    func release() {
+        isReleased = true
+        continuation?.resume()
+        continuation = nil
     }
 }
