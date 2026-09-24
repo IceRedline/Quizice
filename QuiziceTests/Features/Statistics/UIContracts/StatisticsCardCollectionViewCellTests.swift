@@ -7,6 +7,9 @@ final class StatisticsCardCollectionViewCellTests: XCTestCase {
 
     override func setUp() {
         super.setUp()
+#if DEBUG
+        UserDefaults.standard.removeObject(forKey: DebugSubscriptionPromoSettings.showPromoKey)
+#endif
         AppLocalizationStore.shared.languagePreference = .russian
         UserDefaults.standard.set(
             AppDesignStyle.clean.rawValue,
@@ -28,6 +31,9 @@ final class StatisticsCardCollectionViewCellTests: XCTestCase {
         UserDefaults.standard.removeObject(forKey: AppLocalizationStore.Keys.language)
         UserDefaults.standard.removeObject(forKey: AppAppearanceStore.Keys.designStyle)
         UserDefaults.standard.removeObject(forKey: AppAppearanceStore.Keys.cleanColorScheme)
+#if DEBUG
+        UserDefaults.standard.removeObject(forKey: DebugSubscriptionPromoSettings.showPromoKey)
+#endif
         super.tearDown()
     }
 
@@ -37,7 +43,7 @@ final class StatisticsCardCollectionViewCellTests: XCTestCase {
         store.recordAttempt(correctAnswers: 5, totalQuestions: 5)
         let service = ThemesCollectionService(statisticsStore: store)
         let collectionView = makeCollectionView(service: service)
-        let statisticsIndexPath = IndexPath(item: 4, section: 0)
+        let statisticsIndexPath = IndexPath(item: 3, section: 0)
 
         collectionView.reloadData()
         collectionView.layoutIfNeeded()
@@ -69,7 +75,7 @@ final class StatisticsCardCollectionViewCellTests: XCTestCase {
     func testPresentedStatisticsStateReconfiguresOnlyItsSourceVisibility() throws {
         let service = ThemesCollectionService(statisticsStore: makeStatisticsStore())
         let collectionView = makeCollectionView(service: service)
-        let statisticsIndexPath = IndexPath(item: 4, section: 0)
+        let statisticsIndexPath = IndexPath(item: 3, section: 0)
 
         collectionView.reloadData()
         collectionView.layoutIfNeeded()

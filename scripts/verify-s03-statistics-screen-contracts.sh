@@ -158,10 +158,8 @@ require_fixed_string "$STATISTICS_SUMMARY" 'guard totalQuestions > 0 else { retu
 require_fixed_string "$STATISTICS_SUMMARY" 'static let empty' 'Statistics summary must expose an empty-state value'
 
 printf 'Checking home statistics card and inline presentation contract...\n'
-require_fixed_string "$THEMES_SERVICE" 'private var statisticsIndex: Int {' 'Statistics card index must adapt to subscription promo visibility'
-require_fixed_string "$THEMES_SERVICE" 'hasActivePlusSubscription ? 3 : 4' 'Statistics card must remain last for both Plus and Free home layouts'
-require_fixed_string "$THEMES_SERVICE" 'private var outerItemCount: Int {' 'Outer home collection count must adapt to subscription promo visibility'
-require_fixed_string "$THEMES_SERVICE" 'hasActivePlusSubscription ? 4 : 5' 'Outer home collection must include the promo only for Free users'
+require_fixed_string "$THEMES_SERVICE" 'showsSubscriptionPromo ? 4 : 3' 'Statistics card must remain last on the free home screen'
+require_fixed_string "$THEMES_SERVICE" 'showsSubscriptionPromo ? 5 : 4' 'Home must contain the catalog, AI, random quiz, and statistics without a subscription promo'
 require_fixed_string "$THEMES_SERVICE" 'if indexPath.item == statisticsIndex' 'Statistics card must be the final home collection item'
 require_fixed_string "$THEMES_SERVICE" 'static let statisticsCardHeight: CGFloat = 112' 'Statistics card height must remain fixed at the polished rectangular-card height'
 require_fixed_string "$THEMES_SERVICE" 'static let lastItemBottomInset: CGFloat = 24' 'Final statistics item must own the release-safe bottom spacing'
