@@ -236,5 +236,7 @@
 "settings.questionStrategy.hideAnswered" = "Скрывать отвеченные";
 "settings.questionStrategy.retryIncorrect" = "Повторять ошибки";
 
+"question.insufficient.message" = "Для раунда доступно меньше 5 вопросов. Выберите другую тему или измените настройку повторения вопросов.";
+
 "debug_menu.show_subscription_promo" = "Показывать кнопку Pro";
 "debug_menu.show_subscription_promo.subtitle" = "Показывает предложение подписки на главной только в Debug.";

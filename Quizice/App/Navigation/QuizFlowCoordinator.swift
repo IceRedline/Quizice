@@ -431,7 +431,7 @@ final class QuizFlowCoordinator: NSObject, QuizRouting, UIViewControllerTransiti
             } catch {
                 self.stopCatalogReplayLoading()
                 self.analytics.reportOperationalError(error, context: .contentLoad)
-                self.presentFreshQuestionController()
+                self.presentCatalogReplayFailure(error)
             }
         }
         startCatalogReplayProgress()
@@ -459,18 +459,26 @@ final class QuizFlowCoordinator: NSObject, QuizRouting, UIViewControllerTransiti
     }
 
     private func replayRandomSelectionQuiz() {
-        guard
-            let previousTheme = session.chosenTheme,
-            previousTheme.themeID == RandomQuizSelection.themeID,
-            let localFallback = RandomQuizSelection.makeTheme(
-                from: themeRepository.themes ?? themeRepository.fetchQuizThemes(),
-                excluding: previousTheme.quizTheme.questions,
-                title: L10n.Home.randomSelection,
-                description: L10n.Home.feelingLucky,
-                randomizing: randomQuestionsProvider
+        guard let previousTheme = session.chosenTheme,
+              previousTheme.themeID == RandomQuizSelection.themeID else { return }
+        let localFallback: QuizTheme
+        if themeRepository.catalogOrigin == .backend {
+            // Backend catalogs contain metadata only. Replay must still request a
+            // fresh personalized batch instead of replaying questions in memory.
+            localFallback = QuizTheme(
+                id: RandomQuizSelection.themeID, theme: L10n.Home.randomSelection,
+                themeDescription: L10n.Home.feelingLucky, questions: []
             )
-        else {
-            presentFreshQuestionController()
+        } else if let selection = RandomQuizSelection.makeTheme(
+            from: themeRepository.themes ?? themeRepository.fetchQuizThemes(),
+            excluding: previousTheme.quizTheme.questions,
+            title: L10n.Home.randomSelection,
+            description: L10n.Home.feelingLucky,
+            randomizing: randomQuestionsProvider
+        ) {
+            localFallback = selection
+        } else {
+            presentCatalogReplayFailure(QuizPreparationError.unavailable)
             return
         }
 
@@ -506,7 +514,7 @@ final class QuizFlowCoordinator: NSObject, QuizRouting, UIViewControllerTransiti
             } catch {
                 self.stopCatalogReplayLoading()
                 self.analytics.reportOperationalError(error, context: .contentLoad)
-                self.presentFreshQuestionController()
+                self.presentCatalogReplayFailure(error)
             }
         }
         startCatalogReplayProgress()
@@ -563,6 +571,15 @@ final class QuizFlowCoordinator: NSObject, QuizRouting, UIViewControllerTransiti
         (navigationController.viewControllers.first as? QuizHomeReturnHandling)?
             .quizFlowWillReturnToThemes()
         navigationController.dismiss(animated: true)
+    }
+
+    private func presentCatalogReplayFailure(_ error: Error) {
+        guard let resultViewController else { return }
+        let alert = UIAlertController(
+            title: nil, message: QuizPreparationError.message(for: error), preferredStyle: .alert
+        )
+        alert.addAction(UIAlertAction(title: L10n.Settings.alertAction, style: .default))
+        resultViewController.present(alert, animated: true)
     }
 
     private func presentAIReplayFailure(_ error: Error) {

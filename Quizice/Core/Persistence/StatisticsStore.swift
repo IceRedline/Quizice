@@ -101,6 +101,7 @@ final class StatisticsStore {
     private struct PersistedState: Codable {
         var baseline: StatisticsSummary
         var pendingAttempts: [PendingAttempt]
+        var localOnlyAttempts: [PendingAttempt]?
         var legacySummary: StatisticsSummary?
         var migrationId: String
 
@@ -114,7 +115,7 @@ final class StatisticsStore {
         }
 
         var hasLocalContent: Bool {
-            baseline != .empty || legacySummary != nil || pendingAttempts.isEmpty == false
+            baseline != .empty || legacySummary != nil || pendingAttempts.isEmpty == false || localOnlyAttempts?.isEmpty == false
         }
     }
 
@@ -143,6 +144,10 @@ final class StatisticsStore {
     }
 
     func recordAttempt(correctAnswers: Int, totalQuestions: Int, accessibilityMode: Bool = false) {
+        recordAttempt(correctAnswers: correctAnswers, totalQuestions: totalQuestions, accessibilityMode: accessibilityMode, for: activeUserID)
+    }
+
+    func recordAttempt(correctAnswers: Int, totalQuestions: Int, accessibilityMode: Bool, for userID: String?) {
         guard let attempt = Self.sanitizedAttempt(
             correctAnswers: correctAnswers,
             totalQuestions: totalQuestions
@@ -150,7 +155,7 @@ final class StatisticsStore {
             return
         }
 
-        let principal = activeUserID
+        let principal = userID
         var state = loadState(for: principal)
         state.pendingAttempts.append(
             PendingAttempt(
@@ -178,6 +183,9 @@ final class StatisticsStore {
         var userState = loadState(for: normalizedUserID)
         let guestState = loadState(for: nil)
         if guestState.hasLocalContent {
+            userState.localOnlyAttempts = Self.uniqueAttempts(
+                (userState.localOnlyAttempts ?? []) + (guestState.localOnlyAttempts ?? [])
+            )
             userState.pendingAttempts = Self.uniqueAttempts(
                 userState.pendingAttempts + guestState.pendingAttempts
             )
@@ -202,6 +210,7 @@ final class StatisticsStore {
 
     func makeSyncRequest(for userID: String) -> SyncRequest {
         let state = loadState(for: userID)
+        save(state: state, for: userID)
         return SyncRequest(
             migrationId: state.migrationId,
             legacySummary: state.legacySummary,
@@ -236,7 +245,10 @@ final class StatisticsStore {
         let playedQuizzes = sanitizedAttempts.count
         let correctAnswers = sanitizedAttempts.reduce(0) { $0 + $1.correctAnswers }
         let totalQuestions = sanitizedAttempts.reduce(0) { $0 + $1.totalQuestions }
-        let bestAttempt = sanitizedAttempts.max(by: isWorseAttempt)
+        let bestAttempt = sanitizedAttempts.reduce(nil as Attempt?) { best, next in
+            guard let best else { return next }
+            return isWorseAttempt(best, next) ? next : best
+        }
 
         return StatisticsSummary(
             playedQuizzes: playedQuizzes,
@@ -247,7 +259,7 @@ final class StatisticsStore {
         )
     }
 
-    private var activeUserID: String? {
+    var activeUserID: String? {
         guard let value = userDefaults.string(forKey: activePrincipalKey), value.isEmpty == false else {
             return nil
         }
@@ -270,7 +282,13 @@ final class StatisticsStore {
             return .empty(migrationId: idGenerator())
         }
 
-        if let state = try? decoder.decode(PersistedState.self, from: data) {
+        if var state = try? decoder.decode(PersistedState.self, from: data) {
+            let unsupported = state.pendingAttempts.filter { !QuizQuestionCountPolicy.supportedCounts.contains($0.totalQuestions) }
+            if !unsupported.isEmpty {
+                state.localOnlyAttempts = Self.uniqueAttempts((state.localOnlyAttempts ?? []) + unsupported)
+                state.pendingAttempts.removeAll { !QuizQuestionCountPolicy.supportedCounts.contains($0.totalQuestions) }
+                save(state: state, for: userID)
+            }
             return state
         }
 
@@ -302,17 +320,13 @@ final class StatisticsStore {
 
     private func save(state: PersistedState, for userID: String?) {
         let storageKey = storageKey(for: userID)
-        guard state.hasLocalContent else {
-            userDefaults.removeObject(forKey: storageKey)
-            return
-        }
         guard let data = try? encoder.encode(state) else { return }
         userDefaults.set(data, forKey: storageKey)
     }
 
     private static func visibleSummary(for state: PersistedState) -> StatisticsSummary {
         let pendingSummary = summary(
-            from: state.pendingAttempts.map {
+            from: (state.pendingAttempts + (state.localOnlyAttempts ?? [])).map {
                 Attempt(correctAnswers: $0.correctAnswers, totalQuestions: $0.totalQuestions)
             }
         )
@@ -329,7 +343,10 @@ final class StatisticsStore {
             Attempt(correctAnswers: rhs.bestCorrectAnswers, totalQuestions: rhs.bestTotalQuestions)
         ]
             .compactMap { sanitizedAttempt(correctAnswers: $0.correctAnswers, totalQuestions: $0.totalQuestions) }
-            .max(by: isWorseAttempt)
+            .reduce(nil as Attempt?) { best, next in
+                guard let best else { return next }
+                return isWorseAttempt(best, next) ? next : best
+            }
 
         return StatisticsSummary(
             playedQuizzes: lhs.playedQuizzes + rhs.playedQuizzes,
@@ -346,15 +363,7 @@ final class StatisticsStore {
     }
 
     private static func isWorseAttempt(_ lhs: Attempt, _ rhs: Attempt) -> Bool {
-        let lhsPercentage = Double(lhs.correctAnswers) / Double(lhs.totalQuestions)
-        let rhsPercentage = Double(rhs.correctAnswers) / Double(rhs.totalQuestions)
-        if lhsPercentage == rhsPercentage {
-            if lhs.correctAnswers == rhs.correctAnswers {
-                return lhs.totalQuestions > rhs.totalQuestions
-            }
-            return lhs.correctAnswers < rhs.correctAnswers
-        }
-        return lhsPercentage < rhsPercentage
+        lhs.correctAnswers < rhs.correctAnswers
     }
 
     private static func sanitizedAttempt(correctAnswers: Int, totalQuestions: Int) -> Attempt? {

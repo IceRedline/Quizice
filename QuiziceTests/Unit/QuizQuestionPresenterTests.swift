@@ -207,11 +207,11 @@ final class QuizQuestionPresenterTests: XCTestCase {
     func testCompletedAttemptRecordsAccessibilityFlagWhenActive() throws {
         let harness = makeStatisticsHarness()
         let session = QuestionPresenterSession()
-        session.questionsCount = 1
+        session.questionsCount = 5
         session.chosenTheme = ThemeModel(quizTheme: SnapshotSupport.makeTheme(
             id: "a11y-attempt",
             name: "A11y Attempt",
-            questions: [makeQuestion("Question?", correctAnswer: "A")]
+            questions: (0..<5).map { makeQuestion("Question \($0)?", correctAnswer: "A") }
         ))
         let view = QuestionPresenterViewSpy()
         let presenter = QuizQuestionPresenter(
@@ -222,9 +222,11 @@ final class QuizQuestionPresenterTests: XCTestCase {
         presenter.view = view
 
         presenter.viewDidLoad()
-        let option = try XCTUnwrap(view.loadedViewModels.first?.answers.first { $0.title == "A" })
-        presenter.checkAnswer(optionID: option.id)
-        presenter.checkQuestionNumberAndProceed()
+        for _ in 0..<5 {
+            let option = try XCTUnwrap(view.loadedViewModels.last?.answers.first { $0.title == "A" })
+            presenter.checkAnswer(optionID: option.id)
+            presenter.checkQuestionNumberAndProceed()
+        }
         presenter.checkQuestionNumberAndProceed()
 
         harness.store.activateAuthenticatedUser("a11y-user")
@@ -320,6 +322,41 @@ final class QuizQuestionPresenterTests: XCTestCase {
             correctAnswer: correctAnswer,
             explanation: explanation
         )
+    }
+
+    func testSwitchingAccountsMidQuizKeepsAnswersAndStatisticsWithOriginalUser() async throws {
+        let harness = makeStatisticsHarness()
+        harness.store.activateAuthenticatedUser("A")
+        let provider = ProgressSessionProvider()
+        let url = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        defer { try? FileManager.default.removeItem(at: url) }
+        let api = QuestionAnswerBackendContentAPI(submitResults: [])
+        api.onSubmit = { QuestionAnswerBatchResponse(processedEventIds: $0.map(\.eventId)) }
+        let outbox = PersistentQuestionAnswerOutbox(api: api, fileURL: url,
+            automaticallySynchronizesOnEnqueue: false, sessionProvider: { provider.session })
+        let session = QuestionPresenterSession()
+        session.questionsCount = 1
+        session.chosenTheme = ThemeModel(quizTheme: SnapshotSupport.makeTheme(
+            id: "music", name: "Music", questions: [QuizQuestion(
+                questionID: "music:1", questionVersion: 1, locale: "ru",
+                question: "Question?", answers: ["A", "B", "C", "D"], correctAnswer: "A")]))
+        let presenter = QuizQuestionPresenter(session: session, statisticsStore: harness.store, answerOutbox: outbox)
+        let view = QuestionPresenterViewSpy()
+        presenter.view = view
+        presenter.viewDidLoad()
+        provider.session = ProgressSessionProvider.session("B")
+        harness.store.activateAuthenticatedUser("B")
+        let answer = try XCTUnwrap(view.loadedViewModels.last?.answers.first { $0.title == "A" })
+        presenter.checkAnswer(optionID: answer.id)
+        presenter.checkQuestionNumberAndProceed()
+        await outbox.synchronize()
+        XCTAssertTrue(api.submittedBatches.isEmpty)
+        XCTAssertEqual(harness.store.loadSummary(), .empty)
+        provider.session = ProgressSessionProvider.session("A")
+        harness.store.activateAuthenticatedUser("A")
+        await outbox.synchronize()
+        XCTAssertEqual(api.submittedSessions.map(\.userID), ["A"])
+        XCTAssertEqual(harness.store.loadSummary().playedQuizzes, 1)
     }
 
     private func makeStatisticsHarness() -> (store: StatisticsStore, defaults: UserDefaults) {

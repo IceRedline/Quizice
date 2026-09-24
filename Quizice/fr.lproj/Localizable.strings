@@ -236,5 +236,7 @@
 "settings.questionStrategy.hideAnswered" = "Masquer les réponses";
 "settings.questionStrategy.retryIncorrect" = "Revoir les erreurs";
 
+"question.insufficient.message" = "Moins de 5 questions sont disponibles pour cette partie. Choisissez un autre thème ou modifiez le réglage de répétition des questions.";
+
 "debug_menu.show_subscription_promo" = "Afficher le bouton Pro";
 "debug_menu.show_subscription_promo.subtitle" = "Affiche l’offre d’abonnement sur l’accueil uniquement en Debug.";

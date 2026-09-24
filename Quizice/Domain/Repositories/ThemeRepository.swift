@@ -2,6 +2,14 @@ import Foundation
 
 enum QuizPreparationError: Error, Equatable {
     case unavailable
+    case insufficientQuestions
+
+    static func message(for error: Error) -> String {
+        if error as? QuizPreparationError == .insufficientQuestions {
+            return L10n.Question.insufficientQuestionsMessage
+        }
+        return L10n.Question.unavailableMessage
+    }
 }
 
 enum QuizCatalogOrigin: String, Equatable {

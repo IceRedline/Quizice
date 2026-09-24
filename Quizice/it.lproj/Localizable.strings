@@ -236,5 +236,7 @@
 "settings.questionStrategy.hideAnswered" = "Nascondi risposte";
 "settings.questionStrategy.retryIncorrect" = "Ripeti errori";
 
+"question.insufficient.message" = "Sono disponibili meno di 5 domande per questo round. Scegli un altro tema o modifica l’impostazione di ripetizione delle domande.";
+
 "debug_menu.show_subscription_promo" = "Mostra pulsante Pro";
 "debug_menu.show_subscription_promo.subtitle" = "Mostra l’offerta di abbonamento nella schermata iniziale solo in Debug.";
