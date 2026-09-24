@@ -7,6 +7,10 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		F93000000000000000000003 /* ResultMessagesTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F92000000000000000000003 /* ResultMessagesTests.swift */; };
+		F93000000000000000000002 /* ResultMessagesRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = F92000000000000000000002 /* ResultMessagesRepository.swift */; };
+		F93000000000000000000001 /* HTTPResultMessagesAPI.swift in Sources */ = {isa = PBXBuildFile; fileRef = F92000000000000000000001 /* HTTPResultMessagesAPI.swift */; };
+		F93000000000000000000000 /* ResultMessage.swift in Sources */ = {isa = PBXBuildFile; fileRef = F92000000000000000000000 /* ResultMessage.swift */; };
 		0003220FA45176EA04A58596 /* QuizQuestionCountPolicy.swift in Sources */ = {isa = PBXBuildFile; fileRef = F93AF33B6FA83D319132BD54 /* QuizQuestionCountPolicy.swift */; };
 		013A11228A2DFE3CAEC27F51 /* ExpandedAIThemeCardView+Appearance.swift in Sources */ = {isa = PBXBuildFile; fileRef = DCA9234F162B4CE2242F18A8 /* ExpandedAIThemeCardView+Appearance.swift */; };
 		04420B51F08A23ECE3A2F82E /* HomeThemeCardStateTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 38278C854C1061B8B92E05AE /* HomeThemeCardStateTests.swift */; };
@@ -205,6 +209,10 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		F92000000000000000000003 /* ResultMessagesTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ResultMessagesTests.swift; sourceTree = "<group>"; };
+		F92000000000000000000002 /* ResultMessagesRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ResultMessagesRepository.swift; sourceTree = "<group>"; };
+		F92000000000000000000001 /* HTTPResultMessagesAPI.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HTTPResultMessagesAPI.swift; sourceTree = "<group>"; };
+		F92000000000000000000000 /* ResultMessage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ResultMessage.swift; sourceTree = "<group>"; };
 		01DA276AB8857D563F1BDE7B /* QuizTheme.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = QuizTheme.swift; sourceTree = "<group>"; };
 		06248EBE91CB8DC91F782B5A /* QuestionFontFitter.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = QuestionFontFitter.swift; sourceTree = "<group>"; };
 		090250BEDB221A74A966448C /* KeychainSessionStore.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = KeychainSessionStore.swift; sourceTree = "<group>"; };
@@ -702,6 +710,7 @@
 				468341D5EAF02DFEB474EA55 /* QuizQuestion.swift */,
 				F93AF33B6FA83D319132BD54 /* QuizQuestionCountPolicy.swift */,
 				37E78F2AE970756B4E37CC32 /* QuizSessionManaging.swift */,
+				F92000000000000000000000 /* ResultMessage.swift */,
 				01DA276AB8857D563F1BDE7B /* QuizTheme.swift */,
 				200AFB106605B448A1962552 /* ThemeModel.swift */,
 			);
@@ -967,6 +976,7 @@
 		B10000000000000000000003 /* Networking */ = {
 			isa = PBXGroup;
 			children = (
+				F92000000000000000000001 /* HTTPResultMessagesAPI.swift */,
 				B10000000000000000000001 /* BackendContentAPI.swift */,
 				B1000000000000000000000A /* BackendContentModels.swift */,
 				B10000000000000000000011 /* BackendRetry.swift */,
@@ -1093,6 +1103,7 @@
 				C42A75C09759C2D0F8FC78C2 /* AuthServiceTests.swift */,
 				B20000000000000000000003 /* AuthServiceTestSupport.swift */,
 				C10000000000000000000008 /* BackendAIClientSessionTests.swift */,
+				F92000000000000000000003 /* ResultMessagesTests.swift */,
 				B10000000000000000000006 /* BackendClientTests.swift */,
 				D20000000000000000000003 /* BackendClientTestHelpers.swift */,
 				B20000000000000000000001 /* BackendClientTestSupport.swift */,
@@ -1203,6 +1214,7 @@
 				F7F56DA885D3B6FAAC9A7C58 /* QuizFactoryCompatibility.swift */,
 				16F873EE286CA20A0A821D9A /* StatisticsStore.swift */,
 				C7F0E643BE8C1EA92DE20246 /* SwiftDataThemeStore.swift */,
+				F92000000000000000000002 /* ResultMessagesRepository.swift */,
 				E4F5C9AEE4154929D64725B7 /* ThemeCatalogRepository.swift */,
 			);
 			path = Persistence;
@@ -1360,6 +1372,7 @@
 				B740A1655C5D91EC1FE95F66 /* SceneDelegate.swift in Sources */,
 				9513724A0EA74596BA4B56C7 /* QuizFlowCoordinator.swift in Sources */,
 				2465B215AD94E69D77F872BB /* AnalyticsService.swift in Sources */,
+				F93000000000000000000001 /* HTTPResultMessagesAPI.swift in Sources */,
 				B10000000000000000000002 /* BackendContentAPI.swift in Sources */,
 				B1000000000000000000000B /* BackendContentModels.swift in Sources */,
 				B10000000000000000000012 /* BackendRetry.swift in Sources */,
@@ -1383,6 +1396,7 @@
 				3DDC472840B7385838C51F94 /* LocalizedThemeDataLoader.swift in Sources */,
 				6A668D805C9EEBEA0A13A881 /* QuizFactoryCompatibility.swift in Sources */,
 				DD9696B94E579FE56722F4E3 /* SwiftDataThemeStore.swift in Sources */,
+				F93000000000000000000002 /* ResultMessagesRepository.swift in Sources */,
 				DF09204700E51C9BE3CDE95B /* ThemeCatalogRepository.swift in Sources */,
 				5A01B82EAD0E3D0F2B6A1B88 /* QuizSessionStore.swift in Sources */,
 				9A44EFC9BFDCB2C4B4A69332 /* QuestionModel.swift in Sources */,
@@ -1390,6 +1404,7 @@
 				0003220FA45176EA04A58596 /* QuizQuestionCountPolicy.swift in Sources */,
 				A1D1FF1C0A00000200000002 /* AIQuizDifficulty.swift in Sources */,
 				D7562B954540154E623D738C /* QuizSessionManaging.swift in Sources */,
+				F93000000000000000000000 /* ResultMessage.swift in Sources */,
 				D8B0BD1221AB585745EF4A21 /* QuizTheme.swift in Sources */,
 				78FA2135554CF9BC45CF9697 /* ThemeModel.swift in Sources */,
 				A7A6D3FE979A97DF9422E944 /* ThemeRepository.swift in Sources */,
@@ -1508,6 +1523,7 @@
 				76635C743D62053B33366893 /* AuthServiceTests.swift in Sources */,
 				B20000000000000000000004 /* AuthServiceTestSupport.swift in Sources */,
 				C10000000000000000000007 /* BackendAIClientSessionTests.swift in Sources */,
+				F93000000000000000000003 /* ResultMessagesTests.swift in Sources */,
 				B10000000000000000000007 /* BackendClientTests.swift in Sources */,
 				D20000000000000000000004 /* BackendClientTestHelpers.swift in Sources */,
 				B20000000000000000000002 /* BackendClientTestSupport.swift in Sources */,

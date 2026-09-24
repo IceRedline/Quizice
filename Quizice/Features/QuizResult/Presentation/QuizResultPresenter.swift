@@ -2,6 +2,7 @@ import Foundation
 
 final class QuizResultPresenter: QuizResultPresenterProtocol {
     private let session: QuizSessionManaging
+    private let descriptionText: String
 
     weak var view: QuizResultViewControllerProtocol?
     
@@ -17,11 +18,17 @@ final class QuizResultPresenter: QuizResultPresenterProtocol {
     
     init(
         result: QuizResultState = QuizResultState(correctAnswers: 0, totalQuestions: 0),
-        session: QuizSessionManaging
+        session: QuizSessionManaging,
+        messages: ResultMessageProviding = ResultMessagesRepository.shared,
+        locale: String = AppLocalizationStore.shared.resolvedLanguageCode
     ) {
         self.session = session
         self.correctAnswers = result.correctAnswers
         self.totalQuestions = result.totalQuestions
+        let category = ResultMessageCategory.resolve(
+            correctAnswers: result.correctAnswers, totalQuestions: result.totalQuestions
+        )
+        descriptionText = messages.message(for: category, locale: locale) ?? Self.fallback(for: category)
     }
     
     func viewDidLoad() {
@@ -38,34 +45,20 @@ final class QuizResultPresenter: QuizResultPresenterProtocol {
             correctAnswers: normalizedCorrectAnswers,
             totalQuestions: normalizedTotalQuestions
         )
-        var descriptionText = L10n.Result.fallbackDescription
-
-        guard normalizedTotalQuestions > 0 else {
-            descriptionText = L10n.Result.noQuestionsDescription
-            view?.updateResultLabels(resultText: resultText, descriptionText: descriptionText)
-            view?.setPerfectScoreEffectVisible(false)
-            return
-        }
-        
-        let resultPercentage = Float(normalizedCorrectAnswers) / Float(normalizedTotalQuestions)
-        switch resultPercentage {
-        case ..<0.15:
-            descriptionText = L10n.Result.veryLowScoreDescription
-        case 0.15..<0.3:
-            descriptionText = L10n.Result.lowScoreDescription
-        case 0.3..<0.5:
-            descriptionText = L10n.Result.mediumLowScoreDescription
-        case 0.5..<0.75:
-            descriptionText = L10n.Result.mediumScoreDescription
-        case 0.75..<1:
-            descriptionText = L10n.Result.strongResultDescription
-        case 1...:
-            descriptionText = L10n.Result.perfectScoreDescription
-        default:
-            descriptionText = L10n.Result.invalidScoreDescription
-        }
-        
         view?.updateResultLabels(resultText: resultText, descriptionText: descriptionText)
         view?.setPerfectScoreEffectVisible(isPerfectScore)
+    }
+
+    private static func fallback(for category: ResultMessageCategory) -> String {
+        switch category {
+        case .veryLowScore: L10n.Result.veryLowScoreDescription
+        case .lowScore: L10n.Result.lowScoreDescription
+        case .mediumLowScore: L10n.Result.mediumLowScoreDescription
+        case .mediumScore: L10n.Result.mediumScoreDescription
+        case .highScore: L10n.Result.strongResultDescription
+        case .perfectScore: L10n.Result.perfectScoreDescription
+        case .noQuestions: L10n.Result.noQuestionsDescription
+        case .invalidScore: L10n.Result.invalidScoreDescription
+        }
     }
 }

@@ -147,6 +147,7 @@ final class QuizFlowCoordinator: NSObject, QuizRouting, UIViewControllerTransiti
     }
 
     func showQuestion() {
+        ResultMessagesRepository.shared.refreshInBackground()
         let viewController = QuizQuestionViewController()
         viewController.analytics = analytics
         viewController.router = self
