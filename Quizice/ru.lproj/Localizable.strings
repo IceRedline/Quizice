@@ -235,3 +235,6 @@
 "settings.questionStrategy.showAll" = "Показывать все";
 "settings.questionStrategy.hideAnswered" = "Скрывать отвеченные";
 "settings.questionStrategy.retryIncorrect" = "Повторять ошибки";
+
+"debug_menu.show_subscription_promo" = "Показывать кнопку Pro";
+"debug_menu.show_subscription_promo.subtitle" = "Показывает предложение подписки на главной только в Debug.";

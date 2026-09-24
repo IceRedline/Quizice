@@ -29,6 +29,7 @@ enum SnapshotSupport {
         UserDefaults.standard.removeObject(forKey: OnboardingProgressStore.Keys.completedVersion)
         UserDefaults.standard.removeObject(forKey: OnboardingProgressStore.Keys.preferredThemeIDs)
 #if DEBUG
+        UserDefaults.standard.removeObject(forKey: DebugSubscriptionPromoSettings.showPromoKey)
         SubscriptionEntitlementStore.shared.setDebugSubscriptionActive(false)
 #endif
         resetLocalizedThemePreferences()
@@ -43,6 +44,7 @@ enum SnapshotSupport {
         UserDefaults.standard.removeObject(forKey: OnboardingProgressStore.Keys.completedVersion)
         UserDefaults.standard.removeObject(forKey: OnboardingProgressStore.Keys.preferredThemeIDs)
 #if DEBUG
+        UserDefaults.standard.removeObject(forKey: DebugSubscriptionPromoSettings.showPromoKey)
         SubscriptionEntitlementStore.shared.setDebugSubscriptionActive(false)
 #endif
         resetLocalizedThemePreferences()

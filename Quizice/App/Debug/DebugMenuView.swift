@@ -2,12 +2,17 @@
 import PulseUI
 import SwiftUI
 
+enum DebugSubscriptionPromoSettings {
+    static let showPromoKey = "quizice.debug.subscription.show-promo"
+}
+
 @MainActor
 final class DebugMenuViewModel: ObservableObject {
     @Published private(set) var isInterfaceHidden: Bool
     @Published private(set) var usesLocalhostBackend: Bool
     @Published private(set) var usesLocalContentOnly: Bool
     @Published private(set) var usesDirectAI: Bool
+    @Published private(set) var showsSubscriptionPromo: Bool
     @Published private(set) var isSubscriptionActive: Bool
     @Published private(set) var backgroundStyle: AppBackgroundStyle
 
@@ -17,6 +22,7 @@ final class DebugMenuViewModel: ObservableObject {
     private let toggleLocalhostBackendAction: () -> Void
     private let toggleLocalContentOnlyAction: () -> Void
     private let toggleDirectAIAction: () -> Void
+    private let setSubscriptionPromoVisibleAction: (Bool) -> Void
     private let setSubscriptionActiveAction: (Bool) -> Void
     private let selectBackgroundStyleAction: (AppBackgroundStyle) -> Void
     private let defaults: UserDefaults
@@ -30,6 +36,7 @@ final class DebugMenuViewModel: ObservableObject {
         toggleLocalhostBackend: @escaping () -> Void,
         toggleLocalContentOnly: @escaping () -> Void,
         toggleDirectAI: @escaping () -> Void,
+        setSubscriptionPromoVisible: @escaping (Bool) -> Void,
         setSubscriptionActive: @escaping (Bool) -> Void,
         selectBackgroundStyle: @escaping (AppBackgroundStyle) -> Void
     ) {
@@ -37,6 +44,7 @@ final class DebugMenuViewModel: ObservableObject {
         self.usesLocalhostBackend = defaults.bool(forKey: DebugBackendSettings.useLocalhostKey)
         self.usesLocalContentOnly = defaults.bool(forKey: DebugBackendSettings.useLocalContentOnlyKey)
         self.usesDirectAI = defaults.bool(forKey: DebugAIRuntimeSettings.useDirectAIKey)
+        self.showsSubscriptionPromo = defaults.bool(forKey: DebugSubscriptionPromoSettings.showPromoKey)
         self.isSubscriptionActive = isSubscriptionActive
         self.backgroundStyle = appearance.backgroundStyle
         self.showsBackgroundStyles = appearance.designStyle == .classic
@@ -45,6 +53,7 @@ final class DebugMenuViewModel: ObservableObject {
         self.toggleLocalhostBackendAction = toggleLocalhostBackend
         self.toggleLocalContentOnlyAction = toggleLocalContentOnly
         self.toggleDirectAIAction = toggleDirectAI
+        self.setSubscriptionPromoVisibleAction = setSubscriptionPromoVisible
         self.setSubscriptionActiveAction = setSubscriptionActive
         self.selectBackgroundStyleAction = selectBackgroundStyle
     }
@@ -67,6 +76,12 @@ final class DebugMenuViewModel: ObservableObject {
     func toggleDirectAI() {
         toggleDirectAIAction()
         refreshRuntimeSettings()
+    }
+
+    func setSubscriptionPromoVisible(_ isVisible: Bool) {
+        defaults.set(isVisible, forKey: DebugSubscriptionPromoSettings.showPromoKey)
+        setSubscriptionPromoVisibleAction(isVisible)
+        showsSubscriptionPromo = isVisible
     }
 
     func setSubscriptionActive(_ isActive: Bool) {
@@ -93,6 +108,7 @@ struct DebugMenuView: View {
         static let localhostToggle = "debugMenuLocalhostToggle"
         static let localContentToggle = "debugMenuLocalContentToggle"
         static let directAIToggle = "debugMenuDirectAIToggle"
+        static let subscriptionPromoToggle = "debugMenuSubscriptionPromoToggle"
         static let subscriptionActiveToggle = "debugMenuSubscriptionActiveToggle"
         static let pulse = "debugMenuPulse"
         static let backgroundStyle = "debugMenuBackgroundStyle"
@@ -142,6 +158,21 @@ struct DebugMenuView: View {
                 )
             }
             .accessibilityIdentifier(AccessibilityID.interfaceToggle)
+
+            Toggle(
+                isOn: Binding(
+                    get: { viewModel.showsSubscriptionPromo },
+                    set: { viewModel.setSubscriptionPromoVisible($0) }
+                )
+            ) {
+                DebugMenuRowLabel(
+                    title: L10n.DebugMenu.showSubscriptionPromo,
+                    subtitle: L10n.DebugMenu.showSubscriptionPromoSubtitle,
+                    systemImage: "rectangle.badge.plus",
+                    color: .purple
+                )
+            }
+            .accessibilityIdentifier(AccessibilityID.subscriptionPromoToggle)
 
             Toggle(
                 isOn: Binding(
