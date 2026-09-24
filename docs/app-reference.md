@@ -1,6 +1,6 @@
 # Quizice: как работает приложение
 
-Справочник для разработчика и агента. Проверен по коду `main` на коммите `ebb95e3` (24.09.2026). 
+Справочник для разработчика и агента. База сверки — `main`, коммит `ddc8f32`; дополнен изменениями каталога текстов результата (24.09.2026).
 
 ## Содержание
 
@@ -42,7 +42,8 @@ iOS 18+, Swift (language mode 5), UIKit + SwiftUI, SwiftData. Навигацие
 | Избранные темы | Локальный выбор в onboarding + синхронизация с бэкендом по языку |
 | Итоговая статистика | Серверный baseline + ещё не отправленные локальные завершённые попытки + legacy-данные |
 | Учёт отвеченных вопросов для фильтрации повторов | Отдельные события ответов отправляются на бэкенд; фильтрация следующей выдачи выполняется сервером |
-| Тексты интерфейса, мотивационные фразы, тексты результата/ошибок | `L10n.swift` и `*.lproj/Localizable.strings` |
+| Описания результата квиза | Публичный `GET /v1/result-messages`; кеш по языку; встроенные `result.description.*` как fallback |
+| Остальные тексты интерфейса, заголовок счёта и ошибки | `L10n.swift` и `*.lproj/Localizable.strings` |
 | Число вопросов, таймер, перемешивание, оформление, звуки, анимации | Правила и ресурсы клиента |
 | Цена и преимущества в paywall | Пока локальная модель `SubscriptionOffer.planned`, не ответ магазина/бэкенда |
 
@@ -80,6 +81,16 @@ iOS 18+, Swift (language mode 5), UIKit + SwiftUI, SwiftData. Навигацие
 
 Правила: [QuizQuestionCountPolicy](../Quizice/Domain/Quiz/QuizQuestionCountPolicy.swift), [presenter](../Quizice/Features/QuizPlay/Presentation/QuizQuestionPresenter.swift), [AccessibilityModeClient](../Quizice/Core/Accessibility/AccessibilityModeMonitor.swift).
 
+### Тексты результата
+
+Каталог фраз общий для всех тем, сложностей и размеров викторины, поэтому загружается в фоне при запуске приложения, независимо от Game Center и подготовки каталога тем. При открытии каждого квиза (включая AI, случайный и replay) проверяется свежесть: запрос нужен только без кеша или спустя 24 часа после успешной загрузки/проверки. Смена языка запускает такую же проверку для нового языка. Одновременные запросы одной локали объединяются; старт квиза и показ результата сеть не ожидают.
+
+Клиент сохраняет каталог, `ETag` и время проверки по языку и адресу backend. Просроченный кеш проверяется через `If-None-Match`: `304` продлевает свежесть сохранённого тела, `200` заменяет его после валидации. Если при `304` нет пригодного тела, выполняется один повтор без `If-None-Match`. Ошибка сети/старый сервер сохраняют последний пригодный каталог того же языка; при отсутствии нужной категории используются прежние встроенные строки `result.description.*`. Каталог другого языка не используется. Региональные локали нормализуются через `AppLocalizationStore`, как для тем.
+
+Категорию определяет клиент: `<15%`, `15–<30%`, `30–<50%`, `50–<75%`, `75–<100%`, `100%`. Для пустой попытки используется `no_questions`, для некорректных счётчиков — `invalid_score`. Правила подсчёта ответов не изменены. Случайная фраза фиксируется при создании presenter результата и не меняется при перерисовке или завершении фонового запроса. Последняя выбранная фраза той же категории/языка исключается при наличии альтернатив; история выбора хранится в памяти процесса.
+
+Источники: [ResultMessagesRepository](../Quizice/Core/Persistence/ResultMessagesRepository.swift), [HTTPResultMessagesAPI](../Quizice/Core/Networking/HTTPResultMessagesAPI.swift), [категории](../Quizice/Domain/Quiz/ResultMessage.swift), [QuizResultPresenter](../Quizice/Features/QuizResult/Presentation/QuizResultPresenter.swift).
+
 ### «Мне повезёт» и повтор игры
 
 - «Мне повезёт»: 5 вопросов, сложность `medium`, служебная тема `random-selection`. Для серверного каталога клиент случайно выбирает endpoint `random` или `random_balanced`. Как сервер балансирует темы, в этом репозитории не определено.
@@ -111,6 +122,7 @@ iOS 18+, Swift (language mode 5), UIKit + SwiftUI, SwiftData. Навигацие
 | Метод и путь | Авторизация | Запрос | Ответ / назначение |
 | --- | --- | --- | --- |
 | `POST /v1/auth/game-center` | Game Center proof в body | `teamPlayerId`, `bundleId`, `publicKeyUrl`, `signature`, `salt`, `timestamp` (строки) | `userId`, `accessToken`, `expiresAt` |
+| `GET /v1/result-messages` | Не нужна; Bearer не отправляется | query `locale`, опциональный `If-None-Match` | `200 {locale, messages: {category: [String]}}` + `ETag`; `304` без тела |
 | `GET /v1/themes` | Bearer, если есть | query `locale` | `{locale, themes: [{id, name, description, sfSymbol, emoji, colorHex, isFavorite}]}` |
 | `GET /v1/me/theme-preferences` | Обязательна | query `locale` | `{locale, favoriteThemeIds: [String]}` |
 | `PUT /v1/me/theme-preferences` | Обязательна | body `{locale, favoriteThemeIds}` | Тот же envelope; заменяет список |
@@ -126,6 +138,8 @@ iOS 18+, Swift (language mode 5), UIKit + SwiftUI, SwiftData. Навигацие
 ### Контракты и клиентская валидация
 
 **Каталог.** `locale` должен совпасть с запросом; список непустой; ID уникальны; название, описание, SF Symbol и emoji непустые; `colorHex` уже в нормализованном формате. Невалидная тема отклоняет весь ответ.
+
+**Тексты результата.** Язык ответа должен совпадать с запросом. Неизвестные категории, пустые массивы и строки после обрезки пробелов игнорируются, дубликаты фраз удаляются. Каталог без единой пригодной фразы отклоняется; частичный каталог допускается с локальным fallback для пропущенных категорий. Число и порядок фраз не фиксированы.
 
 **Пачка вопросов:**
 
@@ -173,6 +187,7 @@ iOS 18+, Swift (language mode 5), UIKit + SwiftUI, SwiftData. Навигацие
 | UserDefaults, `quizice.settings.*` | Дизайн (`designStyle`), светлая/тёмная тема (`theme`), язык (`language`), UI-выбор иконки (`icon`) |
 | UserDefaults, `quizice.question-repeat-strategy` | Стратегия повторов |
 | UserDefaults, `quizice.localizedDataHashKey` | Язык и SHA-256 встроенного JSON |
+| Application Support / `Quizice/result-messages/<SHA256 backend URL>/<locale>.json` | Каталог фраз, ETag и время успешной проверки; атомарная запись, пригоден офлайн после истечения суток |
 | Application Support / `Quizice/question-answer-outbox.json` | События ответов до подтверждения сервером; атомарная запись файла |
 
 **Авторизация.** После launch overlay запускается Game Center. При необходимости его системное окно ждёт окончания onboarding. Валидная Keychain-сессия переиспользуется только для того же `teamPlayerID`; иначе клиент получает proof GameKit и обменивает его на backend token. Гостевой режим оставляет обычные викторины доступными, AI закрыт. При смене игрока устаревший результат авторизации не применяется.
@@ -240,7 +255,7 @@ Direct-парсер читает Responses envelope и вложенный JSON �
 ### Диагностика и визуальные переключатели
 
 - **Pulse:** Debug включает сетевой proxy и встроенную network console. В `AppDelegate` задан список маскируемых заголовков/полей, но он не покрывает все данные: например, `X-Dev-Auth-Secret`, AI input и answer-events не указаны в этом списке. Сырые дампы не переносить в документацию.
-- **Индикаторы источника:** на Home/onboarding/экране вопросов доступны Debug-подписи источника данных; для XCTest они подавляются. GET/PUT content-запросы используют `reloadIgnoringLocalCacheData`; это не сбрасывает SwiftData.
+- **Индикаторы источника:** на Home/onboarding/экране вопросов доступны Debug-подписи источника данных; для XCTest они подавляются. GET/PUT content-запросы используют `reloadIgnoringLocalCacheData`; это не сбрасывает SwiftData. Каталог текстов результата управляет кешем самостоятельно и использует `reloadIgnoringLocalCacheData` также в Release; в XCTest/Previews его live-загрузка отключена.
 - **AppMetrica:** Debug пишет компактные имена событий в лог; `QUIZICE_APPMETRICA_VERBOSE_LOGS=1` включает подробные SDK logs. Release игнорирует этот флаг.
 - **Plus:** `quizice.debug.subscription.active` полностью определяет отображаемое состояние подписки в Debug, независимо от StoreKit; меняется сразу, без покупки.
 - **Оформление:** можно скрыть интерфейс и переключать фон `classic`: `legacySlate`, `slate4x4`, `slate5x5` (по умолчанию). Фон хранится в `quizice.experimental.backgroundStyle`.
@@ -270,6 +285,6 @@ QUIZICE_SKIP_XCODEBUILD=1 ./scripts/verify-s04-tests-and-failure-states.sh --che
 
 [CI](../.github/workflows/ios-tests.yml) использует Xcode 26.2, дополнительно гоняет UI на iPhone 17 Pro Max и объединяет coverage. SwiftLint подключён как build-tool plugin. Live API тесты включаются отдельно через `QUIZICE_RUN_LIVE_BACKEND_TESTS=1`; обычные unit-тесты не должны зависеть от сети. Snapshot-запись — `QUIZICE_RECORD_SNAPSHOTS=1`, после неё нужно проверить изменённые PNG и повторить без записи.
 
-Для проверки изменений начинать с профильных тестов: [backend](../QuiziceTests/Unit/BackendClientTests.swift), [auth](../QuiziceTests/Unit/AuthServiceTests.swift), [AI session](../QuiziceTests/Unit/BackendAIClientSessionTests.swift), [статистика](../QuiziceTests/Unit/StatisticsStoreTests.swift), [игра](../QuiziceTests/Unit/QuizQuestionPresenterTests.swift), [app flow](../QuiziceTests/Features/AppFlow/Unit), [Home](../QuiziceTests/Features/Home).
+Для проверки изменений начинать с профильных тестов: [backend](../QuiziceTests/Unit/BackendClientTests.swift), [тексты результата](../QuiziceTests/Unit/ResultMessagesTests.swift), [auth](../QuiziceTests/Unit/AuthServiceTests.swift), [AI session](../QuiziceTests/Unit/BackendAIClientSessionTests.swift), [статистика](../QuiziceTests/Unit/StatisticsStoreTests.swift), [игра](../QuiziceTests/Unit/QuizQuestionPresenterTests.swift), [app flow](../QuiziceTests/Features/AppFlow/Unit), [Home](../QuiziceTests/Features/Home).
 
 **Как поддерживать:** при изменении endpoint/DTO обновлять таблицу API и ограничения; при переносе логики клиент ↔ сервер — источники данных и offline-поведение; при смене ключей хранения — таблицу persistence; при изменении `#if DEBUG` — только отдельный Debug-раздел. После сверки обновлять коммит/дату в начале. Планы в соседних `*-plan.md` не считать доказательством уже реализованного поведения: окончательный источник — код и тесты.
