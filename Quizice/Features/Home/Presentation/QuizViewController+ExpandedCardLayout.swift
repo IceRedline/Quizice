@@ -52,7 +52,7 @@ extension QuizViewController {
                 self.finishFailedQuizPreparation(message: nil)
             } catch {
                 self.analytics.reportOperationalError(error, context: .contentLoad)
-                self.finishFailedQuizPreparation(message: L10n.Question.unavailableMessage)
+                self.finishFailedQuizPreparation(message: QuizPreparationError.message(for: error))
             }
         }
         startQuizPreparationProgress(for: cardView)

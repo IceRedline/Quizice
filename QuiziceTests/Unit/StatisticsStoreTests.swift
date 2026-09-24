@@ -264,6 +264,42 @@ final class StatisticsStoreTests: XCTestCase {
         XCTAssertEqual(request.attempts.first?.correctAnswers, 3)
     }
 
+    func testUnsupportedAttemptsStayLocalWithoutBlockingValidUploads() {
+        let harness = makeHarness()
+        harness.store.recordAttempt(correctAnswers: 3, totalQuestions: 3)
+        harness.store.recordAttempt(correctAnswers: 4, totalQuestions: 5)
+        harness.store.activateAuthenticatedUser("A")
+        let request = harness.store.makeSyncRequest(for: "A")
+        XCTAssertEqual(request.attempts.map(\.totalQuestions), [5])
+        harness.store.applySyncResponse(.init(
+            summary: .init(playedQuizzes: 1, correctAnswers: 4, totalQuestions: 5, bestCorrectAnswers: 4, bestTotalQuestions: 5),
+            acceptedAttemptIds: request.attempts.map(\.id), legacySummaryAccepted: false), for: "A")
+        let restored = StatisticsStore(userDefaults: harness.defaults, key: harness.key)
+        XCTAssertFalse(restored.hasPendingSync(for: "A"))
+        XCTAssertEqual(restored.loadSummary().playedQuizzes, 2)
+        XCTAssertEqual(restored.loadSummary().totalQuestions, 8)
+    }
+
+    func testEmptySyncKeepsMigrationIDAcrossRestart() {
+        let harness = makeHarness()
+        let first = harness.store.makeSyncRequest(for: "A")
+        let restored = StatisticsStore(userDefaults: harness.defaults, key: harness.key)
+        XCTAssertEqual(restored.makeSyncRequest(for: "A"), first)
+    }
+
+    func testServerBestWinsTiesAgainstPendingResults() {
+        let harness = makeHarness()
+        harness.store.activateAuthenticatedUser("A")
+        harness.store.applySyncResponse(.init(
+            summary: .init(playedQuizzes: 1, correctAnswers: 5, totalQuestions: 10, bestCorrectAnswers: 5, bestTotalQuestions: 10),
+            acceptedAttemptIds: [], legacySummaryAccepted: false), for: "A")
+        harness.store.recordAttempt(correctAnswers: 5, totalQuestions: 5)
+        XCTAssertEqual(harness.store.loadSummary().bestTotalQuestions, 10)
+        harness.store.recordAttempt(correctAnswers: 8, totalQuestions: 15)
+        XCTAssertEqual(harness.store.loadSummary().bestCorrectAnswers, 8)
+        XCTAssertEqual(harness.store.loadSummary().bestTotalQuestions, 15)
+    }
+
     private func makeHarness(
         file: StaticString = #filePath,
         line: UInt = #line

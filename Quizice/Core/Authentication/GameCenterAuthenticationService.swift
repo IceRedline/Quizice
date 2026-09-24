@@ -376,15 +376,20 @@ final class GameCenterAuthenticationService {
                 request: request,
                 accessToken: session.accessToken
             )
+            guard !Task.isCancelled, state == .authenticated(userID: session.userID, teamPlayerID: session.teamPlayerID) else {
+                return false
+            }
             statisticsStore.applySyncResponse(response, for: session.userID)
             return true
         } catch BackendAPIError.unauthorized where mayRefreshToken {
+            guard !Task.isCancelled, state == .authenticated(userID: session.userID, teamPlayerID: session.teamPlayerID) else { return false }
             forceRefreshSession(
                 for: session.teamPlayerID,
                 statisticsMayRefreshToken: false
             )
             return false
         } catch BackendAPIError.unauthorized {
+            guard !Task.isCancelled, state == .authenticated(userID: session.userID, teamPlayerID: session.teamPlayerID) else { return false }
             enterGuestMode()
             return false
         } catch {

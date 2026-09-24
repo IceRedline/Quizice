@@ -110,6 +110,11 @@ struct BackendThemePreferencesResponse: Decodable, Equatable {
 
 protocol BackendAccessTokenProviding {
     func validAccessToken() -> String?
+    func currentSession() -> AuthSession?
+}
+
+extension BackendAccessTokenProviding {
+    func currentSession() -> AuthSession? { nil }
 }
 
 protocol BackendAuthenticationRecovering {
@@ -135,7 +140,9 @@ struct NotificationBackendAuthenticationRecoverer: BackendAuthenticationRecoveri
     }
 
     func reauthenticate(afterRejectedAccessToken accessToken: String) async throws -> String {
-        try? sessionStore.clear()
+        guard let rejectedSession = try sessionStore.load(), rejectedSession.accessToken == accessToken else {
+            throw BackendContentError.unauthenticated
+        }
         notificationCenter.post(name: .backendAuthenticationInvalidated, object: nil)
 
         let clock = ContinuousClock()
@@ -146,6 +153,7 @@ struct NotificationBackendAuthenticationRecoverer: BackendAuthenticationRecoveri
                session.expiresAt > now(),
                !session.accessToken.isEmpty,
                session.accessToken != accessToken {
+                guard session.userID == rejectedSession.userID else { throw BackendContentError.unauthenticated }
                 return session.accessToken
             }
             try await Task.sleep(nanoseconds: 50_000_000)
@@ -169,6 +177,8 @@ struct StoredBackendAccessTokenProvider: BackendAccessTokenProviding {
         self.sessionStore = sessionStore
         self.now = now
     }
+
+    func currentSession() -> AuthSession? { try? sessionStore.load() }
 
     func validAccessToken() -> String? {
         do {

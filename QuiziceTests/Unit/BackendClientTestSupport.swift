@@ -127,6 +127,8 @@ struct SlowBackendContentAPI: BackendContentAPI {
 final class RecordingBackendContentAPI: BackendContentAPI {
     private let catalogThemes: [BackendThemeDTO]
     private let questionError: Error?
+    var returnedQuestionCount: Int?
+    var onQuestions: (() throws -> Void)?
     private(set) var themeRequestCount = 0
     private(set) var seeds: [String] = []
     private(set) var randomSelectionModes: [CrossThemeQuestionSelectionMode] = []
@@ -161,13 +163,14 @@ final class RecordingBackendContentAPI: BackendContentAPI {
         seed: String
     ) async throws -> BackendQuestionBatchResponse {
         seeds.append(seed)
+        try onQuestions?()
         if let questionError {
             throw questionError
         }
         return BackendQuestionBatchResponse(
             locale: locale,
             seed: seed,
-            questions: (0..<count).map { index in
+            questions: (0..<(returnedQuestionCount ?? count)).map { index in
                 BackendQuestionDTO(
                     question: "Remote \(seed) \(index)",
                     answers: ["A\(index)", "B\(index)", "C\(index)", "D\(index)"],
@@ -196,14 +199,22 @@ final class RecordingBackendContentAPI: BackendContentAPI {
 
 final class QuestionAnswerBackendContentAPI: BackendContentAPI {
     var submitResults: [Result<QuestionAnswerBatchResponse, Error>]
+    var onSubmit: (([QuestionAnswerEvent]) async throws -> QuestionAnswerBatchResponse)?
+    private(set) var submittedSessions: [AuthSession] = []
     private(set) var submittedBatches: [[QuestionAnswerEvent]] = []
 
     init(submitResults: [Result<QuestionAnswerBatchResponse, Error>]) {
         self.submitResults = submitResults
     }
 
+    func submitQuestionAnswers(_ events: [QuestionAnswerEvent], session: AuthSession) async throws -> QuestionAnswerBatchResponse {
+        submittedSessions.append(session)
+        return try await submitQuestionAnswers(events)
+    }
+
     func submitQuestionAnswers(_ events: [QuestionAnswerEvent]) async throws -> QuestionAnswerBatchResponse {
         submittedBatches.append(events)
+        if let onSubmit { return try await onSubmit(events) }
         return try submitResults.removeFirst().get()
     }
 
@@ -505,4 +516,43 @@ final class BackendRandomQuestionTests: XCTestCase {
             )
         }
     }
+}
+
+final class ProgressSessionProvider: BackendAccessTokenProviding {
+    var session: AuthSession? = ProgressSessionProvider.session("A")
+    static func session(_ userID: String) -> AuthSession {
+        AuthSession(userID: userID, accessToken: "token-" + userID, expiresAt: .distantFuture, teamPlayerID: userID)
+    }
+    func currentSession() -> AuthSession? { session }
+    func validAccessToken() -> String? { session?.accessToken }
+}
+
+final class ProgressOutboxSpy: QuestionAnswerOutboxing {
+    var synchronizedUsers: [String] = []
+    var beforeFetch: (() async throws -> Void)?
+    func enqueue(_ event: QuestionAnswerEvent) {}
+    func synchronize() async {}
+    func synchronizeBeforeFetchingQuestions(for userID: String) async throws {
+        synchronizedUsers.append(userID)
+        try await beforeFetch?()
+    }
+}
+
+actor ProgressUploadGate {
+    private var continuations: [CheckedContinuation<Void, Never>] = []
+    private var isOpen = false
+    func wait() async {
+        if isOpen { return }
+        await withCheckedContinuation { continuations.append($0) }
+    }
+    func open() {
+        isOpen = true
+        continuations.forEach { $0.resume() }
+        continuations.removeAll()
+    }
+}
+
+struct ProgressAuthenticationRecoverer: BackendAuthenticationRecovering {
+    let operation: () -> String
+    func reauthenticate(afterRejectedAccessToken accessToken: String) async throws -> String { operation() }
 }

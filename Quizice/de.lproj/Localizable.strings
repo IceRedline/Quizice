@@ -235,3 +235,5 @@
 "settings.questionStrategy.showAll" = "Alle anzeigen";
 "settings.questionStrategy.hideAnswered" = "Beantwortete ausblenden";
 "settings.questionStrategy.retryIncorrect" = "Falsche wiederholen";
+
+"question.insufficient.message" = "Für diese Runde sind weniger als 5 Fragen verfügbar. Wähle ein anderes Thema oder ändere die Einstellung zur Wiederholung von Fragen.";

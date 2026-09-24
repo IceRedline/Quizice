@@ -46,14 +46,14 @@ final class StatisticsSummaryTests: XCTestCase {
         XCTAssertEqual(summary.bestResultDisplay, "8/10")
     }
 
-    func testBestResultSelectsHigherPercentageOverMoreCorrectAnswers() {
+    func testBestResultSelectsMoreCorrectAnswersOverHigherPercentage() {
         let summary = StatisticsStore.summary(from: [
             .init(correctAnswers: 8, totalQuestions: 10),
             .init(correctAnswers: 5, totalQuestions: 5)
         ])
 
-        XCTAssertEqual(summary.bestCorrectAnswers, 5)
-        XCTAssertEqual(summary.bestTotalQuestions, 5)
+        XCTAssertEqual(summary.bestCorrectAnswers, 8)
+        XCTAssertEqual(summary.bestTotalQuestions, 10)
     }
 
     func testBestResultTieUsesMoreCorrectAnswers() {
@@ -66,13 +66,13 @@ final class StatisticsSummaryTests: XCTestCase {
         XCTAssertEqual(summary.bestTotalQuestions, 6)
     }
 
-    func testExactTieKeepsSmallerTotalQuestionAttempt() {
+    func testEqualCorrectAnswersKeepFirstAttempt() {
         let summary = StatisticsStore.summary(from: [
-            .init(correctAnswers: 2, totalQuestions: 5),
+            .init(correctAnswers: 2, totalQuestions: 10),
             .init(correctAnswers: 2, totalQuestions: 5)
         ])
 
         XCTAssertEqual(summary.bestCorrectAnswers, 2)
-        XCTAssertEqual(summary.bestTotalQuestions, 5)
+        XCTAssertEqual(summary.bestTotalQuestions, 10)
     }
 }
