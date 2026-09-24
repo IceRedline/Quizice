@@ -235,3 +235,5 @@
 "settings.questionStrategy.showAll" = "Показывать все";
 "settings.questionStrategy.hideAnswered" = "Скрывать отвеченные";
 "settings.questionStrategy.retryIncorrect" = "Повторять ошибки";
+
+"question.insufficient.message" = "Для раунда доступно меньше 5 вопросов. Выберите другую тему или измените настройку повторения вопросов.";

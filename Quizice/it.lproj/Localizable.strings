@@ -235,3 +235,5 @@
 "settings.questionStrategy.showAll" = "Mostra tutte";
 "settings.questionStrategy.hideAnswered" = "Nascondi risposte";
 "settings.questionStrategy.retryIncorrect" = "Ripeti errori";
+
+"question.insufficient.message" = "Sono disponibili meno di 5 domande per questo round. Scegli un altro tema o modifica l’impostazione di ripetizione delle domande.";

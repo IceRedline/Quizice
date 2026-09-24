@@ -256,14 +256,14 @@ extension QuizViewController {
                 self?.cancelFeelingLuckyLaunch()
             } catch {
                 self?.analytics.reportOperationalError(error, context: .contentLoad)
-                self?.finishFailedFeelingLuckyLaunch()
+                self?.finishFailedFeelingLuckyLaunch(error: error)
             }
         }
     }
 
-    private func finishFailedFeelingLuckyLaunch() {
+    private func finishFailedFeelingLuckyLaunch(error: Error) {
         cancelFeelingLuckyLaunch()
-        motivationLabel.text = L10n.Question.unavailableMessage
+        motivationLabel.text = QuizPreparationError.message(for: error)
     }
 
     func cancelFeelingLuckyLaunch() {

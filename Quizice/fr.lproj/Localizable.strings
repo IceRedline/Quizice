@@ -235,3 +235,5 @@
 "settings.questionStrategy.showAll" = "Tout afficher";
 "settings.questionStrategy.hideAnswered" = "Masquer les réponses";
 "settings.questionStrategy.retryIncorrect" = "Revoir les erreurs";
+
+"question.insufficient.message" = "Moins de 5 questions sont disponibles pour cette partie. Choisissez un autre thème ou modifiez le réglage de répétition des questions.";

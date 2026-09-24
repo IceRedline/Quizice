@@ -235,3 +235,5 @@
 "settings.questionStrategy.showAll" = "Show all";
 "settings.questionStrategy.hideAnswered" = "Hide answered";
 "settings.questionStrategy.retryIncorrect" = "Retry incorrect";
+
+"question.insufficient.message" = "Fewer than 5 questions are available for this round. Try another topic or change the question repeat setting.";

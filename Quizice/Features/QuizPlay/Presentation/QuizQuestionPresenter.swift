@@ -28,6 +28,8 @@ final class QuizQuestionPresenter: QuizQuestionPresenterProtocol {
     // Captured once when the quiz starts so mid-session assistive-tech toggling
     // doesn't split a single attempt across two scoring tracks.
     private var isAccessibilityAtStart = false
+    private var answerUserID: String?
+    private var statisticsUserID: String?
     var themeID: String? {
         session.chosenTheme?.themeID
     }
@@ -135,6 +137,8 @@ final class QuizQuestionPresenter: QuizQuestionPresenterProtocol {
     // MARK: - Methods
     
     func loadQuestions() {
+        answerUserID = answerOutbox.currentUserID
+        statisticsUserID = statisticsStore.activeUserID
         guard let chosenTheme = session.chosenTheme else {
             chosenThemeQuestionsArray = []
             questionsTotalCount = 0
@@ -262,7 +266,8 @@ final class QuizQuestionPresenter: QuizQuestionPresenterProtocol {
         statisticsStore.recordAttempt(
             correctAnswers: correctAnswers,
             totalQuestions: totalQuestions,
-            accessibilityMode: isAccessibilityAtStart
+            accessibilityMode: isAccessibilityAtStart,
+            for: statisticsUserID
         )
         analytics.track(
             .quizCompleted(
@@ -316,7 +321,8 @@ final class QuizQuestionPresenter: QuizQuestionPresenterProtocol {
                 locale: locale,
                 answer: answer,
                 answeredAt: Date()
-            )
+            ),
+            for: answerUserID
         )
     }
     
