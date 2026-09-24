@@ -32,6 +32,8 @@ final class ThemeCatalogRepository: ThemeRepository {
     private let preferenceStore: OnboardingProgressStoring
     private let seedGenerator: () -> String
     private let accessTokenProvider: BackendAccessTokenProviding
+    private let answerOutbox: QuestionAnswerOutboxing
+    private let repeatStrategyProvider: () -> QuestionRepeatStrategy
 
     var themes: [QuizTheme]?
     private(set) var catalogOrigin: QuizCatalogOrigin = .bundled
@@ -41,12 +43,16 @@ final class ThemeCatalogRepository: ThemeRepository {
         backendContentAPI: BackendContentAPI? = nil,
         preferenceStore: OnboardingProgressStoring = OnboardingProgressStore.shared,
         seedGenerator: @escaping () -> String = { UUID().uuidString.lowercased() },
-        accessTokenProvider: BackendAccessTokenProviding = StoredBackendAccessTokenProvider()
+        accessTokenProvider: BackendAccessTokenProviding = StoredBackendAccessTokenProvider(),
+        answerOutbox: QuestionAnswerOutboxing = PersistentQuestionAnswerOutbox.shared,
+        repeatStrategyProvider: @escaping () -> QuestionRepeatStrategy = { QuestionRepeatStrategyStore.shared.strategy }
     ) {
         self.backendContentAPI = backendContentAPI
         self.preferenceStore = preferenceStore
         self.seedGenerator = seedGenerator
         self.accessTokenProvider = accessTokenProvider
+        self.answerOutbox = answerOutbox
+        self.repeatStrategyProvider = repeatStrategyProvider
         localizationObserver = NotificationCenter.default.addObserver(
             forName: .appLocalizationDidChange,
             object: nil,
@@ -293,6 +299,15 @@ final class ThemeCatalogRepository: ThemeRepository {
         }
         guard let backendContentAPI else { throw QuizPreparationError.unavailable }
 
+        let strategy = effectiveQuestionRepeatStrategy
+        let userID = accessTokenProvider.currentSession()?.userID
+        if strategy.progressMode != nil {
+            guard let userID else { throw BackendContentError.unauthenticated }
+            try await answerOutbox.synchronizeBeforeFetchingQuestions(for: userID)
+            guard accessTokenProvider.currentSession()?.userID == userID else {
+                throw QuestionAnswerSyncError.accountChanged
+            }
+        }
         let seed = seedGenerator()
         let startedAt = Date()
         do {
@@ -302,14 +317,21 @@ final class ThemeCatalogRepository: ThemeRepository {
                 locale: locale,
                 difficulty: difficulty,
                 seed: seed,
-                strategy: effectiveQuestionRepeatStrategy
+                strategy: strategy
             )
             try Task.checkCancellation()
             guard AppLocalizationStore.shared.resolvedLanguageCode == locale else {
                 throw CancellationError()
             }
 
-            let questions = response.questions.map { $0.makeModel(locale: response.locale) }
+            guard accessTokenProvider.currentSession()?.userID == userID else {
+                throw QuestionAnswerSyncError.accountChanged
+            }
+            // A filtered pool may be shorter than requested. Only launch lengths
+            // supported by statistics; leave the remainder for a future round.
+            let count = QuizQuestionCountPolicy.supportedCounts.last { $0 <= response.questions.count } ?? 0
+            if count == 0, !response.questions.isEmpty { throw QuizPreparationError.insufficientQuestions }
+            let questions = response.questions.prefix(count).map { $0.makeModel(locale: response.locale) }
             AppLog.content.notice(
                 "✅ BACKEND QUESTIONS: received theme=\(themeID, privacy: .public) locale=\(locale, privacy: .public) requested=\(questionCount, privacy: .public) received=\(questions.count, privacy: .public) seed=\(seed, privacy: .public) duration_ms=\(Self.durationMilliseconds(since: startedAt), privacy: .public)"
             )
@@ -369,6 +391,15 @@ final class ThemeCatalogRepository: ThemeRepository {
         }
         guard let backendContentAPI else { throw QuizPreparationError.unavailable }
 
+        let strategy = effectiveQuestionRepeatStrategy
+        let userID = accessTokenProvider.currentSession()?.userID
+        if strategy.progressMode != nil {
+            guard let userID else { throw BackendContentError.unauthenticated }
+            try await answerOutbox.synchronizeBeforeFetchingQuestions(for: userID)
+            guard accessTokenProvider.currentSession()?.userID == userID else {
+                throw QuestionAnswerSyncError.accountChanged
+            }
+        }
         let seed = seedGenerator()
         let startedAt = Date()
         do {
@@ -378,14 +409,21 @@ final class ThemeCatalogRepository: ThemeRepository {
                 locale: locale,
                 difficulty: difficulty,
                 seed: seed,
-                strategy: effectiveQuestionRepeatStrategy
+                strategy: strategy
             )
             try Task.checkCancellation()
             guard AppLocalizationStore.shared.resolvedLanguageCode == locale else {
                 throw CancellationError()
             }
 
-            let questions = response.questions.map { $0.makeModel(locale: response.locale) }
+            guard accessTokenProvider.currentSession()?.userID == userID else {
+                throw QuestionAnswerSyncError.accountChanged
+            }
+            // A filtered pool may be shorter than requested. Only launch lengths
+            // supported by statistics; leave the remainder for a future round.
+            let count = QuizQuestionCountPolicy.supportedCounts.last { $0 <= response.questions.count } ?? 0
+            if count == 0, !response.questions.isEmpty { throw QuizPreparationError.insufficientQuestions }
+            let questions = response.questions.prefix(count).map { $0.makeModel(locale: response.locale) }
             AppLog.content.notice(
                 "✅ BACKEND RANDOM QUESTIONS: received mode=\(selectionMode.rawValue, privacy: .public) locale=\(locale, privacy: .public) requested=\(questionCount, privacy: .public) received=\(questions.count, privacy: .public) seed=\(seed, privacy: .public) duration_ms=\(Self.durationMilliseconds(since: startedAt), privacy: .public)"
             )
@@ -487,7 +525,7 @@ final class ThemeCatalogRepository: ThemeRepository {
     }
 
     private var effectiveQuestionRepeatStrategy: QuestionRepeatStrategy {
-        QuestionRepeatStrategyStore.shared.strategy.effective(
+        repeatStrategyProvider().effective(
             hasValidBackendSession: accessTokenProvider.validAccessToken() != nil
         )
     }

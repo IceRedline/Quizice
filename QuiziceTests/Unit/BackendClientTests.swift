@@ -753,7 +753,9 @@ final class BackendClientTests: XCTestCase {
         let outbox = PersistentQuestionAnswerOutbox(
             api: api,
             fileURL: fileURL,
-            automaticallySynchronizesOnEnqueue: false
+            automaticallySynchronizesOnEnqueue: false,
+            sessionProvider: { AuthSession(userID: "A", accessToken: "token-A", expiresAt: .distantFuture, teamPlayerID: "A") },
+            retryDelay: 0
         )
         let processedEvent = QuestionAnswerEvent(
             eventId: processedID,
@@ -775,7 +777,6 @@ final class BackendClientTests: XCTestCase {
         outbox.enqueue(pendingEvent)
 
         await outbox.synchronize()
-        await outbox.synchronize()
 
         XCTAssertEqual(api.submittedBatches.count, 3)
         XCTAssertEqual(api.submittedBatches[0].map(\.eventId), [processedID, pendingID])
@@ -784,4 +785,232 @@ final class BackendClientTests: XCTestCase {
         XCTAssertEqual(outbox.pendingEvents().map(\.eventId), [pendingID])
     }
 
+}
+
+extension BackendClientTests {
+    private func progressEvent(_ id: String = "music:1") -> QuestionAnswerEvent {
+        QuestionAnswerEvent(eventId: UUID(), questionId: id, questionVersion: 1,
+                            locale: "ru", answer: "A", answeredAt: Date(timeIntervalSince1970: 1234))
+    }
+
+    func testAnswerOutboxSeparatesAccountsAcrossRestartAndKeepsLateResponsesScoped() async throws {
+        let provider = ProgressSessionProvider()
+        let first = progressEvent()
+        let second = progressEvent("music:2")
+        let url = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        defer { try? FileManager.default.removeItem(at: url) }
+        let api = QuestionAnswerBackendContentAPI(submitResults: [])
+        api.onSubmit = { events in
+            provider.session = ProgressSessionProvider.session("B")
+            return QuestionAnswerBatchResponse(processedEventIds: events.map(\.eventId))
+        }
+        let outbox = PersistentQuestionAnswerOutbox(api: api, fileURL: url,
+            automaticallySynchronizesOnEnqueue: false, sessionProvider: { provider.session }, retryDelay: 0)
+        outbox.enqueue(first)
+        provider.session = ProgressSessionProvider.session("B")
+        outbox.enqueue(second)
+        let restored = PersistentQuestionAnswerOutbox(api: api, fileURL: url,
+            automaticallySynchronizesOnEnqueue: false, sessionProvider: { provider.session }, retryDelay: 0)
+        provider.session = ProgressSessionProvider.session("A")
+        await restored.synchronize()
+        XCTAssertEqual(api.submittedBatches.map { $0.map(\.eventId) }, [[first.eventId]])
+        XCTAssertEqual(api.submittedSessions.map(\.userID), ["A"])
+        XCTAssertEqual(restored.pendingEvents(), [second])
+        await restored.synchronize()
+        XCTAssertEqual(api.submittedSessions.map(\.userID), ["A", "B"])
+        XCTAssertTrue(restored.pendingEvents().isEmpty)
+    }
+
+    func testOwnerlessLegacyAnswersArePreservedButNeverAssignedToCurrentAccount() async throws {
+        let event = progressEvent()
+        let url = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        defer { try? FileManager.default.removeItem(at: url) }
+        let encoder = JSONEncoder()
+        encoder.dateEncodingStrategy = .iso8601
+        try encoder.encode([event]).write(to: url)
+        let api = QuestionAnswerBackendContentAPI(submitResults: [])
+        let outbox = PersistentQuestionAnswerOutbox(api: api, fileURL: url,
+            automaticallySynchronizesOnEnqueue: false,
+            sessionProvider: { ProgressSessionProvider.session("B") })
+        await outbox.synchronize()
+        XCTAssertTrue(api.submittedBatches.isEmpty)
+        XCTAssertEqual(outbox.pendingEvents(), [event])
+    }
+
+    func testPermanentAnswerFailureIsIsolatedAndHealthyEventsContinue() async throws {
+        for status in [409, 422] {
+            let good = progressEvent("good")
+            let bad = progressEvent("bad")
+            let url = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+            defer { try? FileManager.default.removeItem(at: url) }
+            let api = QuestionAnswerBackendContentAPI(submitResults: [])
+            api.onSubmit = { events in
+                if events.contains(where: { $0.eventId == bad.eventId }) {
+                    throw BackendContentError.httpStatus(status,
+                        BackendErrorEnvelope(code: "question_version_conflict", message: "Invalid version"))
+                }
+                return QuestionAnswerBatchResponse(processedEventIds: events.map(\.eventId))
+            }
+            let outbox = PersistentQuestionAnswerOutbox(api: api, fileURL: url,
+                automaticallySynchronizesOnEnqueue: false,
+                sessionProvider: { ProgressSessionProvider.session("A") }, retryDelay: 0)
+            outbox.enqueue(bad)
+            outbox.enqueue(good)
+            try await outbox.synchronizeBeforeFetchingQuestions(for: "A")
+            XCTAssertEqual(api.submittedBatches.map { $0.map(\.eventId) }, [[bad.eventId, good.eventId], [bad.eventId], [good.eventId]])
+            XCTAssertTrue(outbox.pendingEvents().isEmpty)
+            XCTAssertEqual(outbox.rejectedEvents().first?.ownedEvent.event, bad)
+            XCTAssertEqual(outbox.rejectedEvents().first?.status, status)
+            await outbox.synchronize()
+            XCTAssertEqual(api.submittedBatches.count, 3)
+        }
+    }
+
+    func testTransientAnswerFailureRetriesSamePayloadAndBlocksPersonalizedFetch() async throws {
+        let event = progressEvent()
+        let url = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        defer { try? FileManager.default.removeItem(at: url) }
+        let api = QuestionAnswerBackendContentAPI(submitResults: [])
+        api.onSubmit = { _ in throw BackendContentError.httpStatus(503, nil) }
+        let outbox = PersistentQuestionAnswerOutbox(api: api, fileURL: url,
+            automaticallySynchronizesOnEnqueue: false,
+            sessionProvider: { ProgressSessionProvider.session("A") }, retryDelay: 0)
+        outbox.enqueue(event)
+        do {
+            try await outbox.synchronizeBeforeFetchingQuestions(for: "A")
+            XCTFail("A fetch must not continue with unconfirmed answers")
+        } catch {}
+        XCTAssertEqual(api.submittedBatches, [[event], [event], [event]])
+        XCTAssertEqual(outbox.pendingEvents(), [event])
+    }
+
+    func testUnauthorizedAnswerKeepsQueueWithoutRetryingAsAnotherAccount() async {
+        let event = progressEvent()
+        let url = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        defer { try? FileManager.default.removeItem(at: url) }
+        let provider = ProgressSessionProvider()
+        let api = QuestionAnswerBackendContentAPI(submitResults: [])
+        api.onSubmit = { _ in
+            provider.session = ProgressSessionProvider.session("B")
+            throw BackendContentError.httpStatus(401, nil)
+        }
+        let outbox = PersistentQuestionAnswerOutbox(api: api, fileURL: url,
+            automaticallySynchronizesOnEnqueue: false, sessionProvider: { provider.session }, retryDelay: 0)
+        outbox.enqueue(event)
+        await outbox.synchronize()
+        await outbox.synchronize()
+        XCTAssertEqual(api.submittedSessions.map(\.userID), ["A"])
+        XCTAssertEqual(outbox.pendingEvents(), [event])
+    }
+
+    func testPersonalizedQuizSynchronizesBeforeEachThemeAndRandomFetch() async throws {
+        let backend = RecordingBackendContentAPI()
+        let outbox = ProgressOutboxSpy()
+        let provider = ProgressSessionProvider()
+        var syncCount = 0
+        outbox.beforeFetch = { syncCount += 1 }
+        backend.onQuestions = { XCTAssertEqual(syncCount, backend.seeds.count) }
+        let repository = ThemeCatalogRepository(backendContentAPI: backend,
+            accessTokenProvider: provider, answerOutbox: outbox, repeatStrategyProvider: { .hideAnswered })
+        let locale = AppLocalizationStore.shared.resolvedLanguageCode
+        _ = await repository.refreshBackendCatalog(locale: locale)
+        _ = try await repository.prepareQuiz(themeID: "music", questionCount: 5, locale: locale)
+        for mode in CrossThemeQuestionSelectionMode.allCases {
+            _ = try await repository.prepareRandomQuiz(selectionMode: mode, localFallback: Self.localTheme(questionCount: 5), questionCount: 5, locale: locale)
+        }
+        XCTAssertEqual(outbox.synchronizedUsers, ["A", "A", "A"])
+        outbox.beforeFetch = { throw BackendContentError.httpStatus(503, nil) }
+        do {
+            _ = try await repository.prepareQuiz(themeID: "music", questionCount: 5, locale: locale)
+            XCTFail("Must not fetch after failed synchronization")
+        } catch {}
+        XCTAssertEqual(backend.seeds.count, 3)
+    }
+
+    func testFilteredQuestionCountsUseSupportedRoundLengths() async throws {
+        let backend = RecordingBackendContentAPI()
+        let repository = ThemeCatalogRepository(backendContentAPI: backend,
+            accessTokenProvider: NoopBackendAccessTokenProvider(), answerOutbox: NoopQuestionAnswerOutbox())
+        let locale = AppLocalizationStore.shared.resolvedLanguageCode
+        _ = await repository.refreshBackendCatalog(locale: locale)
+        for (received, expected) in [(0, 0), (5, 5), (7, 5), (10, 10), (14, 10), (15, 15)] {
+            backend.returnedQuestionCount = received
+            let theme = try await repository.prepareQuiz(themeID: "music", questionCount: 15, locale: locale)
+            XCTAssertEqual(theme.questions.count, expected)
+        }
+        for count in 1...4 {
+            backend.returnedQuestionCount = count
+            do {
+                _ = try await repository.prepareQuiz(themeID: "music", questionCount: 5, locale: locale)
+                XCTFail("Cannot launch a round below the statistics minimum")
+            } catch { XCTAssertEqual(error as? QuizPreparationError, .insufficientQuestions) }
+        }
+    }
+
+    func testQuestionResponseForPreviousAccountIsRejected() async throws {
+        let provider = ProgressSessionProvider()
+        let backend = RecordingBackendContentAPI()
+        backend.onQuestions = { provider.session = ProgressSessionProvider.session("B") }
+        let repository = ThemeCatalogRepository(backendContentAPI: backend,
+            accessTokenProvider: provider, answerOutbox: ProgressOutboxSpy(), repeatStrategyProvider: { .hideAnswered })
+        let locale = AppLocalizationStore.shared.resolvedLanguageCode
+        _ = await repository.refreshBackendCatalog(locale: locale)
+        do {
+            _ = try await repository.prepareQuiz(themeID: "music", questionCount: 5, locale: locale)
+            XCTFail("Do not deliver A's personalized response to B")
+        } catch { XCTAssertTrue(error is QuestionAnswerSyncError) }
+    }
+}
+
+extension BackendClientTests {
+    func testConcurrentSyncSharesUploadAndKeepsAnswersEnqueuedDuringRequest() async throws {
+        let first = progressEvent()
+        let second = progressEvent("music:2")
+        let url = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        defer { try? FileManager.default.removeItem(at: url) }
+        let started = expectation(description: "First upload started")
+        let gate = ProgressUploadGate()
+        let api = QuestionAnswerBackendContentAPI(submitResults: [])
+        api.onSubmit = { events in
+            if events.contains(first) {
+                started.fulfill()
+                await gate.wait()
+            }
+            return QuestionAnswerBatchResponse(processedEventIds: events.map(\.eventId))
+        }
+        let outbox = PersistentQuestionAnswerOutbox(api: api, fileURL: url,
+            automaticallySynchronizesOnEnqueue: false,
+            sessionProvider: { ProgressSessionProvider.session("A") }, retryDelay: 0)
+        outbox.enqueue(first)
+        let automatic = Task { await outbox.synchronize() }
+        await fulfillment(of: [started], timeout: 2)
+        outbox.enqueue(second)
+        let beforeFetch = Task { try await outbox.synchronizeBeforeFetchingQuestions(for: "A") }
+        await gate.open()
+        await automatic.value
+        try await beforeFetch.value
+        XCTAssertEqual(api.submittedBatches, [[first], [second]])
+        XCTAssertTrue(outbox.pendingEvents().isEmpty)
+    }
+
+    func testHTTPAnswerRetryCannotUseRefreshedTokenOfAnotherUser() async throws {
+        let provider = ProgressSessionProvider()
+        let originalSession = try XCTUnwrap(provider.session)
+        let recoverer = ProgressAuthenticationRecoverer {
+            provider.session = ProgressSessionProvider.session("B")
+            return "token-B"
+        }
+        let api = HTTPBackendContentAPI(configuration: Self.configuration, session: makeSession(),
+            accessTokenProvider: provider, authenticationRecoverer: recoverer)
+        var requests = 0
+        BackendTestURLProtocol.requestHandler = { request in
+            requests += 1
+            XCTAssertEqual(request.value(forHTTPHeaderField: "Authorization"), "Bearer token-A")
+            return Self.response(for: request, statusCode: 401, data: Data())
+        }
+        await assertBackendContentError(.unauthenticated) {
+            try await api.submitQuestionAnswers([self.progressEvent()], session: originalSession)
+        }
+        XCTAssertEqual(requests, 1)
+    }
 }

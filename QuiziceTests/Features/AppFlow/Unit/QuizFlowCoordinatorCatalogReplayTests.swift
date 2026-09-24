@@ -40,6 +40,19 @@ final class QuizFlowCoordinatorCatalogReplayTests: QuizFlowCoordinatorTestCase {
         XCTAssertEqual(repository.prepareQuizCallCount, 1)
     }
 
+    func testBackendRandomReplayRequestsFreshQuestionsWithoutLocalPool() async throws {
+        let repository = CountingReplayThemeRepository(themes: [])
+        repository.catalogOrigin = .backend
+        let session = RoutingSession()
+        session.chosenTheme = ThemeModel(quizTheme: SnapshotSupport.makeTheme(
+            id: RandomQuizSelection.themeID, name: "Random"))
+        session.questionsCount = 5
+        let harness = makeCoordinator(themeRepository: repository, session: session)
+        harness.coordinator.replayQuiz()
+        try await waitUntil { repository.prepareRandomQuizCallCount == 1 }
+        XCTAssertEqual(repository.prepareQuizCallCount, 0)
+    }
+
     private func makeCoordinator(
         themeRepository: ThemeRepository,
         session: QuizSessionManaging
@@ -63,7 +76,7 @@ final class QuizFlowCoordinatorCatalogReplayTests: QuizFlowCoordinatorTestCase {
 @MainActor
 final class CountingReplayThemeRepository: ThemeRepository {
     var themes: [QuizTheme]?
-    let catalogOrigin: QuizCatalogOrigin = .bundled
+    var catalogOrigin: QuizCatalogOrigin = .bundled
     private(set) var prepareQuizCallCount = 0
     private(set) var prepareRandomQuizCallCount = 0
 

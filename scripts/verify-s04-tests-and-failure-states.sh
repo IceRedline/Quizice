@@ -55,11 +55,10 @@ readonly SNAPSHOT_RUNTIME_IDENTIFIER="com.apple.CoreSimulator.SimRuntime.iOS-26-
 readonly SNAPSHOT_HOST_DEVICE_TYPE_SUFFIX=".iPhone-16e"
 readonly MIN_LINE_COVERAGE_PERCENT=80
 readonly MAX_SWIFT_FILE_LINES=700
-# Keep the global limit meaningful while ratcheting down three pre-existing
+# Keep the global limit meaningful while ratcheting down two pre-existing
 # oversized production files. These ceilings may only move downward as the
 # files are split; new files never inherit an exception.
 readonly -a LEGACY_SWIFT_FILE_LINE_LIMITS=(
-  "Quizice/Core/Networking/BackendContentAPI.swift|930"
   "Quizice/Features/Home/Collection/ThemesCollectionService.swift|741"
   "Quizice/Features/Settings/UI/QuizSettingsView.swift|741"
 )
@@ -728,9 +727,9 @@ check_statistics_coverage_markers() {
   require_test_method "$SUMMARY_TESTS" 'testSummaryAggregatesPlayedQuizzesCorrectAnswersAndTotalQuestions' 'Statistics tests must cover played quiz, correct-answer, and total-question aggregation'
   require_test_method "$SUMMARY_TESTS" 'testPercentageIsRoundedToNearestWholeNumber' 'Statistics tests must cover percentage rounding'
   require_test_method "$SUMMARY_TESTS" 'testBestResultDisplayUsesBestAttempt' 'Statistics tests must cover best-result display'
-  require_test_method "$SUMMARY_TESTS" 'testBestResultSelectsHigherPercentageOverMoreCorrectAnswers' 'Statistics tests must cover best-result percentage precedence'
+  require_test_method "$SUMMARY_TESTS" 'testBestResultSelectsMoreCorrectAnswersOverHigherPercentage' 'Statistics tests must cover server best-result precedence by correct-answer count'
   require_test_method "$SUMMARY_TESTS" 'testBestResultTieUsesMoreCorrectAnswers' 'Statistics tests must cover best-result tie handling'
-  require_test_method "$SUMMARY_TESTS" 'testExactTieKeepsSmallerTotalQuestionAttempt' 'Statistics tests must cover exact tie behavior'
+  require_test_method "$SUMMARY_TESTS" 'testEqualCorrectAnswersKeepFirstAttempt' 'Statistics tests must keep the previous best result when correct-answer counts tie'
   require_test_method "$STORE_TESTS" 'testRecordAttemptPersistsValidAttempts' 'Statistics store tests must cover valid attempt persistence'
 
   printf 'R007 statistics marker checks: PASS\n'
