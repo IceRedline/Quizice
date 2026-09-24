@@ -55,7 +55,7 @@ final class QuizResultPresenter: QuizResultPresenterProtocol {
         case .lowScore: L10n.Result.lowScoreDescription
         case .mediumLowScore: L10n.Result.mediumLowScoreDescription
         case .mediumScore: L10n.Result.mediumScoreDescription
-        case .highScore: L10n.Result.strongResultDescription
+        case .strongResult: L10n.Result.strongResultDescription
         case .perfectScore: L10n.Result.perfectScoreDescription
         case .noQuestions: L10n.Result.noQuestionsDescription
         case .invalidScore: L10n.Result.invalidScoreDescription
