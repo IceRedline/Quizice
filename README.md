@@ -16,6 +16,12 @@ The quiz includes themes:
 
 > Swift, UIKit + SwiftUI, Coordinator-led MVP, unidirectional state, SwiftData
 
+## App reference
+
+[Как работает приложение](docs/app-reference.md) — сценарии, источники данных,
+API, хранение и синхронизация, текущие ограничения и отдельный раздел
+[отличий Debug](docs/app-reference.md#отличия-debug).
+
 ## SwiftLint
 
 SwiftLint is integrated as an SPM build-tool plugin for both `Quizice` and
@@ -94,15 +100,18 @@ which comes from `Configurations/Secrets.xcconfig` (see **Build secrets**).
 Debug can still opt into `http://localhost:8000/api` from the developer menu;
 normal Debug and Release builds use the deployed HTTPS API.
 
-Bundled localized quiz data remains the immediate offline fallback. The client
-refreshes localized theme metadata in the background and requests a seeded
-question batch when a quiz starts. Remote content is accepted only when the
-backend echoes the requested locale and seed and the complete response passes
-contract validation; otherwise the app starts from its bundled question pool.
+The client initially loads a matching cached backend catalog or bundled localized
+data, then refreshes theme metadata during launch preparation. In backend catalog
+mode, starting a quiz requests a seeded question batch and requires a valid
+response; a failed request does not fall back to bundled questions. Cached
+backend metadata alone does not make quizzes available offline. See the
+[app reference](docs/app-reference.md#каталог-и-offline) for the exact loading rules.
 
-AI generation always goes through the backend. It requires a valid Game Center
-session and sends the bearer token stored in Keychain; guests never call the AI
-provider. Provider credentials must remain server-side. The required server
+Release AI generation goes through the backend. It requires a valid backend
+session obtained through Game Center and sends the bearer token stored in
+Keychain. Debug Simulator uses the direct AI service; Debug on a device can opt
+into it with a local key (see [Debug differences](docs/app-reference.md#отличия-debug)).
+Production provider credentials remain server-side. The required server
 contract, rollout order, tests, and performance targets are documented in
 [`docs/backend-production-readiness-plan.md`](docs/backend-production-readiness-plan.md).
 
