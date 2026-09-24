@@ -5,7 +5,7 @@ enum ResultMessageCategory: String, CaseIterable {
     case lowScore = "low_score"
     case mediumLowScore = "medium_low_score"
     case mediumScore = "medium_score"
-    case highScore = "high_score"
+    case strongResult = "high_score"
     case perfectScore = "perfect_score"
     case noQuestions = "no_questions"
     case invalidScore = "invalid_score"
@@ -20,7 +20,7 @@ enum ResultMessageCategory: String, CaseIterable {
         case ..<0.3: return .lowScore
         case ..<0.5: return .mediumLowScore
         case ..<0.75: return .mediumScore
-        case ..<1: return .highScore
+        case ..<1: return .strongResult
         default: return .perfectScore
         }
     }

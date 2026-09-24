@@ -115,7 +115,7 @@ final class ResultMessagesTests: XCTestCase {
             previous = phrase
         }
         XCTAssertNil(repository.message(for: .lowScore, locale: "ru"))
-        XCTAssertNil(repository.message(for: .highScore, locale: "ru"))
+        XCTAssertNil(repository.message(for: .strongResult, locale: "ru"))
     }
 
     func testWrongLocaleAndUnusableResponsesDoNotReplaceLastGoodCatalog() async {
@@ -158,8 +158,8 @@ final class ResultMessagesTests: XCTestCase {
         let cases: [(Int, Int, ResultMessageCategory)] = [
             (0, 100, .veryLowScore), (14, 100, .veryLowScore), (15, 100, .lowScore),
             (29, 100, .lowScore), (30, 100, .mediumLowScore), (49, 100, .mediumLowScore),
-            (50, 100, .mediumScore), (74, 100, .mediumScore), (75, 100, .highScore),
-            (99, 100, .highScore), (100, 100, .perfectScore), (0, 0, .noQuestions),
+            (50, 100, .mediumScore), (74, 100, .mediumScore), (75, 100, .strongResult),
+            (99, 100, .strongResult), (100, 100, .perfectScore), (0, 0, .noQuestions),
             (-1, 5, .invalidScore), (6, 5, .invalidScore), (0, -1, .invalidScore), (1, 0, .invalidScore)
         ]
         for (correct, total, category) in cases {
