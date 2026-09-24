@@ -237,3 +237,6 @@
 "settings.questionStrategy.retryIncorrect" = "Repetir incorrectas";
 
 "question.insufficient.message" = "Hay menos de 5 preguntas disponibles para esta ronda. Elige otro tema o cambia la opción de repetición de preguntas.";
+
+"debug_menu.show_subscription_promo" = "Mostrar botón Pro";
+"debug_menu.show_subscription_promo.subtitle" = "Muestra la oferta de suscripción en Inicio solo en Debug.";

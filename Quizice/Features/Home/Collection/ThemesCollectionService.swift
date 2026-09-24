@@ -22,7 +22,6 @@ final class ThemesCollectionService: NSObject, UICollectionViewDelegate, UIColle
         static let statisticsPlayedTitleAccessibilityID = "homeStatisticsPlayedTitleLabel"
         static let statisticsAccuracyValueAccessibilityID = "homeStatisticsAccuracyValueLabel"
         static let statisticsAccuracyTitleAccessibilityID = "homeStatisticsAccuracyTitleLabel"
-
     }
 
     enum Layout {
@@ -183,22 +182,24 @@ final class ThemesCollectionService: NSObject, UICollectionViewDelegate, UIColle
         }
     }
 
+#if DEBUG
+    var showsSubscriptionPromo = UserDefaults.standard.bool(forKey: DebugSubscriptionPromoSettings.showPromoKey) {
+        didSet {
+            guard oldValue != showsSubscriptionPromo else { return }
+            observedCollectionView?.reloadData()
+            observedCollectionView?.collectionViewLayout.invalidateLayout()
+        }
+    }
+#else
+    private let showsSubscriptionPromo = false
+#endif
+
     private let themesViewportIndex = 0
-    private var subscriptionPromoIndex: Int? {
-        hasActivePlusSubscription ? nil : 1
-    }
-    private var aiThemeIndex: Int {
-        hasActivePlusSubscription ? 1 : 2
-    }
-    private var feelingLuckyIndex: Int {
-        hasActivePlusSubscription ? 2 : 3
-    }
-    private var statisticsIndex: Int {
-        hasActivePlusSubscription ? 3 : 4
-    }
-    private var outerItemCount: Int {
-        hasActivePlusSubscription ? 4 : 5
-    }
+    private var subscriptionPromoIndex: Int? { showsSubscriptionPromo ? 1 : nil }
+    private var aiThemeIndex: Int { showsSubscriptionPromo ? 2 : 1 }
+    private var feelingLuckyIndex: Int { showsSubscriptionPromo ? 3 : 2 }
+    private var statisticsIndex: Int { showsSubscriptionPromo ? 4 : 3 }
+    private var outerItemCount: Int { showsSubscriptionPromo ? 5 : 4 }
 
     init(
         themeRepository: ThemeRepository = QuizFactory.shared,
@@ -495,11 +496,11 @@ final class ThemesCollectionService: NSObject, UICollectionViewDelegate, UIColle
             .preferredContentSizeCategory
             .isAccessibilityCategory
         let fixedOuterContentHeight =
-            (hasActivePlusSubscription
-                ? 0
-                : usesAccessibilityLayout
+            (showsSubscriptionPromo
+                ? (usesAccessibilityLayout
                     ? Layout.accessibilitySubscriptionPromoHeight
                     : Layout.subscriptionPromoHeight)
+                : 0)
             + (usesAccessibilityLayout
                 ? Layout.accessibilityAIThemeButtonHeight
                 : Layout.aiThemeButtonHeight)
@@ -737,5 +738,4 @@ final class ThemesCollectionService: NSObject, UICollectionViewDelegate, UIColle
     @objc func buttonTouchedUpOutside(_ sender: UIButton) {
         delegate?.themeButtonTouchedUpOutside(sender)
     }
-
 }
