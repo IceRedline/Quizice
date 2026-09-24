@@ -264,6 +264,9 @@ extension QuizViewController {
             toggleDirectAI: { [weak self] in
                 self?.toggleDebugDirectAI()
             },
+            setSubscriptionPromoVisible: { [weak self] isVisible in
+                self?.themesCollectionService.showsSubscriptionPromo = isVisible
+            },
             setSubscriptionActive: { isActive in
                 SubscriptionEntitlementStore.shared.setDebugSubscriptionActive(isActive)
             },

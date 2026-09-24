@@ -79,7 +79,7 @@ final class HomeCardSnapshotTests: XCTestCase {
     }
 
     func testAIThemeActionCardSnapshot() {
-        let cell = SnapshotSupport.makeCollectionCell(item: 3, themes: themes, designStyle: .clean)
+        let cell = SnapshotSupport.makeCollectionCell(item: 2, themes: themes, designStyle: .clean)
 
         SnapshotSupport.assertComponent(
             cell,
@@ -89,7 +89,7 @@ final class HomeCardSnapshotTests: XCTestCase {
     }
 
     func testClassicAIThemeActionCardSnapshot() {
-        let cell = SnapshotSupport.makeCollectionCell(item: 3, themes: themes, designStyle: .classic)
+        let cell = SnapshotSupport.makeCollectionCell(item: 2, themes: themes, designStyle: .classic)
 
         SnapshotSupport.assertComponent(
             cell,
@@ -100,7 +100,7 @@ final class HomeCardSnapshotTests: XCTestCase {
     }
 
     func testRadarAIThemeActionCardSnapshot() {
-        let cell = SnapshotSupport.makeCollectionCell(item: 3, themes: themes, designStyle: .radar)
+        let cell = SnapshotSupport.makeCollectionCell(item: 2, themes: themes, designStyle: .radar)
 
         SnapshotSupport.assertComponent(
             cell,
@@ -111,7 +111,7 @@ final class HomeCardSnapshotTests: XCTestCase {
     }
 
     func testFeelingLuckyActionCardSnapshot() {
-        let cell = SnapshotSupport.makeCollectionCell(item: 4, themes: themes, designStyle: .radar)
+        let cell = SnapshotSupport.makeCollectionCell(item: 3, themes: themes, designStyle: .radar)
 
         SnapshotSupport.assertComponent(
             cell.contentView,
@@ -123,7 +123,7 @@ final class HomeCardSnapshotTests: XCTestCase {
 
     func testFeelingLuckyLoadingActionCardSnapshot() {
         let cell = SnapshotSupport.makeCollectionCell(
-            item: 4,
+            item: 3,
             themes: themes,
             designStyle: .radar,
             feelingLuckyLoading: true
@@ -145,7 +145,7 @@ final class HomeCardSnapshotTests: XCTestCase {
     }
 
     func testStatisticsCardSnapshot() {
-        let cell = SnapshotSupport.makeCollectionCell(item: 5, themes: themes, designStyle: .classic)
+        let cell = SnapshotSupport.makeCollectionCell(item: 4, themes: themes, designStyle: .classic)
 
         SnapshotSupport.assertComponent(
             cell.contentView,
@@ -157,7 +157,7 @@ final class HomeCardSnapshotTests: XCTestCase {
 
     func testCompactStatisticsCardSnapshot() {
         let cell = SnapshotSupport.makeCollectionCell(
-            item: 5,
+            item: 4,
             themes: themes,
             designStyle: .clean,
             collectionWidth: 375

@@ -20,6 +20,7 @@ class HomeScreenVisualStateTestCase: XCTestCase {
         UserDefaults.standard.removeObject(forKey: OnboardingProgressStore.Keys.preferredThemeIDs)
         resetLocalizedThemePreferences()
 #if DEBUG
+        UserDefaults.standard.removeObject(forKey: DebugSubscriptionPromoSettings.showPromoKey)
         UserDefaults.standard.removeObject(forKey: DebugBackendSettings.useLocalContentOnlyKey)
         UserDefaults.standard.removeObject(forKey: DebugBackendSettings.useLocalhostKey)
         UserDefaults.standard.removeObject(forKey: DebugAIRuntimeSettings.useDirectAIKey)
@@ -38,6 +39,7 @@ class HomeScreenVisualStateTestCase: XCTestCase {
         UserDefaults.standard.removeObject(forKey: OnboardingProgressStore.Keys.preferredThemeIDs)
         resetLocalizedThemePreferences()
 #if DEBUG
+        UserDefaults.standard.removeObject(forKey: DebugSubscriptionPromoSettings.showPromoKey)
         UserDefaults.standard.removeObject(forKey: DebugBackendSettings.useLocalContentOnlyKey)
         UserDefaults.standard.removeObject(forKey: DebugBackendSettings.useLocalhostKey)
         UserDefaults.standard.removeObject(forKey: DebugAIRuntimeSettings.useDirectAIKey)
