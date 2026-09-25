@@ -41,6 +41,14 @@ extension ExpandedThemeCardView {
             )
             label.textColor = appearance.secondarySurfaceTextColor
         }
+        countryButton.titleLabel?.font = appearance.typography.font(
+            size: Typography.captionSize, weight: .semibold
+        )
+        countryButton.setTitleColor(appearance.surfaceTextColor, for: .normal)
+        countryButton.backgroundColor = appearance.row.backgroundColor
+        countryButton.layer.cornerRadius = appearance.row.cornerRadius
+        countryButton.layer.borderWidth = appearance.row.borderWidth
+        countryButton.layer.borderColor = appearance.row.borderColor.cgColor
         unavailableLabel.font = appearance.typography.font(
             size: Typography.unavailableSize,
             weight: .medium
@@ -129,6 +137,37 @@ extension ExpandedThemeCardView {
         backFaceView.backgroundColor = surfaceColor
     }
 
+    func configureCountries(theme: QuizTheme, selectedCountry: String?) {
+        availableCountries = theme.stableID == "politics_business" ? theme.countries : []
+        countryButton.isHidden = availableCountries.isEmpty
+        self.selectedCountry = selectedCountry.flatMap { availableCountries.contains($0) ? $0 : nil }
+        updateCountryMenu()
+    }
+
+    func selectCountry(_ country: String?) {
+        guard !isStartLoading, country.map(availableCountries.contains) ?? true else { return }
+        guard selectedCountry != country else { return }
+        selectedCountry = country
+        updateCountryMenu()
+        onCountryChanged?(country)
+    }
+
+    private func updateCountryMenu() {
+        let locale = AppLocalizationStore.shared.resolvedLocale
+        let title = selectedCountry.flatMap { locale.localizedString(forRegionCode: $0) }
+            ?? L10n.ThemeCard.internationalQuestions
+        countryButton.setTitle("\(title) ▾", for: .normal)
+        countryButton.accessibilityValue = title
+        let codes: [String?] = [nil] + availableCountries.map { Optional($0) }
+        countryButton.menu = UIMenu(title: L10n.ThemeCard.country, children: codes.map { code in
+            let name = code.map { locale.localizedString(forRegionCode: $0) ?? $0 }
+                ?? L10n.ThemeCard.internationalQuestions
+            return UIAction(title: name, state: selectedCountry == code ? .on : .off) { [weak self] _ in
+                self?.selectCountry(code)
+            }
+        })
+    }
+
     func configureQuestionCounts(selectedQuestionCount: Int?) {
         for (index, count) in Self.supportedQuestionCounts.enumerated() {
             questionCountControl.setEnabled(
@@ -183,6 +222,7 @@ extension ExpandedThemeCardView {
 
     func setStartLoading(_ isLoading: Bool) {
         isStartLoading = isLoading
+        countryButton.isEnabled = !isLoading
         startButton.isEnabled = !isLoading && selectedQuestionCount != nil
         startButton.setTitle(isLoading ? nil : L10n.Common.start, for: .normal)
         startButton.accessibilityLabel = isLoading ? L10n.Home.feelingLuckyLoading : L10n.Common.start

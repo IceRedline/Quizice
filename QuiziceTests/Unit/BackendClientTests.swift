@@ -34,6 +34,7 @@ final class BackendClientTests: XCTestCase {
         XCTAssertEqual(response.themes.map(\.emoji), ["🎵"])
         XCTAssertEqual(response.themes.map(\.colorHex), ["#FF8252"])
         XCTAssertEqual(response.themes.map(\.isFavorite), [true])
+        XCTAssertEqual(response.themes.first?.countries, [])
         XCTAssertEqual(metrics.values.count, 1)
         XCTAssertEqual(metrics.values.first?.operation, .themes)
         XCTAssertEqual(metrics.values.first?.result, .success)
@@ -1012,5 +1013,177 @@ extension BackendClientTests {
             try await api.submitQuestionAnswers([self.progressEvent()], session: originalSession)
         }
         XCTAssertEqual(requests, 1)
+    }
+}
+
+extension BackendClientTests {
+    func testCountryIsIndependentOfLocaleOnAllQuestionRoutes() async throws {
+        let api = makeContentAPI()
+        let seed = "550e8400-e29b-41d4-a716-446655440000"
+        for locale in ["de", "en", "es", "fr", "it", "ru"] {
+            for country in QuestionCountryStore.supportedCodes.sorted() {
+                for route in ["themes/politics_business/questions", "questions/random", "questions/random_balanced"] {
+                    BackendTestURLProtocol.requestHandler = { request in
+                        XCTAssertEqual(request.url?.path, "/api/v1/\(route)")
+                        let query = URLComponents(url: request.url!, resolvingAgainstBaseURL: false)!.queryItems!
+                        let values = Dictionary(uniqueKeysWithValues: query.map { ($0.name, $0.value ?? "") })
+                        XCTAssertEqual(values["locale"], locale)
+                        XCTAssertEqual(values["country"], country)
+                        XCTAssertEqual(values["difficulty"], "hard")
+                        XCTAssertEqual(values["seed"], seed)
+                        return Self.response(for: request, data: try JSONSerialization.data(withJSONObject: [
+                            "locale": locale, "seed": seed, "country": country,
+                            "availableCount": 19, "questions": (0..<5).map(Self.questionJSON)
+                        ]))
+                    }
+                    let response: BackendQuestionBatchResponse
+                    if route.hasPrefix("themes") {
+                        response = try await api.fetchQuestions(
+                            themeID: "politics_business", count: 5, locale: locale,
+                            difficulty: .hard, seed: seed, strategy: .showAll, country: country
+                        )
+                    } else {
+                        response = try await api.fetchRandomQuestions(
+                            selectionMode: route == "questions/random" ? .random : .randomBalanced,
+                            count: 5, locale: locale, difficulty: .hard, seed: seed,
+                            strategy: .showAll, country: country
+                        )
+                    }
+                    XCTAssertEqual(response.country, country)
+                    XCTAssertEqual(response.availableCount, 19)
+                    XCTAssertEqual(response.questions.count, 5)
+                }
+            }
+        }
+    }
+
+    func testInternationalSelectionOmitsCountryAndAcceptsExhaustedPool() async throws {
+        let api = makeContentAPI()
+        let seed = "550e8400-e29b-41d4-a716-446655440000"
+        BackendTestURLProtocol.requestHandler = { request in
+            let query = URLComponents(url: request.url!, resolvingAgainstBaseURL: false)!.queryItems!
+            XCTAssertFalse(query.contains { $0.name == "country" })
+            return Self.response(for: request, data: try JSONSerialization.data(withJSONObject: [
+                "locale": "ru", "seed": seed, "availableCount": 0, "questions": []
+            ]))
+        }
+        let response = try await api.fetchQuestions(
+            themeID: "politics_business", count: 5, locale: "ru", difficulty: .medium,
+            seed: seed, strategy: .showAll, country: nil
+        )
+        XCTAssertNil(response.country)
+        XCTAssertTrue(response.questions.isEmpty)
+    }
+
+    func testInvalidCountryIsRejectedBeforeSendingRequest() async {
+        let api = makeContentAPI()
+        BackendTestURLProtocol.requestHandler = { _ in
+            XCTFail("Invalid country must not reach the server")
+            throw URLError(.badURL)
+        }
+        for country in ["", "us", "GB", " US "] {
+            await assertBackendContentError(.invalidRequest) {
+                try await api.fetchQuestions(
+                    themeID: "politics_business", count: 5, locale: "ru", difficulty: .medium,
+                    seed: "550e8400-e29b-41d4-a716-446655440000", strategy: .showAll, country: country
+                )
+            }
+        }
+    }
+
+    func testCountryEchoMismatchIsRejected() async {
+        let api = makeContentAPI()
+        let seed = "550e8400-e29b-41d4-a716-446655440000"
+        for responseCountry in [nil, "RU"] as [String?] {
+            BackendTestURLProtocol.requestHandler = { request in
+                var body: [String: Any] = ["locale": "ru", "seed": seed, "questions": (0..<5).map(Self.questionJSON)]
+                body["country"] = responseCountry
+                return Self.response(for: request, data: try JSONSerialization.data(withJSONObject: body))
+            }
+            await assertBackendContentError(.contractViolation) {
+                try await api.fetchQuestions(
+                    themeID: "politics_business", count: 5, locale: "ru", difficulty: .medium,
+                    seed: seed, strategy: .showAll, country: "US"
+                )
+            }
+        }
+    }
+
+    func testCountryPreferencePersistsIndependentlyAndClearsForInternational() {
+        let suite = "QuestionCountry.\(UUID().uuidString)"
+        let defaults = UserDefaults(suiteName: suite)!
+        defer { defaults.removePersistentDomain(forName: suite) }
+        let store = QuestionCountryStore(defaults: defaults)
+        XCTAssertNil(store.country)
+        store.country = "US"
+        defaults.set("ru", forKey: AppLocalizationStore.Keys.language)
+        XCTAssertEqual(QuestionCountryStore(defaults: defaults).country, "US")
+        store.country = nil
+        XCTAssertNil(QuestionCountryStore(defaults: defaults).country)
+        defaults.set("GB", forKey: QuestionCountryStore.defaultsKey)
+        XCTAssertNil(store.country)
+    }
+
+    @MainActor
+    func testRepositoryUsesCountryForEachNewRoundAndRejectsStaleBatch() async throws {
+        let backend = RecordingBackendContentAPI(catalogThemes: [BackendThemeDTO(
+            id: "politics_business", name: "Politics", description: "Description",
+            sfSymbol: "globe", emoji: "🌍", colorHex: "#FF8252", isFavorite: false,
+            countries: ["DE", "US", "ES", "FR", "IT", "RU"]
+        )])
+        var country: String? = "US"
+        let repository = ThemeCatalogRepository(backendContentAPI: backend, countryProvider: { country })
+        let locale = AppLocalizationStore.shared.resolvedLanguageCode
+        let refreshed = await repository.refreshBackendCatalog(locale: locale)
+        XCTAssertTrue(refreshed)
+        for choice in ["US", "DE", nil] as [String?] {
+            country = choice
+            let prepared = try await repository.prepareQuiz(themeID: "politics_business", questionCount: 5, locale: locale)
+            XCTAssertEqual(backend.requestedCountries.last!, choice)
+            XCTAssertEqual(prepared.countries, ["DE", "US", "ES", "FR", "IT", "RU"])
+        }
+        country = "US"
+        backend.onQuestions = { country = "FR" }
+        do {
+            _ = try await repository.prepareQuiz(themeID: "politics_business", questionCount: 5, locale: locale)
+            XCTFail("A response for the previous country must be discarded")
+        } catch is CancellationError {} catch { XCTFail("Unexpected error: \(error)") }
+    }
+}
+
+extension BackendClientTests {
+    func testCountryCatalogDecodesSupportedCodes() async throws {
+        let api = makeContentAPI()
+        BackendTestURLProtocol.requestHandler = { request in
+            let data = try JSONSerialization.data(withJSONObject: [
+                "locale": "ru", "themes": [[
+                    "id": "politics_business", "name": "Политика и бизнес", "description": "Описание",
+                    "sfSymbol": "globe", "emoji": "🌍", "colorHex": "#FF8252", "isFavorite": false,
+                    "countries": ["DE", "US", "ES", "FR", "IT", "RU"]
+                ]]
+            ])
+            return Self.response(for: request, data: data)
+        }
+        let catalog = try await api.fetchThemes(locale: "ru")
+        XCTAssertEqual(catalog.themes.first?.countries, ["DE", "US", "ES", "FR", "IT", "RU"])
+    }
+
+    @MainActor
+    func testRepositoryUsesSavedCountryInBothRandomModesButOmitsItForMusic() async throws {
+        let backend = RecordingBackendContentAPI()
+        let repository = ThemeCatalogRepository(backendContentAPI: backend, countryProvider: { "US" })
+        let locale = AppLocalizationStore.shared.resolvedLanguageCode
+        let refreshed = await repository.refreshBackendCatalog(locale: locale)
+        XCTAssertTrue(refreshed)
+        _ = try await repository.prepareQuiz(themeID: "music", questionCount: 5, locale: locale)
+        XCTAssertNil(backend.requestedCountries.last!)
+        for mode in CrossThemeQuestionSelectionMode.allCases {
+            _ = try await repository.prepareRandomQuiz(
+                selectionMode: mode, localFallback: Self.localTheme(questionCount: 5),
+                questionCount: 5, locale: locale
+            )
+            XCTAssertEqual(backend.requestedCountries.last!, "US")
+        }
+        XCTAssertEqual(backend.randomSelectionModes, CrossThemeQuestionSelectionMode.allCases)
     }
 }

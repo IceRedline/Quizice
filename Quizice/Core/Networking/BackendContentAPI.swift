@@ -1,6 +1,18 @@
 import Foundation
 
 protocol BackendContentAPI {
+    func fetchRandomQuestions(
+        selectionMode: CrossThemeQuestionSelectionMode, count: Int, locale: String,
+        difficulty: AIQuizDifficulty, seed: String,
+        strategy: QuestionRepeatStrategy, country: String?
+    ) async throws -> BackendQuestionBatchResponse
+
+    func fetchQuestions(
+        themeID: String, count: Int, locale: String,
+        difficulty: AIQuizDifficulty, seed: String,
+        strategy: QuestionRepeatStrategy, country: String?
+    ) async throws -> BackendQuestionBatchResponse
+
     func fetchThemes(locale: String) async throws -> BackendThemeCatalogResponse
     func fetchThemePreferences(locale: String) async throws -> BackendThemePreferencesResponse
     func replaceThemePreferences(
@@ -54,6 +66,30 @@ protocol BackendContentAPI {
 }
 
 extension BackendContentAPI {
+    func fetchQuestions(
+        themeID: String, count: Int, locale: String,
+        difficulty: AIQuizDifficulty, seed: String,
+        strategy: QuestionRepeatStrategy, country: String?
+    ) async throws -> BackendQuestionBatchResponse {
+        guard country == nil else { throw BackendContentError.invalidRequest }
+        return try await fetchQuestions(
+            themeID: themeID, count: count, locale: locale,
+            difficulty: difficulty, seed: seed, strategy: strategy
+        )
+    }
+
+    func fetchRandomQuestions(
+        selectionMode: CrossThemeQuestionSelectionMode, count: Int, locale: String,
+        difficulty: AIQuizDifficulty, seed: String,
+        strategy: QuestionRepeatStrategy, country: String?
+    ) async throws -> BackendQuestionBatchResponse {
+        guard country == nil else { throw BackendContentError.invalidRequest }
+        return try await fetchRandomQuestions(
+            selectionMode: selectionMode, count: count, locale: locale,
+            difficulty: difficulty, seed: seed, strategy: strategy
+        )
+    }
+
     func submitQuestionAnswers(_ events: [QuestionAnswerEvent], session: AuthSession) async throws -> QuestionAnswerBatchResponse {
         try await submitQuestionAnswers(events)
     }
