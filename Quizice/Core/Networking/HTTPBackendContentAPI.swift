@@ -185,14 +185,29 @@ final class HTTPBackendContentAPI: BackendContentAPI {
         )
     }
 
+    func fetchQuestions(
+        themeID: String, count: Int, locale: String,
+        difficulty: AIQuizDifficulty, seed: String,
+        strategy: QuestionRepeatStrategy, country: String?
+    ) async throws -> BackendQuestionBatchResponse {
+        try await fetchQuestionBatch(
+            themeID: themeID, count: count, locale: locale,
+            difficulty: difficulty, seed: seed, strategy: strategy, country: country
+        )
+    }
+
     private func fetchQuestionBatch(
         themeID: String,
         count: Int,
         locale: String,
         difficulty: AIQuizDifficulty?,
         seed: String,
-        strategy: QuestionRepeatStrategy
+        strategy: QuestionRepeatStrategy,
+        country: String? = nil
     ) async throws -> BackendQuestionBatchResponse {
+        guard country.map(QuestionCountryStore.supportedCodes.contains) ?? true else {
+            throw BackendContentError.invalidRequest
+        }
         let normalizedThemeID = themeID.trimmingCharacters(in: .whitespacesAndNewlines)
         let normalizedSeed = seed.trimmingCharacters(in: .whitespacesAndNewlines)
         guard
@@ -212,6 +227,9 @@ final class HTTPBackendContentAPI: BackendContentAPI {
             queryItems.append(
                 URLQueryItem(name: "difficulty", value: difficulty.rawValue)
             )
+        }
+        if let country {
+            queryItems.append(URLQueryItem(name: "country", value: country))
         }
         queryItems.append(URLQueryItem(name: "seed", value: normalizedSeed))
         if let progressMode = strategy.progressMode {
@@ -234,7 +252,8 @@ final class HTTPBackendContentAPI: BackendContentAPI {
                     $0,
                     requestedCount: count,
                     requestedLocale: locale,
-                    requestedSeed: normalizedSeed
+                    requestedSeed: normalizedSeed,
+                    requestedCountry: country
                 )
             }
         )
@@ -291,14 +310,29 @@ final class HTTPBackendContentAPI: BackendContentAPI {
         )
     }
 
+    func fetchRandomQuestions(
+        selectionMode: CrossThemeQuestionSelectionMode, count: Int, locale: String,
+        difficulty: AIQuizDifficulty, seed: String,
+        strategy: QuestionRepeatStrategy, country: String?
+    ) async throws -> BackendQuestionBatchResponse {
+        try await fetchRandomQuestionBatch(
+            selectionMode: selectionMode, count: count, locale: locale,
+            difficulty: difficulty, seed: seed, strategy: strategy, country: country
+        )
+    }
+
     private func fetchRandomQuestionBatch(
         selectionMode: CrossThemeQuestionSelectionMode,
         count: Int,
         locale: String,
         difficulty: AIQuizDifficulty?,
         seed: String,
-        strategy: QuestionRepeatStrategy
+        strategy: QuestionRepeatStrategy,
+        country: String? = nil
     ) async throws -> BackendQuestionBatchResponse {
+        guard country.map(QuestionCountryStore.supportedCodes.contains) ?? true else {
+            throw BackendContentError.invalidRequest
+        }
         let normalizedSeed = seed.trimmingCharacters(in: .whitespacesAndNewlines)
         guard
             UUID(uuidString: normalizedSeed)?.uuidString.lowercased() == normalizedSeed,
@@ -316,6 +350,9 @@ final class HTTPBackendContentAPI: BackendContentAPI {
             queryItems.append(
                 URLQueryItem(name: "difficulty", value: difficulty.rawValue)
             )
+        }
+        if let country {
+            queryItems.append(URLQueryItem(name: "country", value: country))
         }
         queryItems.append(URLQueryItem(name: "seed", value: normalizedSeed))
         if let progressMode = strategy.progressMode {
@@ -338,7 +375,8 @@ final class HTTPBackendContentAPI: BackendContentAPI {
                     $0,
                     requestedCount: count,
                     requestedLocale: locale,
-                    requestedSeed: normalizedSeed
+                    requestedSeed: normalizedSeed,
+                    requestedCountry: country
                 )
             }
         )
@@ -634,6 +672,8 @@ final class HTTPBackendContentAPI: BackendContentAPI {
                 && !sfSymbol.isEmpty
                 && !emoji.isEmpty
                 && colorHex == theme.colorHex
+                && theme.countries.allSatisfy(QuestionCountryStore.supportedCodes.contains)
+                && Set(theme.countries).count == theme.countries.count
                 && identifiers.insert(id).inserted
         }
     }
@@ -659,11 +699,13 @@ final class HTTPBackendContentAPI: BackendContentAPI {
         _ response: BackendQuestionBatchResponse,
         requestedCount: Int,
         requestedLocale: String,
-        requestedSeed: String
+        requestedSeed: String,
+        requestedCountry: String?
     ) -> Bool {
         guard
             response.locale == requestedLocale,
             response.seed == requestedSeed,
+            response.country == requestedCountry,
             response.questions.count <= requestedCount,
             response.availableCount >= response.questions.count
         else { return false }

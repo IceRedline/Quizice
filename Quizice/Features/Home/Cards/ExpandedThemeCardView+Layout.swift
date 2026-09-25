@@ -286,6 +286,16 @@ extension ExpandedThemeCardView {
         backDescriptionLabel.isAccessibilityElement = true
         backDescriptionLabel.translatesAutoresizingMaskIntoConstraints = false
 
+        countryButton.accessibilityIdentifier = "descriptionCountryPicker"
+        countryButton.accessibilityLabel = L10n.ThemeCard.country
+        countryButton.showsMenuAsPrimaryAction = true
+        countryButton.titleLabel?.adjustsFontForContentSizeCategory = true
+        countryButton.titleLabel?.numberOfLines = 0
+        countryButton.isHidden = true
+        let countryHeight = countryButton.heightAnchor.constraint(greaterThanOrEqualToConstant: 44)
+        countryHeight.priority = .defaultHigh
+        countryHeight.isActive = true
+
         difficultyLabel.accessibilityIdentifier = AccessibilityID.difficultyLabel
         difficultyLabel.text = L10n.AITheme.difficulty
         difficultyLabel.adjustsFontForContentSizeCategory = true
@@ -331,6 +341,7 @@ extension ExpandedThemeCardView {
         backControlsStack.spacing = Layout.controlsSpacing
         backControlsStack.translatesAutoresizingMaskIntoConstraints = false
         [
+            countryButton,
             difficultyLabel,
             difficultyControl,
             questionCountLabel,
@@ -447,6 +458,7 @@ extension ExpandedThemeCardView {
         backFaceView.accessibilityElements = [
             backTitleLabel,
             backDescriptionLabel,
+            countryButton,
             difficultyLabel,
             difficultyControl,
             questionCountLabel,

@@ -240,3 +240,6 @@
 
 "debug_menu.show_subscription_promo" = "Показывать кнопку Pro";
 "debug_menu.show_subscription_promo.subtitle" = "Показывает предложение подписки на главной только в Debug.";
+
+"theme_card.country" = "Страна";
+"theme_card.international_questions" = "Международные вопросы";

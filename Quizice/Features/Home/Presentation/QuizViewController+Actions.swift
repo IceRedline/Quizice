@@ -53,6 +53,16 @@ extension QuizViewController {
         refreshExpandedThemeCardAppearance()
     }
 
+    func configureNextRound(themeID: String) {
+        loadViewIfNeeded()
+        view.layoutIfNeeded()
+        themesCollectionView.scrollToItem(at: IndexPath(item: 0, section: 0), at: .top, animated: false)
+        themesCollectionView.layoutIfNeeded()
+        guard let button = themesCollectionService.revealThemeButton(themeID: themeID) else { return }
+        showRoundConfigurationAfterExpansion = true
+        themeButtonTouchedUpInside(button, themeID: themeID)
+    }
+
     func themeButtonTouchedDown(_ sender: UIButton) {
         animationsEngine.animateDownFloat(sender)
     }

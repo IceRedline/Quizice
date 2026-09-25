@@ -240,3 +240,6 @@
 
 "debug_menu.show_subscription_promo" = "Show Pro button";
 "debug_menu.show_subscription_promo.subtitle" = "Shows the subscription offer on Home in Debug only.";
+
+"theme_card.country" = "Country";
+"theme_card.international_questions" = "International questions";

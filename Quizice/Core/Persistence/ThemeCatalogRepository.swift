@@ -33,6 +33,7 @@ final class ThemeCatalogRepository: ThemeRepository {
     private let seedGenerator: () -> String
     private let accessTokenProvider: BackendAccessTokenProviding
     private let answerOutbox: QuestionAnswerOutboxing
+    private let countryProvider: () -> String?
     private let repeatStrategyProvider: () -> QuestionRepeatStrategy
 
     var themes: [QuizTheme]?
@@ -45,7 +46,8 @@ final class ThemeCatalogRepository: ThemeRepository {
         seedGenerator: @escaping () -> String = { UUID().uuidString.lowercased() },
         accessTokenProvider: BackendAccessTokenProviding = StoredBackendAccessTokenProvider(),
         answerOutbox: QuestionAnswerOutboxing = PersistentQuestionAnswerOutbox.shared,
-        repeatStrategyProvider: @escaping () -> QuestionRepeatStrategy = { QuestionRepeatStrategyStore.shared.strategy }
+        repeatStrategyProvider: @escaping () -> QuestionRepeatStrategy = { QuestionRepeatStrategyStore.shared.strategy },
+        countryProvider: @escaping () -> String? = { QuestionCountryStore.shared.country }
     ) {
         self.backendContentAPI = backendContentAPI
         self.preferenceStore = preferenceStore
@@ -53,6 +55,7 @@ final class ThemeCatalogRepository: ThemeRepository {
         self.accessTokenProvider = accessTokenProvider
         self.answerOutbox = answerOutbox
         self.repeatStrategyProvider = repeatStrategyProvider
+        self.countryProvider = countryProvider
         localizationObserver = NotificationCenter.default.addObserver(
             forName: .appLocalizationDidChange,
             object: nil,
@@ -169,7 +172,8 @@ final class ThemeCatalogRepository: ThemeRepository {
                     colorHex: remoteTheme.colorHex,
                     isFavorite: remoteTheme.isFavorite,
                     source: .catalog,
-                    questionOrigin: .backend
+                    questionOrigin: .backend,
+                    countries: remoteTheme.countries
                 )
             }
             let remoteFavoriteIDs = response.themes.filter(\.isFavorite).map(\.id)
@@ -299,6 +303,7 @@ final class ThemeCatalogRepository: ThemeRepository {
         }
         guard let backendContentAPI else { throw QuizPreparationError.unavailable }
 
+        let selectedCountry = countryProvider()
         let strategy = effectiveQuestionRepeatStrategy
         let userID = accessTokenProvider.currentSession()?.userID
         if strategy.progressMode != nil {
@@ -317,10 +322,12 @@ final class ThemeCatalogRepository: ThemeRepository {
                 locale: locale,
                 difficulty: difficulty,
                 seed: seed,
-                strategy: strategy
+                strategy: strategy,
+                country: selectedCountry.flatMap { metadata.countries.contains($0) ? $0 : nil }
             )
             try Task.checkCancellation()
-            guard AppLocalizationStore.shared.resolvedLanguageCode == locale else {
+            guard AppLocalizationStore.shared.resolvedLanguageCode == locale,
+                  countryProvider() == selectedCountry else {
                 throw CancellationError()
             }
 
@@ -346,7 +353,8 @@ final class ThemeCatalogRepository: ThemeRepository {
                 isFavorite: metadata.isFavorite,
                 source: .catalog,
                 questionOrigin: .backend,
-                difficulty: difficulty
+                difficulty: difficulty,
+                countries: metadata.countries
             )
         } catch is CancellationError {
             throw CancellationError()
@@ -391,6 +399,7 @@ final class ThemeCatalogRepository: ThemeRepository {
         }
         guard let backendContentAPI else { throw QuizPreparationError.unavailable }
 
+        let selectedCountry = countryProvider()
         let strategy = effectiveQuestionRepeatStrategy
         let userID = accessTokenProvider.currentSession()?.userID
         if strategy.progressMode != nil {
@@ -409,10 +418,12 @@ final class ThemeCatalogRepository: ThemeRepository {
                 locale: locale,
                 difficulty: difficulty,
                 seed: seed,
-                strategy: strategy
+                strategy: strategy,
+                country: selectedCountry
             )
             try Task.checkCancellation()
-            guard AppLocalizationStore.shared.resolvedLanguageCode == locale else {
+            guard AppLocalizationStore.shared.resolvedLanguageCode == locale,
+                  countryProvider() == selectedCountry else {
                 throw CancellationError()
             }
 
