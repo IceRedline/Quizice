@@ -218,6 +218,7 @@ final class QuizViewController: BaseQuizViewController, ThemeCollectionDelegate,
     var feelingLuckyRequestID: UUID?
     var backendCatalogRefreshTask: Task<Void, Never>?
     var backendCatalogRefreshRequestID: UUID?
+    var showRoundConfigurationAfterExpansion = false
     var quizPreparationTask: Task<Void, Never>?
     weak var quizTransitionSourceView: UIView?
     var isQuizLaunchPending = false

@@ -128,6 +128,14 @@ final class ThemesCollectionService: NSObject, UICollectionViewDelegate, UIColle
         } ?? []
     }
 
+    func revealThemeButton(themeID: String) -> UIButton? {
+        guard let collectionView = themeItemsCollectionView,
+              let index = displayedThemes.firstIndex(where: { $0.stableID == themeID }) else { return nil }
+        collectionView.scrollToItem(at: IndexPath(item: index, section: 0), at: .centeredVertically, animated: false)
+        collectionView.layoutIfNeeded()
+        return (collectionView.cellForItem(at: IndexPath(item: index, section: 0)) as? ThemeCardCollectionViewCell)?.actionButton
+    }
+
     private var displayedThemes: [QuizTheme] {
         let themes = themeRepository.themes ?? []
         let preferredThemeIDs = preferredThemeIDsProvider()
