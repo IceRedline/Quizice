@@ -58,6 +58,26 @@ AI использует сохранённый prompt `fvto67v1ev0p2b7r4v5i` и 
 
 ## Хронология проверки
 
+### Release после исправления смены аккаунта
+
+`xcodebuild build -configuration Release` для iPhone 17 Pro Simulator завершился
+успешно после изменения авторизации (`9ab3cee`). Лог:
+`/private/tmp/quizice-release-final-20260927.log`.
+
+В готовом `Release-iphonesimulator/Quizice.app` проверены:
+
+- Bundle ID `com.tabenskii.quiziceapp`, версия 1.0 (1), production BackendBaseURL;
+- все 242 ключа переводов в каждом из шести языков, без пропусков;
+- наличие `X-Quizice-Authorization` в исполняемом файле;
+- отсутствие маркеров `DebugYandexAIAPIKeyStore`, `DebugMenuView`,
+  `DEV_AUTH_ENABLED`, `DEV_AUTH_SECRET` в исполняемом файле;
+- отсутствие файлов `.env*`, `.p8`, `.p12`, `.xcscheme` в bundle.
+
+По коду Release выбирает backend AI; прямой AI-метод возвращает ошибку до
+сетевого запроса, а отладочные ключи/авторизация/Pulse-логирование защищены
+`#if DEBUG`. Эти проверки не являются полным поиском всех возможных секретов
+и не заменяют подписанный device archive или TestFlight.
+
 ### Исправление синхронизации при смене аккаунта
 
 Дополнительный тест воспроизвёл сбой: при незавершённом sync игрока A вход
