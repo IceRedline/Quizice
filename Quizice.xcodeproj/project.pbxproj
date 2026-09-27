@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		5A2094584CAC44A6958C4625 /* ThemesCollectionService+Ordering.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63391CFDA407414A9006C148 /* ThemesCollectionService+Ordering.swift */; };
+		5079EEED26914A8A9282A036 /* BackendContentResponseValidator.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBB882E2FE414E0CB6B16876 /* BackendContentResponseValidator.swift */; };
 		55AF62AF27204B888E377FAB /* QuestionAnswerOutbox.swift in Sources */ = {isa = PBXBuildFile; fileRef = F7BB544353014B47B422AFE9 /* QuestionAnswerOutbox.swift */; };
 		61BFEB8637BF4683B80003B4 /* HTTPBackendContentAPI.swift in Sources */ = {isa = PBXBuildFile; fileRef = 28A0A20CEE1B4198B8D492FF /* HTTPBackendContentAPI.swift */; };
 		F93000000000000000000003 /* ResultMessagesTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F92000000000000000000003 /* ResultMessagesTests.swift */; };
@@ -211,6 +213,8 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		63391CFDA407414A9006C148 /* ThemesCollectionService+Ordering.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ThemesCollectionService+Ordering.swift"; sourceTree = "<group>"; };
+		BBB882E2FE414E0CB6B16876 /* BackendContentResponseValidator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "BackendContentResponseValidator.swift"; sourceTree = "<group>"; };
 		F7BB544353014B47B422AFE9 /* QuestionAnswerOutbox.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = QuestionAnswerOutbox.swift; sourceTree = "<group>"; };
 		28A0A20CEE1B4198B8D492FF /* HTTPBackendContentAPI.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = HTTPBackendContentAPI.swift; sourceTree = "<group>"; };
 		F92000000000000000000003 /* ResultMessagesTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ResultMessagesTests.swift; sourceTree = "<group>"; };
@@ -983,6 +987,7 @@
 				F92000000000000000000001 /* HTTPResultMessagesAPI.swift */,
 				B10000000000000000000001 /* BackendContentAPI.swift */,
 				28A0A20CEE1B4198B8D492FF /* HTTPBackendContentAPI.swift */,
+				BBB882E2FE414E0CB6B16876 /* BackendContentResponseValidator.swift */,
 				B1000000000000000000000A /* BackendContentModels.swift */,
 				B10000000000000000000011 /* BackendRetry.swift */,
 			);
@@ -1094,6 +1099,7 @@
 				E82336079EA413DAC55F5098 /* ThemeVisualCatalog.swift */,
 				C10000000000000000000002 /* ThemesCollectionService+ActionCards.swift */,
 				D49927F6947B94B34C9F29BA /* ThemesCollectionService.swift */,
+				63391CFDA407414A9006C148 /* ThemesCollectionService+Ordering.swift */,
 			);
 			path = Collection;
 			sourceTree = "<group>";
@@ -1382,6 +1388,7 @@
 				B10000000000000000000002 /* BackendContentAPI.swift in Sources */,
 				55AF62AF27204B888E377FAB /* QuestionAnswerOutbox.swift in Sources */,
 				61BFEB8637BF4683B80003B4 /* HTTPBackendContentAPI.swift in Sources */,
+				5079EEED26914A8A9282A036 /* BackendContentResponseValidator.swift in Sources */,
 				B1000000000000000000000B /* BackendContentModels.swift in Sources */,
 				B10000000000000000000012 /* BackendRetry.swift in Sources */,
 				D7E82CFA753F341CAA0395AD /* AuthModels.swift in Sources */,
@@ -1438,6 +1445,7 @@
 				B2CD30CAC15215296B9D9BBE /* ThemeVisualCatalog.swift in Sources */,
 				C10000000000000000000001 /* ThemesCollectionService+ActionCards.swift in Sources */,
 				AE72B30D9E74A63EAA3592D0 /* ThemesCollectionService.swift in Sources */,
+				5A2094584CAC44A6958C4625 /* ThemesCollectionService+Ordering.swift in Sources */,
 				F8EF7182B7B25C43203DD912 /* ThemeCollectionDelegate.swift in Sources */,
 				7B6E2427F4083AC5C9CF0078 /* CoreMotionHomeThemeCardMotionProvider.swift in Sources */,
 				C0412F0C30759BD3C122B3D5 /* HomeThemeCardGeometry.swift in Sources */,

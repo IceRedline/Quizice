@@ -46,7 +46,7 @@ final class HTTPBackendContentAPI: BackendContentAPI {
             url: url,
             operation: .themes,
             accessToken: accessTokenProvider.validAccessToken(),
-            validate: { Self.isValid($0, requestedLocale: locale) }
+            validate: { BackendContentResponseValidator.isValid($0, requestedLocale: locale) }
         )
     }
 
@@ -65,7 +65,7 @@ final class HTTPBackendContentAPI: BackendContentAPI {
             url: url,
             operation: .themePreferences,
             accessToken: accessToken,
-            validate: { Self.isValid($0, requestedLocale: locale) }
+            validate: { BackendContentResponseValidator.isValid($0, requestedLocale: locale) }
         )
     }
 
@@ -79,7 +79,7 @@ final class HTTPBackendContentAPI: BackendContentAPI {
         guard let accessToken = accessTokenProvider.validAccessToken() else {
             throw BackendContentError.unauthenticated
         }
-        let normalizedIDs = Self.normalizedThemeIDs(favoriteThemeIDs)
+        let normalizedIDs = BackendContentResponseValidator.normalizedThemeIDs(favoriteThemeIDs)
         guard normalizedIDs.count == favoriteThemeIDs.count else {
             throw BackendContentError.invalidRequest
         }
@@ -95,7 +95,7 @@ final class HTTPBackendContentAPI: BackendContentAPI {
                 locale: locale,
                 favoriteThemeIds: normalizedIDs
             ),
-            validate: { Self.isValid($0, requestedLocale: locale) }
+            validate: { BackendContentResponseValidator.isValid($0, requestedLocale: locale) }
         )
     }
 
@@ -248,7 +248,7 @@ final class HTTPBackendContentAPI: BackendContentAPI {
             operation: .questions,
             accessToken: accessToken,
             validate: {
-                Self.isValid(
+                BackendContentResponseValidator.isValid(
                     $0,
                     requestedCount: count,
                     requestedLocale: locale,
@@ -371,7 +371,7 @@ final class HTTPBackendContentAPI: BackendContentAPI {
             operation: .questions,
             accessToken: accessToken,
             validate: {
-                Self.isValid(
+                BackendContentResponseValidator.isValid(
                     $0,
                     requestedCount: count,
                     requestedLocale: locale,
@@ -651,86 +651,6 @@ final class HTTPBackendContentAPI: BackendContentAPI {
 
     private static func isSupported(locale: String) -> Bool {
         AppLanguagePreference.explicitPreference(for: locale) != nil
-    }
-
-    private static func isValid(
-        _ response: BackendThemeCatalogResponse,
-        requestedLocale: String
-    ) -> Bool {
-        guard response.locale == requestedLocale, !response.themes.isEmpty else { return false }
-        var identifiers = Set<String>()
-        return response.themes.allSatisfy { theme in
-            let id = theme.id.trimmingCharacters(in: .whitespacesAndNewlines)
-            let name = theme.name.trimmingCharacters(in: .whitespacesAndNewlines)
-            let description = theme.description.trimmingCharacters(in: .whitespacesAndNewlines)
-            let sfSymbol = theme.sfSymbol.trimmingCharacters(in: .whitespacesAndNewlines)
-            let emoji = theme.emoji.trimmingCharacters(in: .whitespacesAndNewlines)
-            let colorHex = QuizThemeColor.normalizedHex(theme.colorHex)
-            return !id.isEmpty
-                && !name.isEmpty
-                && !description.isEmpty
-                && !sfSymbol.isEmpty
-                && !emoji.isEmpty
-                && colorHex == theme.colorHex
-                && theme.countries.allSatisfy(QuestionCountryStore.supportedCodes.contains)
-                && Set(theme.countries).count == theme.countries.count
-                && identifiers.insert(id).inserted
-        }
-    }
-
-    private static func isValid(
-        _ response: BackendThemePreferencesResponse,
-        requestedLocale: String
-    ) -> Bool {
-        response.locale == requestedLocale
-            && normalizedThemeIDs(response.favoriteThemeIds) == response.favoriteThemeIds
-    }
-
-    private static func normalizedThemeIDs(_ themeIDs: [String]) -> [String] {
-        var identifiers = Set<String>()
-        return themeIDs.compactMap { themeID in
-            let normalizedID = themeID.trimmingCharacters(in: .whitespacesAndNewlines)
-            guard !normalizedID.isEmpty, identifiers.insert(normalizedID).inserted else { return nil }
-            return normalizedID
-        }
-    }
-
-    private static func isValid(
-        _ response: BackendQuestionBatchResponse,
-        requestedCount: Int,
-        requestedLocale: String,
-        requestedSeed: String,
-        requestedCountry: String?
-    ) -> Bool {
-        guard
-            response.locale == requestedLocale,
-            response.seed == requestedSeed,
-            response.country == requestedCountry,
-            response.questions.count <= requestedCount,
-            response.availableCount >= response.questions.count
-        else { return false }
-
-        var prompts = Set<String>()
-        var questionIDs = Set<String>()
-        return response.questions.allSatisfy { question in
-            let questionID = question.questionId?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
-            let prompt = question.question.trimmingCharacters(in: .whitespacesAndNewlines)
-            let answers = question.answers.map {
-                $0.trimmingCharacters(in: .whitespacesAndNewlines)
-            }
-            let correctAnswer = question.correctAnswer.trimmingCharacters(in: .whitespacesAndNewlines)
-            return !questionID.isEmpty
-                && questionIDs.insert(questionID).inserted
-                && (question.questionVersion ?? 0) > 0
-                && !prompt.isEmpty
-                && prompt.count <= 500
-                && prompts.insert(prompt).inserted
-                && answers.count == 4
-                && answers.allSatisfy { !$0.isEmpty }
-                && answers.allSatisfy { $0.count <= 300 }
-                && Set(answers).count == answers.count
-                && answers.filter { $0 == correctAnswer }.count == 1
-        }
     }
 
     private static func milliseconds(_ duration: Duration) -> Int {
