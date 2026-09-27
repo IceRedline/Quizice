@@ -27,6 +27,7 @@ final class GameCenterClient: GameCenterAuthenticating {
         stateChanged: @escaping (GameCenterPlayerState) -> Void
     ) {
         self.stateChanged = stateChanged
+        AppLog.auth.notice("[Auth] Starting Game Center authentication")
         if authenticationObserver == nil {
             authenticationObserver = notificationCenter.addObserver(
                 forName: NSNotification.Name.GKPlayerAuthenticationDidChangeNotificationName,
@@ -39,10 +40,17 @@ final class GameCenterClient: GameCenterAuthenticating {
             }
         }
 
-        player.authenticateHandler = { [weak self] viewController, _ in
+        player.authenticateHandler = { [weak self] viewController, error in
             Task { @MainActor [weak self] in
                 guard let self else { return }
+                if let error {
+                    let diagnostic = error as NSError
+                    AppLog.auth.error(
+                        "[Auth] Game Center callback failed: domain=\(diagnostic.domain, privacy: .public) code=\(diagnostic.code)"
+                    )
+                }
                 if let viewController {
+                    AppLog.auth.notice("[Auth] Presenting Game Center sign-in")
                     present(viewController)
                     return
                 }
@@ -55,7 +63,18 @@ final class GameCenterClient: GameCenterAuthenticating {
         guard player.isAuthenticated, player.teamPlayerID.isEmpty == false else {
             throw GameCenterClientError.notAuthenticated
         }
-        let (publicKeyURL, signature, salt, timestamp) = try await player.fetchItemsForIdentityVerificationSignature()
+        AppLog.auth.notice("[Auth] Requesting Game Center identity signature")
+        let (publicKeyURL, signature, salt, timestamp): (URL, Data, Data, UInt64)
+        do {
+            (publicKeyURL, signature, salt, timestamp) = try await player.fetchItemsForIdentityVerificationSignature()
+        } catch {
+            let diagnostic = error as NSError
+            AppLog.auth.error(
+                "[Auth] Game Center identity signature failed: domain=\(diagnostic.domain, privacy: .public) code=\(diagnostic.code)"
+            )
+            throw error
+        }
+        AppLog.auth.notice("[Auth] Game Center identity signature received")
         return GameCenterIdentity(
             teamPlayerId: player.teamPlayerID,
             bundleId: bundleIdentifier,
@@ -67,6 +86,11 @@ final class GameCenterClient: GameCenterAuthenticating {
     }
 
     private func publishCurrentState() {
+        let isAuthenticated = player.isAuthenticated
+        let hasTeamPlayerID = !player.teamPlayerID.isEmpty
+        AppLog.auth.notice(
+            "[Auth] Game Center state: authenticated=\(isAuthenticated) hasTeamPlayerID=\(hasTeamPlayerID)"
+        )
         if player.isAuthenticated, player.teamPlayerID.isEmpty == false {
             stateChanged?(.authenticated(teamPlayerID: player.teamPlayerID))
         } else {

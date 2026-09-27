@@ -26,8 +26,9 @@ extension BackendClientTests {
             accessProvider: access
         )
         BackendTestURLProtocol.requestHandler = { request in
+            XCTAssertNil(request.value(forHTTPHeaderField: "Authorization"))
             XCTAssertEqual(
-                request.value(forHTTPHeaderField: "Authorization"),
+                request.value(forHTTPHeaderField: "X-Quizice-Authorization"),
                 "Bearer original-token"
             )
             try store.save(replacementSession)
@@ -118,7 +119,7 @@ extension BackendClientTests {
         )
         BackendTestURLProtocol.requestHandler = { request in
             XCTAssertEqual(
-                request.value(forHTTPHeaderField: "Authorization"),
+                request.value(forHTTPHeaderField: "X-Quizice-Authorization"),
                 "Bearer original-token"
             )
             try store.save(refreshedSession)
@@ -176,7 +177,7 @@ extension BackendClientTests {
         )
         BackendTestURLProtocol.requestHandler = { request in
             XCTAssertEqual(
-                request.value(forHTTPHeaderField: "Authorization"),
+                request.value(forHTTPHeaderField: "X-Quizice-Authorization"),
                 "Bearer original-token"
             )
             try store.save(replacementSession)
@@ -219,7 +220,7 @@ extension BackendClientTests {
         BackendTestURLProtocol.requestHandler = { request in
             XCTAssertEqual(request.url?.path, "/api/v1/quizzes/generate")
             XCTAssertEqual(
-                request.value(forHTTPHeaderField: "Authorization"),
+                request.value(forHTTPHeaderField: "X-Quizice-Authorization"),
                 "Bearer access-token"
             )
             let body = try XCTUnwrap(Self.bodyData(from: request))
