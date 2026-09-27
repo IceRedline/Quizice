@@ -53,6 +53,27 @@ final class LocalizationTests: XCTestCase {
         XCTAssertEqual(L10n.Settings.language, "Langue")
     }
 
+    func testBundledLocalizationsResolveEveryEnglishKey() throws {
+        let englishURL = try XCTUnwrap(
+            Bundle.main.url(forResource: "Localizable", withExtension: "strings", subdirectory: "en.lproj")
+        )
+        let english = try XCTUnwrap(
+            PropertyListSerialization.propertyList(from: Data(contentsOf: englishURL), options: [], format: nil)
+                as? [String: String]
+        )
+        XCTAssertFalse(english.isEmpty)
+
+        for language in ["ru", "en", "es", "de", "it", "fr"] {
+            let path = try XCTUnwrap(Bundle.main.path(forResource: language, ofType: "lproj"))
+            let bundle = try XCTUnwrap(Bundle(path: path))
+            for key in english.keys.sorted() {
+                let value = bundle.localizedString(forKey: key, value: nil, table: "Localizable")
+                XCTAssertNotEqual(value, key, "Missing bundled translation: \(language) / \(key)")
+                XCTAssertFalse(value.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+            }
+        }
+    }
+
     func testDesignPolishCopyExistsInEverySupportedLocalization() throws {
         let root = localizedDataRoot()
         let languages = ["ru", "en", "es", "de", "it", "fr"]
