@@ -441,6 +441,13 @@ extension QuizViewController {
         cardView.onBack = { [weak self] in
             self?.handleExpandedThemeCardFlipTap()
         }
+        cardView.onCountryChanged = { [weak self] country in
+            guard let self, let theme = self.expandedTheme,
+                  theme.stableID == "politics_business", !self.isQuizLaunchPending else { return }
+            QuestionCountryStore.shared.country = country
+            // Drop any prepared batch; keep only the current catalog metadata.
+            self.session.chosenTheme = ThemeModel(quizTheme: theme)
+        }
         cardView.onDifficultyChanged = { [weak self] difficulty in
             self?.sendHomeCardAction(.difficultySelected(difficulty))
         }

@@ -323,6 +323,14 @@ final class QuizFlowCoordinator: NSObject, QuizRouting, UIViewControllerTransiti
 
     func replayQuiz() {
         guard aiReplayTask == nil, catalogReplayTask == nil else { return }
+        if let theme = session.chosenTheme?.quizTheme,
+           theme.stableID == "politics_business", !theme.countries.isEmpty {
+            returnToThemes { [weak self] in
+                (self?.navigationController.viewControllers.first as? QuizViewController)?
+                    .configureNextRound(themeID: theme.stableID)
+            }
+            return
+        }
         if session.chosenTheme?.themeID == RandomQuizSelection.themeID {
             replayRandomSelectionQuiz()
             return
@@ -562,6 +570,10 @@ final class QuizFlowCoordinator: NSObject, QuizRouting, UIViewControllerTransiti
     }
 
     func returnToThemes() {
+        returnToThemes(completion: nil)
+    }
+
+    private func returnToThemes(completion: (() -> Void)?) {
         catalogReplayTask?.cancel()
         stopCatalogReplayLoading()
         aiReplayTask?.cancel()
@@ -570,7 +582,7 @@ final class QuizFlowCoordinator: NSObject, QuizRouting, UIViewControllerTransiti
         navigationController.popToRootViewController(animated: false)
         (navigationController.viewControllers.first as? QuizHomeReturnHandling)?
             .quizFlowWillReturnToThemes()
-        navigationController.dismiss(animated: true)
+        navigationController.dismiss(animated: true, completion: completion)
     }
 
     private func presentCatalogReplayFailure(_ error: Error) {
