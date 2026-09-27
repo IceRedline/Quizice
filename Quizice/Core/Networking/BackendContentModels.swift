@@ -91,6 +91,37 @@ struct BackendThemeDTO: Decodable, Equatable {
     let emoji: String
     let colorHex: String
     let isFavorite: Bool
+    let countries: [String]
+
+    init(
+        id: String, name: String, description: String, sfSymbol: String,
+        emoji: String, colorHex: String, isFavorite: Bool, countries: [String] = []
+    ) {
+        self.id = id
+        self.name = name
+        self.description = description
+        self.sfSymbol = sfSymbol
+        self.emoji = emoji
+        self.colorHex = colorHex
+        self.isFavorite = isFavorite
+        self.countries = countries
+    }
+
+    private enum CodingKeys: String, CodingKey {
+        case id, name, description, sfSymbol, emoji, colorHex, isFavorite, countries
+    }
+
+    init(from decoder: Decoder) throws {
+        let values = try decoder.container(keyedBy: CodingKeys.self)
+        id = try values.decode(String.self, forKey: .id)
+        name = try values.decode(String.self, forKey: .name)
+        description = try values.decode(String.self, forKey: .description)
+        sfSymbol = try values.decode(String.self, forKey: .sfSymbol)
+        emoji = try values.decode(String.self, forKey: .emoji)
+        colorHex = try values.decode(String.self, forKey: .colorHex)
+        isFavorite = try values.decode(Bool.self, forKey: .isFavorite)
+        countries = try values.decodeIfPresent([String].self, forKey: .countries) ?? []
+    }
 }
 
 struct BackendThemeCatalogResponse: Decodable, Equatable {
@@ -235,23 +266,26 @@ struct BackendQuestionBatchResponse: Decodable, Equatable {
     let locale: String
     let seed: String
     let progressMode: QuestionProgressMode?
+    let country: String?
     let availableCount: Int
     let questions: [BackendQuestionDTO]
 
     enum CodingKeys: String, CodingKey {
-        case locale, seed, progressMode, availableCount, questions
+        case locale, seed, progressMode, country, availableCount, questions
     }
 
     init(
         locale: String,
         seed: String,
         progressMode: QuestionProgressMode? = nil,
+        country: String? = nil,
         availableCount: Int? = nil,
         questions: [BackendQuestionDTO]
     ) {
         self.locale = locale
         self.seed = seed
         self.progressMode = progressMode
+        self.country = country
         self.availableCount = availableCount ?? questions.count
         self.questions = questions
     }
@@ -261,6 +295,7 @@ struct BackendQuestionBatchResponse: Decodable, Equatable {
         locale = try values.decode(String.self, forKey: .locale)
         seed = try values.decode(String.self, forKey: .seed)
         progressMode = try values.decodeIfPresent(QuestionProgressMode.self, forKey: .progressMode)
+        country = try values.decodeIfPresent(String.self, forKey: .country)
         questions = try values.decode([BackendQuestionDTO].self, forKey: .questions)
         availableCount = try values.decodeIfPresent(Int.self, forKey: .availableCount) ?? questions.count
     }
@@ -301,4 +336,28 @@ struct QuestionAnswerBatchRequest: Encodable, Equatable {
 
 struct QuestionAnswerBatchResponse: Decodable, Equatable {
     let processedEventIds: [UUID]
+}
+
+final class QuestionCountryStore {
+    static let shared = QuestionCountryStore()
+    static let defaultsKey = "quizice.question-country"
+    static let supportedCodes: Set<String> = ["DE", "US", "ES", "FR", "IT", "RU"]
+    private let defaults: UserDefaults
+
+    init(defaults: UserDefaults = .standard) { self.defaults = defaults }
+
+    var country: String? {
+        get {
+            guard let code = defaults.string(forKey: Self.defaultsKey),
+                  Self.supportedCodes.contains(code) else { return nil }
+            return code
+        }
+        set {
+            if let newValue, Self.supportedCodes.contains(newValue) {
+                defaults.set(newValue, forKey: Self.defaultsKey)
+            } else {
+                defaults.removeObject(forKey: Self.defaultsKey)
+            }
+        }
+    }
 }

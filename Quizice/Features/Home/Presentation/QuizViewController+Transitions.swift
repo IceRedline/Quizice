@@ -59,6 +59,10 @@ extension QuizViewController {
         expandedCardSourceContentView?.alpha = 0
         expandedCardSourceContentView?.isHidden = true
         homeStore.send(.expansionCompleted)
+        if showRoundConfigurationAfterExpansion {
+            showRoundConfigurationAfterExpansion = false
+            sendHomeCardAction(.flipRequested)
+        }
         updateExpandedThemeCardParallaxPhase()
         if expandedCardNeedsRefresh {
             refreshExpandedThemeCardAppearance()

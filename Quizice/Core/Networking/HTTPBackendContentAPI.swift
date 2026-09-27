@@ -46,7 +46,7 @@ final class HTTPBackendContentAPI: BackendContentAPI {
             url: url,
             operation: .themes,
             accessToken: accessTokenProvider.validAccessToken(),
-            validate: { Self.isValid($0, requestedLocale: locale) }
+            validate: { BackendContentResponseValidator.isValid($0, requestedLocale: locale) }
         )
     }
 
@@ -65,7 +65,7 @@ final class HTTPBackendContentAPI: BackendContentAPI {
             url: url,
             operation: .themePreferences,
             accessToken: accessToken,
-            validate: { Self.isValid($0, requestedLocale: locale) }
+            validate: { BackendContentResponseValidator.isValid($0, requestedLocale: locale) }
         )
     }
 
@@ -79,7 +79,7 @@ final class HTTPBackendContentAPI: BackendContentAPI {
         guard let accessToken = accessTokenProvider.validAccessToken() else {
             throw BackendContentError.unauthenticated
         }
-        let normalizedIDs = Self.normalizedThemeIDs(favoriteThemeIDs)
+        let normalizedIDs = BackendContentResponseValidator.normalizedThemeIDs(favoriteThemeIDs)
         guard normalizedIDs.count == favoriteThemeIDs.count else {
             throw BackendContentError.invalidRequest
         }
@@ -95,7 +95,7 @@ final class HTTPBackendContentAPI: BackendContentAPI {
                 locale: locale,
                 favoriteThemeIds: normalizedIDs
             ),
-            validate: { Self.isValid($0, requestedLocale: locale) }
+            validate: { BackendContentResponseValidator.isValid($0, requestedLocale: locale) }
         )
     }
 
@@ -185,14 +185,29 @@ final class HTTPBackendContentAPI: BackendContentAPI {
         )
     }
 
+    func fetchQuestions(
+        themeID: String, count: Int, locale: String,
+        difficulty: AIQuizDifficulty, seed: String,
+        strategy: QuestionRepeatStrategy, country: String?
+    ) async throws -> BackendQuestionBatchResponse {
+        try await fetchQuestionBatch(
+            themeID: themeID, count: count, locale: locale,
+            difficulty: difficulty, seed: seed, strategy: strategy, country: country
+        )
+    }
+
     private func fetchQuestionBatch(
         themeID: String,
         count: Int,
         locale: String,
         difficulty: AIQuizDifficulty?,
         seed: String,
-        strategy: QuestionRepeatStrategy
+        strategy: QuestionRepeatStrategy,
+        country: String? = nil
     ) async throws -> BackendQuestionBatchResponse {
+        guard country.map(QuestionCountryStore.supportedCodes.contains) ?? true else {
+            throw BackendContentError.invalidRequest
+        }
         let normalizedThemeID = themeID.trimmingCharacters(in: .whitespacesAndNewlines)
         let normalizedSeed = seed.trimmingCharacters(in: .whitespacesAndNewlines)
         guard
@@ -213,6 +228,9 @@ final class HTTPBackendContentAPI: BackendContentAPI {
                 URLQueryItem(name: "difficulty", value: difficulty.rawValue)
             )
         }
+        if let country {
+            queryItems.append(URLQueryItem(name: "country", value: country))
+        }
         queryItems.append(URLQueryItem(name: "seed", value: normalizedSeed))
         if let progressMode = strategy.progressMode {
             queryItems.append(URLQueryItem(name: "progressMode", value: progressMode.rawValue))
@@ -230,11 +248,12 @@ final class HTTPBackendContentAPI: BackendContentAPI {
             operation: .questions,
             accessToken: accessToken,
             validate: {
-                Self.isValid(
+                BackendContentResponseValidator.isValid(
                     $0,
                     requestedCount: count,
                     requestedLocale: locale,
-                    requestedSeed: normalizedSeed
+                    requestedSeed: normalizedSeed,
+                    requestedCountry: country
                 )
             }
         )
@@ -291,14 +310,29 @@ final class HTTPBackendContentAPI: BackendContentAPI {
         )
     }
 
+    func fetchRandomQuestions(
+        selectionMode: CrossThemeQuestionSelectionMode, count: Int, locale: String,
+        difficulty: AIQuizDifficulty, seed: String,
+        strategy: QuestionRepeatStrategy, country: String?
+    ) async throws -> BackendQuestionBatchResponse {
+        try await fetchRandomQuestionBatch(
+            selectionMode: selectionMode, count: count, locale: locale,
+            difficulty: difficulty, seed: seed, strategy: strategy, country: country
+        )
+    }
+
     private func fetchRandomQuestionBatch(
         selectionMode: CrossThemeQuestionSelectionMode,
         count: Int,
         locale: String,
         difficulty: AIQuizDifficulty?,
         seed: String,
-        strategy: QuestionRepeatStrategy
+        strategy: QuestionRepeatStrategy,
+        country: String? = nil
     ) async throws -> BackendQuestionBatchResponse {
+        guard country.map(QuestionCountryStore.supportedCodes.contains) ?? true else {
+            throw BackendContentError.invalidRequest
+        }
         let normalizedSeed = seed.trimmingCharacters(in: .whitespacesAndNewlines)
         guard
             UUID(uuidString: normalizedSeed)?.uuidString.lowercased() == normalizedSeed,
@@ -317,6 +351,9 @@ final class HTTPBackendContentAPI: BackendContentAPI {
                 URLQueryItem(name: "difficulty", value: difficulty.rawValue)
             )
         }
+        if let country {
+            queryItems.append(URLQueryItem(name: "country", value: country))
+        }
         queryItems.append(URLQueryItem(name: "seed", value: normalizedSeed))
         if let progressMode = strategy.progressMode {
             queryItems.append(URLQueryItem(name: "progressMode", value: progressMode.rawValue))
@@ -334,11 +371,12 @@ final class HTTPBackendContentAPI: BackendContentAPI {
             operation: .questions,
             accessToken: accessToken,
             validate: {
-                Self.isValid(
+                BackendContentResponseValidator.isValid(
                     $0,
                     requestedCount: count,
                     requestedLocale: locale,
-                    requestedSeed: normalizedSeed
+                    requestedSeed: normalizedSeed,
+                    requestedCountry: country
                 )
             }
         )
@@ -613,82 +651,6 @@ final class HTTPBackendContentAPI: BackendContentAPI {
 
     private static func isSupported(locale: String) -> Bool {
         AppLanguagePreference.explicitPreference(for: locale) != nil
-    }
-
-    private static func isValid(
-        _ response: BackendThemeCatalogResponse,
-        requestedLocale: String
-    ) -> Bool {
-        guard response.locale == requestedLocale, !response.themes.isEmpty else { return false }
-        var identifiers = Set<String>()
-        return response.themes.allSatisfy { theme in
-            let id = theme.id.trimmingCharacters(in: .whitespacesAndNewlines)
-            let name = theme.name.trimmingCharacters(in: .whitespacesAndNewlines)
-            let description = theme.description.trimmingCharacters(in: .whitespacesAndNewlines)
-            let sfSymbol = theme.sfSymbol.trimmingCharacters(in: .whitespacesAndNewlines)
-            let emoji = theme.emoji.trimmingCharacters(in: .whitespacesAndNewlines)
-            let colorHex = QuizThemeColor.normalizedHex(theme.colorHex)
-            return !id.isEmpty
-                && !name.isEmpty
-                && !description.isEmpty
-                && !sfSymbol.isEmpty
-                && !emoji.isEmpty
-                && colorHex == theme.colorHex
-                && identifiers.insert(id).inserted
-        }
-    }
-
-    private static func isValid(
-        _ response: BackendThemePreferencesResponse,
-        requestedLocale: String
-    ) -> Bool {
-        response.locale == requestedLocale
-            && normalizedThemeIDs(response.favoriteThemeIds) == response.favoriteThemeIds
-    }
-
-    private static func normalizedThemeIDs(_ themeIDs: [String]) -> [String] {
-        var identifiers = Set<String>()
-        return themeIDs.compactMap { themeID in
-            let normalizedID = themeID.trimmingCharacters(in: .whitespacesAndNewlines)
-            guard !normalizedID.isEmpty, identifiers.insert(normalizedID).inserted else { return nil }
-            return normalizedID
-        }
-    }
-
-    private static func isValid(
-        _ response: BackendQuestionBatchResponse,
-        requestedCount: Int,
-        requestedLocale: String,
-        requestedSeed: String
-    ) -> Bool {
-        guard
-            response.locale == requestedLocale,
-            response.seed == requestedSeed,
-            response.questions.count <= requestedCount,
-            response.availableCount >= response.questions.count
-        else { return false }
-
-        var prompts = Set<String>()
-        var questionIDs = Set<String>()
-        return response.questions.allSatisfy { question in
-            let questionID = question.questionId?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
-            let prompt = question.question.trimmingCharacters(in: .whitespacesAndNewlines)
-            let answers = question.answers.map {
-                $0.trimmingCharacters(in: .whitespacesAndNewlines)
-            }
-            let correctAnswer = question.correctAnswer.trimmingCharacters(in: .whitespacesAndNewlines)
-            return !questionID.isEmpty
-                && questionIDs.insert(questionID).inserted
-                && (question.questionVersion ?? 0) > 0
-                && !prompt.isEmpty
-                && prompt.count <= 500
-                && prompts.insert(prompt).inserted
-                && answers.count == 4
-                && answers.allSatisfy { !$0.isEmpty }
-                && answers.allSatisfy { $0.count <= 300 }
-                && Set(answers).count == answers.count
-                && answers.filter { $0 == correctAnswer }.count == 1
-        }
     }
 
     private static func milliseconds(_ duration: Duration) -> Int {

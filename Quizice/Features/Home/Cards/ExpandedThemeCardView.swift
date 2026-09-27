@@ -75,6 +75,7 @@ final class ExpandedThemeCardView: UIView, UIGestureRecognizerDelegate {
     var onClose: (() -> Void)?
     var onFlip: (() -> Void)?
     var onBack: (() -> Void)?
+    var onCountryChanged: ((String?) -> Void)?
     var onDifficultyChanged: ((AIQuizDifficulty) -> Void)?
     var onQuestionCountChanged: ((Int) -> Void)?
     var onStart: (() -> Void)?
@@ -122,6 +123,9 @@ final class ExpandedThemeCardView: UIView, UIGestureRecognizerDelegate {
     let backTitleLabel = UILabel()
     let descriptionScrollView = UIScrollView()
     let backDescriptionLabel = UILabel()
+    let countryButton = UIButton(type: .system)
+    var availableCountries: [String] = []
+    var selectedCountry: String?
     let difficultyLabel = UILabel()
     let difficultyControl = UISegmentedControl(
         items: AIQuizDifficulty.allCases.map(\.title)
@@ -243,7 +247,8 @@ final class ExpandedThemeCardView: UIView, UIGestureRecognizerDelegate {
         appearance: AppAppearance,
         availableQuestionCounts: [Int],
         selectedQuestionCount: Int?,
-        selectedDifficulty: AIQuizDifficulty = .medium
+        selectedDifficulty: AIQuizDifficulty = .medium,
+        selectedCountry: String? = QuestionCountryStore.shared.country
     ) {
         faceTransitionDriver.cancel()
 
@@ -293,6 +298,7 @@ final class ExpandedThemeCardView: UIView, UIGestureRecognizerDelegate {
             themeTintColor: tintColor,
             borderColor: borderColor
         )
+        configureCountries(theme: theme, selectedCountry: selectedCountry)
         configureDifficulty(selectedDifficulty)
         // `configureQuestionCounts` must run before `setStartLoading` so the
         // Start button's enabled state is only ever written once, using the

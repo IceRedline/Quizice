@@ -340,3 +340,83 @@ private final class BackendOnlyHomeThemeRepository: ThemeRepository {
         )
     }
 }
+
+extension HomeThemeCardStateTests {
+    func testCountryPickerAppearsOnlyOnPoliticsCardBackAndCanChangeEveryRound() throws {
+        let card = ExpandedThemeCardView(frame: CGRect(x: 0, y: 0, width: 342, height: 550))
+        let appearance = AppAppearance(
+            designStyle: .clean, cleanColorSchemePreference: .dark,
+            traitCollection: UITraitCollection(userInterfaceStyle: .dark)
+        )
+        let politics = makeTheme(name: "Политика и бизнес", questionCount: 15)
+        politics.id = "politics_business"
+        politics.countries = ["DE", "US", "ES", "FR", "IT", "RU"]
+        card.configure(theme: politics, appearance: appearance, availableQuestionCounts: [5, 10, 15],
+                       selectedQuestionCount: 5, selectedCountry: nil)
+        card.setFace(.back, animated: false)
+        card.layoutIfNeeded()
+        XCTAssertFalse(card.countryButton.isHidden)
+        XCTAssertTrue(card.countryButton.isDescendant(of: card.backFaceView))
+        XCTAssertTrue(card.backControlsStack.arrangedSubviews.contains(card.countryButton))
+        XCTAssertEqual(card.countryButton.menu?.children.count, 7)
+        XCTAssertEqual(card.countryButton.accessibilityValue, L10n.ThemeCard.internationalQuestions)
+        var choices: [String?] = []
+        card.onCountryChanged = { choices.append($0) }
+        card.selectCountry("US")
+        XCTAssertEqual(card.selectedCountry, "US")
+        card.selectCountry("DE")
+        card.selectCountry(nil)
+        XCTAssertEqual(choices, ["US", "DE", nil])
+        card.selectCountry("GB")
+        XCTAssertEqual(choices.count, 3)
+        card.setStartLoading(true)
+        card.selectCountry("US")
+        XCTAssertNil(card.selectedCountry)
+        XCTAssertFalse(card.countryButton.isEnabled)
+
+        let music = makeTheme(name: "Music", questionCount: 15)
+        music.countries = ["US"] // Even unexpected metadata must not expose the picker on other themes.
+        card.configure(theme: music, appearance: appearance, availableQuestionCounts: [5], selectedQuestionCount: 5)
+        XCTAssertTrue(card.countryButton.isHidden)
+        politics.countries = []
+        card.configure(theme: politics, appearance: appearance, availableQuestionCounts: [5], selectedQuestionCount: 5)
+        XCTAssertTrue(card.countryButton.isHidden)
+    }
+
+    func testCountryMetadataSurvivesSwiftDataCacheRoundTrip() throws {
+        let container = try ModelContainer(for: SwiftDataThemeStore.schema,
+                                          configurations: ModelConfiguration(isStoredInMemoryOnly: true))
+        let store = SwiftDataThemeStore(context: container.mainContext)
+        let theme = makeTheme(name: "Politics", questionCount: 0)
+        theme.id = "politics_business"
+        theme.countries = ["DE", "US", "ES", "FR", "IT", "RU"]
+        store.replaceThemes(with: [theme], locale: "ru", catalogOrigin: .backend)
+        let restored = try XCTUnwrap(store.fetchThemes().first)
+        XCTAssertEqual(restored.countries, theme.countries)
+        XCTAssertEqual(restored.questionOrigin, theme.questionOrigin)
+    }
+
+    func testNextRoundOpensPoliticsCardBackForCountrySelection() throws {
+        let previousCountry = QuestionCountryStore.shared.country
+        defer { QuestionCountryStore.shared.country = previousCountry }
+        QuestionCountryStore.shared.country = nil
+        let theme = makeTheme(name: "Политика и бизнес", questionCount: 15)
+        theme.id = "politics_business"
+        theme.countries = ["US", "RU"]
+        QuizFactory.shared.themes = [theme]
+        let controller = makeHomeViewController(in: CGRect(x: 0, y: 0, width: 390, height: 844))
+        controller.configureNextRound(themeID: theme.id)
+        drainAnimations(0.8)
+        XCTAssertEqual(controller.homeCardState.phase, .expandedBack)
+        XCTAssertEqual(controller.expandedThemeCardView?.face, .back)
+        XCTAssertEqual(controller.expandedThemeCardView?.countryButton.isHidden, false)
+        controller.expandedThemeCardView?.selectCountry("US")
+        XCTAssertEqual(QuestionCountryStore.shared.country, "US")
+        controller.resetExpandedThemeCard()
+        controller.configureNextRound(themeID: theme.id)
+        drainAnimations(0.8)
+        XCTAssertEqual(controller.expandedThemeCardView?.selectedCountry, "US")
+        controller.expandedThemeCardView?.selectCountry("RU")
+        XCTAssertEqual(QuestionCountryStore.shared.country, "RU")
+    }
+}

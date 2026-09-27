@@ -38,6 +38,7 @@ class QuizTheme {
     var aiGenerationConfiguration: AIQuizGenerationConfiguration?
     var questionOrigin: QuizQuestionOrigin
     var difficulty: AIQuizDifficulty?
+    var countries: [String]
     
     init(
         id: String,
@@ -51,7 +52,8 @@ class QuizTheme {
         source: QuizThemeSource = .catalog,
         questionOrigin: QuizQuestionOrigin = .bundled,
         aiGenerationConfiguration: AIQuizGenerationConfiguration? = nil,
-        difficulty: AIQuizDifficulty? = nil
+        difficulty: AIQuizDifficulty? = nil,
+        countries: [String] = []
     ) {
         self.id = id
         self.theme = theme
@@ -67,6 +69,7 @@ class QuizTheme {
         self.questionOrigin = questionOrigin
         self.aiGenerationConfiguration = aiGenerationConfiguration
         self.difficulty = difficulty
+        self.countries = countries
     }
 
     var source: QuizThemeSource {

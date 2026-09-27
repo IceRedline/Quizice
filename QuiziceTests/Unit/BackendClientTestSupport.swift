@@ -125,6 +125,24 @@ struct SlowBackendContentAPI: BackendContentAPI {
 }
 
 final class RecordingBackendContentAPI: BackendContentAPI {
+    private(set) var requestedCountries: [String?] = []
+
+    func fetchQuestions(
+        themeID: String, count: Int, locale: String, difficulty: AIQuizDifficulty,
+        seed: String, strategy: QuestionRepeatStrategy, country: String?
+    ) async throws -> BackendQuestionBatchResponse {
+        requestedCountries.append(country)
+        return try await fetchQuestions(themeID: themeID, count: count, locale: locale, seed: seed)
+    }
+
+    func fetchRandomQuestions(
+        selectionMode: CrossThemeQuestionSelectionMode, count: Int, locale: String,
+        difficulty: AIQuizDifficulty, seed: String, strategy: QuestionRepeatStrategy, country: String?
+    ) async throws -> BackendQuestionBatchResponse {
+        requestedCountries.append(country)
+        return try await fetchRandomQuestions(selectionMode: selectionMode, count: count, locale: locale, seed: seed)
+    }
+
     private let catalogThemes: [BackendThemeDTO]
     private let questionError: Error?
     var returnedQuestionCount: Int?
