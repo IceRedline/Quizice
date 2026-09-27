@@ -412,7 +412,7 @@ final class BackendAIQuizThemeService: AIQuizThemeServiceProtocol {
                 .invalidCorrectAnswer(questionIndex: index)
             )
         }
-        guard payload.explanation.isEmpty else {
+        guard payload.explanation.count <= 2_000 else {
             throw YandexAIQuizThemeServiceError.invalidContract(
                 .invalidExplanation(questionIndex: index)
             )

@@ -238,7 +238,11 @@ extension BackendClientTests {
                 "message": "",
                 "theme": "Космос",
                 "themeDescription": "Описание",
-                "questions": (0..<5).map(Self.questionJSON)
+                "questions": (0..<5).map { index in
+                    var question = Self.questionJSON(index: index)
+                    question["explanation"] = "Пояснение к ответу"
+                    return question
+                }
             ])
             return Self.response(for: request, data: responseBody)
         }
@@ -249,5 +253,6 @@ extension BackendClientTests {
         XCTAssertEqual(theme.questions.count, 5)
         XCTAssertEqual(theme.aiGenerationConfiguration, Self.aiConfiguration)
         XCTAssertEqual(theme.questionOrigin, .backend)
+        XCTAssertEqual(theme.questions.first?.explanation, "Пояснение к ответу")
     }
 }
