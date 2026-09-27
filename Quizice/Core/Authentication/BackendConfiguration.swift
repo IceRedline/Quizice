@@ -2,6 +2,8 @@ import Foundation
 
 struct BackendConfiguration: Equatable {
     static let infoPlistKey = "BackendBaseURL"
+    // Yandex Serverless Containers consumes Authorization before forwarding requests.
+    static let authorizationHeader = "X-Quizice-Authorization"
 
     let baseURL: URL
 

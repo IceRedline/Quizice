@@ -150,7 +150,7 @@ final class HTTPAuthAPI: AuthAPI {
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         request.setValue("application/json", forHTTPHeaderField: "Accept")
         if let accessToken {
-            request.setValue("Bearer \(accessToken)", forHTTPHeaderField: "Authorization")
+            request.setValue("Bearer \(accessToken)", forHTTPHeaderField: BackendConfiguration.authorizationHeader)
         }
         additionalHeaders.forEach { request.setValue($0.value, forHTTPHeaderField: $0.key) }
         do {
