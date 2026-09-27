@@ -243,3 +243,6 @@
 
 "theme_card.country" = "Страна";
 "theme_card.international_questions" = "Международные вопросы";
+
+"ai_theme.error.quota.title" = "Месячный лимит исчерпан";
+"ai_theme.error.quota.message" = "Вы использовали доступные генерации квизов с ИИ. Новые генерации станут доступны в начале следующего месяца.";

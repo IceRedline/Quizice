@@ -141,6 +141,11 @@ enum L10n {
         }
 
         enum Error {
+            enum Quota {
+                static var title: String { L10n.localized("ai_theme.error.quota.title", comment: "Monthly AI limit title") }
+                static var message: String { L10n.localized("ai_theme.error.quota.message", comment: "Monthly AI limit message") }
+            }
+
             enum Refusal {
                 static var title: String { L10n.localized("ai_theme.error.refusal.title", comment: "AI refusal title") }
                 static var message: String { L10n.localized("ai_theme.error.refusal.message", comment: "AI refusal message") }

@@ -4,6 +4,17 @@ import XCTest
 
 @MainActor
 final class YandexAIQuizThemeErrorTests: YandexAIQuizThemeServiceTestCase {
+    func testMonthlyQuotaIsDistinctFromProviderOverloadAndCannotImmediatelyRetry() {
+        let quota = AIQuizGenerationAlert(error: YandexAIQuizThemeServiceError.quotaExceeded)
+        let overload = AIQuizGenerationAlert(error: YandexAIQuizThemeServiceError.httpStatus(429))
+        XCTAssertEqual(quota.kind, .quota)
+        XCTAssertFalse(quota.canRetry)
+        XCTAssertFalse(quota.offersEditAction)
+        XCTAssertEqual(overload.kind, .service)
+        XCTAssertTrue(overload.canRetry)
+        XCTAssertFalse(quota.message.contains("50"))
+    }
+
     func testURLCancellationIsPropagatedAsCancellationError() async {
         YandexAIURLProtocolStub.requestHandler = { _ in
             throw URLError(.cancelled)

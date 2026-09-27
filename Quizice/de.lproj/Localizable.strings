@@ -243,3 +243,6 @@
 
 "theme_card.country" = "Land";
 "theme_card.international_questions" = "Internationale Fragen";
+
+"ai_theme.error.quota.title" = "Monatslimit erreicht";
+"ai_theme.error.quota.message" = "Du hast deine verfügbaren KI-Quizgenerierungen aufgebraucht. Neue Generierungen stehen zu Beginn des nächsten Monats zur Verfügung.";

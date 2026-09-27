@@ -35,6 +35,7 @@ enum YandexAIQuizThemeServiceError: Error, Equatable {
     case httpStatus(Int)
     case generationStatus(String)
     case refused
+    case quotaExceeded
     case invalidResponseJSON
     case missingOutputText
     case invalidQuizJSON
@@ -55,6 +56,7 @@ extension YandexAIQuizThemeServiceError {
         case .httpStatus: return "http_status"
         case .generationStatus: return "generation_status"
         case .refused: return "refused"
+        case .quotaExceeded: return "ai_quota_exceeded"
         case .invalidResponseJSON: return "invalid_response_json"
         case .missingOutputText: return "missing_output_text"
         case .invalidQuizJSON: return "invalid_quiz_json"
@@ -127,6 +129,8 @@ private extension YandexAIQuizThemeServiceError {
             return "generation_status status=\(status)"
         case .refused:
             return "refused"
+        case .quotaExceeded:
+            return "ai_quota_exceeded"
         case .invalidResponseJSON:
             return "invalid_response_json"
         case .missingOutputText:
@@ -162,6 +166,8 @@ extension YandexAIQuizThemeServiceError: LocalizedError {
             return "The AI service returned HTTP \(statusCode)."
         case let .generationStatus(status):
             return "The AI service did not complete generation (\(status))."
+        case .quotaExceeded:
+            return "The monthly AI generation allowance is exhausted."
         case .refused:
             return "The AI service refused to generate a quiz for this topic."
         case .invalidResponseJSON:
