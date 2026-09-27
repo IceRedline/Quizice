@@ -82,6 +82,7 @@ final class GameCenterAuthenticationService {
             )
             api = httpAPI
         } else {
+            AppLog.auth.error("[Auth] Backend configuration is unavailable")
             api = UnavailableAuthAPI()
         }
         let service = GameCenterAuthenticationService(
@@ -237,6 +238,7 @@ final class GameCenterAuthenticationService {
         if allowsCachedSession,
            let cachedSession = loadStoredSession(),
            cachedSession.isValid(for: teamPlayerID, now: now()) {
+            AppLog.auth.notice("[Auth] Restoring a valid cached backend session")
             completeAuthentication(
                 with: cachedSession,
                 attemptID: attemptID,
@@ -270,6 +272,10 @@ final class GameCenterAuthenticationService {
                 currentTeamPlayerID == teamPlayerID,
                 authenticationAttemptID == attemptID
             else { return }
+            let diagnostic = error as NSError
+            AppLog.auth.error(
+                "[Auth] Backend session exchange failed: domain=\(diagnostic.domain, privacy: .public) code=\(diagnostic.code)"
+            )
             enterGuestMode(preservingGameCenterPlayer: true)
         }
     }
@@ -287,7 +293,9 @@ final class GameCenterAuthenticationService {
         else {
             throw GameCenterAuthenticationError.playerChanged
         }
+        AppLog.auth.notice("[Auth] Sending Game Center identity to backend")
         let session = try await api.authenticate(identity: identity)
+        AppLog.auth.notice("[Auth] Backend issued a session; saving to Keychain")
         try Task.checkCancellation()
         guard
             session.teamPlayerID == teamPlayerID,
@@ -313,6 +321,7 @@ final class GameCenterAuthenticationService {
         authenticationTask = nil
         statisticsStore.activateAuthenticatedUser(session.userID)
         state = .authenticated(userID: session.userID, teamPlayerID: session.teamPlayerID)
+        AppLog.auth.notice("[Auth] Backend session established")
         aiQuizAccessStore.update(isAuthenticated: true)
         notificationCenter.post(name: .backendAuthenticationEstablished, object: nil)
         synchronizeStatistics(
@@ -371,6 +380,7 @@ final class GameCenterAuthenticationService {
 
     private func performStatisticsSync(session: AuthSession, mayRefreshToken: Bool) async -> Bool {
         let request = statisticsStore.makeSyncRequest(for: session.userID)
+        AppLog.auth.notice("[Auth] Synchronizing statistics: attempts=\(request.attempts.count)")
         do {
             let response = try await api.syncStatistics(
                 request: request,

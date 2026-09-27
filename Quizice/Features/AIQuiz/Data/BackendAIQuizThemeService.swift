@@ -136,7 +136,7 @@ final class BackendAIQuizThemeService: AIQuizThemeServiceProtocol {
         request.httpBody = requestBody
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         request.setValue("application/json", forHTTPHeaderField: "Accept")
-        request.setValue("Bearer \(authSession.accessToken)", forHTTPHeaderField: "Authorization")
+        request.setValue("Bearer \(authSession.accessToken)", forHTTPHeaderField: BackendConfiguration.authorizationHeader)
 
         let startedAt = clock.now
         let data: Data

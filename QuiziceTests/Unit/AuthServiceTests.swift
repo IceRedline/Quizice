@@ -298,6 +298,7 @@ final class HTTPAuthAPITests: XCTestCase {
         let api = makeAPI(metrics: metrics)
         var requestNumber = 0
         AuthURLProtocol.requestHandler = { request in
+            XCTAssertNil(request.value(forHTTPHeaderField: "Authorization"))
             requestNumber += 1
             if requestNumber == 1 {
                 XCTAssertEqual(request.url?.path, "/api/v1/auth/game-center")
@@ -323,7 +324,7 @@ final class HTTPAuthAPITests: XCTestCase {
             }
 
             XCTAssertEqual(request.url?.path, "/api/v1/me/statistics/sync")
-            XCTAssertEqual(request.value(forHTTPHeaderField: "Authorization"), "Bearer token")
+            XCTAssertEqual(request.value(forHTTPHeaderField: "X-Quizice-Authorization"), "Bearer token")
             let body = try XCTUnwrap(Self.bodyData(from: request))
             let json = try XCTUnwrap(JSONSerialization.jsonObject(with: body) as? [String: Any])
             XCTAssertEqual(Set(json.keys), ["migrationId", "legacySummary", "attempts"])
