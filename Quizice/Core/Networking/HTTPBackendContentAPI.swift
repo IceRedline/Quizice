@@ -393,7 +393,7 @@ final class HTTPBackendContentAPI: BackendContentAPI {
         request.httpMethod = "GET"
         request.setValue("application/json", forHTTPHeaderField: "Accept")
         if let accessToken {
-            request.setValue("Bearer \(accessToken)", forHTTPHeaderField: "Authorization")
+            request.setValue("Bearer \(accessToken)", forHTTPHeaderField: BackendConfiguration.authorizationHeader)
         }
         return try await perform(
             request: request,
@@ -422,7 +422,7 @@ final class HTTPBackendContentAPI: BackendContentAPI {
         request.httpBody = bodyData
         request.setValue("application/json", forHTTPHeaderField: "Accept")
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        request.setValue("Bearer \(accessToken)", forHTTPHeaderField: "Authorization")
+        request.setValue("Bearer \(accessToken)", forHTTPHeaderField: BackendConfiguration.authorizationHeader)
         return try await perform(
             request: request,
             operation: operation,
@@ -450,7 +450,7 @@ final class HTTPBackendContentAPI: BackendContentAPI {
         request.httpBody = bodyData
         request.setValue("application/json", forHTTPHeaderField: "Accept")
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        request.setValue("Bearer \(accessToken)", forHTTPHeaderField: "Authorization")
+        request.setValue("Bearer \(accessToken)", forHTTPHeaderField: BackendConfiguration.authorizationHeader)
         return try await perform(request: request, operation: operation, validate: validate, expectedUserID: expectedUserID)
     }
 
@@ -512,7 +512,7 @@ final class HTTPBackendContentAPI: BackendContentAPI {
                 if httpResponse.statusCode == 401,
                    allowsAuthenticationRetry,
                    let authenticationRecoverer,
-                   let authorization = request.value(forHTTPHeaderField: "Authorization"),
+                   let authorization = request.value(forHTTPHeaderField: BackendConfiguration.authorizationHeader),
                    authorization.hasPrefix("Bearer ") {
                     if let expectedUserID,
                        accessTokenProvider.currentSession()?.userID != expectedUserID {
@@ -529,7 +529,7 @@ final class HTTPBackendContentAPI: BackendContentAPI {
                     var retryRequest = request
                     retryRequest.setValue(
                         "Bearer \(refreshedToken)",
-                        forHTTPHeaderField: "Authorization"
+                        forHTTPHeaderField: BackendConfiguration.authorizationHeader
                     )
                     return try await perform(
                         request: retryRequest,

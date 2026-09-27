@@ -15,6 +15,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         NetworkLogger.shared = NetworkLogger {
             $0.sensitiveHeaders = [
                 "Authorization",
+                BackendConfiguration.authorizationHeader,
                 "Cookie",
                 "Set-Cookie",
                 "X-API-Key",

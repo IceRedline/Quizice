@@ -11,10 +11,11 @@ final class BackendClientTests: XCTestCase {
         let metrics = BackendMetricSpy()
         let api = makeContentAPI(metrics: metrics, accessToken: "catalog-token")
         BackendTestURLProtocol.requestHandler = { request in
+            XCTAssertNil(request.value(forHTTPHeaderField: "Authorization"))
             XCTAssertEqual(request.url?.path, "/api/v1/themes")
             XCTAssertEqual(request.url?.query, "locale=ru")
             XCTAssertEqual(
-                request.value(forHTTPHeaderField: "Authorization"),
+                request.value(forHTTPHeaderField: "X-Quizice-Authorization"),
                 "Bearer catalog-token"
             )
 #if DEBUG
@@ -49,7 +50,7 @@ final class BackendClientTests: XCTestCase {
             XCTAssertEqual(request.url?.path, "/api/v1/me/theme-preferences")
             XCTAssertEqual(request.url?.query, "locale=ru")
             XCTAssertEqual(
-                request.value(forHTTPHeaderField: "Authorization"),
+                request.value(forHTTPHeaderField: "X-Quizice-Authorization"),
                 "Bearer preferences-token"
             )
             let body = Data(
@@ -70,7 +71,7 @@ final class BackendClientTests: XCTestCase {
             XCTAssertEqual(request.url?.path, "/api/v1/me/theme-preferences")
             XCTAssertNil(request.url?.query)
             XCTAssertEqual(
-                request.value(forHTTPHeaderField: "Authorization"),
+                request.value(forHTTPHeaderField: "X-Quizice-Authorization"),
                 "Bearer preferences-token"
             )
             let body = try XCTUnwrap(Self.bodyData(from: request))
@@ -597,7 +598,7 @@ final class BackendClientTests: XCTestCase {
             BackendTestURLProtocol.requestHandler = { request in
                 let items = URLComponents(url: request.url!, resolvingAgainstBaseURL: false)?.queryItems
                 XCTAssertEqual(items?.first(where: { $0.name == "progressMode" })?.value, expectedMode)
-                XCTAssertEqual(request.value(forHTTPHeaderField: "Authorization"), "Bearer progress-token")
+                XCTAssertEqual(request.value(forHTTPHeaderField: "X-Quizice-Authorization"), "Bearer progress-token")
                 let body = try JSONSerialization.data(withJSONObject: [
                     "locale": "ru",
                     "seed": seed,
@@ -640,7 +641,7 @@ final class BackendClientTests: XCTestCase {
         let api = makeContentAPI()
         BackendTestURLProtocol.requestHandler = { request in
             XCTAssertFalse(request.url?.query?.contains("progressMode") ?? false)
-            XCTAssertNil(request.value(forHTTPHeaderField: "Authorization"))
+            XCTAssertNil(request.value(forHTTPHeaderField: "X-Quizice-Authorization"))
             let body = Data(
                 "{\"locale\":\"ru\",\"seed\":\"\(seed)\",\"availableCount\":0,\"questions\":[]}".utf8
             )
@@ -662,7 +663,7 @@ final class BackendClientTests: XCTestCase {
         let api = makeContentAPI(accessToken: "answer-token")
         BackendTestURLProtocol.requestHandler = { request in
             XCTAssertEqual(request.url?.path, "/api/v1/me/question-answers")
-            XCTAssertEqual(request.value(forHTTPHeaderField: "Authorization"), "Bearer answer-token")
+            XCTAssertEqual(request.value(forHTTPHeaderField: "X-Quizice-Authorization"), "Bearer answer-token")
             let body = try XCTUnwrap(Self.bodyData(from: request))
             let json = try XCTUnwrap(JSONSerialization.jsonObject(with: body) as? [String: Any])
             let events = try XCTUnwrap(json["events"] as? [[String: Any]])
@@ -693,7 +694,7 @@ final class BackendClientTests: XCTestCase {
         )
         var authorizationHeaders: [String?] = []
         BackendTestURLProtocol.requestHandler = { request in
-            authorizationHeaders.append(request.value(forHTTPHeaderField: "Authorization"))
+            authorizationHeaders.append(request.value(forHTTPHeaderField: "X-Quizice-Authorization"))
             if authorizationHeaders.count == 1 {
                 return Self.response(
                     for: request,
@@ -1006,7 +1007,7 @@ extension BackendClientTests {
         var requests = 0
         BackendTestURLProtocol.requestHandler = { request in
             requests += 1
-            XCTAssertEqual(request.value(forHTTPHeaderField: "Authorization"), "Bearer token-A")
+            XCTAssertEqual(request.value(forHTTPHeaderField: "X-Quizice-Authorization"), "Bearer token-A")
             return Self.response(for: request, statusCode: 401, data: Data())
         }
         await assertBackendContentError(.unauthenticated) {

@@ -1,0 +1,300 @@
+# Проверка production Quizice — 27 сентября 2026
+
+Проверка продолжается. Свежий вход с реального iPhone подтверждён
+диагностическими логами пользователя: получена подпись Game Center,
+backend выдал сессию, клиент сохранил её и установил authenticated-состояние.
+Сохранение результатов игры в production и реальный вызов AI Studio ещё
+не подтверждены. Unit/contract-тесты сами по себе эти сценарии не доказывают.
+
+## Подтверждённые результаты
+
+Production API: `https://bbav8b1v6032q53l8360.containers.yandexcloud.net/api`.
+
+| Проверка | Наблюдение |
+| --- | --- |
+| `GET /health` | `200`, `status: alive` |
+| `GET /readiness` | `200`, `status: ready` |
+| `GET /api/v1/themes?locale=ru` | `200`, 14 тем |
+| `POST /api/v1/quizzes/generate` без токена | `401`, `code: unauthorized` |
+| `POST /api/v1/me/statistics/sync` без токена | `401`, `code: unauthorized` |
+| Game Center → backend session на iPhone | Подпись получена, сессия выдана backend и сохранена в Keychain; подтверждено логами пользователя |
+| Авторизованная синхронизация статистики | Pulse 16:42: `attempts=[]`, облачный `403`; сохранение не подтверждено |
+
+Request IDs гостевых проверок:
+
+- AI: `621e0636-76bd-41ec-8c16-9e82c8906546`.
+- Статистика: `74fece1b-e74b-4609-89e4-f820f7ea71c5`.
+
+Локальный backend HEAD: `a5a59e3`; iOS HEAD: `5378b0d`.
+Прошли 100 существующих backend-тестов в двух запусках:
+
+```sh
+PYTHONDONTWRITEBYTECODE=1 .venv/bin/python -m pytest -p no:cacheprovider \
+  tests/unit/test_game_center.py tests/unit/test_auth_service.py \
+  tests/unit/test_statistics_service.py tests/unit/test_yandex_ai.py \
+  tests/contract/test_auth.py tests/contract/test_statistics.py -q
+# 68 passed
+
+PYTHONDONTWRITEBYTECODE=1 .venv/bin/python -m pytest -p no:cacheprovider \
+  tests/contract/test_generate_quiz.py tests/contract/test_production_wiring.py -q
+# 32 passed
+```
+
+Тесты используют тестовые ключи, моки БД и провайдера. Реальный PostgreSQL и
+AI Studio этими прогонами не проверялись. В обоих прогонах есть предупреждение
+Starlette о deprecated использовании httpx в TestClient.
+
+## Настройки исходной ревизии до исправления
+
+Через Yandex Cloud CLI прочитана ревизия `bba73rgp7aeosm02l5oi`, статус
+`ACTIVE`, создана `2026-09-27T12:16:05.909Z`.
+Образ: `cr.yandex/crphdelr18tk23tfpdih/quizice-backend@sha256:35203ea125ec84571ceb2fcb78da254d75d72615735cd565061c5936f69de0ca`.
+
+- Обычные переменные ревизии: `AUTH_DEV_MODE_ENABLED=false`,
+  `METRICS_DEPLOYMENT_TIMESTAMP_SECONDS`, `METRICS_ENABLED`.
+- Единственная переменная из Lockbox: `DATABASE_URL`.
+- `AUTH_GAME_CENTER_BUNDLE_ID` отсутствует.
+- `YANDEX_AI_API_KEY` / `YANDEX_CLOUD_API_KEY` и
+  `YANDEX_AI_FOLDER_ID` / `YANDEX_CLOUD_FOLDER_ID` отсутствуют в переменных
+  ревизии и подключённых секретах.
+- Переопределений команды запуска и аргументов нет.
+
+В текущем локальном исходном коде backend значение Bundle ID по умолчанию —
+`ru.avtabenskiy.Quizice`, а в iOS target — `com.tabenskii.quiziceapp`.
+`YandexAISettings` требует ключ и folder ID; Dockerfile не задаёт их,
+dotenv автоматически не загружается. Поэтому при соответствии развёрнутого
+образа текущему коду конфигурация блокирует оба сценария. Содержимое активного
+образа отдельно не извлекалось; успешный runtime-вызов пока не получен.
+
+`/readiness` выполняет `SELECT 1` в PostgreSQL и не проверяет Game Center или
+конфигурацию AI. Скрипт `scripts/deploy-yc.sh` в backend сейчас не передаёт
+Bundle ID и настройки AI; исправление должно учитывать и следующий deploy.
+На этапе первоначальной проверки production не изменялся; разрешённое
+исправление и его результат описаны ниже.
+
+### Подтверждение Bundle ID и применённое изменение
+
+Пользователь прислал скриншот App Store Connect: Quizice использует
+`com.tabenskii.quiziceapp` (Apple ID приложения `6807343988`). Bundle ID
+совпадает с текущим iOS target и найденной сборкой `Debug-iphoneos`; в её
+`Info.plist` также указан production API. `codesign -d --entitlements -`
+показал в подписи этой сборки `com.apple.developer.game-center=true`,
+`application-identifier=24M7THZP42.com.tabenskii.quiziceapp`,
+`com.apple.developer.team-identifier=24M7THZP42` и `get-task-allow=true`.
+Из содержимого embedded provisioning profile извлечены такие же значения;
+дата окончания профиля — `2027-09-27T12:00:42Z`. Отдельная криптографическая
+проверка CMS профиля не выполнена. Эти проверки относятся к файлу сборки
+в Xcode DerivedData, а не к установленному на телефоне приложению.
+
+Подготовлен и после явного разрешения пользователя выполнен
+`/private/tmp/quizice-set-game-center-bundle-id.sh`:
+
+- добавляет `AUTH_GAME_CENTER_BUNDLE_ID=com.tabenskii.quiziceapp`;
+- сохраняет текущий digest образа, ресурсы, timeout, concurrency, service
+  account, VPC, min instances, настройки логирования и версию секрета БД;
+- перед deploy проверяет, что активна ожидаемая исходная ревизия;
+- проверен через `bash -n`.
+
+Первая попытка была отклонена API из-за формата памяти в CLI. Значение
+заменено на `512MB`, что дало прежние `536870912` байт; повторный deploy
+успешно завершился. Новая ревизия `bbakrie00v5s3mm6og9o` создана
+`2026-09-27T12:57:30.511Z`, статус `ACTIVE`, переменная
+`AUTH_GAME_CENTER_BUNDLE_ID=com.tabenskii.quiziceapp` присутствует.
+После применения `/health`, `/readiness` и русский каталог вернули `200`;
+в каталоге по-прежнему 14 тем. Свежий вход с iPhone подтверждён позднее,
+как описано в разделе диагностики ниже.
+Настройки AI этим изменением не исправляются; это следующий этап.
+
+В соседнем backend-репозитории локально обновлены `scripts/deploy-yc.sh`,
+его тесты и README: обычный deploy теперь передаёт подтверждённый Bundle ID
+по умолчанию, допускает явное переопределение и не передаёт его maintenance
+задачам. Изменения пока не закоммичены. Прошли три выбранные проверки
+`tests/unit/test_yc_deploy_script.py` (основной сценарий, переопределение
+Bundle ID и синтаксис Bash); 56 остальных в этом запуске не выполнялись.
+
+## Сборка и запуск на симуляторе
+
+По запросу пользователя выполнен `xcodebuild build` для схемы `Quizice`,
+конфигурации `Release`, Xcode 26.5 и iPhone 17 Pro Simulator с iOS 26.5.
+Команда завершилась с кодом `0`; присутствуют существующие SwiftLint warnings.
+Сборка установлена и запущена; процесс продолжал работать при проверке,
+на снимке экрана открыт первый экран onboarding.
+
+- Приложение: `DerivedData/Build/Products/Release-iphonesimulator/Quizice.app`.
+- Bundle ID: `com.tabenskii.quiziceapp`; версия `1.0`, build `1`.
+- `BackendBaseURL` в собранном `Info.plist` совпадает с production API.
+- Лог сборки: `/private/tmp/quizice-release-simulator-build.log`.
+- Снимок экрана: `/private/tmp/quizice-release-simulator.png`.
+
+Release выбран для использования серверного AI-пути. Генерация, вход
+Game Center и синхронизация пользовательской попытки этим запуском пока
+не подтверждены. XCTest для iOS в этом запуске не выполнялись.
+
+## Следующие проверки по порядку
+
+### Запуск на iPhone и диагностика отсутствующих запросов
+
+Пользователь сообщил о приветствии Game Center с его ником. На присланном
+снимке Pulse от 16:17 видны три успешных AppMetrica-запроса и один успешный
+`GET /api/v1/themes`; запросов авторизации и статистики нет. Приветствие
+само по себе не подтверждает получение identity signature и серверной сессии.
+
+Проверена пользовательская схема `Quizice AI (Local)`: она запускает тот же
+target `Quizice` в Debug, включает `YANDEX_AI_API_KEY`, но её
+`DEV_AUTH_ENABLED` и `DEV_AUTH_SECRET` выключены. В таком состоянии схема
+не выбирает dev-auth. Отсутствие запросов нельзя объяснить только названием
+схемы; прямой AI на устройстве дополнительно зависит от Debug-настройки.
+
+В `GameCenterClient` и `GameCenterAuthenticationService` добавлены сообщения
+`[Auth]` в OSLog/Xcode: начало Game Center, состояние без ID игрока, получение
+подписи, обмен, сохранение сессии и начало синхронизации. Ошибки выводят только
+NSError domain/code, без userInfo, подписи, salt и токенов. Логика авторизации
+не менялась. Следующий запуск на iPhone позволил установить этап сбоя,
+а последующий — подтвердить успешную авторизацию (ниже).
+
+Сборка Debug и 25 тестов выбранных классов авторизации прошли без failures
+или skips. Результат: `/private/tmp/quizice-auth-diagnostics-tests.xcresult`.
+Тесты используют подмену Game Center и не доказывают реальный вход.
+
+Пользователь передал диагностические строки с iPhone: Game Center сообщает
+`authenticated=true`, `hasTeamPlayerID=true`, но получение identity signature
+завершается `GKErrorDomain code=15`. В SDK Xcode это
+`GKErrorGameUnrecognized`; документация Apple определяет его как ситуацию,
+когда Game Center не распознаёт приложение. До `Sending Game Center identity
+to backend` выполнение не доходит. Таким образом, отсутствие auth-запроса в
+Pulse объясняется ошибкой на этапе GameKit, а не ответом нашего backend.
+Пользователю предложено проверить включение Game Center на странице
+iOS-версии Quizice в App Store Connect.
+
+В следующем предоставленном пользователем логе подпись успешно получена,
+есть ровно одна строка `Sending Game Center identity to backend`, затем
+`Backend issued a session; saving to Keychain`, `Backend session established`
+и `Synchronizing statistics: attempts=0`. Это подтверждает успешный обмен
+реальной подписи на сессию и её локальное сохранение. Сам факт изменения
+флажка пользователем отдельно не сообщён, поэтому конкретное исправление
+на стороне Apple не утверждается как установленное. Два получения подписи
+видны в логе, но два запроса обмена/две созданные сессии из него не следуют.
+`attempts=0` означает отсутствие новых локальных попыток в этом запросе,
+а не нулевую серверную статистику. Ответ sync пока не предоставлен.
+
+Источники:
+
+- https://developer.apple.com/documentation/gamekit/gkerror/code/gameunrecognized
+- https://developer.apple.com/help/app-store-connect/configure-game-center/manage-an-app-version-for-game-center/
+
+### Порядок дальнейшей проверки
+
+1. Согласовать Bundle ID в Apple, iOS и backend. Для текущего iOS target
+   серверная переменная должна быть
+   `AUTH_GAME_CENTER_BUNDLE_ID=com.tabenskii.quiziceapp`.
+2. На iPhone запустить из Xcode с выключенным `DEV_AUTH_ENABLED`, localhost,
+   локальным контентом и прямым AI. Debug-меню открывается удержанием кнопки
+   настроек. Симулятор Debug использует прямой AI и не подходит для проверки
+   production-пути генерации.
+3. Подтвердить свежий `POST /auth/game-center` → `200`, затем защищённый
+   `POST /me/statistics/sync` → `200`. Сохранённая сессия может убрать первый
+   запрос при повторном запуске; такой запуск не проверяет свежую подпись.
+4. Зафиксировать исходную статистику, завершить одну игру из пяти вопросов,
+   найти её ID в подтверждении синхронизации и в production-БД. Повторная
+   отправка того же ID не должна менять счётчики. Проверить восстановление
+   после перезапуска и на чистой установке/другом устройстве после успешного
+   сохранения; одно сохранение локального экрана недостаточно.
+5. Подключить серверный ключ AI через Lockbox и указать его folder ID.
+   Выполнить одну генерацию на пять вопросов через iPhone. Сопоставить
+   клиентский `X-Request-ID` с серверным вызовом провайдера. В коде предусмотрены
+   события `provider_attempt` и `yandex_ai_attempt`; проверить, что конфигурация
+   логирования действительно выводит их и поля корреляции. Один ответ `200`
+   без подтверждения источника не доказывает вызов AI Studio.
+6. Проверить потерю сети, повторную синхронизацию, восстановление сессии,
+   смену пользователя и отсутствие смешивания статистики.
+7. Повторить основные сценарии в TestFlight. Отдельно проверить каталог,
+   прогресс, локализации, ошибки AI, фактические лимиты и готовность остальных
+   функций, представленных пользователю в Release.
+
+Для диагностики достаточно статуса, кода ошибки, времени и request ID.
+Токены, ключи, Game Center signature/salt в отчёт и переписку не включать.
+
+## Pulse 16:42: заголовок сессии блокируется облаком
+
+Экспорт `logs-2026-09-27-16-42.pulse` прочитан как SQLite-контейнер;
+вложенная база распакована LZFSE в памяти. Токены и заголовки целиком не выводились.
+Из 7 сетевых запросов 3 относятся к AppMetrica (`200`), 4 — к backend (`403`):
+каталог, два обновления избранных тем и синхронизация статистики.
+Во всех четырёх присутствовал `Authorization`.
+Ответ: `{"errorMessage":"Forbidden: Not authorized","errorType":"ClientError","errorCode":403}`.
+Запрос статистики содержит `migrationId` и пустой `attempts`; завершённой игры нет.
+
+Выполнена контрольная проверка публичного каталога без пользовательских секретов:
+
+- без токена — `200`;
+- `Authorization: Bearer quizice-diagnostic-invalid-token` — тот же облачный `403`;
+- `X-Quizice-Authorization: Bearer quizice-diagnostic-invalid-token` — `200` публичного каталога.
+
+Последняя проверка не доказывает авторизацию: текущий production backend ещё не
+обрабатывает новый заголовок. Документация подтверждает удаление `Authorization`
+при вызове контейнера: https://yandex.cloud/en/docs/serverless-containers/concepts/invoke .
+
+Подготовлено исправление транспорта сессии:
+
+- iOS передаёт `X-Quizice-Authorization: Bearer <session>` во всех трёх backend
+  API-клиентах, включая повтор после `401`; Pulse скрывает новый заголовок;
+- backend принимает новый заголовок и сохраняет поддержку обычного
+  `Authorization` для localhost и других прокси; hash/expiration lookup прежний;
+- противоречивые и повторяющиеся заголовки не дают авторизацию;
+- OpenAPI описывает оба альтернативных способа передачи сессии;
+- миграции БД и изменения IAM для исправления не требуются.
+
+Проверки: 78 backend-тестов прошли (включая реальный запрос SQL middleware
+к изолированной SQLite с действующим, просроченным и неизвестным токеном).
+Ruff прошёл, mypy с отдельным cache-dir прошёл; стандартный кеш mypy вызвал
+внутреннюю ошибку инструмента. На iOS прошли 75 тестов без ошибок:
+`BackendClientTests`, `HTTPAuthAPITests`, `GameCenterAuthenticationServiceTests`,
+`AuthServiceKeychainRecoveryTests`.
+Результат: `/private/tmp/quizice-cloud-auth-header-verified.xcresult`.
+На момент подготовки изменения были локальными; результат согласованного
+деплоя приведён ниже.
+
+Release с исправлением успешно собран, установлен и запущен на выделенном
+симуляторе iPhone 17 Pro. Лог: `/private/tmp/quizice-cloud-auth-header-release-build.log`.
+
+Собран локальный минимальный серверный образ
+`localhost/quizice-backend:cloud-auth-header-20260927`, ID
+`42c86b167124a24cccdc6d8bc8ab32d645a8070b545c8f3e9fe20c4500a3245c`.
+Базовый образ — точный текущий production digest; исходный `bearer.py` в нём
+сверен с backend HEAD по SHA-256 и совпал. Меняется только `bearer.py` в
+установленном пакете и копии исходников. В собранном образе проверены
+целостность нового модуля, разбор заголовка и генерация OpenAPI.
+
+Подготовлен `/private/tmp/quizice-deploy-auth-header.sh`: проверяет активную
+ревизию и ID локального кандидата, публикует образ под отдельным тегом,
+фиксирует digest, повторно проверяет активную ревизию, затем создаёт новую с
+прежними ресурсами, окружением и ссылкой на секрет БД. Скрипт выполнен после
+разрешения пользователя; результат ниже.
+После применения пользователь должен пересобрать Quizice на iPhone и завершить
+одну обычную игру; подтвердить `200` синхронизации и `acceptedAttemptIds`, затем
+отдельно проверить чтение сохранённых данных на сервере. AI Studio остаётся
+следующим этапом и пока не проверен в production.
+
+## Деплой исправления заголовка — выполнен
+
+Пользователь разрешил деплой и push в отдельные ветки двух репозиториев.
+Новая ревизия `bba8b9j83ddstejv7kvl`, `ACTIVE`, создана
+`2026-09-27T14:06:47.214Z`. Опубликованный образ:
+`cr.yandex/crphdelr18tk23tfpdih/quizice-backend@sha256:f6ddc5a4a7eaa53d67d27f62d70dbeec49813e81ee8bab9763f567caf3379189`.
+Ресурсы, переменные окружения, сеть, service account и версия секрета БД
+сохранены. Миграции и IAM-изменения не выполнялись.
+
+Проверки после деплоя:
+
+- `/health` — `200 alive`;
+- `/readiness` — `200 ready`;
+- каталог с заведомо неверным токеном в новом заголовке — `200` (публичный доступ);
+- защищённые theme-preferences с тем же неверным токеном — `401` нашего API,
+  `code: unauthorized`, request ID `9232d1be-90e3-4e91-a5fb-c700a2c146bf`;
+- `/openapi.json` — `200`, содержит новый `QuiziceSession` / `X-Quizice-Authorization`.
+
+Это подтверждает доставку запросов в приложение и отказ неверным сессиям,
+но не заменяет проверку действующей сессии и сохранения игры с обновлённого iPhone.
+Ветки для ревью: `fix-game-center-cloud-auth` в Quizice и Quizice-backend.
+Посторонняя локальная правка `Quizice/ru.lproj/Localizable.strings` в коммит
+не включена.
