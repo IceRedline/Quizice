@@ -38,6 +38,7 @@ final class FakeAuthAPI: AuthAPI {
     var syncAccessTokens: [String] = []
     var syncErrors: [BackendAPIError] = []
     var syncSummary: StatisticsSummary = .empty
+    var syncHandler: ((StatisticsStore.SyncRequest, String) async throws -> StatisticsStore.SyncResponse)?
 
     func authenticate(identity: GameCenterIdentity) async throws -> AuthSession {
         authenticatedIdentities.append(identity)
@@ -58,6 +59,9 @@ final class FakeAuthAPI: AuthAPI {
     ) async throws -> StatisticsStore.SyncResponse {
         syncRequests.append(request)
         syncAccessTokens.append(accessToken)
+        if let syncHandler {
+            return try await syncHandler(request, accessToken)
+        }
         if syncErrors.isEmpty == false {
             throw syncErrors.removeFirst()
         }

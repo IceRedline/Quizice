@@ -209,6 +209,10 @@ final class GameCenterAuthenticationService {
         allowsCachedSession: Bool,
         statisticsMayRefreshToken: Bool
     ) {
+        // A previous player's request must not occupy the new session's sync slot.
+        synchronizationTask?.cancel()
+        synchronizationTask = nil
+        synchronizationAttemptID = nil
         authenticationTask?.cancel()
         let attemptID = UUID()
         authenticationAttemptID = attemptID
@@ -434,9 +438,6 @@ final class GameCenterAuthenticationService {
         if state == .authenticating, authenticationTask != nil {
             return
         }
-        synchronizationTask?.cancel()
-        synchronizationTask = nil
-        synchronizationAttemptID = nil
         clearStoredSession()
         beginAuthentication(
             for: teamPlayerID,

@@ -228,6 +228,63 @@ final class GameCenterAuthenticationServiceTests: XCTestCase {
         )
     }
 
+    func testAccountSwitchSynchronizesNewPlayerWhilePreviousRequestIsSuspended() async {
+        let oldSession = AuthSession(
+            userID: "old-user",
+            accessToken: "old-token",
+            expiresAt: Date(timeIntervalSince1970: 4_000_000_000),
+            teamPlayerID: "old-team"
+        )
+        let harness = makeHarness(storedSession: oldSession)
+        harness.statistics.activateAuthenticatedUser("old-user")
+        harness.statistics.recordAttempt(correctAnswers: 4, totalQuestions: 5)
+        let oldRequest = harness.statistics.makeSyncRequest(for: "old-user")
+        var oldResponse: CheckedContinuation<StatisticsStore.SyncResponse, Never>?
+        var oldResponseDelivered = false
+        let newSummary = StatisticsSummary(
+            playedQuizzes: 1, correctAnswers: 2, totalQuestions: 5,
+            bestCorrectAnswers: 2, bestTotalQuestions: 5
+        )
+        harness.api.syncHandler = { request, token in
+            if token == "old-token" {
+                let response = await withCheckedContinuation { oldResponse = $0 }
+                oldResponseDelivered = true
+                return response
+            }
+            return StatisticsStore.SyncResponse(
+                summary: newSummary,
+                acceptedAttemptIds: request.attempts.map(\.id),
+                legacySummaryAccepted: false
+            )
+        }
+
+        harness.service.start { _ in }
+        harness.gameCenter.emit(.authenticated(teamPlayerID: "old-team"))
+        await waitUntil { oldResponse != nil }
+
+        harness.gameCenter.emit(.authenticated(teamPlayerID: "team-1"))
+        await waitUntil { harness.api.syncAccessTokens.contains("access-token") }
+        XCTAssertEqual(harness.statistics.loadSummary(), newSummary)
+        XCTAssertEqual(harness.api.syncRequests.last?.attempts, [])
+
+        // The transport may deliver a late response even after cancellation.
+        oldResponse?.resume(returning: StatisticsStore.SyncResponse(
+            summary: StatisticsSummary(
+                playedQuizzes: 1, correctAnswers: 4, totalQuestions: 5,
+                bestCorrectAnswers: 4, bestTotalQuestions: 5
+            ),
+            acceptedAttemptIds: oldRequest.attempts.map(\.id),
+            legacySummaryAccepted: false
+        ))
+        oldResponse = nil
+        await waitUntil { oldResponseDelivered }
+
+        XCTAssertEqual(harness.statistics.loadSummary(), newSummary)
+        XCTAssertEqual(harness.statistics.makeSyncRequest(for: "old-user"), oldRequest)
+        XCTAssertEqual(harness.api.syncAccessTokens, ["old-token", "access-token"])
+        XCTAssertEqual(harness.service.state, .authenticated(userID: "user-1", teamPlayerID: "team-1"))
+    }
+
     private func makeHarness(storedSession: AuthSession? = nil) -> (
         service: GameCenterAuthenticationService,
         gameCenter: FakeGameCenterClient,
