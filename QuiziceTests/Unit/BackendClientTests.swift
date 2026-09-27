@@ -422,6 +422,34 @@ final class BackendClientTests: XCTestCase {
         XCTAssertTrue(store.hasPendingThemePreferences(locale: locale))
     }
 
+    func testBackendAIQuotaErrorIsDistinctFromProviderRateLimitAndKeepsSession() async throws {
+        let stored = AuthSession(
+            userID: "user", accessToken: "quota-test-token",
+            expiresAt: Date(timeIntervalSince1970: 4_000_000_000), teamPlayerID: "team"
+        )
+        let store = BackendMemorySessionStore(session: stored)
+        let api = BackendAIQuizThemeService(
+            configuration: Self.configuration, session: makeSession(), sessionStore: store,
+            accessProvider: BackendAIQuizAccessStub(isAvailable: true)
+        )
+        for code in ["ai_quota_exceeded", "rate_limited", "ai_generation_in_progress"] {
+            BackendTestURLProtocol.requestHandler = { request in
+                let body = try JSONEncoder().encode(BackendErrorEnvelope(code: code, message: "Server copy"))
+                return (
+                    HTTPURLResponse(url: request.url!, statusCode: 429, httpVersion: nil, headerFields: nil)!,
+                    body
+                )
+            }
+            do {
+                _ = try await api.generateQuizTheme(configuration: Self.aiConfiguration)
+                XCTFail("Expected a limit error")
+            } catch let error as YandexAIQuizThemeServiceError {
+                XCTAssertEqual(error, code == "ai_quota_exceeded" ? .quotaExceeded : .httpStatus(429))
+            }
+            XCTAssertEqual(try store.load(), stored)
+        }
+    }
+
     func testBackendAIRejectsGuestBeforeCreatingNetworkRequest() async {
         let session = makeSession()
         let staleSession = AuthSession(

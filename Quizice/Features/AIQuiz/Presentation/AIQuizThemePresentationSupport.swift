@@ -55,6 +55,7 @@ struct AIThemeKeyboardStyle {
 struct AIQuizGenerationAlert: Identifiable, Equatable {
     enum Kind: String {
         case refusal
+        case quota
         case network
         case service
         case invalidQuiz
@@ -69,6 +70,7 @@ struct AIQuizGenerationAlert: Identifiable, Equatable {
 
     var title: String {
         switch kind {
+        case .quota: return L10n.AITheme.Error.Quota.title
         case .refusal: return L10n.AITheme.Error.Refusal.title
         case .network: return L10n.AITheme.Error.Network.title
         case .service: return L10n.AITheme.Error.Service.title
@@ -81,6 +83,7 @@ struct AIQuizGenerationAlert: Identifiable, Equatable {
 
     var message: String {
         switch kind {
+        case .quota: return L10n.AITheme.Error.Quota.message
         case .refusal: return L10n.AITheme.Error.Refusal.message
         case .network: return L10n.AITheme.Error.Network.message
         case .service: return L10n.AITheme.Error.Service.message
@@ -94,7 +97,7 @@ struct AIQuizGenerationAlert: Identifiable, Equatable {
     var canRetry: Bool {
         switch kind {
         case .network, .service, .invalidQuiz: return true
-        case .refusal, .authentication, .configuration, .unavailable: return false
+        case .quota, .refusal, .authentication, .configuration, .unavailable: return false
         }
     }
 
@@ -124,6 +127,8 @@ struct AIQuizGenerationAlert: Identifiable, Equatable {
         }
 
         switch serviceError {
+        case .quotaExceeded:
+            kind = .quota
         case .authenticationRequired:
             kind = .authentication
         case .refused:
@@ -513,6 +518,7 @@ struct QuizAlertOverlay: View {
 extension AIQuizGenerationAlert.Kind {
     var systemImage: String {
         switch self {
+        case .quota: return "calendar"
         case .refusal: return "hand.raised.fill"
         case .network: return "wifi.slash"
         case .service: return "clock.fill"
@@ -533,7 +539,7 @@ extension AIQuizGenerationAlert.Kind {
             switch self {
             case .refusal, .unavailable:
                 return appearance.destructiveColor
-            case .network, .service, .invalidQuiz, .authentication, .configuration:
+            case .quota, .network, .service, .invalidQuiz, .authentication, .configuration:
                 return appearance.accentColor
             }
         }

@@ -243,3 +243,6 @@
 
 "theme_card.country" = "Pays";
 "theme_card.international_questions" = "Questions internationales";
+
+"ai_theme.error.quota.title" = "Limite mensuelle atteinte";
+"ai_theme.error.quota.message" = "Vous avez utilisé toutes vos générations de quiz par IA disponibles. De nouvelles générations seront disponibles au début du mois prochain.";
