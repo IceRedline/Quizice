@@ -42,10 +42,9 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
                 appearance: appearance,
                 preparation: { [weak coordinator] in
                     await coordinator?.prepareInitialCatalog()
-                    guard !Task.isCancelled else { return }
-                    coordinator?.presentInitialOnboardingIfNeeded()
                 },
                 onDismissed: { [weak coordinator, weak authenticationService] in
+                    coordinator?.presentInitialOnboardingIfNeeded()
                     coordinator?.restoreInitialAccessibilityFocusAfterLaunch()
                     authenticationService?.start { [weak coordinator] viewController in
                         coordinator?.presentSystemViewController(viewController)

@@ -224,6 +224,11 @@ final class BackendAIQuizThemeService: AIQuizThemeServiceProtocol {
                 statusCode: httpResponse.statusCode,
                 responseBytes: data.count
             )
+            if httpResponse.statusCode == 429,
+               let envelope = try? decoder.decode(BackendErrorEnvelope.self, from: data),
+               envelope.code == "ai_quota_exceeded" {
+                throw YandexAIQuizThemeServiceError.quotaExceeded
+            }
             throw YandexAIQuizThemeServiceError.httpStatus(httpResponse.statusCode)
         }
 
@@ -412,7 +417,7 @@ final class BackendAIQuizThemeService: AIQuizThemeServiceProtocol {
                 .invalidCorrectAnswer(questionIndex: index)
             )
         }
-        guard payload.explanation.isEmpty else {
+        guard payload.explanation.count <= 2_000 else {
             throw YandexAIQuizThemeServiceError.invalidContract(
                 .invalidExplanation(questionIndex: index)
             )

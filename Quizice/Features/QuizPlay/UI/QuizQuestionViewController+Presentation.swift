@@ -32,6 +32,7 @@ extension QuizQuestionViewController {
     }
     
     func resetAllColors() {
+        currentAnswerWasCorrect = nil
         let appearance = currentAppearance()
         answerButtons.forEach { button in
             applyAnswerFeedback(.normal, to: button, appearance: appearance)
@@ -205,6 +206,7 @@ extension QuizQuestionViewController {
     }
     
     func showQuestionUnavailable(themeName: String?, message: String) {
+        currentAnswerWasCorrect = nil
         hasLoadedQuestion = false
         isQuestionTransitionInProgress = false
         outgoingQuestionCardSnapshot?.removeFromSuperview()
@@ -261,6 +263,7 @@ extension QuizQuestionViewController {
     }
     
     func correctAnswerTapped(isTrue: Bool) {
+        currentAnswerWasCorrect = isTrue
         let appearance = currentAppearance()
         if isTrue {
             feedbackPlayer.play(.correct)
@@ -319,6 +322,7 @@ extension QuizQuestionViewController {
         appearance: AppAppearance,
         animated: Bool = false
     ) {
+        answerFeedbackStates[ObjectIdentifier(button)] = state
         let changes = answerFeedbackChanges(for: state, appearance: appearance)
         button.setTitleColor(changes.normalTitleColor, for: .normal)
         button.setTitleColor(changes.disabledTitleColor, for: .disabled)

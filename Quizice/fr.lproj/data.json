@@ -2884,17 +2884,6 @@
                 "explanation": "Le fait «En quelle année la Révolution française a-t-elle eu lieu » a eu lieu en 1789."
             },
             {
-                "question": "Qui a écrit 'La Divine Comédie' ?",
-                "answers": [
-                    "Dante",
-                    "Petrarka",
-                    "Bokkachcho",
-                    "Moler"
-                ],
-                "correctAnswer": "Dante",
-                "explanation": "Dante a écrit l’œuvre «La Divine Comédie»."
-            },
-            {
                 "question": "Quel artiste russe a peint 'Matin dans une forêt de pins' ?",
                 "answers": [
                     "Shishkin",
@@ -3378,7 +3367,7 @@
                 "explanation": "Un embargo interdit ou limite l’importation ou l’exportation de certains biens avec un pays."
             },
             {
-                "question": "Quel pays a été le premier à instaurer un revenu de base universel au niveau national ?",
+                "question": "Quel pays a mené une expérimentation de revenu de base auprès de 2 000 personnes au chômage en 2017–2018 ?",
                 "answers": [
                     "Finlande",
                     "Suisse",
@@ -3386,7 +3375,7 @@
                     "Netherlands"
                 ],
                 "correctAnswer": "Finlande",
-                "explanation": "La Finlande a lancé en 2017 une expérimentation nationale très médiatisée de revenu de base."
+                "explanation": "En Finlande, 2 000 personnes au chômage choisies au hasard ont reçu un revenu de base pendant l’expérimentation de 2017–2018."
             },
             {
                 "question": "Quel oligarque russe a été arrêté à Londres en 2023 ?",
@@ -3860,17 +3849,6 @@
                 ],
                 "correctAnswer": "Warren Buffett",
                 "explanation": "Warren Buffett n’a jamais été administrateur au conseil d’administration d’Amazon."
-            },
-            {
-                "question": "Quel pays a été le premier à instaurer un revenu de base universel au niveau national ?",
-                "answers": [
-                    "Finlande",
-                    "Suisse",
-                    "Canada",
-                    "Netherlands"
-                ],
-                "correctAnswer": "Finlande",
-                "explanation": "La Finlande a conduit l’expérience nationale de revenu de base la plus connue à partir de 2017."
             },
             {
                 "question": "Comment s'appelle la théorie économique fondée sur les idées de Friedrich Hayek ?",

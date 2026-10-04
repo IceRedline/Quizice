@@ -2,15 +2,12 @@ import XCTest
 @testable import Quizice
 
 final class LiveBackendContractTests: XCTestCase {
-    private let productionOrigin = URL(
-        string: "https://bbav8b1v6032q53l8360.containers.yandexcloud.net"
-    )!
-
     func testHealthReadinessAndReportLatency() async throws {
         try requireLiveTests()
+        let endpoints = try liveEndpoints()
         let session = makeSession()
-        let healthURL = productionOrigin.appendingPathComponent("health")
-        let readinessURL = productionOrigin.appendingPathComponent("readiness")
+        let healthURL = endpoints.healthURL
+        let readinessURL = endpoints.readinessURL
         try await assertStatusJSON(
             url: healthURL,
             expected: ["status": "alive"],
@@ -22,7 +19,7 @@ final class LiveBackendContractTests: XCTestCase {
             session: session
         )
 
-        let backendURL = liveBackendURL
+        let backendURL = endpoints.apiBaseURL
         let themesURL = try XCTUnwrap(
             URL(string: backendURL.appendingPathComponent("v1/themes").absoluteString + "?locale=en")
         )
@@ -41,7 +38,7 @@ final class LiveBackendContractTests: XCTestCase {
     func testFuturePublicContentContract() async throws {
         try requireLiveTests()
         let contentAPI = HTTPBackendContentAPI(
-            configuration: BackendConfiguration(baseURL: liveBackendURL),
+            configuration: BackendConfiguration(baseURL: try liveEndpoints().apiBaseURL),
             session: makeSession()
         )
         let themes = try await contentAPI.fetchThemes(locale: "en")
@@ -60,7 +57,7 @@ final class LiveBackendContractTests: XCTestCase {
     func testFutureAIContractRejectsGuestBeforeGeneration() async throws {
         try requireLiveTests()
         let session = makeSession()
-        let url = liveBackendURL
+        let url = try liveEndpoints().apiBaseURL
             .appendingPathComponent("v1")
             .appendingPathComponent("quizzes")
             .appendingPathComponent("generate")
@@ -90,10 +87,8 @@ final class LiveBackendContractTests: XCTestCase {
         XCTAssertEqual(httpResponse.value(forHTTPHeaderField: "X-Request-Id"), requestID)
     }
 
-    private var liveBackendURL: URL {
-        ProcessInfo.processInfo.environment["QUIZICE_LIVE_BACKEND_URL"]
-            .flatMap(URL.init(string:))
-            ?? productionOrigin.appendingPathComponent("api")
+    private func liveEndpoints() throws -> LiveBackendEndpoints {
+        try LiveBackendEndpoints(override: ProcessInfo.processInfo.environment["QUIZICE_LIVE_BACKEND_URL"])
     }
 
     private func requireLiveTests() throws {
@@ -163,5 +158,60 @@ final class LiveBackendContractTests: XCTestCase {
             (Double(sortedSamples.count - 1) * min(max(percentile, 0), 1)).rounded(.up)
         )
         return sortedSamples[index]
+    }
+}
+
+private struct LiveBackendEndpoints {
+    enum ConfigurationError: Error { case invalidOverride }
+
+    let apiBaseURL: URL
+    let healthURL: URL
+    let readinessURL: URL
+
+    init(override: String?) throws {
+        let value = override
+            ?? "https://bbav8b1v6032q53l8360.containers.yandexcloud.net/api"
+        guard !value.contains(where: \.isWhitespace),
+              var components = URLComponents(string: value),
+              let host = components.host, !host.isEmpty,
+              components.scheme == "https"
+                || (components.scheme == "http" && ["localhost", "127.0.0.1", "[::1]"].contains(host)),
+              components.user == nil, components.password == nil,
+              components.query == nil, components.fragment == nil,
+              components.path.split(separator: "/").last == "api",
+              let apiBaseURL = components.url else {
+            throw ConfigurationError.invalidOverride
+        }
+        self.apiBaseURL = apiBaseURL
+        components.path = ""
+        guard let origin = components.url else { throw ConfigurationError.invalidOverride }
+        healthURL = origin.appendingPathComponent("health")
+        readinessURL = origin.appendingPathComponent("readiness")
+    }
+}
+
+final class LiveBackendEndpointConfigurationTests: XCTestCase {
+    func testOverrideKeepsHealthReadinessAndContentOnSameOrigin() throws {
+        for baseURL in ["https://staging.example.com:8443/service/api", "http://127.0.0.1:8000/api"] {
+            let endpoints = try LiveBackendEndpoints(override: baseURL)
+            let expected = try XCTUnwrap(URLComponents(string: baseURL))
+            XCTAssertEqual(endpoints.apiBaseURL.absoluteString, baseURL)
+            for endpoint in [endpoints.healthURL, endpoints.readinessURL] {
+                let actual = try XCTUnwrap(URLComponents(url: endpoint, resolvingAgainstBaseURL: false))
+                XCTAssertEqual(actual.scheme, expected.scheme)
+                XCTAssertEqual(actual.host, expected.host)
+                XCTAssertEqual(actual.port, expected.port)
+            }
+            XCTAssertEqual(endpoints.healthURL.path, "/health")
+            XCTAssertEqual(endpoints.readinessURL.path, "/readiness")
+        }
+    }
+
+    func testInvalidOverrideFailsInsteadOfProbingProduction() {
+        for value in ["", "/api", "https:", "https://staging.example.com/notapi",
+                      "http://staging.example.com/api", "https://user:pass@staging.example.com/api",
+                      "https://staging.example.com/api?token=private", "https://staging.example.com/api#fragment"] {
+            XCTAssertThrowsError(try LiveBackendEndpoints(override: value), value)
+        }
     }
 }

@@ -10,10 +10,17 @@ protocol OnboardingProgressStoring: AnyObject {
     func complete(preferredThemeIDs: [String], locale: String)
     func applyRemotePreferredThemeIDs(_ preferredThemeIDs: [String], locale: String)
     func hasPendingThemePreferences(locale: String) -> Bool
+    func preferencesRevision(locale: String) -> Int
+}
+
+extension OnboardingProgressStoring {
+    func preferencesRevision(locale: String) -> Int { 0 }
 }
 
 final class OnboardingProgressStore: OnboardingProgressStoring {
-    static let shared = OnboardingProgressStore()
+    static let shared = OnboardingProgressStore(userIDProvider: {
+        StoredBackendAccessTokenProvider().currentSession()?.userID
+    })
 
     enum Keys {
         static let completedVersion = "quizice.onboarding.completedVersion"
@@ -34,9 +41,11 @@ final class OnboardingProgressStore: OnboardingProgressStoring {
     static let currentVersion = 1
 
     private let userDefaults: UserDefaults
+    private let userIDProvider: () -> String?
 
-    init(userDefaults: UserDefaults = .standard) {
+    init(userDefaults: UserDefaults = .standard, userIDProvider: @escaping () -> String? = { nil }) {
         self.userDefaults = userDefaults
+        self.userIDProvider = userIDProvider
     }
 
     var needsOnboarding: Bool {
@@ -59,12 +68,27 @@ final class OnboardingProgressStore: OnboardingProgressStoring {
     }
 
     func storedPreferredThemeIDs(locale: String) -> [String]? {
-        let localizedKey = Keys.preferredThemeIDs(locale: locale)
+        let localizedKey = scopedKey(Keys.preferredThemeIDs(locale: locale))
+        // Only an explicit, newly completed guest selection can be claimed,
+        // once, by the first account. Ambiguous legacy data never gets uploaded.
+        let claimKey = "quizice.preferences.unclaimedGuest." + locale
+        if userIDProvider() != nil, userDefaults.bool(forKey: claimKey),
+           let guestIDs = userDefaults.stringArray(forKey: Keys.preferredThemeIDs(locale: locale)) {
+            userDefaults.set(false, forKey: claimKey)
+            userDefaults.set(guestIDs, forKey: localizedKey)
+            userDefaults.set(true, forKey: scopedKey(Keys.pendingThemePreferences(locale: locale)))
+            advanceRevision(locale: locale)
+            return Self.normalizedThemeIDs(guestIDs)
+        }
+
         if let localizedIDs = userDefaults.stringArray(forKey: localizedKey) {
             return Self.normalizedThemeIDs(localizedIDs)
         }
 
-        guard let storedLegacyIDs = userDefaults.stringArray(forKey: Keys.preferredThemeIDs) else {
+        // Unowned legacy preferences belong to the guest. Never upload another
+        // player's historical selection to the next account on this device.
+        guard userIDProvider() == nil,
+              let storedLegacyIDs = userDefaults.stringArray(forKey: Keys.preferredThemeIDs) else {
             return nil
         }
         let legacyIDs = Self.normalizedThemeIDs(storedLegacyIDs)
@@ -79,25 +103,45 @@ final class OnboardingProgressStore: OnboardingProgressStoring {
 
     func complete(preferredThemeIDs: [String], locale: String) {
         let normalizedIDs = Self.normalizedThemeIDs(preferredThemeIDs)
-        userDefaults.set(normalizedIDs, forKey: Keys.preferredThemeIDs(locale: locale))
-        userDefaults.set(normalizedIDs, forKey: Keys.preferredThemeIDs)
-        userDefaults.set(locale, forKey: Keys.legacyPreferencesMigrationLocale)
-        userDefaults.set(true, forKey: Keys.pendingThemePreferences(locale: locale))
+        userDefaults.set(normalizedIDs, forKey: scopedKey(Keys.preferredThemeIDs(locale: locale)))
+        if userIDProvider() == nil {
+            userDefaults.set(normalizedIDs, forKey: Keys.preferredThemeIDs)
+            userDefaults.set(locale, forKey: Keys.legacyPreferencesMigrationLocale)
+            userDefaults.set(true, forKey: "quizice.preferences.unclaimedGuest." + locale)
+        }
+        userDefaults.set(true, forKey: scopedKey(Keys.pendingThemePreferences(locale: locale)))
+        advanceRevision(locale: locale)
         userDefaults.set(Self.currentVersion, forKey: Keys.completedVersion)
     }
 
     func applyRemotePreferredThemeIDs(_ preferredThemeIDs: [String], locale: String) {
         let normalizedIDs = Self.normalizedThemeIDs(preferredThemeIDs)
-        userDefaults.set(normalizedIDs, forKey: Keys.preferredThemeIDs(locale: locale))
-        if locale == AppLocalizationStore.shared.resolvedLanguageCode {
+        userDefaults.set(normalizedIDs, forKey: scopedKey(Keys.preferredThemeIDs(locale: locale)))
+        if userIDProvider() == nil, locale == AppLocalizationStore.shared.resolvedLanguageCode {
             userDefaults.set(normalizedIDs, forKey: Keys.preferredThemeIDs)
             userDefaults.set(locale, forKey: Keys.legacyPreferencesMigrationLocale)
         }
-        userDefaults.set(false, forKey: Keys.pendingThemePreferences(locale: locale))
+        userDefaults.set(false, forKey: scopedKey(Keys.pendingThemePreferences(locale: locale)))
+        advanceRevision(locale: locale)
     }
 
     func hasPendingThemePreferences(locale: String) -> Bool {
-        userDefaults.bool(forKey: Keys.pendingThemePreferences(locale: locale))
+        _ = storedPreferredThemeIDs(locale: locale)
+        return userDefaults.bool(forKey: scopedKey(Keys.pendingThemePreferences(locale: locale)))
+    }
+
+    func preferencesRevision(locale: String) -> Int {
+        userDefaults.integer(forKey: scopedKey("quizice.preferences.revision." + locale))
+    }
+
+    private func advanceRevision(locale: String) {
+        userDefaults.set(preferencesRevision(locale: locale) + 1,
+                         forKey: scopedKey("quizice.preferences.revision." + locale))
+    }
+
+    private func scopedKey(_ key: String) -> String {
+        guard let userID = userIDProvider() else { return key }
+        return key + ".user." + Data(userID.utf8).base64EncodedString()
     }
 
     private static func normalizedThemeIDs(_ themeIDs: [String]) -> [String] {

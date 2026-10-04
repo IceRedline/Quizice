@@ -299,7 +299,7 @@ final class ExpandedThemeCardView: UIView, UIGestureRecognizerDelegate {
             borderColor: borderColor
         )
         configureCountries(theme: theme, selectedCountry: selectedCountry)
-        configureDifficulty(selectedDifficulty)
+        configureDifficulty(selectedDifficulty, isAvailable: theme.questionOrigin != .bundled)
         // `configureQuestionCounts` must run before `setStartLoading` so the
         // Start button's enabled state is only ever written once, using the
         // freshly-resolved `selectedQuestionCount`. Doing it the other way

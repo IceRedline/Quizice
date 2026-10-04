@@ -446,15 +446,13 @@ final class HomeExpandedThemeCardInteractionTests: HomeScreenVisualStateTestCase
         }
         XCTAssertEqual(
             startEvents.map(\.name),
-            ["theme_selected", "theme_card_flipped", "screen_view", "quiz_started"]
+            ["theme_selected", "theme_card_flipped", "screen_view"]
         )
-        guard startEvents.count == 4 else { return }
+        guard startEvents.count == 3 else { return }
         XCTAssertEqual(startEvents[0].parameters["selection_method"] as? String, "manual")
         XCTAssertEqual(startEvents[1].parameters["visible_face"] as? String, "back")
         XCTAssertEqual(startEvents[1].parameters["theme_id"] as? String, "music")
         XCTAssertEqual(startEvents[2].parameters["screen"] as? String, "quiz_description")
-        XCTAssertEqual(startEvents[3].parameters["theme_id"] as? String, "music")
-        XCTAssertEqual(startEvents[3].parameters["question_count"] as? Int, 10)
         XCTAssertEqual(router.showQuestionCallCount, 1)
     }
 

@@ -215,6 +215,9 @@ final class QuizQuestionViewController: BaseQuizViewController, QuizQuestionView
     var activeExitAlertID: UUID?
     weak var router: QuizPlayRouting?
     var currentAnswerOptions: [QuizAnswerOption] = []
+    var answerFeedbackStates: [ObjectIdentifier: AnswerFeedbackState] = [:]
+    var isApplicationInterrupted = false
+    var currentAnswerWasCorrect: Bool?
     var analytics: AnalyticsTracking = AppMetricaAnalyticsTracker.shared
     var hasLoadedQuestion = false
     var isQuestionTransitionInProgress = false
@@ -266,6 +269,7 @@ final class QuizQuestionViewController: BaseQuizViewController, QuizQuestionView
         }
         applyAppearance()
         presenter?.viewDidLoad()
+        installQuestionLifecycleObservers()
         installLocalizationObserver()
 
         feedbackPlayer.prepare()
@@ -301,6 +305,7 @@ final class QuizQuestionViewController: BaseQuizViewController, QuizQuestionView
     }
 
     func showTimeExpired() {
+        currentAnswerWasCorrect = false
         let appearance = currentAppearance()
         colorAndDisableButtons()
         animateTimerBarColor(timerFeedbackColor(isCorrect: false, appearance: appearance))
@@ -376,8 +381,11 @@ final class QuizQuestionViewController: BaseQuizViewController, QuizQuestionView
             view.transform = .identity
         }
 
+        timerContainerView?.isHidden = false
+        timerContainerView?.accessibilityElementsHidden = false
         configurePresenter(presenter)
         presenter.viewDidLoad()
+        if isApplicationInterrupted { presenter.pauseTimer() }
         applyAppearance()
         view.layoutIfNeeded()
     }
@@ -415,12 +423,17 @@ final class QuizQuestionViewController: BaseQuizViewController, QuizQuestionView
         timerContainerView?.backgroundColor = appearance.progressTrackColor
         timerContainerView?.layer.cornerRadius = min(appearance.card.cornerRadius, Appearance.timerContainerCornerRadius)
         timerBar?.trackTintColor = appearance.progressTrackColor
-        setTimerBarColor(quizThemeAccentColor(for: appearance))
+        setTimerBarColor(currentAnswerWasCorrect.map {
+            timerFeedbackColor(isCorrect: $0, appearance: appearance)
+        } ?? quizThemeAccentColor(for: appearance))
 
         answerButtons.forEach { button in
             button.titleLabel?.font = appearance.typography.font(size: Typography.answerButtonFontSize, weight: .semibold)
             button.layer.cornerRadius = min(appearance.row.cornerRadius, Appearance.answerCornerRadius)
-            applyAnswerFeedback(.normal, to: button, appearance: appearance)
+            applyAnswerFeedback(
+                answerFeedbackStates[ObjectIdentifier(button)] ?? .normal,
+                to: button, appearance: appearance
+            )
         }
         fitContentFonts()
 

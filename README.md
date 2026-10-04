@@ -53,9 +53,13 @@ cp Configurations/Secrets.xcconfig.template Configurations/Secrets.xcconfig
 # then fill in APPMETRICA_API_KEY and BACKEND_BASE_URL
 ```
 
-Both variables are optional — an empty value or missing file lets Xcode build
-normally. Analytics stays disabled and the client falls back to bundled
-catalog data, which is what CI and offline previews rely on.
+Debug builds allow both variables to be empty: analytics stays disabled and the
+client uses bundled catalog data. Release builds require `BACKEND_BASE_URL`
+to be an HTTPS backend URL ending in `/api`, without credentials, query or
+fragment. A build phase rejects missing, malformed and local backend addresses;
+it does not contact the server. `APPMETRICA_API_KEY` remains optional.
+In an xcconfig file, write the URL as `https:/$()/backend.example.com/api` so
+the double slash is not parsed as a comment.
 
 `Configurations/Shared.xcconfig` is the base configuration for the app target
 and pulls in `Secrets.xcconfig` via an optional include; the project's build
@@ -86,11 +90,17 @@ Normal Debug runs keep only Quizice's compact per-event log.
 Events cover screen views, theme selection, quiz start/answers/timeouts/exit/
 completion, result actions, statistics, AI generation, and settings changes.
 Question text, answer text, AI prompts, localized error messages, and generated
-AI theme IDs are never sent.
+AI theme IDs are never sent to analytics. The backend separately receives the
+authenticated user ID, quiz progress and selected answers, and the AI prompt
+when the user requests a generated quiz, to provide those features.
 
 AppMetrica 6.4.0 provides its own Privacy Manifest. App Store Connect privacy
 answers should still declare the diagnostics and other analytics data collected
-by the SDK. Because `AppMetricaAdSupport` is not linked, the app does not use
+by the SDK, as well as the linked user ID, gameplay content and other user
+content sent to the backend for app functionality. The bundled privacy manifest
+declares these backend data categories; App Store Connect privacy answers and
+the published privacy policy need to be reviewed separately before release.
+Because `AppMetricaAdSupport` is not linked, the app does not use
 AppMetrica cross-app tracking and does not request ATT permission.
 
 ## Production backend
@@ -118,5 +128,13 @@ contract, rollout order, tests, and performance targets are documented in
 `LiveBackendContractTests` are opt-in so ordinary unit-test runs never depend on
 the network. Set `QUIZICE_RUN_LIVE_BACKEND_TESTS=1` in the test scheme to run
 them. The latency smoke reports first/median/p95/max timings without using an
-unstable developer connection as a release threshold; the two `testFuture...`
+unstable developer connection as a release threshold. Set `QUIZICE_LIVE_BACKEND_URL`
+to an alternate API base URL ending in `/api`; health and readiness then use
+that same origin. Invalid overrides fail instead of falling back to production.
+The two `testFuture...`
 cases are rollout gates for the new response envelopes and guest AI `401`.
+
+CI also compiles Release with a reserved, non-routable example backend URL to
+exercise the production build path without service credentials or network probes.
+Validate the configuration gate locally with
+`python3 scripts/tests/test-release-configuration.py`.

@@ -88,6 +88,18 @@ final class PersistentQuestionAnswerOutbox: QuestionAnswerOutboxing, @unchecked 
     }
 
     static func live(bundle: Bundle = .main) -> PersistentQuestionAnswerOutbox {
+        let environment = ProcessInfo.processInfo.environment
+        if environment["XCTestConfigurationFilePath"] != nil
+            || environment["QUIZICE_XCTEST_SMOKE_HOST"] == "1"
+            || NSClassFromString("XCTestCase") != nil {
+            return PersistentQuestionAnswerOutbox(
+                api: nil,
+                fileURL: FileManager.default.temporaryDirectory
+                    .appendingPathComponent("quizice-test-outbox-\(UUID().uuidString).json"),
+                automaticallySynchronizesOnEnqueue: false,
+                sessionProvider: { nil }
+            )
+        }
         let directory = FileManager.default.urls(
             for: .applicationSupportDirectory, in: .userDomainMask
         ).first ?? FileManager.default.temporaryDirectory
@@ -221,8 +233,15 @@ final class PersistentQuestionAnswerOutbox: QuestionAnswerOutboxing, @unchecked 
         if let state = try? decoder.decode(State.self, from: data) { return state }
         // The old format has no owner. Preserve it without assigning another user's
         // history to whoever happens to sign in after upgrading.
-        let legacy = try decoder.decode([QuestionAnswerEvent].self, from: data)
-        return State(pending: legacy.map { OwnedEvent(userID: nil, event: $0) })
+        if let legacy = try? decoder.decode([QuestionAnswerEvent].self, from: data) {
+            return State(pending: legacy.map { OwnedEvent(userID: nil, event: $0) })
+        }
+        // Quarantine damaged storage so a single corrupt write cannot disable
+        // all future answers. Preserve original bytes for recovery.
+        let quarantine = fileURL.appendingPathExtension("corrupt-\(UUID().uuidString)")
+        try FileManager.default.moveItem(at: fileURL, to: quarantine)
+        AppLog.persistence.error("Corrupt question answer outbox quarantined")
+        return State()
     }
 
     func pendingEvents() -> [QuestionAnswerEvent] {
@@ -235,7 +254,13 @@ final class PersistentQuestionAnswerOutbox: QuestionAnswerOutboxing, @unchecked 
 
     private func saveLocked(_ state: State) throws {
         try FileManager.default.createDirectory(at: fileURL.deletingLastPathComponent(), withIntermediateDirectories: true)
-        try encoder.encode(state).write(to: fileURL, options: .atomic)
+        var bounded = state
+        // Guest events cannot be assigned to an account. Keep only a bounded
+        // diagnostic history; never truncate an authenticated pending queue.
+        let retainedGuestIDs = Set(state.pending.filter { $0.userID == nil }.suffix(1_000).map { $0.event.eventId })
+        bounded.pending.removeAll { $0.userID == nil && !retainedGuestIDs.contains($0.event.eventId) }
+        bounded.rejected = Array(state.rejected.suffix(1_000))
+        try encoder.encode(bounded).write(to: fileURL, options: .atomic)
     }
 
     private func startMonitoring() {

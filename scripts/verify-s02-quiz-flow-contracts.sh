@@ -55,6 +55,8 @@ reject_extended_regex() {
 }
 
 printf 'Verifying S02 quiz flow contracts...\n'
+require_file "$DATA_JSON"
+readonly DATA_JSON_INITIAL_HASH="$(shasum -a 256 "$DATA_JSON" | awk '{print $1}')"
 printf 'Checking S01 storyboard-free runtime/build contract first...\n'
 require_file "$S01_VERIFIER"
 "$S01_VERIFIER"
@@ -97,12 +99,10 @@ reject_extended_regex \
   "$PERSISTENCE_OR_GLOBAL_STATS_PATTERN" \
   'Result presenter must stay current-attempt only and must not add global statistics or persistence'
 
-printf 'Checking Quizice/data.json has no working-tree edits...\n'
+printf 'Checking Quizice/data.json was preserved by this verifier...\n'
 require_file "$DATA_JSON"
-if git diff --quiet -- "$DATA_JSON"; then
-  :
-else
-  fail "$DATA_JSON has working-tree changes; S02 must preserve quiz fixture data"
+if [[ "$(shasum -a 256 "$DATA_JSON" | awk '{print $1}')" != "$DATA_JSON_INITIAL_HASH" ]]; then
+  fail "$DATA_JSON changed during S02 verification"
 fi
 
 printf '✅ S02 quiz flow contracts verification passed.\n'

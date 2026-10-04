@@ -33,6 +33,7 @@ enum YandexAIQuizThemeServiceError: Error, Equatable {
     case network(URLError.Code)
     case invalidHTTPResponse
     case httpStatus(Int)
+    case quotaExceeded
     case generationStatus(String)
     case refused
     case invalidResponseJSON
@@ -53,6 +54,7 @@ extension YandexAIQuizThemeServiceError {
         case .network: return "network"
         case .invalidHTTPResponse: return "invalid_http_response"
         case .httpStatus: return "http_status"
+        case .quotaExceeded: return "ai_quota_exceeded"
         case .generationStatus: return "generation_status"
         case .refused: return "refused"
         case .invalidResponseJSON: return "invalid_response_json"
@@ -121,6 +123,8 @@ private extension YandexAIQuizThemeServiceError {
             return "network_error url_error_code=\(code.rawValue)"
         case .invalidHTTPResponse:
             return "invalid_http_response"
+        case .quotaExceeded:
+            return "ai_quota_exceeded"
         case let .httpStatus(statusCode):
             return "http_status status_code=\(statusCode)"
         case let .generationStatus(status):
@@ -158,6 +162,8 @@ extension YandexAIQuizThemeServiceError: LocalizedError {
             return "The AI service request failed: \(code.rawValue)."
         case .invalidHTTPResponse:
             return "The AI service returned an invalid response."
+        case .quotaExceeded:
+            return L10n.AITheme.Error.Quota.message
         case let .httpStatus(statusCode):
             return "The AI service returned HTTP \(statusCode)."
         case let .generationStatus(status):

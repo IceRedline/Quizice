@@ -227,6 +227,42 @@ final class LocalizationTests: XCTestCase {
         }
     }
 
+    func testBundledQuestionsAreUniqueAndSupportFullQuizzes() throws {
+        for (name, themes) in try allBundledPayloads() {
+            var seenQuestions = Set<String>()
+            for theme in themes {
+                XCTAssertGreaterThanOrEqual(theme.questions.count, 15, "Insufficient questions: \(name)/\(theme.id)")
+                for question in theme.questions {
+                    let normalized = question.question
+                        .precomposedStringWithCanonicalMapping
+                        .lowercased()
+                        .split(whereSeparator: \.isWhitespace)
+                        .joined(separator: " ")
+                    XCTAssertTrue(seenQuestions.insert(normalized).inserted, "Duplicate in \(name): \(question.question)")
+                    XCTAssertEqual(Set(question.answers).count, 4, "Four distinct answers required: \(name)/\(question.question)")
+                    XCTAssertFalse(question.explanation.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+                }
+            }
+        }
+    }
+
+    func testSatisfactionReleaseExplanationUsesTheYearFromTheQuestion() throws {
+        for (name, themes) in try allBundledPayloads() {
+            let question = try XCTUnwrap(themes.flatMap(\.questions).first {
+                $0.correctAnswer == "Satisfaction" && $0.question.contains("1965")
+            }, "Missing release-year question in \(name)")
+            XCTAssertTrue(question.explanation.contains("1965"), "Release year missing from explanation in \(name)")
+        }
+    }
+
+    func testFallbackQuestionsMatchRussianCatalog() throws {
+        let payloads = try allBundledPayloads()
+        let fallback = try XCTUnwrap(payloads.first { $0.name == "fallback" }?.themes)
+        let russian = try XCTUnwrap(payloads.first { $0.name == "ru" }?.themes)
+        XCTAssertEqual(fallback.map(\.id), russian.map(\.id))
+        XCTAssertEqual(fallback.map(\.questions), russian.map(\.questions))
+    }
+
     func testNonRussianDataFilesDoNotContainTransliteratedRussianQuestionFragments() throws {
         let root = localizedDataRoot()
         let nonRussianLanguages = ["en", "es", "de", "it", "fr"]
@@ -270,6 +306,14 @@ final class LocalizationTests: XCTestCase {
             .deletingLastPathComponent()
             .appendingPathComponent("Quizice")
     }
+
+    private func allBundledPayloads() throws -> [(name: String, themes: [QuizThemePayload])] {
+        try ["ru", "en", "es", "de", "it", "fr", "fallback"].map { name in
+            let path = name == "fallback" ? "data.json" : "\(name).lproj/data.json"
+            let data = try Data(contentsOf: localizedDataRoot().appendingPathComponent(path))
+            return (name, try JSONDecoder().decode([QuizThemePayload].self, from: data))
+        }
+    }
 }
 
 private struct QuizThemePayload: Decodable {
@@ -282,8 +326,9 @@ private struct QuizThemePayload: Decodable {
     let questions: [QuizQuestionPayload]
 }
 
-private struct QuizQuestionPayload: Decodable {
+private struct QuizQuestionPayload: Decodable, Equatable {
     let question: String
     let answers: [String]
     let correctAnswer: String
+    let explanation: String
 }

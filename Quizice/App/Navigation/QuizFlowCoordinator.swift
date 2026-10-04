@@ -49,6 +49,7 @@ final class QuizFlowCoordinator: NSObject, QuizRouting, UIViewControllerTransiti
     private let aiReplayAlertPresenter = QuizAlertPresenter()
     private weak var activeQuestionViewController: QuizQuestionViewController?
     private weak var resultViewController: QuizResultViewController?
+    private var roundSession: QuizSessionStore?
     private weak var activeOnboardingViewController: UIViewController?
     private var pendingSystemViewController: UIViewController?
     private var catalogReplayTask: Task<Void, Never>?
@@ -135,6 +136,7 @@ final class QuizFlowCoordinator: NSObject, QuizRouting, UIViewControllerTransiti
     func prepareInitialCatalog() async {
         let locale = AppLocalizationStore.shared.resolvedLanguageCode
         let didRefresh = await themeRepository.refreshBackendCatalog(locale: locale)
+        guard !Task.isCancelled else { return }
         let didSynchronizePreferences = await themeRepository.synchronizeThemePreferences(
             locale: locale
         )
@@ -151,9 +153,7 @@ final class QuizFlowCoordinator: NSObject, QuizRouting, UIViewControllerTransiti
         let viewController = QuizQuestionViewController()
         viewController.analytics = analytics
         viewController.router = self
-        viewController.configurePresenter(
-            QuizQuestionPresenter(session: session, analytics: analytics)
-        )
+        viewController.configurePresenter(makeRoundPresenter())
         activeQuestionViewController = viewController
         guard let presentingViewController = navigationController.topViewController else { return }
         presentWithCardSlide(viewController, from: presentingViewController)
@@ -164,7 +164,7 @@ final class QuizFlowCoordinator: NSObject, QuizRouting, UIViewControllerTransiti
         resultViewController = viewController
         viewController.analytics = analytics
         viewController.router = self
-        viewController.configurePresenter(QuizResultPresenter(result: result, session: session))
+        viewController.configurePresenter(QuizResultPresenter(result: result, session: roundSession ?? session))
         presentWithCardSlide(viewController, from: presentedViewController)
     }
 
@@ -200,13 +200,7 @@ final class QuizFlowCoordinator: NSObject, QuizRouting, UIViewControllerTransiti
         )
         let view = SubscriptionPaywallView(
             appearance: appearance,
-            analytics: analytics,
-            onSubscribe: { [weak self] in
-                self?.presentSubscriptionComingSoon()
-            },
-            onRestore: { [weak self] in
-                self?.presentSubscriptionComingSoon()
-            }
+            analytics: analytics
         )
         let viewController = UIHostingController(rootView: view)
         viewController.modalPresentationStyle = .pageSheet
@@ -323,6 +317,10 @@ final class QuizFlowCoordinator: NSObject, QuizRouting, UIViewControllerTransiti
 
     func replayQuiz() {
         guard aiReplayTask == nil, catalogReplayTask == nil else { return }
+        if let roundSession {
+            session.chosenTheme = roundSession.chosenTheme
+            session.questionsCount = roundSession.questionsCount
+        }
         if let theme = session.chosenTheme?.quizTheme,
            theme.stableID == "politics_business", !theme.countries.isEmpty {
             returnToThemes { [weak self] in
@@ -406,7 +404,7 @@ final class QuizFlowCoordinator: NSObject, QuizRouting, UIViewControllerTransiti
 
     private func replayCatalogQuiz() {
         guard let previousTheme = session.chosenTheme else {
-            presentFreshQuestionController()
+            presentCatalogReplayFailure(QuizPreparationError.unavailable)
             return
         }
         let themeID = previousTheme.themeID
@@ -430,6 +428,9 @@ final class QuizFlowCoordinator: NSObject, QuizRouting, UIViewControllerTransiti
                 else {
                     throw CancellationError()
                 }
+                guard QuizQuestionCountPolicy.usableQuestionCount(
+                    in: preparedTheme.questions.map(QuestionModel.init(quizQuestion:))
+                ) > 0 else { throw QuizPreparationError.unavailable }
                 self.stopCatalogReplayLoading()
                 self.session.chosenTheme = ThemeModel(quizTheme: preparedTheme)
                 self.session.questionsCount = questionCount
@@ -513,6 +514,9 @@ final class QuizFlowCoordinator: NSObject, QuizRouting, UIViewControllerTransiti
                 else {
                     throw CancellationError()
                 }
+                guard QuizQuestionCountPolicy.usableQuestionCount(
+                    in: preparedTheme.questions.map(QuestionModel.init(quizQuestion:))
+                ) > 0 else { throw QuizPreparationError.unavailable }
                 self.stopCatalogReplayLoading()
                 self.session.chosenTheme = ThemeModel(quizTheme: preparedTheme)
                 self.session.questionsCount = RandomQuizSelection.questionCount
@@ -553,11 +557,17 @@ final class QuizFlowCoordinator: NSObject, QuizRouting, UIViewControllerTransiti
         resultViewController?.setReplayGenerationPhase(nil)
     }
 
+    private func makeRoundPresenter() -> QuizQuestionPresenter {
+        let snapshot = QuizSessionStore(themes: { nil })
+        snapshot.chosenTheme = session.chosenTheme.map { ThemeModel(quizTheme: $0.quizTheme.roundSnapshot()) }
+        snapshot.questionsCount = session.questionsCount
+        roundSession = snapshot
+        return QuizQuestionPresenter(session: snapshot, analytics: analytics)
+    }
+
     private func presentFreshQuestionController() {
         if let activeQuestionViewController {
-            activeQuestionViewController.prepareForReplay(
-                QuizQuestionPresenter(session: session, analytics: analytics)
-            )
+            activeQuestionViewController.prepareForReplay(makeRoundPresenter())
             let replayResultViewController = resultViewController
             resultViewController = nil
             replayResultViewController?.dismiss(animated: false)
@@ -579,6 +589,7 @@ final class QuizFlowCoordinator: NSObject, QuizRouting, UIViewControllerTransiti
         aiReplayTask?.cancel()
         stopAIReplayLoading()
         aiReplayAlertPresenter.dismiss()
+        roundSession = nil
         navigationController.popToRootViewController(animated: false)
         (navigationController.viewControllers.first as? QuizHomeReturnHandling)?
             .quizFlowWillReturnToThemes()
@@ -632,22 +643,6 @@ final class QuizFlowCoordinator: NSObject, QuizRouting, UIViewControllerTransiti
 
     private static func durationMilliseconds(since startDate: Date) -> Int {
         max(Int(Date().timeIntervalSince(startDate) * 1_000), 0)
-    }
-
-    private func presentSubscriptionComingSoon() {
-        guard !(presentedViewController is UIAlertController) else { return }
-        let alert = UIAlertController(
-            title: L10n.Subscription.ComingSoon.title,
-            message: L10n.Subscription.ComingSoon.message,
-            preferredStyle: .alert
-        )
-        alert.addAction(
-            UIAlertAction(
-                title: L10n.Subscription.ComingSoon.action,
-                style: .default
-            )
-        )
-        presentedViewController.present(alert, animated: true)
     }
 
     private var presentedViewController: UIViewController {

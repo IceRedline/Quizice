@@ -56,7 +56,7 @@
                     "Stairway to Heaven"
                 ],
                 "correctAnswer": "Satisfaction",
-                "explanation": "The single “(I Can't Get No) Satisfaction” was released in Satisfaction."
+                "explanation": "The single “(I Can't Get No) Satisfaction” was released in 1965."
             },
             {
                 "question": "Which instrument is considered central in jazz music?",
@@ -2884,17 +2884,6 @@
                 "explanation": "The event “In what year did the French Revolution take place” took place in 1789."
             },
             {
-                "question": "Who wrote 'The Divine Comedy'?",
-                "answers": [
-                    "Dante",
-                    "Petrarka",
-                    "Bokkachcho",
-                    "Moler"
-                ],
-                "correctAnswer": "Dante",
-                "explanation": "Dante wrote the work named “The Divine Comedy”."
-            },
-            {
                 "question": "Which Russian artist painted 'Morning in a Pine Forest'?",
                 "answers": [
                     "Shishkin",
@@ -3378,7 +3367,7 @@
                 "explanation": "An embargo prohibits or restricts the import or export of specified goods with a country."
             },
             {
-                "question": "Which country was the first to introduce universal basic income at the national level?",
+                "question": "Which country ran a basic-income experiment for 2,000 unemployed people in 2017–2018?",
                 "answers": [
                     "Finland",
                     "Switzerland",
@@ -3386,7 +3375,7 @@
                     "Netherlands"
                 ],
                 "correctAnswer": "Finland",
-                "explanation": "Finland ran the widely known national basic-income experiment beginning in 2017."
+                "explanation": "In Finland, 2,000 randomly selected unemployed people received a basic income during the 2017–2018 experiment."
             },
             {
                 "question": "Which Russian oligarch was arrested in London in 2023?",
@@ -3860,17 +3849,6 @@
                 ],
                 "correctAnswer": "Warren Buffett",
                 "explanation": "Warren Buffett has not been a director on Amazon’s board."
-            },
-            {
-                "question": "Which country was the first to introduce universal basic income at the national level?",
-                "answers": [
-                    "Finland",
-                    "Switzerland",
-                    "Canada",
-                    "Netherlands"
-                ],
-                "correctAnswer": "Finland",
-                "explanation": "Finland conducted the best-known national basic-income experiment beginning in 2017."
             },
             {
                 "question": "What is the economic theory based on the ideas of Friedrich Hayek called?",

@@ -34,6 +34,12 @@ final class HTTPBackendContentAPI: BackendContentAPI {
         decoder = JSONDecoder()
     }
 
+    // An expired session still identifies the player. Send its token through
+    // the existing 401 recovery path instead of silently fetching as a guest.
+    private var requestAccessToken: String? {
+        accessTokenProvider.validAccessToken() ?? accessTokenProvider.currentSession()?.accessToken
+    }
+
     func fetchThemes(locale: String) async throws -> BackendThemeCatalogResponse {
         guard Self.isSupported(locale: locale) else {
             throw BackendContentError.invalidRequest
@@ -45,7 +51,7 @@ final class HTTPBackendContentAPI: BackendContentAPI {
         return try await get(
             url: url,
             operation: .themes,
-            accessToken: accessTokenProvider.validAccessToken(),
+            accessToken: requestAccessToken,
             validate: { BackendContentResponseValidator.isValid($0, requestedLocale: locale) }
         )
     }
@@ -54,7 +60,7 @@ final class HTTPBackendContentAPI: BackendContentAPI {
         guard Self.isSupported(locale: locale) else {
             throw BackendContentError.invalidRequest
         }
-        guard let accessToken = accessTokenProvider.validAccessToken() else {
+        guard let accessToken = requestAccessToken else {
             throw BackendContentError.unauthenticated
         }
         let url = try makeURL(
@@ -76,7 +82,7 @@ final class HTTPBackendContentAPI: BackendContentAPI {
         guard Self.isSupported(locale: locale) else {
             throw BackendContentError.invalidRequest
         }
-        guard let accessToken = accessTokenProvider.validAccessToken() else {
+        guard let accessToken = requestAccessToken else {
             throw BackendContentError.unauthenticated
         }
         let normalizedIDs = BackendContentResponseValidator.normalizedThemeIDs(favoriteThemeIDs)
@@ -115,7 +121,7 @@ final class HTTPBackendContentAPI: BackendContentAPI {
 
     func submitQuestionAnswers(_ events: [QuestionAnswerEvent]) async throws -> QuestionAnswerBatchResponse {
         guard !events.isEmpty, events.count <= 100 else { throw BackendContentError.invalidRequest }
-        guard let accessToken = accessTokenProvider.validAccessToken() else {
+        guard let accessToken = requestAccessToken else {
             throw BackendContentError.unauthenticated
         }
         let url = try makeURL(
@@ -239,7 +245,7 @@ final class HTTPBackendContentAPI: BackendContentAPI {
             pathComponents: ["v1", "themes", normalizedThemeID, "questions"],
             queryItems: queryItems
         )
-        let accessToken = accessTokenProvider.validAccessToken()
+        let accessToken = requestAccessToken
         if strategy.progressMode != nil, accessToken == nil {
             throw BackendContentError.unauthenticated
         }
@@ -362,7 +368,7 @@ final class HTTPBackendContentAPI: BackendContentAPI {
             pathComponents: ["v1", "questions", selectionMode.rawValue],
             queryItems: queryItems
         )
-        let accessToken = accessTokenProvider.validAccessToken()
+        let accessToken = requestAccessToken
         if strategy.progressMode != nil, accessToken == nil {
             throw BackendContentError.unauthenticated
         }
@@ -398,7 +404,8 @@ final class HTTPBackendContentAPI: BackendContentAPI {
         return try await perform(
             request: request,
             operation: operation,
-            validate: validate
+            validate: validate,
+            expectedUserID: accessToken == nil ? nil : accessTokenProvider.currentSession()?.userID
         )
     }
 
@@ -426,7 +433,8 @@ final class HTTPBackendContentAPI: BackendContentAPI {
         return try await perform(
             request: request,
             operation: operation,
-            validate: validate
+            validate: validate,
+            expectedUserID: accessTokenProvider.currentSession()?.userID
         )
     }
 

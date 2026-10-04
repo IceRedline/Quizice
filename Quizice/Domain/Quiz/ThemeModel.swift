@@ -40,4 +40,22 @@ extension QuizTheme {
     var stableID: String {
         id
     }
+
+    /// A round must outlive catalog refreshes and mutations of cached model objects.
+    func roundSnapshot() -> QuizTheme {
+        QuizTheme(
+            id: id, theme: theme, themeDescription: themeDescription,
+            questions: questions.map {
+                QuizQuestion(
+                    questionID: $0.questionID, questionVersion: $0.questionVersion,
+                    locale: $0.locale, question: $0.question, answers: $0.answers,
+                    correctAnswer: $0.correctAnswer, explanation: $0.explanation
+                )
+            },
+            sfSymbolName: sfSymbolName, emoji: emoji, colorHex: colorHex,
+            isFavorite: isFavorite, source: source, questionOrigin: questionOrigin,
+            aiGenerationConfiguration: aiGenerationConfiguration, difficulty: difficulty,
+            countries: countries
+        )
+    }
 }

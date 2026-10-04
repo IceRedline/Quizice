@@ -57,6 +57,7 @@ struct AIQuizGenerationAlert: Identifiable, Equatable {
         case refusal
         case network
         case service
+        case quota
         case invalidQuiz
         case authentication
         case configuration
@@ -71,6 +72,7 @@ struct AIQuizGenerationAlert: Identifiable, Equatable {
         switch kind {
         case .refusal: return L10n.AITheme.Error.Refusal.title
         case .network: return L10n.AITheme.Error.Network.title
+        case .quota: return L10n.AITheme.Error.Quota.title
         case .service: return L10n.AITheme.Error.Service.title
         case .invalidQuiz: return L10n.AITheme.Error.InvalidQuiz.title
         case .authentication: return L10n.AITheme.Error.Authentication.title
@@ -83,6 +85,7 @@ struct AIQuizGenerationAlert: Identifiable, Equatable {
         switch kind {
         case .refusal: return L10n.AITheme.Error.Refusal.message
         case .network: return L10n.AITheme.Error.Network.message
+        case .quota: return L10n.AITheme.Error.Quota.message
         case .service: return L10n.AITheme.Error.Service.message
         case .invalidQuiz: return L10n.AITheme.Error.InvalidQuiz.message
         case .authentication: return L10n.AITheme.Error.Authentication.message
@@ -94,7 +97,7 @@ struct AIQuizGenerationAlert: Identifiable, Equatable {
     var canRetry: Bool {
         switch kind {
         case .network, .service, .invalidQuiz: return true
-        case .refusal, .authentication, .configuration, .unavailable: return false
+        case .refusal, .quota, .authentication, .configuration, .unavailable: return false
         }
     }
 
@@ -124,6 +127,8 @@ struct AIQuizGenerationAlert: Identifiable, Equatable {
         }
 
         switch serviceError {
+        case .quotaExceeded:
+            kind = .quota
         case .authenticationRequired:
             kind = .authentication
         case .refused:
@@ -515,6 +520,7 @@ extension AIQuizGenerationAlert.Kind {
         switch self {
         case .refusal: return "hand.raised.fill"
         case .network: return "wifi.slash"
+        case .quota: return "calendar"
         case .service: return "clock.fill"
         case .invalidQuiz: return "doc.text.fill"
         case .authentication: return "person.crop.circle.badge.exclamationmark"
@@ -533,7 +539,7 @@ extension AIQuizGenerationAlert.Kind {
             switch self {
             case .refusal, .unavailable:
                 return appearance.destructiveColor
-            case .network, .service, .invalidQuiz, .authentication, .configuration:
+            case .network, .service, .quota, .invalidQuiz, .authentication, .configuration:
                 return appearance.accentColor
             }
         }

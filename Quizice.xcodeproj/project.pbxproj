@@ -141,6 +141,7 @@
 		B10000000000000000000005 /* BackendAIQuizThemeService.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10000000000000000000004 /* BackendAIQuizThemeService.swift */; };
 		B10000000000000000000007 /* BackendClientTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10000000000000000000006 /* BackendClientTests.swift */; };
 		B10000000000000000000009 /* LiveBackendContractTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10000000000000000000008 /* LiveBackendContractTests.swift */; };
+		C40000000000000000000002 /* OutboxTestIsolationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C40000000000000000000001 /* OutboxTestIsolationTests.swift */; };
 		B1000000000000000000000B /* BackendContentModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1000000000000000000000A /* BackendContentModels.swift */; };
 		B10000000000000000000012 /* BackendRetry.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10000000000000000000011 /* BackendRetry.swift */; };
 		B20000000000000000000002 /* BackendClientTestSupport.swift in Sources */ = {isa = PBXBuildFile; fileRef = B20000000000000000000001 /* BackendClientTestSupport.swift */; };
@@ -356,6 +357,7 @@
 		B10000000000000000000004 /* BackendAIQuizThemeService.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = BackendAIQuizThemeService.swift; sourceTree = "<group>"; };
 		B10000000000000000000006 /* BackendClientTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = BackendClientTests.swift; sourceTree = "<group>"; };
 		B10000000000000000000008 /* LiveBackendContractTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = LiveBackendContractTests.swift; sourceTree = "<group>"; };
+		C40000000000000000000001 /* OutboxTestIsolationTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = OutboxTestIsolationTests.swift; sourceTree = "<group>"; };
 		B1000000000000000000000A /* BackendContentModels.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = BackendContentModels.swift; sourceTree = "<group>"; };
 		B10000000000000000000011 /* BackendRetry.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = BackendRetry.swift; sourceTree = "<group>"; };
 		B1AC8B3FC4C1F81BC74A5C1D /* ThemeCollectionDelegate.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ThemeCollectionDelegate.swift; sourceTree = "<group>"; };
@@ -1122,6 +1124,7 @@
 				B20000000000000000000005 /* KeychainSessionStoreTests.swift */,
 				15CCD31365CAC105EA3F080B /* LocalizationTests.swift */,
 				B10000000000000000000008 /* LiveBackendContractTests.swift */,
+				C40000000000000000000001 /* OutboxTestIsolationTests.swift */,
 				9C83493B5946FF3E4A04293C /* QuizFactoryTests.swift */,
 				B87163E818824EBEFD6A6605 /* QuizQuestionPresenterFailureStateTests.swift */,
 				7437B1988E720F61100D0DFA /* QuizQuestionPresenterTests.swift */,
@@ -1239,6 +1242,7 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = 993C1BBC2D8D5E8A00AD9BE4 /* Build configuration list for PBXNativeTarget "Quizice" */;
 			buildPhases = (
+				C40000000000000000000003 /* Validate Release Configuration */,
 				993C1BA52D8D5E8900AD9BE4 /* Sources */,
 				993C1BA62D8D5E8900AD9BE4 /* Frameworks */,
 				993C1BA72D8D5E8900AD9BE4 /* Resources */,
@@ -1364,6 +1368,26 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXResourcesBuildPhase section */
+
+/* Begin PBXShellScriptBuildPhase section */
+		C40000000000000000000003 /* Validate Release Configuration */ = {
+			isa = PBXShellScriptBuildPhase;
+			alwaysOutOfDate = 1;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+				"$(SRCROOT)/scripts/validate-release-configuration.sh",
+			);
+			name = "Validate Release Configuration";
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/bash;
+			shellScript = "/bin/bash \"${SRCROOT}/scripts/validate-release-configuration.sh\"\n";
+			showEnvVarsInLog = 0;
+		};
+/* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
 		993C1BA52D8D5E8900AD9BE4 /* Sources */ = {
@@ -1547,6 +1571,7 @@
 				B20000000000000000000006 /* KeychainSessionStoreTests.swift in Sources */,
 				2CDC0F89012E1DF42C18CF95 /* LocalizationTests.swift in Sources */,
 				B10000000000000000000009 /* LiveBackendContractTests.swift in Sources */,
+				C40000000000000000000002 /* OutboxTestIsolationTests.swift in Sources */,
 				F8FB31616EA0973B761A8E3D /* QuizFactoryTests.swift in Sources */,
 				44D96E9AACB00911BF56D648 /* QuizQuestionPresenterFailureStateTests.swift in Sources */,
 				187B8C82B8210453A198B2C1 /* QuizQuestionPresenterTests.swift in Sources */,
