@@ -6,12 +6,11 @@ extension QuizViewController {
         questionCount: Int,
         difficulty: AIQuizDifficulty
     ) {
-        guard
-            !isQuizLaunchPending,
-            session.chosenTheme?.themeID == themeID,
-            let cardView = expandedThemeCardView,
-            let router
-        else { return }
+        guard !isQuizLaunchPending else { return }
+        guard let cardView = expandedThemeCardView, let router else {
+            homeStore.send(.launchFailed)
+            return
+        }
 
         quizTransitionSourceView = cardView.transitionSourceView
         isQuizLaunchPending = true
@@ -37,15 +36,12 @@ extension QuizViewController {
                     throw CancellationError()
                 }
 
+                guard QuizQuestionCountPolicy.usableQuestionCount(
+                    in: preparedTheme.questions.map(QuestionModel.init(quizQuestion:))
+                ) > 0 else { throw QuizPreparationError.unavailable }
                 self.stopQuizPreparationProgress()
                 self.session.chosenTheme = ThemeModel(quizTheme: preparedTheme)
                 self.session.questionsCount = questionCount
-                self.analytics.track(
-                    .quizStarted(
-                        theme: self.session.chosenTheme?.analyticsTheme ?? .unknown,
-                        questionCount: questionCount
-                    )
-                )
                 self.hasQuizLaunchStarted = true
                 router.showQuestion()
             } catch is CancellationError {
@@ -67,8 +63,18 @@ extension QuizViewController {
         expandedThemeCardView?.isUserInteractionEnabled = true
         updateExpandedThemeCardParallaxPhase()
         if let message {
-            motivationLabel.text = message
+            presentQuizPreparationFailure(message: message)
         }
+    }
+
+    private func presentQuizPreparationFailure(message: String) {
+        let alert = UIAlertController(title: nil, message: message, preferredStyle: .alert)
+        alert.view.accessibilityIdentifier = "quizPreparationErrorAlert"
+        alert.addAction(UIAlertAction(title: L10n.AITheme.retry, style: .default) { [weak self] _ in
+            self?.sendHomeCardAction(.startRequested)
+        })
+        alert.addAction(UIAlertAction(title: L10n.Common.back, style: .cancel))
+        present(alert, animated: true)
     }
 
     private func startQuizPreparationProgress(for cardView: ExpandedThemeCardView) {

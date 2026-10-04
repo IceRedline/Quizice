@@ -198,14 +198,11 @@ extension ExpandedThemeCardView {
     }
 
     func updateBackFaceAccessibilityElements(isAvailable: Bool) {
-        var elements: [Any] = [
-            backTitleLabel,
-            backDescriptionLabel,
-            difficultyLabel,
-            difficultyControl,
-            questionCountLabel,
-            questionCountControl
-        ]
+        var elements: [Any] = [backTitleLabel, backDescriptionLabel]
+        if !difficultyControl.isHidden {
+            elements.append(contentsOf: [difficultyLabel, difficultyControl])
+        }
+        elements.append(contentsOf: [questionCountLabel, questionCountControl])
         if !isAvailable {
             elements.append(unavailableLabel)
         }
@@ -214,7 +211,12 @@ extension ExpandedThemeCardView {
         backFaceView.accessibilityElements = elements
     }
 
-    func configureDifficulty(_ difficulty: AIQuizDifficulty) {
+    func configureDifficulty(_ difficulty: AIQuizDifficulty, isAvailable: Bool) {
+        [difficultyLabel, difficultyControl].forEach {
+            $0.isHidden = !isAvailable
+            $0.accessibilityElementsHidden = !isAvailable
+        }
+        difficultyControl.isEnabled = isAvailable
         selectedDifficulty = difficulty
         difficultyControl.selectedSegmentIndex =
             AIQuizDifficulty.allCases.firstIndex(of: difficulty) ?? 1

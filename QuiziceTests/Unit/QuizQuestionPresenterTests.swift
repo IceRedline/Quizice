@@ -311,6 +311,132 @@ final class QuizQuestionPresenterTests: XCTestCase {
     }
 #endif
 
+    func testDelayedTimerCallbackChargesElapsedTimeAndExpiresOnlyOnce() throws {
+        let (presenter, view, clock) = makeTimerHarness()
+        presenter.startTimer()
+        clock.advance(by: 5)
+        XCTAssertEqual(try XCTUnwrap(view.progressUpdates.last), 0.75, accuracy: 0.0001)
+        clock.advance(by: 30)
+        clock.advance(by: 1)
+        presenter.timeExpired()
+        presenter.checkQuestionNumberAndProceed()
+        XCTAssertEqual(view.timeExpiredCallCount, 1)
+        XCTAssertEqual(view.results, [QuizResultState(correctAnswers: 0, totalQuestions: 1)])
+        XCTAssertFalse(clock.hasScheduledTick)
+    }
+
+    func testBackgroundPauseExcludesElapsedTimeAndKeepsNewQuestionPaused() throws {
+        let (presenter, view, clock) = makeTimerHarness()
+        presenter.startTimer()
+        clock.advance(by: 5)
+        presenter.pauseTimer()
+        clock.advance(by: 60)
+        presenter.resumeTimer()
+        clock.advance(by: 5)
+        XCTAssertEqual(try XCTUnwrap(view.progressUpdates.last), 0.5, accuracy: 0.0001)
+        presenter.pauseTimer()
+        presenter.startTimer() // An incoming card's animation may finish during an interruption.
+        XCTAssertFalse(clock.hasScheduledTick)
+        clock.advance(by: 60)
+        presenter.resumeTimer()
+        clock.advance(by: 5)
+        XCTAssertEqual(try XCTUnwrap(view.progressUpdates.last), 0.75, accuracy: 0.0001)
+        presenter.stopTimer()
+    }
+
+    func testActivationDuringNextQuestionTransitionDoesNotReuseExpiredTimer() {
+        let (presenter, view, clock) = makeTimerHarness(questionCount: 2)
+        presenter.startTimer()
+        clock.advance(by: 20)
+        XCTAssertEqual(view.timeExpiredCallCount, 1)
+        presenter.checkQuestionNumberAndProceed()
+        XCTAssertEqual(view.loadedViewModels.count, 2)
+        // The second card is entering; its animation has not called startTimer yet.
+        presenter.pauseTimer()
+        presenter.resumeTimer()
+        clock.advance(by: 30)
+        XCTAssertEqual(view.timeExpiredCallCount, 1)
+        XCTAssertFalse(clock.hasScheduledTick)
+        presenter.startTimer()
+        clock.advance(by: 19)
+        XCTAssertEqual(view.timeExpiredCallCount, 1)
+        clock.advance(by: 1)
+        XCTAssertEqual(view.timeExpiredCallCount, 2)
+    }
+
+    func testCatalogMutationDoesNotChangeLoadedRoundOrCompletedStatistics() throws {
+        let statistics = makeStatisticsHarness().store
+        let original = SnapshotSupport.makeTheme(id: "music", name: "Music", questions: [
+            QuizQuestion(questionID: "music:1", questionVersion: 1, locale: "en",
+                         question: "Original?", answers: ["A", "B", "C", "D"], correctAnswer: "A")
+        ])
+        let session = QuestionPresenterSession()
+        session.chosenTheme = ThemeModel(quizTheme: original)
+        let view = QuestionPresenterViewSpy()
+        let outbox = QuestionPresenterAnswerOutbox()
+        let presenter = QuizQuestionPresenter(session: session, statisticsStore: statistics, answerOutbox: outbox)
+        presenter.view = view
+        presenter.viewDidLoad()
+        original.theme = "Refreshed"
+        original.questions[0].question = "Changed?"
+        original.questions[0].correctAnswer = "B"
+        original.questions[0].questionVersion = 2
+        session.chosenTheme = nil
+        let answer = try XCTUnwrap(view.loadedViewModels.last?.answers.first { $0.title == "A" })
+        XCTAssertEqual(presenter.themeID, "music")
+        XCTAssertEqual(presenter.currentQuestion?.questionText, "Original?")
+        XCTAssertEqual(presenter.currentQuestion?.questionVersion, 1)
+        XCTAssertEqual(presenter.answerFeedback(for: answer.id), .correct)
+        presenter.checkAnswer(optionID: answer.id)
+        presenter.checkQuestionNumberAndProceed()
+        XCTAssertEqual(view.results, [QuizResultState(correctAnswers: 1, totalQuestions: 1)])
+        XCTAssertEqual(statistics.loadSummary().correctAnswers, 1)
+        let event = try XCTUnwrap(outbox.events.first)
+        XCTAssertEqual(event.questionId, "music:1")
+        XCTAssertEqual(event.questionVersion, 1)
+        XCTAssertEqual(event.answer, "A")
+    }
+
+    func testEachPlayableRoundTracksItsActualCountAndEmptyRoundDoesNotStart() {
+        let session = QuestionPresenterSession()
+        session.questionsCount = 15
+        session.chosenTheme = ThemeModel(quizTheme: SnapshotSupport.makeTheme(
+            id: "partial", name: "Partial", questions: (0..<3).map { makeQuestion("Q\($0)?", correctAnswer: "A") }
+        ))
+        let analytics = InlineAIAnalyticsSpy()
+        for _ in 0..<2 { // Replay creates a fresh presenter even when reusing the question screen.
+            let presenter = QuizQuestionPresenter(session: session, statisticsStore: makeStatisticsHarness().store,
+                                                  analytics: analytics)
+            presenter.viewDidLoad()
+        }
+        session.chosenTheme = nil
+        QuizQuestionPresenter(session: session, statisticsStore: makeStatisticsHarness().store,
+                              analytics: analytics).viewDidLoad()
+        XCTAssertEqual(analytics.quizStartedCount, 2)
+        let counts = analytics.events.compactMap { event -> Int? in
+            if case let .quizStarted(_, count) = event { return count }
+            return nil
+        }
+        XCTAssertEqual(counts, [3, 3])
+        XCTAssertEqual(session.questionsCount, 15, "The next request must preserve the selected round size")
+    }
+
+    private func makeTimerHarness(questionCount: Int = 1) -> (QuizQuestionPresenter, QuestionPresenterViewSpy, TestQuizTimerClient) {
+        let session = QuestionPresenterSession()
+        session.questionsCount = questionCount
+        session.chosenTheme = ThemeModel(quizTheme: SnapshotSupport.makeTheme(
+            id: "timer", name: "Timer",
+            questions: (0..<questionCount).map { makeQuestion("Question \($0)?", correctAnswer: "A") }
+        ))
+        let view = QuestionPresenterViewSpy()
+        let clock = TestQuizTimerClient()
+        let presenter = QuizQuestionPresenter(session: session, statisticsStore: makeStatisticsHarness().store,
+                                              timerClient: clock.client, accessibilityClient: .stub(active: false))
+        presenter.view = view
+        presenter.viewDidLoad()
+        return (presenter, view, clock)
+    }
+
     private func makeQuestion(
         _ text: String,
         correctAnswer: String,
@@ -373,12 +499,19 @@ private final class TestQuizTimerClient {
 
     var hasScheduledTick: Bool { scheduledTick != nil }
 
-    lazy var client = QuizTimerClient { [weak self] _, tick in
-        self?.scheduledTick = tick
-        return QuizTimerCancellation { [weak self] in self?.scheduledTick = nil }
-    }
+    private var now: TimeInterval = 0
+    lazy var client = QuizTimerClient(
+        now: { [weak self] in self?.now ?? 0 },
+        scheduleRepeating: { [weak self] _, tick in
+            self?.scheduledTick = tick
+            return QuizTimerCancellation { [weak self] in self?.scheduledTick = nil }
+        }
+    )
 
-    func tick() {
+    func tick() { advance(by: 0.02) }
+
+    func advance(by duration: TimeInterval) {
+        now += duration
         scheduledTick?()
     }
 }
@@ -436,4 +569,10 @@ private final class QuestionPresenterViewSpy: QuizQuestionViewControllerProtocol
     func showResults(_ result: QuizResultState) {
         results.append(result)
     }
+}
+
+private final class QuestionPresenterAnswerOutbox: QuestionAnswerOutboxing {
+    private(set) var events: [QuestionAnswerEvent] = []
+    func enqueue(_ event: QuestionAnswerEvent) { events.append(event) }
+    func synchronize() async {}
 }

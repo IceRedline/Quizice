@@ -36,7 +36,25 @@ final class ThemeCatalogRepository: ThemeRepository {
     private let countryProvider: () -> String?
     private let repeatStrategyProvider: () -> QuestionRepeatStrategy
 
-    var themes: [QuizTheme]?
+    private var loadedThemes: [QuizTheme]?
+    private var favoritePrincipal: String?
+    var themes: [QuizTheme]? {
+        get {
+            let principal = accessTokenProvider.currentSession()?.userID
+            if catalogOrigin == .backend, favoritePrincipal != principal {
+                favoritePrincipal = principal
+                loadedThemes?.sort { $0.stableID < $1.stableID }
+                applyFavoriteOrder(preferenceStore.orderedPreferredThemeIDs(
+                    locale: AppLocalizationStore.shared.resolvedLanguageCode
+                ))
+            }
+            return loadedThemes
+        }
+        set {
+            loadedThemes = newValue
+            favoritePrincipal = accessTokenProvider.currentSession()?.userID
+        }
+    }
     private(set) var catalogOrigin: QuizCatalogOrigin = .bundled
     var onCatalogReplaced: (() -> Void)?
 
@@ -88,6 +106,7 @@ final class ThemeCatalogRepository: ThemeRepository {
             )
             themes = cachedThemes
             catalogOrigin = .backend
+            applyFavoriteOrder(preferenceStore.orderedPreferredThemeIDs(locale: currentLocale))
             return
         }
 
@@ -151,8 +170,11 @@ final class ThemeCatalogRepository: ThemeRepository {
     }
 
     @discardableResult
+    @MainActor
     func refreshBackendCatalog(locale: String) async -> Bool {
         guard let backendContentAPI else { return false }
+        let principal = accessTokenProvider.currentSession()?.userID
+        let revision = preferenceStore.preferencesRevision(locale: locale)
         do {
             let response = try await backendContentAPI.fetchThemes(locale: locale)
             try Task.checkCancellation()
@@ -183,14 +205,24 @@ final class ThemeCatalogRepository: ThemeRepository {
             // main queue. Without this hop, the continuation may resume on a
             // background executor and race with UI readers of `themes`.
             return await MainActor.run {
-                guard AppLocalizationStore.shared.resolvedLanguageCode == locale else { return false }
+                guard AppLocalizationStore.shared.resolvedLanguageCode == locale,
+                      accessTokenProvider.currentSession()?.userID == principal else { return false }
+                // Catalog metadata is shared; account-specific favorites are
+                // persisted exclusively in the scoped preference store.
+                let cachedThemes = backendThemes.map { theme in
+                    QuizTheme(id: theme.id, theme: theme.theme, themeDescription: theme.themeDescription,
+                              questions: [], sfSymbolName: theme.sfSymbolName, emoji: theme.emoji,
+                              colorHex: theme.colorHex, isFavorite: false, source: .catalog,
+                              questionOrigin: .backend, countries: theme.countries)
+                }
                 themeStore?.replaceThemes(
-                    with: backendThemes,
+                    with: cachedThemes,
                     locale: locale,
                     catalogOrigin: .backend
                 )
                 themes = backendThemes
-                if !remoteFavoriteIDs.isEmpty, !preferenceStore.hasPendingThemePreferences(locale: locale) {
+                if preferenceStore.preferencesRevision(locale: locale) == revision,
+                   !preferenceStore.hasPendingThemePreferences(locale: locale) {
                     preferenceStore.applyRemotePreferredThemeIDs(remoteFavoriteIDs, locale: locale)
                 }
                 catalogOrigin = .backend
@@ -212,9 +244,12 @@ final class ThemeCatalogRepository: ThemeRepository {
     }
 
     @discardableResult
+    @MainActor
     func synchronizeThemePreferences(locale: String) async -> Bool {
         guard let backendContentAPI else { return false }
+        let principal = accessTokenProvider.currentSession()?.userID
         let storedIDs = preferenceStore.orderedPreferredThemeIDs(locale: locale)
+        let revision = preferenceStore.preferencesRevision(locale: locale)
         let favoriteThemeIDs: [String]
         if catalogOrigin == .backend {
             let availableIDs = Set((themes ?? []).map(\.stableID))
@@ -238,7 +273,9 @@ final class ThemeCatalogRepository: ThemeRepository {
             // Post-await mutations of preferenceStore, themes ordering, and
             // the onCatalogReplaced callback run on the main queue.
             return await MainActor.run {
-                guard AppLocalizationStore.shared.resolvedLanguageCode == locale else { return false }
+                guard AppLocalizationStore.shared.resolvedLanguageCode == locale,
+                      accessTokenProvider.currentSession()?.userID == principal,
+                      preferenceStore.preferencesRevision(locale: locale) == revision else { return false }
                 preferenceStore.applyRemotePreferredThemeIDs(
                     response.favoriteThemeIds,
                     locale: locale
@@ -263,6 +300,7 @@ final class ThemeCatalogRepository: ThemeRepository {
         }
     }
 
+    @MainActor
     func prepareQuiz(
         themeID: String,
         questionCount: Int,
@@ -276,6 +314,7 @@ final class ThemeCatalogRepository: ThemeRepository {
         )
     }
 
+    @MainActor
     func prepareQuiz(
         themeID: String,
         questionCount: Int,
@@ -297,8 +336,7 @@ final class ThemeCatalogRepository: ThemeRepository {
             )
             return try makeLocalQuiz(
                 themeID: themeID,
-                questionCount: questionCount,
-                difficulty: difficulty
+                questionCount: questionCount
             )
         }
         guard let backendContentAPI else { throw QuizPreparationError.unavailable }
@@ -334,11 +372,9 @@ final class ThemeCatalogRepository: ThemeRepository {
             guard accessTokenProvider.currentSession()?.userID == userID else {
                 throw QuestionAnswerSyncError.accountChanged
             }
-            // A filtered pool may be shorter than requested. Only launch lengths
-            // supported by statistics; leave the remainder for a future round.
-            let count = QuizQuestionCountPolicy.supportedCounts.last { $0 <= response.questions.count } ?? 0
-            if count == 0, !response.questions.isEmpty { throw QuizPreparationError.insufficientQuestions }
-            let questions = response.questions.prefix(count).map { $0.makeModel(locale: response.locale) }
+            // The final filtered round can contain fewer questions than requested.
+            // Preserve every issued question and record its actual completed count.
+            let questions = response.questions.map { $0.makeModel(locale: response.locale) }
             AppLog.content.notice(
                 "✅ BACKEND QUESTIONS: received theme=\(themeID, privacy: .public) locale=\(locale, privacy: .public) requested=\(questionCount, privacy: .public) received=\(questions.count, privacy: .public) seed=\(seed, privacy: .public) duration_ms=\(Self.durationMilliseconds(since: startedAt), privacy: .public)"
             )
@@ -366,6 +402,7 @@ final class ThemeCatalogRepository: ThemeRepository {
         }
     }
 
+    @MainActor
     func prepareRandomQuiz(
         selectionMode: CrossThemeQuestionSelectionMode,
         localFallback: QuizTheme,
@@ -381,6 +418,7 @@ final class ThemeCatalogRepository: ThemeRepository {
         )
     }
 
+    @MainActor
     func prepareRandomQuiz(
         selectionMode: CrossThemeQuestionSelectionMode,
         localFallback: QuizTheme,
@@ -430,11 +468,9 @@ final class ThemeCatalogRepository: ThemeRepository {
             guard accessTokenProvider.currentSession()?.userID == userID else {
                 throw QuestionAnswerSyncError.accountChanged
             }
-            // A filtered pool may be shorter than requested. Only launch lengths
-            // supported by statistics; leave the remainder for a future round.
-            let count = QuizQuestionCountPolicy.supportedCounts.last { $0 <= response.questions.count } ?? 0
-            if count == 0, !response.questions.isEmpty { throw QuizPreparationError.insufficientQuestions }
-            let questions = response.questions.prefix(count).map { $0.makeModel(locale: response.locale) }
+            // The final filtered round can contain fewer questions than requested.
+            // Preserve every issued question and record its actual completed count.
+            let questions = response.questions.map { $0.makeModel(locale: response.locale) }
             AppLog.content.notice(
                 "✅ BACKEND RANDOM QUESTIONS: received mode=\(selectionMode.rawValue, privacy: .public) locale=\(locale, privacy: .public) requested=\(questionCount, privacy: .public) received=\(questions.count, privacy: .public) seed=\(seed, privacy: .public) duration_ms=\(Self.durationMilliseconds(since: startedAt), privacy: .public)"
             )
@@ -467,8 +503,7 @@ final class ThemeCatalogRepository: ThemeRepository {
 
     private func makeLocalQuiz(
         themeID: String,
-        questionCount: Int,
-        difficulty: AIQuizDifficulty
+        questionCount: Int
     ) throws -> QuizTheme {
         let catalog = themes ?? fetchQuizThemes()
         guard
@@ -494,8 +529,7 @@ final class ThemeCatalogRepository: ThemeRepository {
             colorHex: theme.colorHex,
             isFavorite: theme.isFavorite,
             source: theme.source,
-            questionOrigin: .bundled,
-            difficulty: difficulty
+            questionOrigin: .bundled
         )
     }
 
@@ -537,7 +571,7 @@ final class ThemeCatalogRepository: ThemeRepository {
 
     private var effectiveQuestionRepeatStrategy: QuestionRepeatStrategy {
         repeatStrategyProvider().effective(
-            hasValidBackendSession: accessTokenProvider.validAccessToken() != nil
+            hasValidBackendSession: accessTokenProvider.currentSession() != nil || accessTokenProvider.validAccessToken() != nil
         )
     }
 

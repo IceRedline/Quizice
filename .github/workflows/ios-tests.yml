@@ -11,6 +11,40 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  release-build:
+    name: Release configuration and build
+    runs-on: macos-26
+    timeout-minutes: 30
+    env:
+      DEVELOPER_DIR: /Applications/Xcode_26.2.app/Contents/Developer
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - name: Release configuration regressions
+        run: |
+          python3 scripts/tests/test-release-configuration.py
+          python3 scripts/tests/test-static-verifier.py
+
+      - name: Compile Release without analytics credentials
+        # Reserved example address validates build configuration only; no live requests.
+        run: |
+          xcodebuild \
+            -quiet \
+            -skipPackagePluginValidation \
+            -skipMacroValidation \
+            -project Quizice.xcodeproj \
+            -scheme Quizice \
+            -configuration Release \
+            -destination 'generic/platform=iOS Simulator' \
+            -derivedDataPath DerivedData/Release \
+            CODE_SIGNING_ALLOWED=NO \
+            'BACKEND_BASE_URL=https://release-config.example.invalid/api' \
+            APPMETRICA_API_KEY= \
+            build
+
   ios-tests:
     name: Build and test
     runs-on: macos-26

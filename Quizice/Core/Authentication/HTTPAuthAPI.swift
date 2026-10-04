@@ -332,7 +332,14 @@ final class HTTPAuthAPI: AuthAPI {
         if summary.playedQuizzes == 0 {
             guard values.allSatisfy({ $0 == 0 }) else { return false }
         } else {
-            guard summary.totalQuestions > 0, summary.bestTotalQuestions > 0 else { return false }
+            guard summary.totalQuestions > 0 else { return false }
+            // Older servers leave the best game at 0/0 until the first correct
+            // answer. Accept their acknowledgement only for an all-zero score;
+            // preserve the aggregate exactly instead of inventing a best game.
+            let hasLegacyZeroBest = summary.correctAnswers == 0
+                && summary.bestCorrectAnswers == 0
+                && summary.bestTotalQuestions == 0
+            guard summary.bestTotalQuestions > 0 || hasLegacyZeroBest else { return false }
         }
 
         let acceptedIDs = response.acceptedAttemptIds

@@ -28,29 +28,6 @@ private enum Layout {
     static let iconChoiceTextMinimumScaleFactor: CGFloat = 0.82
 }
 
-private enum Appearance {
-    static let doneButtonBackgroundOpacity: CGFloat = 0.16
-    static let doneButtonBorderOpacity: CGFloat = 0.22
-    static let doneButtonCornerRadius: CGFloat = 20
-    static let sectionBackgroundOpacity: CGFloat = 0.12
-    static let sectionBorderOpacity: CGFloat = 0.18
-    static let sectionCornerRadius: CGFloat = 30
-    static let rowIconBackgroundOpacity: CGFloat = 0.14
-    static let rowIconCornerRadius: CGFloat = 18
-    static let iconChoiceCornerRadius: CGFloat = 20
-    static let selectedIconChoiceBackgroundOpacity: CGFloat = 0.24
-    static let defaultIconChoiceBackgroundOpacity: CGFloat = 0.12
-    static let selectedIconChoiceBorderOpacity: CGFloat = 0.82
-    static let defaultIconChoiceBorderOpacity: CGFloat = 0.18
-    static let selectedIconChoiceTextOpacity: CGFloat = 1
-    static let defaultIconChoiceTextOpacity: CGFloat = 0.72
-    static let sectionTitleOpacity: CGFloat = 0.7
-    static let rowSubtitleOpacity: CGFloat = 0.64
-    static let rowChevronOpacity: CGFloat = 0.56
-    static let menuChevronOpacity: CGFloat = 0.7
-    static let dividerOpacity: CGFloat = 0.18
-}
-
 struct QuizSettingsView: View {
     private enum AppIcon: String, CaseIterable, Identifiable {
         case classic
@@ -118,10 +95,20 @@ struct QuizSettingsView: View {
     @State private var activeAlert: SettingsAlert?
     @State private var showsQuestionStrategyHelp = false
     @State private var didTrackScreen = false
+    @State private var allowsPersonalizedRepeats: Bool
     private let analytics: AnalyticsTracking
+    private let personalizedRepeatsAvailable: () -> Bool
 
-    init(analytics: AnalyticsTracking = AppMetricaAnalyticsTracker.shared) {
+    init(
+        analytics: AnalyticsTracking = AppMetricaAnalyticsTracker.shared,
+        personalizedRepeatsAvailable: @escaping () -> Bool = {
+            ThemeCatalogRepository.shared.catalogOrigin == .backend
+                && StoredBackendAccessTokenProvider().validAccessToken() != nil
+        }
+    ) {
         self.analytics = analytics
+        self.personalizedRepeatsAvailable = personalizedRepeatsAvailable
+        _allowsPersonalizedRepeats = State(initialValue: personalizedRepeatsAvailable())
     }
 
     private var selectedTheme: CleanColorSchemePreference {
@@ -184,7 +171,17 @@ struct QuizSettingsView: View {
                 dismissButton: .default(Text(L10n.Settings.alertAction))
             )
         }
+        .onReceive(NotificationCenter.default.publisher(for: .backendAuthenticationEstablished)) { _ in
+            allowsPersonalizedRepeats = personalizedRepeatsAvailable()
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .backendAuthenticationInvalidated)) { _ in
+            allowsPersonalizedRepeats = false
+        }
+        .onReceive(NotificationCenter.default.publisher(for: UIApplication.didBecomeActiveNotification)) { _ in
+            allowsPersonalizedRepeats = personalizedRepeatsAvailable()
+        }
         .onAppear {
+            allowsPersonalizedRepeats = personalizedRepeatsAvailable()
             guard !didTrackScreen else { return }
             didTrackScreen = true
             analytics.track(.screenView(screen: .settings))
@@ -275,23 +272,33 @@ struct QuizSettingsView: View {
                 .accessibilityLabel(L10n.Settings.QuestionStrategy.helpAccessibilityLabel)
             },
             content: {
-                Menu {
-                    ForEach(QuestionRepeatStrategy.allCases, id: \.rawValue) { strategy in
-                        Button(questionStrategyTitle(strategy)) {
-                            repeatStrategyID = strategy.rawValue
+                if allowsPersonalizedRepeats {
+                    Menu {
+                        ForEach(QuestionRepeatStrategy.allCases, id: \.rawValue) { strategy in
+                            Button(L10n.Settings.QuestionStrategy.title(for: strategy)) {
+                                repeatStrategyID = strategy.rawValue
+                            }
                         }
-                    }
-                } label: {
-                    SettingsValueRow(
-                        systemImage: "arrow.triangle.2.circlepath",
-                        title: L10n.Settings.QuestionStrategy.title,
-                        subtitle: "",
-                        value: questionStrategyTitle(
-                            QuestionRepeatStrategy(rawValue: repeatStrategyID) ?? .showAll
+                    } label: {
+                        SettingsValueRow(
+                            systemImage: "arrow.triangle.2.circlepath",
+                            title: L10n.Settings.QuestionStrategy.title, subtitle: "",
+                            value: L10n.Settings.QuestionStrategy.title(for: QuestionRepeatStrategy(rawValue: repeatStrategyID) ?? .showAll)
                         )
-                    )
+                    }
+                    .buttonStyle(.plain)
+                } else {
+                    VStack(alignment: .leading, spacing: Layout.rowSpacing) {
+                        SettingsRowHeader(systemImage: "arrow.triangle.2.circlepath",
+                            title: L10n.Settings.QuestionStrategy.title, subtitle: L10n.Settings.QuestionStrategy.title(for: .showAll))
+                        Text(L10n.Settings.QuestionStrategy.unavailableMessage)
+                            .font(appearance.typography.swiftUIFont(size: 13, weight: .regular))
+                            .foregroundStyle(Color(uiColor: appearance.secondarySurfaceTextColor))
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
+                    .accessibilityElement(children: .combine)
                 }
-                .buttonStyle(.plain)
             }
         )
     }
@@ -340,10 +347,6 @@ struct QuizSettingsView: View {
                 showsQuestionStrategyHelp = isPresented
             }
         }
-    }
-
-    private func questionStrategyTitle(_ strategy: QuestionRepeatStrategy) -> String {
-        L10n.Settings.QuestionStrategy.title(for: strategy)
     }
 
     private var appearanceSection: some View {
@@ -652,7 +655,6 @@ private struct SettingsRowHeader: View {
                     Text(subtitle)
                         .font(appearance.typography.swiftUIFont(size: 13, weight: .regular))
                         .foregroundStyle(Color(uiColor: appearance.secondarySurfaceTextColor))
-                        .lineLimit(2)
                         .fixedSize(horizontal: false, vertical: true)
                 }
             }

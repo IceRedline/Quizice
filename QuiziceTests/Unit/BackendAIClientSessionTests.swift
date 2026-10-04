@@ -251,3 +251,42 @@ extension BackendClientTests {
         XCTAssertEqual(theme.questionOrigin, .backend)
     }
 }
+
+extension BackendClientTests {
+    func testBackendAIAcceptsExplanationsAllowedByServerContract() async throws {
+        let api = BackendAIQuizThemeService(
+            configuration: Self.configuration, session: makeSession(),
+            sessionStore: BackendMemorySessionStore(session: ProgressSessionProvider.session("A")),
+            accessProvider: BackendAIQuizAccessStub(isAvailable: true)
+        )
+        BackendTestURLProtocol.requestHandler = { request in
+            var payload = try XCTUnwrap(JSONSerialization.jsonObject(with: Self.successfulAIResponseData()) as? [String: Any])
+            var questions = try XCTUnwrap(payload["questions"] as? [[String: Any]])
+            questions[0]["explanation"] = String(repeating: "a", count: 2_000)
+            payload["questions"] = questions
+            return Self.response(for: request, data: try JSONSerialization.data(withJSONObject: payload))
+        }
+        let theme = try await api.generateQuizTheme(configuration: Self.aiConfiguration)
+        XCTAssertEqual(theme.questions.first?.explanation?.count, 2_000)
+    }
+
+    func testBackendAIDistinguishesMonthlyQuotaFromTransientRateLimit() async throws {
+        let api = BackendAIQuizThemeService(
+            configuration: Self.configuration, session: makeSession(),
+            sessionStore: BackendMemorySessionStore(session: ProgressSessionProvider.session("A")),
+            accessProvider: BackendAIQuizAccessStub(isAvailable: true)
+        )
+        for (code, expected) in [("ai_quota_exceeded", YandexAIQuizThemeServiceError.quotaExceeded),
+                                 ("rate_limited", .httpStatus(429))] {
+            BackendTestURLProtocol.requestHandler = { request in
+                Self.response(for: request, statusCode: 429, data: Data("{\"requestId\":\"test\",\"code\":\"\(code)\",\"message\":\"limit\"}".utf8))
+            }
+            await assertAIError(expected) { try await api.generateQuizTheme(configuration: Self.aiConfiguration) }
+        }
+        let alert = AIQuizGenerationAlert(error: YandexAIQuizThemeServiceError.quotaExceeded)
+        XCTAssertEqual(alert.kind, .quota)
+        XCTAssertFalse(alert.canRetry)
+        XCTAssertFalse(alert.offersEditAction)
+        XCTAssertNotEqual(alert.message, AIQuizGenerationAlert(error: YandexAIQuizThemeServiceError.httpStatus(429)).message)
+    }
+}

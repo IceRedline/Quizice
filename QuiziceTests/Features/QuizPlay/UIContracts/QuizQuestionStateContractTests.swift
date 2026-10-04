@@ -72,6 +72,69 @@ final class QuizQuestionStateContractTests: CrossScreenVisualTestCase {
 #endif
     }
 
+    func testReplayRestoresTimerAfterAccessibilityRoundEnds() {
+        QuizFactory.shared.chosenTheme = makeQuestionTheme()
+        QuizFactory.shared.questionsCount = 1
+        let controller = QuizQuestionViewController()
+        controller.configurePresenter(QuizQuestionPresenter(accessibilityClient: .stub(active: true)))
+        controller.loadViewIfNeeded()
+        XCTAssertTrue(controller.timerContainerView.isHidden)
+        XCTAssertTrue(controller.timerContainerView.accessibilityElementsHidden)
+
+        let replay = QuizQuestionPresenter(accessibilityClient: .stub(active: false))
+        controller.prepareForReplay(replay)
+        defer { replay.stopTimer() }
+        XCTAssertFalse(controller.timerContainerView.isHidden)
+        XCTAssertFalse(controller.timerContainerView.accessibilityElementsHidden)
+        XCTAssertEqual(controller.timerBar.progress, 1)
+    }
+
+    func testAppearanceRefreshPreservesAnswerFeedbackAndDisabledButtons() throws {
+        QuizFactory.shared.chosenTheme = makeQuestionTheme()
+        QuizFactory.shared.questionsCount = 1
+        let controller = QuizQuestionViewController()
+        controller.loadViewIfNeeded()
+        defer { controller.presenter?.stopTimer() }
+        let buttons = questionAnswerButtons(in: controller)
+        let correct = try XCTUnwrap(buttons.first { $0.title(for: .normal) == "Правильный ответ" })
+        correct.sendActions(for: .touchUpInside)
+        controller.applyAppearance()
+        XCTAssertTrue(buttons.allSatisfy { !$0.isEnabled })
+        assertColor(UIColor(cgColor: try XCTUnwrap(correct.layer.borderColor)),
+                    equals: currentAppearance().correctAnswerColor)
+        for button in buttons where button !== correct {
+            assertColor(UIColor(cgColor: try XCTUnwrap(button.layer.borderColor)),
+                        equals: currentAppearance().wrongAnswerColor)
+        }
+        assertColor(controller.timerBar.progressTintColor,
+                    equals: controller.timerFeedbackColor(isCorrect: true, appearance: currentAppearance()))
+        XCTAssertTrue(controller.nextButton.isEnabled)
+    }
+
+    func testApplicationInterruptionsPauseAndResumeTheQuestionPresenter() {
+        let (controller, presenter, _, _, window) = makeExitConfirmationHarness()
+        defer { window.isHidden = true }
+        let originalPauses = presenter.pauseTimerCallCount
+        let originalResumes = presenter.resumeTimerCallCount
+        NotificationCenter.default.post(name: UIApplication.willResignActiveNotification, object: nil)
+        XCTAssertEqual(presenter.pauseTimerCallCount, originalPauses + 1)
+        NotificationCenter.default.post(name: UIApplication.didBecomeActiveNotification, object: nil)
+        XCTAssertEqual(presenter.resumeTimerCallCount, originalResumes + 1)
+        XCTAssertTrue(controller.isViewLoaded)
+    }
+
+    func testReplayPreparedDuringInterruptionStaysPausedUntilActivation() {
+        let (controller, _, _, _, window) = makeExitConfirmationHarness()
+        defer { window.isHidden = true }
+        controller.pauseForApplicationInterruption()
+        let replay = ExitConfirmationPresenterSpy()
+        controller.prepareForReplay(replay)
+        XCTAssertEqual(replay.pauseTimerCallCount, 1)
+        XCTAssertEqual(replay.resumeTimerCallCount, 0)
+        controller.resumeAfterApplicationInterruption()
+        XCTAssertEqual(replay.resumeTimerCallCount, 1)
+    }
+
     func testQuestionScreenUpdatesExistingCardWhenNextQuestionViewModelIsLoaded() throws {
         QuizFactory.shared.chosenTheme = makeQuestionTheme()
         QuizFactory.shared.questionsCount = 1

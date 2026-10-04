@@ -117,6 +117,7 @@ final class GameCenterAuthenticationService {
         guard started == false else { return }
         started = true
         state = .initializing
+        statisticsStore.activateGuest()
         aiQuizAccessStore.update(isAuthenticated: false)
 #if DEBUG
         if let devAuthenticationProvider {
@@ -132,6 +133,10 @@ final class GameCenterAuthenticationService {
 #if DEBUG
     private func beginDevAuthentication(using provider: AuthenticationProvider) {
         authenticationTask?.cancel()
+        synchronizationTask?.cancel()
+        synchronizationTask = nil
+        synchronizationAttemptID = nil
+        statisticsStore.activateGuest()
         let attemptID = UUID()
         authenticationAttemptID = attemptID
         state = .authenticating
@@ -210,6 +215,17 @@ final class GameCenterAuthenticationService {
         statisticsMayRefreshToken: Bool
     ) {
         authenticationTask?.cancel()
+        synchronizationTask?.cancel()
+        synchronizationTask = nil
+        synchronizationAttemptID = nil
+        statisticsStore.activateGuest()
+        if currentTeamPlayerID != teamPlayerID {
+            // Remove the previous account before any asynchronous exchange starts.
+            // Content, preferences and answer queues all read this same session.
+            if let cached = loadStoredSession(), cached.teamPlayerID != teamPlayerID {
+                clearStoredSession()
+            }
+        }
         let attemptID = UUID()
         authenticationAttemptID = attemptID
         currentTeamPlayerID = teamPlayerID

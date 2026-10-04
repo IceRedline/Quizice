@@ -131,12 +131,6 @@ extension QuizViewController {
         session.chosenTheme = ThemeModel(quizTheme: theme)
         session.questionsCount = theme.questions.count
         analytics.track(.themeSelected(theme: .ai, method: .ai))
-        analytics.track(
-            .quizStarted(
-                theme: .ai,
-                questionCount: session.questionsCount
-            )
-        )
         quizTransitionSourceView = expandedAIThemeCardView
         isQuizLaunchPending = true
         hasQuizLaunchStarted = true

@@ -3,6 +3,30 @@ import AVKit
 import SwiftUI
 
 extension QuizQuestionViewController {
+    /// Interruptions pause the round; scrolling does not. The presenter retains
+    /// remaining monotonic duration and never charges time spent in the background.
+    func installQuestionLifecycleObservers() {
+        NotificationCenter.default.addObserver(
+            self, selector: #selector(pauseForApplicationInterruption),
+            name: UIApplication.willResignActiveNotification, object: nil
+        )
+        NotificationCenter.default.addObserver(
+            self, selector: #selector(resumeAfterApplicationInterruption),
+            name: UIApplication.didBecomeActiveNotification, object: nil
+        )
+        isApplicationInterrupted = UIApplication.shared.applicationState != .active
+        if isApplicationInterrupted { presenter?.pauseTimer() }
+    }
+
+    @objc func pauseForApplicationInterruption() {
+        isApplicationInterrupted = true
+        presenter?.pauseTimer()
+    }
+    @objc func resumeAfterApplicationInterruption() {
+        isApplicationInterrupted = false
+        presenter?.resumeTimer()
+    }
+
     @IBAction func answerChosen(_ sender: UIButton) {
         guard sender.isEnabled else { return }
         guard

@@ -2884,17 +2884,6 @@
                 "explanation": "Il fatto «In che anno ebbe luogo la Rivoluzione francese» avvenne nel 1789."
             },
             {
-                "question": "Chi scrisse 'La Divina Commedia'?",
-                "answers": [
-                    "Dante",
-                    "Petrarka",
-                    "Bokkachcho",
-                    "Moler"
-                ],
-                "correctAnswer": "Dante",
-                "explanation": "Dante scrisse l’opera «La Divina Commedia»."
-            },
-            {
                 "question": "Quale artista russo dipinse 'Mattina in una pineta'?",
                 "answers": [
                     "Shishkin",
@@ -3378,7 +3367,7 @@
                 "explanation": "È il divieto, totale o parziale, di importare o commerciare determinati beni con un paese."
             },
             {
-                "question": "Quale paese fu il primo a introdurre il reddito di base universale a livello nazionale?",
+                "question": "Quale paese condusse un esperimento di reddito di base con 2.000 disoccupati nel 2017–2018?",
                 "answers": [
                     "Finlandia",
                     "Svizzera",
@@ -3386,7 +3375,7 @@
                     "Netherlands"
                 ],
                 "correctAnswer": "Finlandia",
-                "explanation": "Avviò nel 2017 un esperimento nazionale di reddito di base rivolto a un campione di disoccupati, il più noto programma nazionale tra le opzioni."
+                "explanation": "In Finlandia, 2.000 disoccupati selezionati casualmente ricevettero un reddito di base durante l’esperimento del 2017–2018."
             },
             {
                 "question": "Quale oligarca russo fu arrestato a Londra nel 2023?",
@@ -3860,17 +3849,6 @@
                 ],
                 "correctAnswer": "Warren Buffett",
                 "explanation": "Guida Berkshire Hathaway e non siede nel consiglio di Amazon; Bezos e Jassy, invece, hanno ricoperto ruoli nel gruppo Amazon."
-            },
-            {
-                "question": "Quale paese fu il primo a introdurre il reddito di base universale a livello nazionale?",
-                "answers": [
-                    "Finlandia",
-                    "Svizzera",
-                    "Canada",
-                    "Netherlands"
-                ],
-                "correctAnswer": "Finlandia",
-                "explanation": "Sperimentò il reddito di base su scala nazionale fra 2017 e 2018 con 2.000 disoccupati selezionati casualmente."
             },
             {
                 "question": "Come si chiama la teoria economica basata sulle idee di Friedrich Hayek?",

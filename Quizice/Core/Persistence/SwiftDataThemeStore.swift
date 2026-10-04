@@ -179,19 +179,19 @@ final class SwiftDataThemeStore {
         locale: String,
         catalogOrigin: QuizCatalogOrigin
     ) {
-        clearThemes()
-        for theme in themes {
-            context.insert(
-                StoredQuizTheme(
-                    model: theme,
-                    catalogLocale: locale,
-                    catalogOrigin: catalogOrigin
-                )
-            )
-        }
         do {
+            let previous = try context.fetch(FetchDescriptor<StoredQuizTheme>())
+            for theme in previous { context.delete(theme) }
+            for theme in themes {
+                context.insert(StoredQuizTheme(
+                    model: theme, catalogLocale: locale, catalogOrigin: catalogOrigin
+                ))
+            }
+            // Delete and insert in one save: a failed refresh keeps the previous
+            // persisted catalogue available on the next launch.
             try context.save()
         } catch {
+            context.rollback()
             AppLog.persistence.error("Failed to save themes: \(String(describing: error), privacy: .public)")
             AppMetricaAnalyticsTracker.shared.reportOperationalError(error, context: .persistentStore)
         }
@@ -206,6 +206,7 @@ final class SwiftDataThemeStore {
             try context.save()
             AppLog.persistence.debug("SwiftData cleared")
         } catch {
+            context.rollback()
             AppLog.persistence.error("Database clearing error: \(String(describing: error), privacy: .public)")
             AppMetricaAnalyticsTracker.shared.reportOperationalError(error, context: .persistentStore)
         }

@@ -2884,17 +2884,6 @@
                 "explanation": "El hecho «¿En qué año tuvo lugar la Revolución francesa» ocurrió en 1789."
             },
             {
-                "question": "¿Quién escribió 'La Divina Comedia'?",
-                "answers": [
-                    "Dante",
-                    "Petrarka",
-                    "Bokkachcho",
-                    "Moler"
-                ],
-                "correctAnswer": "Dante",
-                "explanation": "Dante escribió la obra «La Divina Comedia»."
-            },
-            {
                 "question": "¿Qué artista ruso pintó 'Mañana en un bosque de pinos'?",
                 "answers": [
                     "Shishkin",
@@ -3378,7 +3367,7 @@
                 "explanation": "Es una prohibición o restricción oficial del comercio con un país, por ejemplo de importar determinados bienes."
             },
             {
-                "question": "¿Qué país fue el primero en introducir una renta básica universal a nivel nacional?",
+                "question": "¿Qué país realizó un experimento de renta básica con 2.000 personas desempleadas en 2017–2018?",
                 "answers": [
                     "Finlandia",
                     "Suiza",
@@ -3386,7 +3375,7 @@
                     "Países Bajos"
                 ],
                 "correctAnswer": "Finlandia",
-                "explanation": "Realizó entre 2017 y 2018 un experimento nacional de renta básica dirigido a un grupo de personas desempleadas."
+                "explanation": "En Finlandia, 2.000 personas desempleadas seleccionadas al azar recibieron una renta básica durante el experimento de 2017–2018."
             },
             {
                 "question": "¿Qué oligarca ruso fue arrestado en Londres en 2023?",
@@ -3860,17 +3849,6 @@
                 ],
                 "correctAnswer": "Warren Buffett",
                 "explanation": "No forma parte del consejo de administración de Amazon; dirige Berkshire Hathaway y ha sido su principal inversor."
-            },
-            {
-                "question": "¿Qué país fue el primero en introducir una renta básica universal a nivel nacional?",
-                "answers": [
-                    "Finlandia",
-                    "Suiza",
-                    "Canadá",
-                    "Países Bajos"
-                ],
-                "correctAnswer": "Finlandia",
-                "explanation": "Puso en marcha un ensayo estatal de renta básica en 2017, por lo que se la cita como pionera en esta política nacional."
             },
             {
                 "question": "¿Cómo se llama la teoría económica basada en las ideas de Friedrich Hayek?",

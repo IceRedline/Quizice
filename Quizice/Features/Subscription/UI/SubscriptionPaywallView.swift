@@ -89,35 +89,6 @@ final class SubscriptionEntitlementStore: SubscriptionEntitlementProviding, @unc
 #endif
 }
 
-struct SubscriptionOffer: Equatable {
-    let productID: String
-    let displayPrice: String
-    let freeQuestionsPerQuiz: Int
-    let premiumQuestionsPerQuiz: Int
-    let generationLimitMultiplier: Int
-
-    static func planned(
-        locale: Locale = AppLocalizationStore.shared.resolvedLocale
-    ) -> SubscriptionOffer {
-        let formatter = NumberFormatter()
-        formatter.locale = locale
-        formatter.numberStyle = .currency
-        formatter.currencyCode = "USD"
-        formatter.minimumFractionDigits = 2
-        formatter.maximumFractionDigits = 2
-
-        return SubscriptionOffer(
-            productID: SubscriptionEntitlementStore.plusMonthlyProductID,
-            displayPrice: formatter.string(
-                from: NSDecimalNumber(string: "1.99")
-            ) ?? "$1.99",
-            freeQuestionsPerQuiz: 5,
-            premiumQuestionsPerQuiz: 15,
-            generationLimitMultiplier: 20
-        )
-    }
-}
-
 struct SubscriptionPaywallView: View {
     enum AccessibilityID {
         static let root = "subscriptionPaywall"
@@ -151,10 +122,9 @@ struct SubscriptionPaywallView: View {
     }
 
     @Environment(\.dismiss) private var dismiss
-    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @State private var didTrackScreen = false
 
-    private let offer: SubscriptionOffer
+    let purchasesAvailable = false
     private let appearance: AppAppearance
     private let analytics: AnalyticsTracking
     private let onSubscribe: () -> Void
@@ -162,14 +132,12 @@ struct SubscriptionPaywallView: View {
     private let onClose: () -> Void
 
     init(
-        offer: SubscriptionOffer = .planned(),
         appearance: AppAppearance,
         analytics: AnalyticsTracking = AppMetricaAnalyticsTracker.shared,
-        onSubscribe: @escaping () -> Void,
-        onRestore: @escaping () -> Void,
+        onSubscribe: @escaping () -> Void = {},
+        onRestore: @escaping () -> Void = {},
         onClose: @escaping () -> Void = {}
     ) {
-        self.offer = offer
         self.appearance = appearance
         self.analytics = analytics
         self.onSubscribe = onSubscribe
@@ -186,10 +154,7 @@ struct SubscriptionPaywallView: View {
                 VStack(alignment: .leading, spacing: Layout.sectionSpacing) {
                     topBar
                     hero
-                    comparisonCard
-                    benefitsCard
-                    planCard
-                    secondaryActions
+                    if purchasesAvailable { secondaryActions }
                 }
                 .frame(maxWidth: Layout.maximumContentWidth)
                 .frame(maxWidth: .infinity)
@@ -200,7 +165,7 @@ struct SubscriptionPaywallView: View {
             .scrollIndicators(.hidden)
         }
         .safeAreaInset(edge: .bottom, spacing: 0) {
-            primaryActionBar
+            if purchasesAvailable { primaryActionBar }
         }
         .accessibilityIdentifier(AccessibilityID.root)
         .environment(\.appAppearance, appearance)
@@ -214,10 +179,12 @@ struct SubscriptionPaywallView: View {
     }
 
     func subscribe() {
+        guard purchasesAvailable else { return }
         onSubscribe()
     }
 
     func restore() {
+        guard purchasesAvailable else { return }
         onRestore()
     }
 
@@ -315,230 +282,17 @@ struct SubscriptionPaywallView: View {
 
     private var hero: some View {
         VStack(alignment: .leading, spacing: 10) {
-            Text(L10n.Subscription.title)
+            Text(L10n.Subscription.ComingSoon.title)
                 .font(appearance.typography.swiftUIFont(size: 36, weight: .bold))
                 .foregroundStyle(Color(uiColor: appearance.screenTextColor))
                 .tracking(-0.7)
                 .fixedSize(horizontal: false, vertical: true)
 
-            Text(L10n.Subscription.subtitle)
+            Text(L10n.Subscription.ComingSoon.message)
                 .font(appearance.typography.swiftUIFont(size: 17, weight: .regular))
                 .foregroundStyle(Color(uiColor: appearance.secondaryScreenTextColor))
                 .fixedSize(horizontal: false, vertical: true)
         }
-    }
-
-    private var comparisonCard: some View {
-        VStack(spacing: 14) {
-            Text(L10n.Subscription.multiplier)
-                .font(appearance.typography.swiftUIFont(size: 14, weight: .bold))
-                .foregroundStyle(premiumAccentColor)
-                .padding(.horizontal, 12)
-                .padding(.vertical, 7)
-                .background(
-                    Color(uiColor: appearance.row.backgroundColor),
-                    in: Capsule()
-                )
-
-            if dynamicTypeSize.isAccessibilitySize {
-                VStack(spacing: 10) {
-                    metricCard(
-                        label: L10n.Subscription.free,
-                        value: "1×",
-                        isPremium: false
-                    )
-                    Image(systemName: "arrow.down")
-                        .font(appearance.typography.swiftUIFont(size: 15, weight: .bold))
-                        .foregroundStyle(premiumAccentColor)
-                        .accessibilityHidden(true)
-                    metricCard(
-                        label: L10n.Subscription.plus,
-                        value: "\(offer.generationLimitMultiplier)×",
-                        isPremium: true
-                    )
-                }
-            } else {
-                HStack(spacing: 12) {
-                    metricCard(
-                        label: L10n.Subscription.free,
-                        value: "1×",
-                        isPremium: false
-                    )
-                    Image(systemName: "arrow.right")
-                        .font(appearance.typography.swiftUIFont(size: 15, weight: .bold))
-                        .foregroundStyle(premiumAccentColor)
-                        .accessibilityHidden(true)
-                    metricCard(
-                        label: L10n.Subscription.plus,
-                        value: "\(offer.generationLimitMultiplier)×",
-                        isPremium: true
-                    )
-                }
-            }
-        }
-        .padding(Layout.cardPadding)
-        .background(cardBackground)
-        .overlay(cardOutline)
-        .accessibilityElement(children: .contain)
-        .accessibilityIdentifier(AccessibilityID.comparison)
-    }
-
-    private func metricCard(
-        label: String,
-        value: String,
-        isPremium: Bool
-    ) -> some View {
-        VStack(spacing: 4) {
-            HStack(spacing: 5) {
-                if isPremium {
-                    Image(systemName: "sparkles")
-                        .font(appearance.typography.swiftUIFont(size: 13, weight: .semibold))
-                        .foregroundStyle(premiumAccentColor)
-                        .accessibilityHidden(true)
-                }
-                Text(label)
-                    .font(appearance.typography.swiftUIFont(size: 13, weight: .bold))
-                    .foregroundStyle(
-                        isPremium
-                            ? premiumAccentColor
-                            : Color(uiColor: appearance.secondarySurfaceTextColor)
-                    )
-            }
-
-            Text(value)
-                .font(appearance.typography.swiftUIFont(size: 38, weight: .bold))
-                .foregroundStyle(Color(uiColor: appearance.surfaceTextColor))
-
-            Text(L10n.Subscription.generationLimit)
-                .font(appearance.typography.swiftUIFont(size: 13, weight: .medium))
-                .foregroundStyle(Color(uiColor: appearance.secondarySurfaceTextColor))
-                .multilineTextAlignment(.center)
-        }
-        .frame(maxWidth: .infinity, minHeight: Layout.metricMinimumHeight)
-        .padding(.horizontal, 10)
-        .background(
-            Color(uiColor: appearance.row.backgroundColor),
-            in: RoundedRectangle(
-                cornerRadius: max(cardCornerRadius - 10, 8),
-                style: .continuous
-            )
-        )
-        .overlay {
-            if isPremium {
-                RoundedRectangle(
-                    cornerRadius: max(cardCornerRadius - 10, 8),
-                    style: .continuous
-                )
-                .stroke(premiumStroke, lineWidth: premiumBorderWidth)
-            }
-        }
-    }
-
-    private var benefitsCard: some View {
-        VStack(spacing: 0) {
-            benefitRow(
-                systemImage: "text.badge.plus",
-                title: L10n.Subscription.limitBenefitTitle,
-                subtitle: L10n.Subscription.limitBenefitSubtitle
-            )
-
-            Divider()
-                .overlay(Color(uiColor: appearance.card.borderColor))
-                .padding(.vertical, 14)
-
-            benefitRow(
-                systemImage: "slider.horizontal.3",
-                title: L10n.Subscription.flexibilityBenefitTitle,
-                subtitle: L10n.Subscription.flexibilityBenefitSubtitle
-            )
-        }
-        .padding(Layout.cardPadding)
-        .background(cardBackground)
-        .overlay(cardOutline)
-    }
-
-    private func benefitRow(
-        systemImage: String,
-        title: String,
-        subtitle: String
-    ) -> some View {
-        HStack(alignment: .top, spacing: 13) {
-            Image(systemName: systemImage)
-                .font(appearance.typography.swiftUIFont(size: 17, weight: .semibold))
-                .foregroundStyle(premiumAccentColor)
-                .accessibilityHidden(true)
-                .frame(
-                    width: Layout.benefitIconSize,
-                    height: Layout.benefitIconSize
-                )
-                .background(
-                    Color(uiColor: appearance.row.backgroundColor),
-                    in: RoundedRectangle(
-                        cornerRadius: appearance.row.cornerRadius,
-                        style: .continuous
-                    )
-                )
-                .overlay(
-                    RoundedRectangle(
-                        cornerRadius: appearance.row.cornerRadius,
-                        style: .continuous
-                    )
-                    .stroke(premiumStroke, lineWidth: premiumBorderWidth)
-                )
-                .accessibilityHidden(true)
-
-            VStack(alignment: .leading, spacing: 4) {
-                Text(title)
-                    .font(appearance.typography.swiftUIFont(size: 16, weight: .semibold))
-                    .foregroundStyle(Color(uiColor: appearance.surfaceTextColor))
-
-                Text(subtitle)
-                    .font(appearance.typography.swiftUIFont(size: 14, weight: .regular))
-                    .foregroundStyle(Color(uiColor: appearance.secondarySurfaceTextColor))
-                    .fixedSize(horizontal: false, vertical: true)
-            }
-        }
-        .frame(maxWidth: .infinity, alignment: .leading)
-    }
-
-    private var planCard: some View {
-        ViewThatFits(in: .horizontal) {
-            HStack(alignment: .center, spacing: 16) {
-                planDescription
-                Spacer(minLength: 8)
-                planPrice
-            }
-
-            VStack(alignment: .leading, spacing: 12) {
-                planDescription
-                planPrice
-            }
-        }
-        .padding(Layout.cardPadding)
-        .background(cardBackground)
-        .overlay(cardOutline)
-        .accessibilityElement(children: .combine)
-        .accessibilityIdentifier(AccessibilityID.plan)
-    }
-
-    private var planDescription: some View {
-        VStack(alignment: .leading, spacing: 5) {
-            Text(L10n.Subscription.planTitle)
-                .font(appearance.typography.swiftUIFont(size: 17, weight: .semibold))
-                .foregroundStyle(Color(uiColor: appearance.surfaceTextColor))
-
-            Text(L10n.Subscription.planNote)
-                .font(appearance.typography.swiftUIFont(size: 13, weight: .regular))
-                .foregroundStyle(Color(uiColor: appearance.secondarySurfaceTextColor))
-                .fixedSize(horizontal: false, vertical: true)
-        }
-    }
-
-    private var planPrice: some View {
-        Text(L10n.Subscription.pricePerMonth(offer.displayPrice))
-            .font(appearance.typography.swiftUIFont(size: 18, weight: .bold))
-            .foregroundStyle(premiumAccentColor)
-            .fixedSize(horizontal: true, vertical: false)
     }
 
     private var secondaryActions: some View {
@@ -551,20 +305,16 @@ struct SubscriptionPaywallView: View {
             }
             .buttonStyle(QuizPressButtonStyle())
             .accessibilityIdentifier(AccessibilityID.restoreButton)
+            .disabled(!purchasesAvailable)
 
-            Text(L10n.Subscription.legal)
-                .font(appearance.typography.swiftUIFont(size: 12, weight: .regular))
-                .foregroundStyle(Color(uiColor: appearance.secondaryScreenTextColor))
-                .multilineTextAlignment(.center)
-                .frame(maxWidth: .infinity)
-                .fixedSize(horizontal: false, vertical: true)
+
         }
     }
 
     private var primaryActionBar: some View {
         VStack(spacing: 0) {
             Button(action: subscribe) {
-                Text(L10n.Subscription.subscribeCTA(offer.displayPrice))
+                Text(L10n.Subscription.ComingSoon.title)
                     .font(appearance.typography.swiftUIFont(size: 17, weight: .semibold))
                     .foregroundStyle(primaryButtonTextColor)
                     .frame(maxWidth: .infinity, minHeight: Layout.primaryButtonHeight)
@@ -580,6 +330,7 @@ struct SubscriptionPaywallView: View {
             }
             .buttonStyle(QuizPressButtonStyle())
             .accessibilityIdentifier(AccessibilityID.subscribeButton)
+            .disabled(!purchasesAvailable)
             .frame(maxWidth: Layout.maximumContentWidth)
             .frame(maxWidth: .infinity)
             .padding(.horizontal, Layout.horizontalInset)

@@ -2884,17 +2884,6 @@
                 "explanation": "Das Ereignis „In welchem Jahr fand die Französische Revolution statt“ fand im Jahr 1789 statt."
             },
             {
-                "question": "Wer schrieb 'Die Göttliche Komödie'?",
-                "answers": [
-                    "Dante",
-                    "Petrarka",
-                    "Bokkachcho",
-                    "Moler"
-                ],
-                "correctAnswer": "Dante",
-                "explanation": "Dante schrieb das Werk „Die Göttliche Komödie“."
-            },
-            {
                 "question": "Welcher russische Künstler malte 'Morgen im Kiefernwald'?",
                 "answers": [
                     "Shishkin",
@@ -3378,7 +3367,7 @@
                 "explanation": "Ein Embargo verbietet oder beschränkt die Ein- oder Ausfuhr bestimmter Waren."
             },
             {
-                "question": "Welches Land führte als erstes ein bedingungsloses Grundeinkommen auf nationaler Ebene ein?",
+                "question": "Welches Land führte 2017–2018 einen Grundeinkommensversuch mit 2.000 Arbeitslosen durch?",
                 "answers": [
                     "Finnland",
                     "Schweiz",
@@ -3386,7 +3375,7 @@
                     "Netherlands"
                 ],
                 "correctAnswer": "Finnland",
-                "explanation": "Finnland testete 2017 und 2018 ein Grundeinkommen mit 2.000 zufällig ausgewählten Arbeitslosen."
+                "explanation": "In Finnland erhielten 2.000 zufällig ausgewählte Arbeitslose während des Versuchs 2017–2018 ein Grundeinkommen."
             },
             {
                 "question": "Welcher russische Oligarch wurde 2023 in London verhaftet?",
@@ -3860,17 +3849,6 @@
                 ],
                 "correctAnswer": "Warren Buffett",
                 "explanation": "Buffett leitet Berkshire Hathaway und gehörte nicht dem Verwaltungsrat von Amazon an."
-            },
-            {
-                "question": "Welches Land führte als erstes ein bedingungsloses Grundeinkommen auf nationaler Ebene ein?",
-                "answers": [
-                    "Finnland",
-                    "Schweiz",
-                    "Kanada",
-                    "Netherlands"
-                ],
-                "correctAnswer": "Finnland",
-                "explanation": "Der finnische Grundeinkommensversuch lief zwei Jahre und zahlte monatlich 560 Euro aus."
             },
             {
                 "question": "Wie heißt die Wirtschaftstheorie, die auf den Ideen von Friedrich Hayek basiert?",

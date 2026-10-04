@@ -12,6 +12,11 @@ final class QuizQuestionPresenter: QuizQuestionPresenterProtocol {
     weak var view: QuizQuestionViewControllerProtocol?
 
     private var timerCancellation: QuizTimerCancellation?
+    private var roundTheme: ThemeModel?
+    private var timerDeadline: TimeInterval?
+    private var isTimerPaused = false
+    private var hasStartedQuestionTimer = false
+    private var hasTrackedStart = false
     private var remainingTime: TimeInterval = 20
     private let totalTime: TimeInterval = 20
     private let tickInterval: TimeInterval = 0.02
@@ -31,17 +36,17 @@ final class QuizQuestionPresenter: QuizQuestionPresenterProtocol {
     private var answerUserID: String?
     private var statisticsUserID: String?
     var themeID: String? {
-        session.chosenTheme?.themeID
+        (roundTheme ?? session.chosenTheme)?.themeID
     }
     var analyticsTheme: AnalyticsTheme {
-        session.chosenTheme?.analyticsTheme ?? .unknown
+        (roundTheme ?? session.chosenTheme)?.analyticsTheme ?? .unknown
     }
 #if DEBUG
     var questionOrigin: QuizQuestionOrigin {
-        session.chosenTheme?.questionOrigin ?? .bundled
+        (roundTheme ?? session.chosenTheme)?.questionOrigin ?? .bundled
     }
     var themeSource: QuizThemeSource {
-        session.chosenTheme?.quizTheme.source ?? .catalog
+        (roundTheme ?? session.chosenTheme)?.quizTheme.source ?? .catalog
     }
 #endif
     
@@ -73,6 +78,10 @@ final class QuizQuestionPresenter: QuizQuestionPresenterProtocol {
         isAccessibilityAtStart = accessibilityClient.isActive()
         loadQuestions()
         loadQuestion()
+        if let questionsTotalCount, questionsTotalCount > 0, !hasTrackedStart {
+            hasTrackedStart = true
+            analytics.track(.quizStarted(theme: analyticsTheme, questionCount: questionsTotalCount))
+        }
         if isAccessibilityAtStart {
             view?.hideTimerBar()
         }
@@ -90,35 +99,45 @@ final class QuizQuestionPresenter: QuizQuestionPresenterProtocol {
 
         stopTimer()
         remainingTime = totalTime
+        hasStartedQuestionTimer = true
         view?.updateProgress(1.0)
 
-        scheduleTimer()
+        if !isTimerPaused { scheduleTimer() }
     }
 
     func pauseTimer() {
-        timerCancellation?.cancel()
-        timerCancellation = nil
+        isTimerPaused = true
+        updateRemainingTime()
+        stopTimer()
     }
 
     func resumeTimer() {
-        guard !isAccessibilityAtStart else { return }
-        guard timerCancellation == nil, hasActiveQuestion, questionPhase == .awaitingAnswer, remainingTime > 0 else { return }
-        scheduleTimer()
+        isTimerPaused = false
+        guard !isAccessibilityAtStart, hasStartedQuestionTimer,
+              hasActiveQuestion, questionPhase == .awaitingAnswer else { return }
+        guard timerCancellation == nil else { return }
+        if remainingTime <= 0 {
+            timeExpired()
+        } else {
+            scheduleTimer()
+        }
     }
 
     private func scheduleTimer() {
+        timerDeadline = timerClient.now() + remainingTime
         timerCancellation = timerClient.scheduleRepeating(tickInterval) { [weak self] in
-            guard let self = self else { return }
-            
-            self.remainingTime -= self.tickInterval
-            let progress = Float(max(self.remainingTime, 0) / self.totalTime)
-            self.view?.updateProgress(progress)
-            
+            guard let self else { return }
+            self.updateRemainingTime()
             if self.remainingTime <= 0 {
-                self.stopTimer()
                 self.timeExpired()
             }
         }
+    }
+
+    private func updateRemainingTime() {
+        guard let timerDeadline else { return }
+        remainingTime = max(0, timerDeadline - timerClient.now())
+        view?.updateProgress(Float(remainingTime / totalTime))
     }
     
     func timeExpired() {
@@ -132,6 +151,7 @@ final class QuizQuestionPresenter: QuizQuestionPresenterProtocol {
     func stopTimer() {
         timerCancellation?.cancel()
         timerCancellation = nil
+        timerDeadline = nil
     }
     
     // MARK: - Methods
@@ -139,7 +159,8 @@ final class QuizQuestionPresenter: QuizQuestionPresenterProtocol {
     func loadQuestions() {
         answerUserID = answerOutbox.currentUserID
         statisticsUserID = statisticsStore.activeUserID
-        guard let chosenTheme = session.chosenTheme else {
+        roundTheme = session.chosenTheme.map { ThemeModel(quizTheme: $0.quizTheme.roundSnapshot()) }
+        guard let chosenTheme = roundTheme else {
             chosenThemeQuestionsArray = []
             questionsTotalCount = 0
             return
@@ -166,16 +187,17 @@ final class QuizQuestionPresenter: QuizQuestionPresenterProtocol {
     }
     
     func loadQuestion() {
+        stopTimer()
+        hasStartedQuestionTimer = false
         guard hasActiveQuestion else {
             questionPhase = .unavailable
             currentQuestion = nil
             currentAnswerOptions = []
             stopTimer()
             view?.updateProgress(0)
-            let message = QuestionRepeatStrategyStore.shared.strategy == .showAll
-                ? L10n.Question.unavailableMessage
-                : L10n.Question.progressCompleteMessage
-            view?.showQuestionUnavailable(themeName: session.chosenTheme?.themeName, message: message)
+            view?.showQuestionUnavailable(
+                themeName: roundTheme?.themeName, message: L10n.Question.unavailableMessage
+            )
             return
         }
         
@@ -183,7 +205,7 @@ final class QuizQuestionPresenter: QuizQuestionPresenterProtocol {
         currentQuestion = question
         questionPhase = .awaitingAnswer
         
-        let themeName = session.chosenTheme?.themeName ?? L10n.Question.fallbackTheme
+        let themeName = roundTheme?.themeName ?? L10n.Question.fallbackTheme
         currentAnswerOptions = makeAnswerOptions(for: question)
         let questionNumberText = L10n.Question.number(currentQuestionIndex + 1)
         
@@ -258,6 +280,10 @@ final class QuizQuestionPresenter: QuizQuestionPresenterProtocol {
         hasRecordedCompletedAttempt = false
         questionPhase = .unavailable
         isAccessibilityAtStart = false
+        isTimerPaused = false
+        hasStartedQuestionTimer = false
+        hasTrackedStart = false
+        roundTheme = nil
     }
 
     private func recordCompletedAttemptIfNeeded(totalQuestions: Int) {
@@ -367,10 +393,12 @@ struct QuizTimerCancellation {
 }
 
 struct QuizTimerClient {
+    var now: () -> TimeInterval = { ProcessInfo.processInfo.systemUptime }
     var scheduleRepeating: (_ interval: TimeInterval, _ tick: @escaping () -> Void) -> QuizTimerCancellation
 
     static let live = Self { interval, tick in
-        let timer = Timer.scheduledTimer(withTimeInterval: interval, repeats: true) { _ in tick() }
+        let timer = Timer(timeInterval: interval, repeats: true) { _ in tick() }
+        RunLoop.main.add(timer, forMode: .common)
         return QuizTimerCancellation { timer.invalidate() }
     }
 }

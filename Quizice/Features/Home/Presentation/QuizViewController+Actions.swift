@@ -251,15 +251,12 @@ extension QuizViewController {
                     throw CancellationError()
                 }
 
+                guard QuizQuestionCountPolicy.usableQuestionCount(
+                    in: preparedTheme.questions.map(QuestionModel.init(quizQuestion:))
+                ) > 0 else { throw QuizPreparationError.unavailable }
                 self.feelingLuckyTask = nil
                 self.session.chosenTheme = ThemeModel(quizTheme: preparedTheme)
                 self.session.questionsCount = RandomQuizSelection.questionCount
-                self.analytics.track(
-                    .quizStarted(
-                        theme: self.session.chosenTheme?.analyticsTheme ?? .unknown,
-                        questionCount: self.session.questionsCount
-                    )
-                )
                 self.hasQuizLaunchStarted = true
                 router.showQuestion()
             } catch is CancellationError {

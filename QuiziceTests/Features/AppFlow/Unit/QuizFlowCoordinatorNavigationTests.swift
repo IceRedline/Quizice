@@ -97,6 +97,45 @@ final class QuizFlowCoordinatorNavigationTests: QuizFlowCoordinatorTestCase {
         XCTAssertTrue(harness.navigationController.dismissAnimationFlags.isEmpty)
     }
 
+    func testCatalogReplacementPreservesResultThemeAndReplayRequestSize() async throws {
+        let questions = (0..<3).map {
+            QuizQuestion(question: "Original \($0)?", answers: ["A", "B", "C", "D"], correctAnswer: "A")
+        }
+        let theme = SnapshotSupport.makeTheme(id: "music", name: "Original", questions: questions)
+        let repository = PartialReplayThemeRepository(theme: theme)
+        let session = RoutingSession()
+        session.chosenTheme = ThemeModel(quizTheme: theme)
+        session.questionsCount = 15
+        let analytics = InlineAIAnalyticsSpy()
+        let navigation = RoutingNavigationControllerSpy()
+        let coordinator = QuizFlowCoordinator(
+            window: UIWindow(), navigationController: navigation, themeRepository: repository,
+            session: session, aiQuizThemeService: MockAIQuizThemeService(), analytics: analytics
+        )
+        coordinator.start()
+        navigation.topViewControllerOverride = navigation
+        coordinator.showQuestion()
+        let question = try XCTUnwrap(navigation.presentedControllers.last as? QuizQuestionViewController)
+        question.loadViewIfNeeded()
+        defer { question.presenter?.stopTimer() }
+        let firstPresenter = try XCTUnwrap(question.presenter as? QuizQuestionPresenter)
+        theme.id = "changed"
+        theme.theme = "Changed"
+        session.chosenTheme = nil
+        session.questionsCount = 5
+        coordinator.showResult(QuizResultState(correctAnswers: 2, totalQuestions: 3))
+        let result = try XCTUnwrap(navigation.presentedControllers.last as? QuizResultViewController)
+        XCTAssertEqual(result.presenter?.themeID, "music")
+        coordinator.replayQuiz()
+        try await waitUntil { (question.presenter as? QuizQuestionPresenter) !== firstPresenter }
+        XCTAssertEqual(repository.requestedThemeIDs, ["music"])
+        XCTAssertEqual(repository.requestedCounts, [15])
+        XCTAssertEqual(question.presenter?.questionsTotalCount, 3)
+        XCTAssertEqual(session.questionsCount, 15)
+        XCTAssertEqual(analytics.quizStartedCount, 2)
+        XCTAssertEqual(navigation.presentedControllers.filter { $0 is QuizQuestionViewController }.count, 1)
+    }
+
     func testSlowCatalogReplayShowsDelayedProgressAndClearsItWhenCancelled() async throws {
         let theme = SnapshotSupport.makeTheme(
             id: "music",
@@ -256,63 +295,23 @@ final class QuizFlowCoordinatorNavigationTests: QuizFlowCoordinatorTestCase {
         XCTAssertEqual(harness.navigationController.presentedAnimationFlags.last, true)
     }
 
-    func testSubscriptionRoutePresentsLargePageSheet() throws {
+    func testSubscriptionPreviewDisablesPurchaseAndRestore() throws {
         let harness = makeHarness()
         harness.coordinator.start()
         harness.navigationController.topViewControllerOverride = harness.navigationController
-
         harness.coordinator.showSubscription()
-
-        let paywall = try XCTUnwrap(
-            harness.navigationController.presentedControllers.last
-                as? UIHostingController<SubscriptionPaywallView>
-        )
-        XCTAssertEqual(paywall.modalPresentationStyle, .pageSheet)
-        XCTAssertEqual(paywall.sheetPresentationController?.detents, [.large()])
+        let preview = try XCTUnwrap(harness.navigationController.presentedControllers.last
+            as? UIHostingController<SubscriptionPaywallView>)
+        XCTAssertEqual(preview.modalPresentationStyle, .pageSheet)
+        XCTAssertEqual(preview.sheetPresentationController?.detents, [.large()])
         XCTAssertEqual(harness.navigationController.presentedAnimationFlags.last, true)
-
-        paywall.rootView.subscribe()
-
-        let subscribeAlert = try XCTUnwrap(
-            harness.navigationController.presentedControllers.last as? UIAlertController
-        )
-        XCTAssertEqual(subscribeAlert.preferredStyle, .alert)
-        XCTAssertEqual(subscribeAlert.title, L10n.Subscription.ComingSoon.title)
-        XCTAssertEqual(subscribeAlert.message, L10n.Subscription.ComingSoon.message)
-        XCTAssertEqual(subscribeAlert.actions.map(\.title), [L10n.Subscription.ComingSoon.action])
-        XCTAssertEqual(subscribeAlert.actions.map(\.style), [.default])
-        XCTAssertEqual(harness.navigationController.presentedControllers.count, 2)
-        XCTAssertEqual(harness.navigationController.presentedAnimationFlags, [true, true])
-
-        let restoreHarness = makeHarness()
-        restoreHarness.coordinator.start()
-        restoreHarness.navigationController.topViewControllerOverride =
-            restoreHarness.navigationController
-        restoreHarness.coordinator.showSubscription()
-        let restorePaywall = try XCTUnwrap(
-            restoreHarness.navigationController.presentedControllers.last
-                as? UIHostingController<SubscriptionPaywallView>
-        )
-
-        restorePaywall.rootView.restore()
-
-        let restoreAlert = try XCTUnwrap(
-            restoreHarness.navigationController.presentedControllers.last
-                as? UIAlertController
-        )
-        XCTAssertEqual(restoreAlert.preferredStyle, .alert)
-        XCTAssertEqual(restoreAlert.title, L10n.Subscription.ComingSoon.title)
-        XCTAssertEqual(restoreAlert.message, L10n.Subscription.ComingSoon.message)
-        XCTAssertEqual(restoreAlert.actions.map(\.title), [L10n.Subscription.ComingSoon.action])
-        XCTAssertEqual(restoreAlert.actions.map(\.style), [.default])
-        XCTAssertEqual(restoreHarness.navigationController.presentedControllers.count, 2)
-        XCTAssertEqual(
-            restoreHarness.navigationController.presentedAnimationFlags,
-            [true, true]
-        )
+        XCTAssertFalse(preview.rootView.purchasesAvailable)
+        preview.rootView.subscribe()
+        preview.rootView.restore()
+        XCTAssertEqual(harness.navigationController.presentedControllers.count, 1)
     }
 
-    func testSubscriptionPaywallForwardsActionCallbacks() {
+    func testUnavailableSubscriptionOnlyForwardsCloseAction() {
         var receivedActions: [String] = []
         let paywall = SubscriptionPaywallView(
             appearance: makeLaunchAppearance(designStyle: .clean),
@@ -323,13 +322,13 @@ final class QuizFlowCoordinatorNavigationTests: QuizFlowCoordinatorTestCase {
         )
 
         paywall.subscribe()
-        XCTAssertEqual(receivedActions, ["subscribe"])
+        XCTAssertEqual(receivedActions, [])
 
         paywall.restore()
-        XCTAssertEqual(receivedActions, ["subscribe", "restore"])
+        XCTAssertEqual(receivedActions, [])
 
         paywall.close()
-        XCTAssertEqual(receivedActions, ["subscribe", "restore", "close"])
+        XCTAssertEqual(receivedActions, ["close"])
     }
 
     func testResultRouteUsesTheCoordinatorSession() throws {
@@ -349,5 +348,25 @@ final class QuizFlowCoordinatorNavigationTests: QuizFlowCoordinatorTestCase {
             harness.navigationController.presentedControllers.last as? QuizResultViewController
         )
         XCTAssertEqual(resultViewController.presenter?.themeID, "injected-session")
+    }
+}
+
+private final class PartialReplayThemeRepository: ThemeRepository {
+    var themes: [QuizTheme]?
+    private let preparedTheme: QuizTheme
+    private(set) var requestedThemeIDs: [String] = []
+    private(set) var requestedCounts: [Int] = []
+
+    init(theme: QuizTheme) {
+        themes = [theme.roundSnapshot()]
+        preparedTheme = theme.roundSnapshot()
+    }
+
+    func loadData(forceReload: Bool) {}
+    func fetchQuizThemes() -> [QuizTheme] { themes ?? [] }
+    func prepareQuiz(themeID: String, questionCount: Int, locale: String) async throws -> QuizTheme {
+        requestedThemeIDs.append(themeID)
+        requestedCounts.append(questionCount)
+        return preparedTheme.roundSnapshot()
     }
 }

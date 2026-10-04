@@ -38,12 +38,15 @@ final class FakeAuthAPI: AuthAPI {
     var syncAccessTokens: [String] = []
     var syncErrors: [BackendAPIError] = []
     var syncSummary: StatisticsSummary = .empty
+    var sessionsByTeamPlayerID: [String: AuthSession] = [:]
+    var syncHandler: ((StatisticsStore.SyncRequest, String) async throws -> StatisticsStore.SyncResponse)?
 
     func authenticate(identity: GameCenterIdentity) async throws -> AuthSession {
         authenticatedIdentities.append(identity)
         if authenticationErrors.isEmpty == false {
             throw authenticationErrors.removeFirst()
         }
+        if let session = sessionsByTeamPlayerID[identity.teamPlayerId] { return session }
         return AuthSession(
             userID: "user-1",
             accessToken: "access-token",
@@ -58,6 +61,7 @@ final class FakeAuthAPI: AuthAPI {
     ) async throws -> StatisticsStore.SyncResponse {
         syncRequests.append(request)
         syncAccessTokens.append(accessToken)
+        if let syncHandler { return try await syncHandler(request, accessToken) }
         if syncErrors.isEmpty == false {
             throw syncErrors.removeFirst()
         }
@@ -66,6 +70,30 @@ final class FakeAuthAPI: AuthAPI {
             acceptedAttemptIds: request.attempts.map(\.id),
             legacySummaryAccepted: true
         )
+    }
+}
+
+/// Deliberately ignores cancellation to model a response already delivered by
+/// the transport when Game Center switches accounts.
+actor SuspendedAuthStatisticsResponse {
+    private var continuation: CheckedContinuation<StatisticsStore.SyncResponse, Error>?
+    private let onSuspend: () -> Void
+
+    init(onSuspend: @escaping () -> Void) {
+        self.onSuspend = onSuspend
+    }
+
+    func wait() async throws -> StatisticsStore.SyncResponse {
+        try await withCheckedThrowingContinuation { continuation in
+            self.continuation = continuation
+            onSuspend()
+        }
+    }
+
+    func resume(with result: Result<StatisticsStore.SyncResponse, Error>) {
+        let pending = continuation
+        continuation = nil
+        pending?.resume(with: result)
     }
 }
 

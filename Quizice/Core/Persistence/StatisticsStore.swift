@@ -314,6 +314,8 @@ final class StatisticsStore {
             return state
         }
 
+        // Keep damaged bytes for recovery instead of silently destroying history.
+        userDefaults.set(data, forKey: "\(storageKey).corrupt")
         userDefaults.removeObject(forKey: storageKey)
         return .empty(migrationId: idGenerator())
     }

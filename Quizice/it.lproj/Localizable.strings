@@ -164,8 +164,8 @@
 "settings.language.subtitle" = "Lingua interfaccia";
 "settings.language.system" = "Sistema";
 "settings.profile" = "Profilo";
-"settings.profile.subtitle" = "Dati e progressi";
-"settings.profile.unavailable_message" = "Il profilo arriverà nella prossima iterazione.";
+"settings.profile.subtitle" = "Non disponibile in questa versione";
+"settings.profile.unavailable_message" = "La gestione del profilo non è disponibile in questa versione.";
 "settings.restart_required.title" = "Riavvio richiesto";
 "settings.restart_required.message_format" = "Riavvia l’app per applicare “%@”.";
 "settings.section.appearance" = "Aspetto";
@@ -196,21 +196,21 @@
 "statistics.subtitle.with_stats" = "I tuoi progressi nei quiz completati";
 "statistics.title" = "Statistiche";
 "subscription.ai_card.accessibility_hint" = "Apre l’anteprima di Quizice Plus";
-"subscription.ai_card.subtitle" = "Limite IA mensile ×20";
+"subscription.ai_card.subtitle" = "Quizice Plus";
 "subscription.ai_card.title" = "Ti servono più di 5 domande?";
 "subscription.badge.free" = "FREE";
-"subscription.home.accessibility_hint" = "Apre l’anteprima di Quizice Plus";
-"subscription.home.price_badge" = "Anteprima · 1,99 $/mese";
-"subscription.home.subtitle" = "Più generazioni con l’IA ogni mese";
-"subscription.home.title" = "Limite IA ×20 con Plus";
+"subscription.home.accessibility_hint" = "Apre le informazioni sulla disponibilità degli abbonamenti";
+"subscription.home.price_badge" = "Non disponibile";
+"subscription.home.subtitle" = "Gli abbonamenti non sono ancora disponibili";
+"subscription.home.title" = "Quizice Plus";
 "subscription.paywall.benefit.flexibility.subtitle" = "La versione gratuita include 5 domande; con Plus puoi sceglierne 10 o 15.";
 "subscription.paywall.benefit.flexibility.title" = "Fino a 15 domande per quiz";
 "subscription.paywall.benefit.limit.subtitle" = "Crea molti più quiz con l’IA ogni mese.";
 "subscription.paywall.benefit.limit.title" = "20 volte più richieste all’IA";
 "subscription.paywall.close" = "Chiudi";
 "subscription.paywall.coming_soon.action" = "Ho capito";
-"subscription.paywall.coming_soon.message" = "Gli abbonamenti non sono ancora disponibili. Questa anteprima mostra cosa includerà Quizice Plus.";
-"subscription.paywall.coming_soon.title" = "Quizice Plus arriverà presto";
+"subscription.paywall.coming_soon.message" = "L’acquisto e il ripristino degli abbonamenti non sono disponibili in questa versione. Puoi continuare a usare l’app senza abbonamento.";
+"subscription.paywall.coming_soon.title" = "Quizice Plus non è disponibile";
 "subscription.paywall.cta_format" = "Ottieni Plus a %@ al mese";
 "subscription.paywall.eyebrow" = "QUIZICE PLUS";
 "subscription.paywall.free" = "Gratis";
@@ -243,3 +243,8 @@
 
 "theme_card.country" = "Paese";
 "theme_card.international_questions" = "Domande internazionali";
+
+"settings.questionStrategy.unavailable" = "I filtri richiedono temi dal server e l’accesso a Game Center. Al momento vengono mostrate tutte le domande.";
+
+"ai_theme.error.quota.title" = "Limite mensile IA raggiunto";
+"ai_theme.error.quota.message" = "Hai utilizzato i quiz IA di questo mese. Il limite si rinnova all’inizio del prossimo mese di calendario (UTC). I quiz del catalogo restano disponibili.";

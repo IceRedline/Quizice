@@ -19,6 +19,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
                 "Cookie",
                 "Set-Cookie",
                 "X-API-Key",
+                "X-Dev-Auth-Secret",
                 "X-Yandex-API-Key"
             ]
             $0.sensitiveQueryItems = ["api_key", "access_token", "token"]
@@ -39,10 +40,6 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         AppMetricaAnalyticsTracker.shared.activate()
         modelContainer = makeModelContainer()
         let themeRepository = ThemeCatalogRepository.shared
-        let quizSession = QuizSessionStore.shared
-        themeRepository.onCatalogReplaced = { [weak quizSession] in
-            quizSession?.chosenTheme = nil
-        }
         if let modelContainer {
             themeRepository.setModelContext(modelContainer.mainContext)
         }
