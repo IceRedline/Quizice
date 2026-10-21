@@ -151,6 +151,11 @@ enum L10n {
                 static var message: String { L10n.localized("ai_theme.error.network.message", comment: "AI network error message") }
             }
 
+            enum Quota {
+                static var title: String { L10n.localized("ai_theme.error.quota.title", comment: "Monthly AI quota exhausted") }
+                static var message: String { L10n.localized("ai_theme.error.quota.message", comment: "Monthly AI quota reset") }
+            }
+
             enum Service {
                 static var title: String { L10n.localized("ai_theme.error.service.title", comment: "AI service error title") }
                 static var message: String { L10n.localized("ai_theme.error.service.message", comment: "AI service error message") }
@@ -362,6 +367,7 @@ enum L10n {
         }
 
         enum QuestionStrategy {
+            static var unavailableMessage: String { L10n.localized("settings.questionStrategy.unavailable", comment: "Personalized repeat filters require a backend account and catalog") }
             static var section: String { L10n.localized("settings.questionStrategy.section", comment: "Settings question strategy section title") }
             static var title: String { L10n.localized("settings.questionStrategy.title", comment: "Settings question repeat strategy row title") }
             static var helpTitle: String { L10n.localized("settings.questionStrategy.help.title", comment: "Question repeat strategy help title") }

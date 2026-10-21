@@ -228,6 +228,88 @@ final class GameCenterAuthenticationServiceTests: XCTestCase {
         )
     }
 
+    func testLateSuccessfulStatisticsResponseFromPreviousAccountIsIgnored() async {
+        await assertLateStatisticsResponseIsIgnored(unauthorized: false)
+    }
+
+    func testLateUnauthorizedStatisticsResponseDoesNotRefreshTheNewAccount() async {
+        await assertLateStatisticsResponseIsIgnored(unauthorized: true)
+    }
+
+    private func assertLateStatisticsResponseIsIgnored(unauthorized: Bool) async {
+        let previousSession = AuthSession(
+            userID: "user-1", accessToken: "previous-token",
+            expiresAt: Date(timeIntervalSince1970: 4_000_000_000), teamPlayerID: "team-1"
+        )
+        let newSession = AuthSession(
+            userID: "user-2", accessToken: "new-token",
+            expiresAt: Date(timeIntervalSince1970: 4_000_000_000), teamPlayerID: "team-2"
+        )
+        let harness = makeHarness(storedSession: previousSession)
+        harness.api.sessionsByTeamPlayerID["team-2"] = newSession
+        harness.statistics.recordAttempt(
+            correctAnswers: 4, totalQuestions: 5, accessibilityMode: false, for: "user-1"
+        )
+        harness.statistics.recordAttempt(
+            correctAnswers: 2, totalQuestions: 5, accessibilityMode: false, for: "user-2"
+        )
+        let previousRequest = harness.statistics.makeSyncRequest(for: "user-1")
+        let previousSummary = StatisticsSummary(
+            playedQuizzes: 1, correctAnswers: 4, totalQuestions: 5,
+            bestCorrectAnswers: 4, bestTotalQuestions: 5
+        )
+        let newSummary = StatisticsSummary(
+            playedQuizzes: 1, correctAnswers: 2, totalQuestions: 5,
+            bestCorrectAnswers: 2, bestTotalQuestions: 5
+        )
+        let suspended = expectation(description: "Previous account sync is in flight")
+        let gate = SuspendedAuthStatisticsResponse { suspended.fulfill() }
+        harness.api.syncHandler = { request, token in
+            if token == previousSession.accessToken { return try await gate.wait() }
+            return StatisticsStore.SyncResponse(
+                summary: newSummary,
+                acceptedAttemptIds: request.attempts.map(\.id),
+                legacySummaryAccepted: false
+            )
+        }
+
+        harness.service.start { _ in }
+        harness.gameCenter.emit(.authenticated(teamPlayerID: "team-1"))
+        await fulfillment(of: [suspended], timeout: 1)
+
+        harness.gameCenter.identity = GameCenterIdentity(
+            teamPlayerId: "team-2", bundleId: "ru.avtabenskiy.Quizice",
+            publicKeyUrl: "https://apple.example/key", signature: "signature",
+            salt: "salt", timestamp: "123"
+        )
+        harness.gameCenter.emit(.authenticated(teamPlayerID: "team-2"))
+        await waitUntil {
+            harness.service.state == .authenticated(userID: "user-2", teamPlayerID: "team-2")
+                && !harness.statistics.hasPendingSync(for: "user-2")
+        }
+
+        if unauthorized {
+            await gate.resume(with: .failure(BackendAPIError.unauthorized(nil)))
+        } else {
+            await gate.resume(with: .success(StatisticsStore.SyncResponse(
+                summary: previousSummary,
+                acceptedAttemptIds: previousRequest.attempts.map(\.id),
+                legacySummaryAccepted: false
+            )))
+        }
+        // Allow the cancelled task to deliver its late value or error on MainActor.
+        try? await Task.sleep(nanoseconds: 50_000_000)
+
+        XCTAssertEqual(harness.service.state, .authenticated(userID: "user-2", teamPlayerID: "team-2"))
+        XCTAssertEqual(harness.sessionStore.session, newSession)
+        XCTAssertEqual(harness.statistics.activeUserID, "user-2")
+        XCTAssertEqual(harness.statistics.loadSummary(), newSummary)
+        XCTAssertEqual(harness.statistics.makeSyncRequest(for: "user-1"), previousRequest)
+        XCTAssertEqual(harness.api.authenticatedIdentities.map(\.teamPlayerId), ["team-2"])
+        XCTAssertEqual(harness.api.syncAccessTokens, ["previous-token", "new-token"])
+        XCTAssertTrue(harness.aiAccess.isAIQuizAvailable)
+    }
+
     private func makeHarness(storedSession: AuthSession? = nil) -> (
         service: GameCenterAuthenticationService,
         gameCenter: FakeGameCenterClient,
@@ -575,6 +657,60 @@ final class HTTPAuthAPITests: XCTestCase {
 
         await assertError(.contractViolation) {
             try await api.syncStatistics(request: Self.emptySyncRequest, accessToken: "token")
+        }
+    }
+
+    func testLegacyAllWrongStatisticsAcknowledgementClearsOutboxWithoutInventingBestGame() async throws {
+        let suiteName = "HTTPAuthAPITests.zero-best.\(UUID().uuidString)"
+        let defaults = try XCTUnwrap(UserDefaults(suiteName: suiteName))
+        defer { defaults.removePersistentDomain(forName: suiteName) }
+        let store = StatisticsStore(userDefaults: defaults, key: "statistics", idGenerator: { "zero-attempt" })
+        store.activateAuthenticatedUser("user-1")
+        store.recordAttempt(correctAnswers: 0, totalQuestions: 5)
+        let api = makeAPI()
+        AuthURLProtocol.requestHandler = { request in
+            (
+                HTTPURLResponse(url: request.url!, statusCode: 200, httpVersion: nil, headerFields: nil)!,
+                Data(#"{"summary":{"playedQuizzes":1,"correctAnswers":0,"totalQuestions":5,"bestCorrectAnswers":0,"bestTotalQuestions":0},"acceptedAttemptIds":["zero-attempt"],"legacySummaryAccepted":false}"#.utf8)
+            )
+        }
+
+        let response = try await api.syncStatistics(
+            request: store.makeSyncRequest(for: "user-1"), accessToken: "token"
+        )
+        store.applySyncResponse(response, for: "user-1")
+
+        XCTAssertEqual(response.acceptedAttemptIds, ["zero-attempt"])
+        XCTAssertEqual(response.summary.bestTotalQuestions, 0)
+        XCTAssertEqual(store.loadSummary(), response.summary)
+        XCTAssertFalse(store.hasPendingSync(for: "user-1"))
+        let reloaded = StatisticsStore(userDefaults: defaults, key: "statistics")
+        XCTAssertFalse(reloaded.hasPendingSync(for: "user-1"))
+        XCTAssertEqual(reloaded.loadSummary().playedQuizzes, 1)
+    }
+
+    func testLegacyZeroBestExceptionRejectsContradictoryStatisticsAndMissingAcknowledgement() async {
+        let invalidFixtures = [
+            #"{"summary":{"playedQuizzes":1,"correctAnswers":1,"totalQuestions":5,"bestCorrectAnswers":0,"bestTotalQuestions":0},"acceptedAttemptIds":["zero-attempt"],"legacySummaryAccepted":false}"#,
+            #"{"summary":{"playedQuizzes":0,"correctAnswers":0,"totalQuestions":5,"bestCorrectAnswers":0,"bestTotalQuestions":0},"acceptedAttemptIds":["zero-attempt"],"legacySummaryAccepted":false}"#,
+            #"{"summary":{"playedQuizzes":1,"correctAnswers":0,"totalQuestions":0,"bestCorrectAnswers":0,"bestTotalQuestions":0},"acceptedAttemptIds":["zero-attempt"],"legacySummaryAccepted":false}"#,
+            #"{"summary":{"playedQuizzes":1,"correctAnswers":0,"totalQuestions":5,"bestCorrectAnswers":0,"bestTotalQuestions":0},"acceptedAttemptIds":[],"legacySummaryAccepted":false}"#
+        ]
+        let request = StatisticsStore.SyncRequest(
+            migrationId: "migration-1", legacySummary: nil,
+            attempts: [.init(id: "zero-attempt", correctAnswers: 0, totalQuestions: 5,
+                             completedAt: Date(timeIntervalSince1970: 1_234))]
+        )
+        for fixture in invalidFixtures {
+            AuthURLProtocol.requestHandler = { request in
+                (
+                    HTTPURLResponse(url: request.url!, statusCode: 200, httpVersion: nil, headerFields: nil)!,
+                    Data(fixture.utf8)
+                )
+            }
+            await assertError(.contractViolation) {
+                try await self.makeAPI().syncStatistics(request: request, accessToken: "token")
+            }
         }
     }
 

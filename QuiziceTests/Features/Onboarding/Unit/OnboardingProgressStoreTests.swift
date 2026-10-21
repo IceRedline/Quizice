@@ -103,3 +103,53 @@ final class OnboardingProgressStoreTests: XCTestCase {
         try operation(OnboardingProgressStore(userDefaults: defaults), defaults)
     }
 }
+
+extension OnboardingProgressStoreTests {
+    func testNewGuestChoiceIsClaimedOnceAndAccountPreferencesStayIsolated() {
+        withStore { _, defaults in
+            var userID: String?
+            let store = OnboardingProgressStore(userDefaults: defaults, userIDProvider: { userID })
+            store.complete(preferredThemeIDs: ["music"], locale: "ru")
+            userID = "A"
+            XCTAssertEqual(store.orderedPreferredThemeIDs(locale: "ru"), ["music"])
+            XCTAssertTrue(store.hasPendingThemePreferences(locale: "ru"))
+            store.applyRemotePreferredThemeIDs(["space"], locale: "ru")
+            userID = "B"
+            XCTAssertNil(store.storedPreferredThemeIDs(locale: "ru"))
+            XCTAssertFalse(store.hasPendingThemePreferences(locale: "ru"))
+            store.complete(preferredThemeIDs: ["cinema"], locale: "ru")
+            userID = "A"
+            XCTAssertEqual(store.orderedPreferredThemeIDs(locale: "ru"), ["space"])
+            XCTAssertFalse(store.hasPendingThemePreferences(locale: "ru"))
+        }
+    }
+
+    func testUnownedLegacyPreferencesAreNeverClaimedByAnAccount() {
+        withStore { _, defaults in
+            defaults.set(["music"], forKey: OnboardingProgressStore.Keys.preferredThemeIDs)
+            defaults.set(["music"], forKey: OnboardingProgressStore.Keys.preferredThemeIDs(locale: "ru"))
+            defaults.set(true, forKey: OnboardingProgressStore.Keys.pendingThemePreferences(locale: "ru"))
+            let store = OnboardingProgressStore(userDefaults: defaults, userIDProvider: { "new-account" })
+            XCTAssertNil(store.storedPreferredThemeIDs(locale: "ru"))
+            XCTAssertFalse(store.hasPendingThemePreferences(locale: "ru"))
+        }
+    }
+}
+
+extension OnboardingProgressStoreTests {
+    func testGuestSelectionIsConsumedByFirstReturningAccountEvenIfItHasPreferences() {
+        withStore { _, defaults in
+            var userID: String? = "A"
+            let store = OnboardingProgressStore(userDefaults: defaults, userIDProvider: { userID })
+            store.applyRemotePreferredThemeIDs(["technology"], locale: "ru")
+            userID = nil
+            store.complete(preferredThemeIDs: ["music"], locale: "ru")
+            userID = "A"
+            XCTAssertEqual(store.orderedPreferredThemeIDs(locale: "ru"), ["music"])
+            XCTAssertTrue(store.hasPendingThemePreferences(locale: "ru"))
+            userID = "B"
+            XCTAssertNil(store.storedPreferredThemeIDs(locale: "ru"))
+            XCTAssertFalse(store.hasPendingThemePreferences(locale: "ru"))
+        }
+    }
+}

@@ -30,6 +30,12 @@ case "$VERIFIER_MODE" in
     ;;
 esac
 
+# Static mode must also keep delegated S01-S03 checks and package discovery
+# offline. The separate build/test steps validate Xcode integration.
+if [[ "$VERIFIER_MODE" == "--checks-only" ]]; then
+  export QUIZICE_SKIP_XCODEBUILD=1
+fi
+
 readonly S03_VERIFIER="./scripts/verify-s03-statistics-screen-contracts.sh"
 readonly PROJECT="Quizice.xcodeproj"
 readonly PROJECT_FILE="$PROJECT/project.pbxproj"
@@ -548,7 +554,10 @@ check_direct_ai_route_and_retired_description() {
   fi
 
   require_fixed_string "$AI_WORKFLOW" 'analytics.track(.themeSelected(theme: .ai, method: .ai))' 'AI success must retain typed theme-selection analytics'
-  require_fixed_string "$AI_WORKFLOW" '.quizStarted(' 'AI success must emit quiz-start analytics before handoff'
+  require_fixed_string 'Quizice/Features/QuizPlay/Presentation/QuizQuestionPresenter.swift' '.quizStarted(' 'Quiz Play must own quiz-start analytics'
+  if grep -Fq '.quizStarted(' "$AI_WORKFLOW"; then
+    fail 'AI generation must not duplicate the quiz-start event emitted by Quiz Play'
+  fi
   require_fixed_string "$AI_WORKFLOW" 'quizTransitionSourceView = expandedAIThemeCardView' 'AI success must preserve the expanded card as the Question transition source'
   require_fixed_string "$AI_WORKFLOW" 'router.showQuestion()' 'AI success must route directly to Quiz Play'
   if grep -Fq 'router.showDescription()' "$AI_WORKFLOW"; then
@@ -677,14 +686,17 @@ check_project_and_test_wiring() {
     fi
   done
 
-  local xcodebuild_list_log
-  xcodebuild_list_log="$(mktemp -t quizice-s04-xcodebuild-list.XXXXXX.log)"
-  remember_temp_file "$xcodebuild_list_log"
-  xcodebuild \
-    -skipPackagePluginValidation \
-    -skipMacroValidation \
-    -list \
-    -project "$PROJECT" | tee "$xcodebuild_list_log"
+  if [[ "${QUIZICE_SKIP_XCODEBUILD:-0}" != "1" ]]; then
+    local xcodebuild_list_log
+    xcodebuild_list_log="$(mktemp -t quizice-s04-xcodebuild-list.XXXXXX.log)"
+    remember_temp_file "$xcodebuild_list_log"
+    xcodebuild \
+      -skipPackagePluginValidation \
+      -skipMacroValidation \
+      -list \
+      -project "$PROJECT" | tee "$xcodebuild_list_log"
+    require_fixed_string "$xcodebuild_list_log" 'Quizice' 'Quizice scheme must be visible to xcodebuild'
+  fi
 
   require_fixed_string "$PROJECT_FILE" 'QuiziceTests' 'QuiziceTests target must be present in the Xcode project'
   require_fixed_string "$PROJECT_FILE" 'productType = "com.apple.product-type.bundle.unit-test";' 'QuiziceTests must remain an XCTest unit-test bundle'
@@ -715,7 +727,6 @@ check_project_and_test_wiring() {
   done
 
   require_fixed_string "$SMOKE_TESTS" '@testable import Quizice' 'Smoke tests must import the Quizice app module'
-  require_fixed_string "$xcodebuild_list_log" 'Quizice' 'Quizice scheme must be visible to xcodebuild'
 
   printf 'Project contains the app-hosted QuiziceTests target and every split XCTest source: PASS\n'
 }

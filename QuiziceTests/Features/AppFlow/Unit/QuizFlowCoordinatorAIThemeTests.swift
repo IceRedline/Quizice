@@ -84,7 +84,7 @@ final class QuizFlowCoordinatorAIThemeTests: QuizFlowCoordinatorTestCase {
 
         try await waitUntil { harness.router.showQuestionCallCount == 1 }
         XCTAssertEqual(harness.router.showQuestionCallCount, 1)
-        XCTAssertEqual(harness.analytics.quizStartedCount, 1)
+        XCTAssertEqual(harness.analytics.quizStartedCount, 0, "The routing spy has not loaded a playable round")
         XCTAssertEqual(harness.session.chosenTheme?.themeID, generatedTheme.stableID)
         XCTAssertTrue(harness.session.chosenTheme?.isAIGenerated == true)
         XCTAssertEqual(
@@ -104,7 +104,7 @@ final class QuizFlowCoordinatorAIThemeTests: QuizFlowCoordinatorTestCase {
 
         await Task.yield()
         XCTAssertEqual(harness.router.showQuestionCallCount, 1)
-        XCTAssertEqual(harness.analytics.quizStartedCount, 1)
+        XCTAssertEqual(harness.analytics.quizStartedCount, 0, "The routing spy has not loaded a playable round")
 
         harness.viewController.quizFlowWillReturnToThemes()
 

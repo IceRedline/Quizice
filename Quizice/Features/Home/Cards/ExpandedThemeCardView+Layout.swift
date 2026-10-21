@@ -357,6 +357,11 @@ extension ExpandedThemeCardView {
         backFaceView.addSubview(backControlsStack)
         descriptionScrollView.addSubview(backDescriptionLabel)
 
+        let difficultyHeight = difficultyControl.heightAnchor.constraint(
+            greaterThanOrEqualToConstant: Layout.segmentedControlHeight
+        )
+        // UIStackView must be able to collapse this control for bundled content.
+        difficultyHeight.priority = .defaultHigh
         NSLayoutConstraint.activate([
             backSurfaceButton.leadingAnchor.constraint(equalTo: backFaceView.leadingAnchor),
             backSurfaceButton.trailingAnchor.constraint(equalTo: backFaceView.trailingAnchor),
@@ -437,9 +442,7 @@ extension ExpandedThemeCardView {
                 constant: -Layout.edgeInset
             ),
 
-            difficultyControl.heightAnchor.constraint(
-                greaterThanOrEqualToConstant: Layout.segmentedControlHeight
-            ),
+            difficultyHeight,
             questionCountControl.heightAnchor.constraint(
                 greaterThanOrEqualToConstant: Layout.segmentedControlHeight
             ),

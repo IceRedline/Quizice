@@ -415,6 +415,7 @@ extension ExpandedThemeCardView {
     }
 
     @objc func difficultyChanged() {
+        guard !difficultyControl.isHidden, difficultyControl.isEnabled else { return }
         let index = difficultyControl.selectedSegmentIndex
         guard AIQuizDifficulty.allCases.indices.contains(index) else { return }
         let difficulty = AIQuizDifficulty.allCases[index]

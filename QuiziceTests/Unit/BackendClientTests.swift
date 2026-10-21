@@ -186,6 +186,7 @@ final class BackendClientTests: XCTestCase {
         let prepared = try await repository.prepareQuiz(
             themeID: "music",
             questionCount: 5,
+            difficulty: .hard,
             locale: "en"
         )
 
@@ -193,6 +194,7 @@ final class BackendClientTests: XCTestCase {
         XCTAssertEqual(prepared.questions.count, 5)
         XCTAssertTrue(prepared.questions.allSatisfy { $0.question.hasPrefix("Local") })
         XCTAssertEqual(prepared.questionOrigin, .bundled)
+        XCTAssertNil(prepared.difficulty, "Bundled questions have no difficulty labels to filter by")
         XCTAssertEqual(backend.themeRequestCount, 0)
         XCTAssertTrue(backend.seeds.isEmpty)
     }
@@ -929,23 +931,16 @@ extension BackendClientTests {
         XCTAssertEqual(backend.seeds.count, 3)
     }
 
-    func testFilteredQuestionCountsUseSupportedRoundLengths() async throws {
+    func testFilteredQuestionCountsPreserveEveryIssuedQuestion() async throws {
         let backend = RecordingBackendContentAPI()
         let repository = ThemeCatalogRepository(backendContentAPI: backend,
             accessTokenProvider: NoopBackendAccessTokenProvider(), answerOutbox: NoopQuestionAnswerOutbox())
         let locale = AppLocalizationStore.shared.resolvedLanguageCode
         _ = await repository.refreshBackendCatalog(locale: locale)
-        for (received, expected) in [(0, 0), (5, 5), (7, 5), (10, 10), (14, 10), (15, 15)] {
-            backend.returnedQuestionCount = received
-            let theme = try await repository.prepareQuiz(themeID: "music", questionCount: 15, locale: locale)
-            XCTAssertEqual(theme.questions.count, expected)
-        }
-        for count in 1...4 {
+        for count in 0...15 {
             backend.returnedQuestionCount = count
-            do {
-                _ = try await repository.prepareQuiz(themeID: "music", questionCount: 5, locale: locale)
-                XCTFail("Cannot launch a round below the statistics minimum")
-            } catch { XCTAssertEqual(error as? QuizPreparationError, .insufficientQuestions) }
+            let theme = try await repository.prepareQuiz(themeID: "music", questionCount: 15, locale: locale)
+            XCTAssertEqual(theme.questions.count, count)
         }
     }
 
@@ -1186,5 +1181,84 @@ extension BackendClientTests {
             XCTAssertEqual(backend.requestedCountries.last!, "US")
         }
         XCTAssertEqual(backend.randomSelectionModes, CrossThemeQuestionSelectionMode.allCases)
+    }
+}
+
+extension BackendClientTests {
+    func testPreferenceResponseCannotOverwriteANewerLocalChoice() async {
+        let locale = AppLocalizationStore.shared.resolvedLanguageCode
+        let (store, defaults, suiteName) = makePreferenceStore()
+        defer { defaults.removePersistentDomain(forName: suiteName) }
+        let backend = ThemePreferencesBackendContentAPI(catalogThemes: Self.preferenceCatalog,
+                                                       remoteFavoriteThemeIDs: ["music"])
+        let repository = ThemeCatalogRepository(backendContentAPI: backend, preferenceStore: store)
+        _ = await repository.refreshBackendCatalog(locale: locale)
+        store.complete(preferredThemeIDs: ["music"], locale: locale)
+        backend.beforePreferencesResponse = { store.complete(preferredThemeIDs: ["space"], locale: locale) }
+        let applied = await repository.synchronizeThemePreferences(locale: locale)
+        XCTAssertFalse(applied)
+        XCTAssertEqual(store.orderedPreferredThemeIDs(locale: locale), ["space"])
+        XCTAssertTrue(store.hasPendingThemePreferences(locale: locale))
+    }
+
+    func testPreferenceResponseFromPreviousAccountIsDiscarded() async {
+        let locale = AppLocalizationStore.shared.resolvedLanguageCode
+        let (_, defaults, suiteName) = makePreferenceStore()
+        defer { defaults.removePersistentDomain(forName: suiteName) }
+        let provider = ProgressSessionProvider()
+        let store = OnboardingProgressStore(userDefaults: defaults, userIDProvider: { provider.session?.userID })
+        let backend = ThemePreferencesBackendContentAPI(catalogThemes: Self.preferenceCatalog,
+                                                       remoteFavoriteThemeIDs: ["music"])
+        let repository = ThemeCatalogRepository(backendContentAPI: backend, preferenceStore: store,
+                                               accessTokenProvider: provider)
+        _ = await repository.refreshBackendCatalog(locale: locale)
+        store.complete(preferredThemeIDs: ["music"], locale: locale)
+        backend.beforePreferencesResponse = { provider.session = ProgressSessionProvider.session("B") }
+        let applied = await repository.synchronizeThemePreferences(locale: locale)
+        XCTAssertFalse(applied)
+        XCTAssertNil(store.storedPreferredThemeIDs(locale: locale))
+        XCTAssertEqual(repository.themes?.filter(\.isFavorite).count, 0)
+        provider.session = ProgressSessionProvider.session("A")
+        XCTAssertEqual(store.orderedPreferredThemeIDs(locale: locale), ["music"])
+        XCTAssertTrue(store.hasPendingThemePreferences(locale: locale))
+    }
+
+    func testExpiredContentTokenUsesAuthenticationRecoveryInsteadOfGuestFallback() async throws {
+        let expired = AuthSession(userID: "A", accessToken: "expired", expiresAt: .distantPast, teamPlayerID: "A")
+        let store = BackendMemorySessionStore(session: expired)
+        let recoverer = BackendAuthenticationRecovererSpy(refreshedToken: "fresh")
+        let api = HTTPBackendContentAPI(configuration: Self.configuration, session: makeSession(),
+            accessTokenProvider: StoredBackendAccessTokenProvider(sessionStore: store), authenticationRecoverer: recoverer)
+        var calls = 0
+        BackendTestURLProtocol.requestHandler = { request in
+            calls += 1
+            if calls == 1 {
+                XCTAssertEqual(request.value(forHTTPHeaderField: "X-Quizice-Authorization"), "Bearer expired")
+                return Self.response(for: request, statusCode: 401, data: Data("{}".utf8))
+            }
+            XCTAssertEqual(request.value(forHTTPHeaderField: "X-Quizice-Authorization"), "Bearer fresh")
+            return Self.response(for: request, data: Data("{\"locale\":\"ru\",\"favoriteThemeIds\":[]}".utf8))
+        }
+        _ = try await api.fetchThemePreferences(locale: "ru")
+        XCTAssertEqual(calls, 2)
+        XCTAssertEqual(recoverer.rejectedTokens, ["expired"])
+    }
+
+    func testPreferencePUTDoesNotRetryUnderReplacementAccount() async {
+        let provider = ProgressSessionProvider()
+        let recoverer = BackendAuthenticationRecovererSpy(refreshedToken: "B-token")
+        let api = HTTPBackendContentAPI(configuration: Self.configuration, session: makeSession(),
+            accessTokenProvider: provider, authenticationRecoverer: recoverer)
+        var calls = 0
+        BackendTestURLProtocol.requestHandler = { request in
+            calls += 1
+            provider.session = ProgressSessionProvider.session("B")
+            return Self.response(for: request, statusCode: 401, data: Data("{}".utf8))
+        }
+        await assertBackendContentError(.unauthenticated) {
+            try await api.replaceThemePreferences(locale: "ru", favoriteThemeIDs: ["music"])
+        }
+        XCTAssertEqual(calls, 1)
+        XCTAssertTrue(recoverer.rejectedTokens.isEmpty)
     }
 }

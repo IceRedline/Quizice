@@ -15,6 +15,7 @@ final class LaunchOverlayPresenter {
     private var activePresentationID: UUID?
     private var activeDismissalID: UUID?
     private var preparationTask: Task<Void, Never>?
+    private var preparationDeadlineTask: Task<Void, Never>?
     private var activeReadiness: FakeLaunchReadiness?
     private weak var coveredAccessibilityView: UIView?
     private var coveredViewWasAccessibilityHidden = false
@@ -25,6 +26,7 @@ final class LaunchOverlayPresenter {
         appearance: AppAppearance,
         holdDuration: TimeInterval = Timing.holdDuration,
         motion: FakeLaunchMotion = .standard,
+        preparationTimeout: TimeInterval = 3,
         preparation: (@MainActor () async -> Void)? = nil,
         onDismissed: (() -> Void)? = nil
     ) {
@@ -79,6 +81,18 @@ final class LaunchOverlayPresenter {
                     !Task.isCancelled
                 else { return }
                 preparationTask = nil
+                preparationDeadlineTask?.cancel()
+                preparationDeadlineTask = nil
+                readiness.isReady = true
+            }
+            preparationDeadlineTask = Task { @MainActor [weak self] in
+                do {
+                    try await Task.sleep(nanoseconds: UInt64(max(0, preparationTimeout) * 1_000_000_000))
+                } catch { return }
+                guard let self, activePresentationID == presentationID, !Task.isCancelled else { return }
+                preparationTask?.cancel()
+                preparationTask = nil
+                preparationDeadlineTask = nil
                 readiness.isReady = true
             }
         }
@@ -94,6 +108,8 @@ final class LaunchOverlayPresenter {
     private func dismiss(animated: Bool, duration: TimeInterval) {
         preparationTask?.cancel()
         preparationTask = nil
+        preparationDeadlineTask?.cancel()
+        preparationDeadlineTask = nil
         activeReadiness = nil
         activePresentationID = nil
 

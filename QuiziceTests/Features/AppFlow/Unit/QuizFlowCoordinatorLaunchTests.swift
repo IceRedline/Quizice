@@ -196,6 +196,46 @@ final class QuizFlowCoordinatorLaunchTests: QuizFlowCoordinatorTestCase {
         await fulfillment(of: [dismissalExpectation], timeout: 2)
     }
 
+    func testLaunchPreparationTimeoutRevealsContentAndIgnoresLateCompletion() async throws {
+        let scene = try XCTUnwrap(UIApplication.shared.connectedScenes.compactMap { $0 as? UIWindowScene }.first)
+        let window = UIWindow(windowScene: scene)
+        let root = UIViewController()
+        window.rootViewController = root
+        window.isHidden = false
+        let presenter = LaunchOverlayPresenter()
+        var continuation: CheckedContinuation<Void, Never>?
+        let started = expectation(description: "Preparation started")
+        let dismissed = expectation(description: "Launch dismissed once")
+        dismissed.assertForOverFulfill = true
+        var dismissalCount = 0
+        defer {
+            continuation?.resume()
+            presenter.dismiss(animated: false)
+            window.isHidden = true
+            window.rootViewController = nil
+        }
+        presenter.present(
+            in: window, appearance: makeLaunchAppearance(designStyle: .classic), holdDuration: 0,
+            motion: FakeLaunchMotion(logoZoomScale: 42, logoZoomDuration: 0.01),
+            preparationTimeout: 0.05,
+            preparation: {
+                started.fulfill()
+                await withCheckedContinuation { continuation = $0 }
+            },
+            onDismissed: { dismissalCount += 1; dismissed.fulfill() }
+        )
+        await fulfillment(of: [started, dismissed], timeout: 2)
+        XCTAssertFalse(root.view.accessibilityElementsHidden)
+        XCTAssertFalse(scene.windows.contains {
+            $0.accessibilityIdentifier == LaunchOverlayPresenter.accessibilityIdentifier && !$0.isHidden
+        })
+        continuation?.resume()
+        continuation = nil
+        await Task.yield()
+        await Task.yield()
+        XCTAssertEqual(dismissalCount, 1)
+    }
+
     func testFakeLaunchDoesNotStartCompletionBeforeCatalogIsReady() async throws {
         let windowScene = try XCTUnwrap(
             UIApplication.shared.connectedScenes.compactMap { $0 as? UIWindowScene }.first

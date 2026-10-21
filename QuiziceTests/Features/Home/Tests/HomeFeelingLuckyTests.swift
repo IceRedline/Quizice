@@ -60,12 +60,10 @@ final class HomeFeelingLuckyTests: HomeScreenVisualStateTestCase {
         let luckyEvents = analytics.events.filter { event in
             !(event.name == "screen_view" && event.parameters["screen"] as? String == "home")
         }
-        XCTAssertEqual(luckyEvents.map(\.name), ["theme_selected", "quiz_started"])
-        guard luckyEvents.count == 2 else { return }
+        XCTAssertEqual(luckyEvents.map(\.name), ["theme_selected"])
+        guard luckyEvents.count == 1 else { return }
         XCTAssertEqual(luckyEvents[0].parameters["selection_method"] as? String, "random")
         XCTAssertEqual(luckyEvents[0].parameters["theme_id"] as? String, "random-selection")
-        XCTAssertEqual(luckyEvents[1].parameters["theme_id"] as? String, "random-selection")
-        XCTAssertEqual(luckyEvents[1].parameters["question_count"] as? Int, 5)
         XCTAssertEqual(router.showQuestionCallCount, 1)
     }
 
@@ -108,12 +106,25 @@ final class HomeFeelingLuckyTests: HomeScreenVisualStateTestCase {
             questions: [],
             questionOrigin: .backend
         )
+        let preparedRound = QuizTheme(
+            id: RandomQuizSelection.themeID,
+            theme: L10n.Home.randomSelection,
+            themeDescription: L10n.Home.feelingLucky,
+            questions: (0..<5).map { index in
+                QuizQuestion(question: "Remote question \(index)?", answers: ["A", "B", "C", "D"],
+                             correctAnswer: "A")
+            },
+            questionOrigin: .backend
+        )
         let repository = FeelingLuckyThemeRepositorySpy(
             themes: [remoteTheme],
-            catalogOrigin: .backend
+            catalogOrigin: .backend,
+            preparedRandomQuiz: preparedRound
         )
+        let session = QuizSessionStore(themes: { repository.themes })
         let viewController = QuizViewController(
             themeRepository: repository,
+            session: session,
             feelingLuckyMinimumFeedbackDelay: {}
         )
         let router = HomeRouterSpy()
@@ -130,11 +141,14 @@ final class HomeFeelingLuckyTests: HomeScreenVisualStateTestCase {
         )
 
         luckyButton.sendActions(for: .touchUpInside)
-        try await waitUntil {
-            router.showQuestionCallCount == 1
-        }
+        let launchTask = try XCTUnwrap(viewController.feelingLuckyTask)
+        await launchTask.value
 
         XCTAssertEqual(repository.requestedSelectionModes.count, 1)
+        XCTAssertEqual(repository.receivedFallbackQuestionCounts, [0])
+        XCTAssertTrue(remoteTheme.questions.isEmpty)
+        XCTAssertEqual(session.chosenTheme?.quizTheme.questions.map(\.question), preparedRound.questions.map(\.question))
+        XCTAssertEqual(session.chosenTheme?.questionOrigin, .backend)
         XCTAssertEqual(router.showQuestionCallCount, 1)
     }
 
@@ -347,13 +361,17 @@ private final class FeelingLuckyThemeRepositorySpy: ThemeRepository {
     var themes: [QuizTheme]?
     let catalogOrigin: QuizCatalogOrigin
     private(set) var requestedSelectionModes: [CrossThemeQuestionSelectionMode] = []
+    private(set) var receivedFallbackQuestionCounts: [Int] = []
+    private let preparedRandomQuiz: QuizTheme?
 
     init(
         themes: [QuizTheme],
-        catalogOrigin: QuizCatalogOrigin = .bundled
+        catalogOrigin: QuizCatalogOrigin = .bundled,
+        preparedRandomQuiz: QuizTheme? = nil
     ) {
         self.themes = themes
         self.catalogOrigin = catalogOrigin
+        self.preparedRandomQuiz = preparedRandomQuiz
     }
 
     func loadData(forceReload: Bool) {}
@@ -369,7 +387,8 @@ private final class FeelingLuckyThemeRepositorySpy: ThemeRepository {
         locale: String
     ) async throws -> QuizTheme {
         requestedSelectionModes.append(selectionMode)
-        return localFallback
+        receivedFallbackQuestionCounts.append(localFallback.questions.count)
+        return preparedRandomQuiz ?? localFallback
     }
 }
 

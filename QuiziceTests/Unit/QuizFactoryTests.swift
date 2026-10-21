@@ -147,3 +147,41 @@ final class QuizFactoryTests: XCTestCase {
         )
     }
 }
+
+extension QuizFactoryTests {
+    func testCachedBackendCatalogueDoesNotLeakPreviousAccountFavorites() async throws {
+        let container = try ModelContainer(for: SwiftDataThemeStore.schema,
+            configurations: ModelConfiguration(isStoredInMemoryOnly: true))
+        let provider = ProgressSessionProvider()
+        let suite = "QuizFactoryTests.favorites.\(UUID().uuidString)"
+        let defaults = try XCTUnwrap(UserDefaults(suiteName: suite))
+        defer { defaults.removePersistentDomain(forName: suite) }
+        let preferences = OnboardingProgressStore(userDefaults: defaults, userIDProvider: { provider.session?.userID })
+        let backend = RecordingBackendContentAPI(catalogThemes: [BackendThemeDTO(
+            id: "music", name: "Music", description: "Music", sfSymbol: "music.note", emoji: "🎵",
+            colorHex: "#FF8252", isFavorite: true)])
+        let repository = ThemeCatalogRepository(backendContentAPI: backend, preferenceStore: preferences,
+                                               accessTokenProvider: provider)
+        repository.setModelContext(container.mainContext)
+        let locale = AppLocalizationStore.shared.resolvedLanguageCode
+        let refreshed = await repository.refreshBackendCatalog(locale: locale)
+        XCTAssertTrue(refreshed)
+        XCTAssertEqual(repository.themes?.filter(\.isFavorite).count, 1)
+        XCTAssertEqual(SwiftDataThemeStore(context: container.mainContext).fetchThemes().filter(\.isFavorite).count, 0)
+        provider.session = ProgressSessionProvider.session("B")
+        XCTAssertEqual(repository.themes?.filter(\.isFavorite).count, 0)
+        let reopened = ThemeCatalogRepository(preferenceStore: preferences, accessTokenProvider: provider)
+        reopened.setModelContext(container.mainContext)
+        reopened.loadData()
+        XCTAssertEqual(reopened.themes?.filter(\.isFavorite).count, 0)
+    }
+
+    func testSwiftDataReplacementWithSameIdentifiersUpdatesContentAtomically() throws {
+        let container = try ModelContainer(for: SwiftDataThemeStore.schema,
+            configurations: ModelConfiguration(isStoredInMemoryOnly: true))
+        let store = SwiftDataThemeStore(context: container.mainContext)
+        store.replaceThemes(with: [SnapshotSupport.makeTheme(id: "music", name: "Old")])
+        store.replaceThemes(with: [SnapshotSupport.makeTheme(id: "music", name: "New")])
+        XCTAssertEqual(store.fetchThemes().map(\.theme), ["New"])
+    }
+}

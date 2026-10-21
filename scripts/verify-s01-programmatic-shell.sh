@@ -82,6 +82,7 @@ else
     -skipMacroValidation \
     -project Quizice.xcodeproj \
     -scheme Quizice \
+    -configuration Debug \
     -destination 'generic/platform=iOS Simulator' \
     CODE_SIGNING_ALLOWED=NO \
     build
