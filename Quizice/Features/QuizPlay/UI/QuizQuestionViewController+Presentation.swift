@@ -64,7 +64,6 @@ extension QuizQuestionViewController {
     }
 
     func applyQuestion(_ viewModel: QuizQuestionViewModel, updatesQuestionNumber: Bool) {
-        resetQuestionScrollPosition()
         setQuestionInfoButtonVisible(false)
         setQuestionExplanationVisible(false, animated: false)
         questionInfoButton.alpha = 1
@@ -112,11 +111,6 @@ extension QuizQuestionViewController {
                 UIAccessibility.post(notification: .layoutChanged, argument: self.questionLabel)
             }
         }
-    }
-
-    func resetQuestionScrollPosition() {
-        let topOffset = CGPoint(x: 0, y: -scrollView.adjustedContentInset.top)
-        scrollView.setContentOffset(topOffset, animated: false)
     }
 
     func animateQuestionTransition(to viewModel: QuizQuestionViewModel) {

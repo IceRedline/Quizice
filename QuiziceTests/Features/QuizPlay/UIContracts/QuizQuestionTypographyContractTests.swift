@@ -3,6 +3,69 @@ import XCTest
 
 @MainActor
 final class QuizQuestionTypographyContractTests: CrossScreenVisualTestCase {
+    func testReportedBundeswehrQuestionFitsFixedCardAcrossStylesAndScreenSizes() throws {
+        let question = "Чьё согласие по общему правилу требуется федеральному правительству для вооружённой операции Бундесвера за рубежом?"
+        let answers = [
+            "Бундестаг", "Правительства федеральных земель совместно",
+            "Федеральный президент единолично", "Федеральный конституционный суд"
+        ]
+        for style in [AppDesignStyle.classic, .radar, .clean] {
+            UserDefaults.standard.set(style.rawValue, forKey: AppAppearanceStore.Keys.designStyle)
+            for size in [CGSize(width: 375, height: 812), CGSize(width: 402, height: 874), CGSize(width: 320, height: 568)] {
+                let controller = QuizQuestionViewController()
+                controller.configurePresenter(ExitConfirmationPresenterSpy())
+                controller.loadViewIfNeeded()
+                controller.view.frame = CGRect(origin: .zero, size: size)
+                let window = QuestionLayoutTestWindow(frame: CGRect(origin: .zero, size: size))
+                window.testSafeAreaInsets = size.height > 568
+                    ? UIEdgeInsets(top: 59, left: 0, bottom: 34, right: 0)
+                    : UIEdgeInsets(top: 20, left: 0, bottom: 0, right: 0)
+                controller.loadQuestionToView(QuizQuestionViewModel(
+                    themeName: "Политика и бизнес", questionText: question, questionNumberText: "Вопрос №3",
+                    answers: answers.enumerated().map { QuizAnswerOption(id: String($0.offset), title: $0.element) }
+                ))
+                window.isHidden = false
+                let host = UIViewController()
+                host.view.frame = window.bounds
+                host.addChild(controller)
+                host.view.addSubview(controller.view)
+                controller.didMove(toParent: host)
+                window.rootViewController = host
+                defer { window.isHidden = true; window.rootViewController = nil }
+                window.layoutIfNeeded()
+                controller.view.layoutIfNeeded()
+
+                let label = try XCTUnwrap(controller.questionLabel)
+                let card = try XCTUnwrap(controller.questionCardView)
+                // UIKit may reserve a taller status bar on the host simulator
+                // even for a compact canvas, which only tightens this check.
+                XCTAssertGreaterThanOrEqual(controller.view.safeAreaInsets.top, window.testSafeAreaInsets.top)
+                XCTAssertEqual(controller.view.safeAreaInsets.bottom, window.testSafeAreaInsets.bottom, accuracy: 0.5)
+                XCTAssertFalse(controller.cardContainerView is UIScrollView)
+                XCTAssertTrue(controller.cardContainerView.bounds.contains(card.frame))
+                XCTAssertLessThanOrEqual(textHeight(question, font: label.font, width: label.bounds.width), label.bounds.height + 1)
+                XCTAssertLessThanOrEqual(label.sizeThatFits(CGSize(width: label.bounds.width, height: .greatestFiniteMagnitude)).height, label.bounds.height + 1)
+                XCTAssertGreaterThanOrEqual(label.frame.minY, controller.timerContainerView.frame.maxY)
+                XCTAssertLessThanOrEqual(label.frame.maxY, controller.answersStackView.frame.minY - 8)
+                try assertAnswerLabelsFit(in: controller, expectedTitles: answers)
+                XCTAssertLessThanOrEqual(card.convert(card.bounds, to: controller.view).maxY, controller.nextButton.frame.minY)
+                if size.height >= 812 {
+                    // Keep the real-world regression comfortably readable.
+                    XCTAssertGreaterThanOrEqual(label.font.pointSize, 18)
+                } else {
+                    XCTAssertGreaterThanOrEqual(label.font.pointSize, 12)
+                }
+                let rendered = UIGraphicsImageRenderer(size: size).image { context in
+                    controller.view.layer.render(in: context.cgContext)
+                }
+                let attachment = XCTAttachment(image: rendered)
+                attachment.name = "Bundeswehr-\(style.rawValue)-\(Int(size.width))x\(Int(size.height))"
+                attachment.lifetime = .keepAlways
+                add(attachment)
+            }
+        }
+    }
+
     func testQuestionContentDefersLayoutUntilRootReceivesNonZeroBounds() {
         let presenter = ExitConfirmationPresenterSpy()
         let viewController = QuizQuestionViewController()
@@ -55,7 +118,8 @@ final class QuizQuestionTypographyContractTests: CrossScreenVisualTestCase {
         XCTAssertNotNil(viewController.view.descendant(withAccessibilityIdentifier: "questionAnswersStackView"))
         XCTAssertNotNil(viewController.view.descendant(withAccessibilityIdentifier: "questionNextButton"))
         XCTAssertNotNil(viewController.view.descendant(withAccessibilityIdentifier: "questionCloseButton"))
-        XCTAssertNotNil(viewController.view.descendant(withAccessibilityIdentifier: "questionScrollView") as? UIScrollView)
+        XCTAssertNotNil(viewController.view.descendant(withAccessibilityIdentifier: "questionCardContainerView"))
+        XCTAssertNil(viewController.view.descendant(withAccessibilityIdentifier: "questionScrollView"))
 
         let answerButtons = questionAnswerButtons(in: viewController)
         let cardView = viewController.view.descendant(withAccessibilityIdentifier: "questionCardView")
@@ -189,7 +253,8 @@ final class QuizQuestionTypographyContractTests: CrossScreenVisualTestCase {
                 let baseFont = currentAppearance().typography.font(size: 18, weight: .semibold)
                 let firstAnswerLabel = try XCTUnwrap(questionAnswerButtons(in: viewController).first?.titleLabel)
                 XCTAssertLessThan(firstAnswerLabel.font.pointSize, baseFont.pointSize)
-                XCTAssertGreaterThanOrEqual(firstAnswerLabel.font.pointSize, baseFont.pointSize * 0.72 - 0.1)
+                let minimumSize = phoneSize.height >= 667 ? baseFont.pointSize * 0.72 - 0.1 : 10
+                XCTAssertGreaterThanOrEqual(firstAnswerLabel.font.pointSize, minimumSize)
 
                 let shortAnswers = ["A", "B", "C", "D"]
                 viewController.loadQuestionToView(
@@ -269,7 +334,7 @@ final class QuizQuestionTypographyContractTests: CrossScreenVisualTestCase {
         XCTAssertEqual(answerButtons.map(\.bounds.height), initialHeights)
     }
 
-    func testLongQuestionsShrinkWithinReadableFloorAcrossSelectableStylesAndPhoneSizes() throws {
+    func testLongQuestionsFitAvailableCardHeightAcrossSelectableStylesAndPhoneSizes() throws {
         let styles: [AppDesignStyle] = [.classic, .radar, .clean]
         let phoneSizes = [
             CGSize(width: 402, height: 874),
@@ -328,16 +393,15 @@ final class QuizQuestionTypographyContractTests: CrossScreenVisualTestCase {
                 XCTAssertEqual(questionLabel.text, fixture.question)
                 XCTAssertEqual(questionLabel.numberOfLines, 0)
                 XCTAssertEqual(questionLabel.lineBreakMode, .byWordWrapping)
-                XCTAssertLessThan(questionLabel.font.pointSize, baseFont.pointSize - 0.1)
-                XCTAssertGreaterThanOrEqual(questionLabel.font.pointSize, baseFont.pointSize * 0.72 - 0.1)
-                XCTAssertLessThan(fittedHeight, baseHeight)
+                XCTAssertLessThanOrEqual(questionLabel.font.pointSize, baseFont.pointSize)
+                XCTAssertLessThanOrEqual(fittedHeight, baseHeight)
                 XCTAssertLessThanOrEqual(fittedHeight, questionLabel.bounds.height + 1)
                 XCTAssertTrue(cardView.bounds.insetBy(dx: -0.5, dy: -0.5).contains(questionFrame))
             }
         }
     }
 
-    func testExtremeQuestionStopsAtReadableFloorAndUsesScrollableFallback() throws {
+    func testExtremeQuestionFitsAvailableCardHeightWithoutScrolling() throws {
         UserDefaults.standard.set(AppDesignStyle.radar.rawValue, forKey: AppAppearanceStore.Keys.designStyle)
         QuizFactory.shared.chosenTheme = makeQuestionTheme()
         QuizFactory.shared.questionsCount = 1
@@ -364,8 +428,8 @@ final class QuizQuestionTypographyContractTests: CrossScreenVisualTestCase {
         let questionLabel = try XCTUnwrap(
             viewController.view.descendant(withAccessibilityIdentifier: "questionTextLabel") as? UILabel
         )
-        let scrollView = try XCTUnwrap(
-            viewController.view.descendant(withAccessibilityIdentifier: "questionScrollView") as? UIScrollView
+        let container = try XCTUnwrap(
+            viewController.view.descendant(withAccessibilityIdentifier: "questionCardContainerView")
         )
         let nextButton = try XCTUnwrap(
             viewController.view.descendant(withAccessibilityIdentifier: "questionNextButton") as? UIButton
@@ -381,11 +445,12 @@ final class QuizQuestionTypographyContractTests: CrossScreenVisualTestCase {
             width: questionLabel.bounds.width
         )
 
-        XCTAssertEqual(questionLabel.font.pointSize, baseFont.pointSize * 0.72, accuracy: 0.1)
+        XCTAssertLessThan(questionLabel.font.pointSize, baseFont.pointSize)
         XCTAssertLessThanOrEqual(requiredHeight, questionLabel.bounds.height + 0.5)
-        XCTAssertGreaterThan(scrollView.contentSize.height, scrollView.bounds.height)
-        XCTAssertFalse(nextButton.isDescendant(of: scrollView))
-        XCTAssertLessThanOrEqual(scrollView.frame.maxY, nextButton.frame.minY)
+        XCTAssertFalse(container is UIScrollView)
+        XCTAssertTrue(container.bounds.contains(viewController.questionCardView.frame))
+        XCTAssertFalse(nextButton.isDescendant(of: container))
+        XCTAssertLessThanOrEqual(container.frame.maxY, nextButton.frame.minY)
     }
 
     func testQuestionFontRestoresForShortQuestionAndRefitsAfterWidthChange() throws {
@@ -440,7 +505,7 @@ final class QuizQuestionTypographyContractTests: CrossScreenVisualTestCase {
         XCTAssertEqual(questionLabel.font.pointSize, baseFont.pointSize, accuracy: 0.1)
     }
 
-    func testLongAnswersRespectAccessibilityContentSizeWhileFitting() throws {
+    func testLongAnswersFitAccessibilityContentWithoutClippingOrScrolling() throws {
         UserDefaults.standard.set(AppDesignStyle.classic.rawValue, forKey: AppAppearanceStore.Keys.designStyle)
         QuizFactory.shared.chosenTheme = makeQuestionTheme()
         QuizFactory.shared.questionsCount = 1
@@ -481,9 +546,17 @@ final class QuizQuestionTypographyContractTests: CrossScreenVisualTestCase {
 
         XCTAssertGreaterThan(accessibilityFont.pointSize, defaultFont.pointSize)
         XCTAssertLessThan(firstAnswerLabel.font.pointSize, accessibilityFont.pointSize)
-        XCTAssertGreaterThanOrEqual(
-            firstAnswerLabel.font.pointSize,
-            accessibilityFont.pointSize * 0.72 - 0.1
+        XCTAssertFalse(viewController.cardContainerView is UIScrollView)
+        XCTAssertTrue(viewController.cardContainerView.bounds.contains(viewController.questionCardView.frame))
+        XCTAssertLessThanOrEqual(
+            textHeight(viewController.questionLabel.text!, font: viewController.questionLabel.font, width: viewController.questionLabel.bounds.width),
+            viewController.questionLabel.bounds.height + 1
         )
     }
+}
+
+@MainActor
+private final class QuestionLayoutTestWindow: UIWindow {
+    var testSafeAreaInsets = UIEdgeInsets.zero
+    override var safeAreaInsets: UIEdgeInsets { testSafeAreaInsets }
 }

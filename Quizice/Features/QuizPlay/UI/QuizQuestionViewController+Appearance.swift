@@ -13,12 +13,18 @@ extension QuizQuestionViewController {
         isFittingContentFonts = true
         defer { isFittingContentFonts = false }
 
+        for spacing in adaptiveSpacingConstraints {
+            spacing.constraint.constant = usesCompactLayout ? spacing.compact : spacing.regular
+        }
+        answersStackView.spacing = usesCompactLayout ? 8 : Layout.answersStackSpacing
+        view.layoutIfNeeded()
+
         for pass in 0..<Typography.maximumFontLayoutPasses {
             questionCardView?.layoutIfNeeded()
             answersStackView?.layoutIfNeeded()
 
-            let questionFontChanged = fitQuestionFont()
             let answerLayoutChanged = fitAnswerFonts()
+            let questionFontChanged = fitQuestionFont()
 
             answerButtons.forEach {
                 $0.setNeedsLayout()
@@ -54,7 +60,8 @@ extension QuizQuestionViewController {
             baseFont: baseFont,
             minimumScaleFactor: Typography.questionMinimumScaleFactor,
             contentWidth: contentWidth,
-            targetContentHeight: Layout.questionTargetMaximumHeight
+            targetContentHeight: max(1, availableQuestionHeight),
+            requiresFit: true
         )
         questionLabel.preferredMaxLayoutWidth = contentWidth
 
@@ -76,7 +83,8 @@ extension QuizQuestionViewController {
             weight: .semibold,
             compatibleWith: view.traitCollection
         )
-        let targetContentHeight = Layout.answerMinimumHeight - (Layout.answerContentVerticalInset * 2)
+        let targetContentHeight = minimumAnswerHeight - (Layout.answerContentVerticalInset * 2)
+        let maximumHeight = maximumAnswerHeight
         var requiresLayout = false
 
         for (index, button) in answerButtons.enumerated() {
@@ -89,20 +97,32 @@ extension QuizQuestionViewController {
                     requiresLayout = true
                 }
                 if answerHeightConstraints.indices.contains(index),
-                   abs(answerHeightConstraints[index].constant - Layout.answerMinimumHeight) > Typography.fontSizeComparisonTolerance {
-                    answerHeightConstraints[index].constant = Layout.answerMinimumHeight
+                   abs(answerHeightConstraints[index].constant - minimumAnswerHeight) > Typography.fontSizeComparisonTolerance {
+                    answerHeightConstraints[index].constant = minimumAnswerHeight
                     requiresLayout = true
                 }
                 continue
             }
 
-            let fittedPointSize = fontFitter.fittedPointSize(
+            var fittedPointSize = fontFitter.fittedPointSize(
                 for: text,
                 baseFont: baseFont,
                 minimumScaleFactor: Typography.answerMinimumScaleFactor,
                 contentWidth: contentWidth,
                 targetContentHeight: targetContentHeight
             )
+
+            let maximumContentHeight = maximumHeight - Layout.answerContentVerticalInset * 2
+            if fontFitter.height(of: text, font: baseFont.withSize(fittedPointSize), contentWidth: contentWidth) > maximumContentHeight {
+                fittedPointSize = fontFitter.fittedPointSize(
+                    for: text,
+                    baseFont: baseFont,
+                    minimumScaleFactor: Typography.answerMinimumScaleFactor,
+                    contentWidth: contentWidth,
+                    targetContentHeight: maximumContentHeight,
+                    requiresFit: true
+                )
+            }
 
             let fittedFont = baseFont.withSize(fittedPointSize)
             if applyAnswerFont(fittedFont, to: button) {
@@ -111,7 +131,7 @@ extension QuizQuestionViewController {
             titleLabel.preferredMaxLayoutWidth = contentWidth
 
             let requiredHeight = max(
-                Layout.answerMinimumHeight,
+                minimumAnswerHeight,
                 fontFitter.height(of: text, font: fittedFont, contentWidth: contentWidth)
                     + (Layout.answerContentVerticalInset * 2)
             )
@@ -124,10 +144,49 @@ extension QuizQuestionViewController {
 
         if requiresLayout {
             questionCardView?.setNeedsLayout()
-            scrollView?.setNeedsLayout()
+            cardContainerView?.setNeedsLayout()
             view.setNeedsLayout()
         }
         return requiresLayout
+    }
+
+    private var availableQuestionHeight: CGFloat {
+        questionContentHeight
+            - answerHeightConstraints.reduce(0) { $0 + $1.constant }
+    }
+
+    private var usesCompactLayout: Bool { view.bounds.height <= 667 }
+
+    private var minimumAnswerHeight: CGFloat {
+        usesCompactLayout ? 44 : Layout.answerMinimumHeight
+    }
+
+    /// Space shared by the question and answer buttons, excluding all chrome.
+    private var questionContentHeight: CGFloat {
+        questionCardView.bounds.height
+            - (Layout.timerTopInset + (Layout.timerContainerHeight + Layout.timerBarHeight) / 2)
+            - Layout.questionSurroundingCompactSpacing * 2
+            - Layout.answersBottomInset
+            - answersStackView.spacing * CGFloat(max(0, answerButtons.count - 1))
+    }
+
+    private var maximumAnswerHeight: CGFloat {
+        let font = currentAppearance().typography.font(
+            size: Typography.questionFontSize,
+            weight: .bold,
+            compatibleWith: view.traitCollection
+        )
+        let preferredQuestionHeight = fontFitter.height(
+            of: questionLabel.text ?? "",
+            font: font.withSize(font.pointSize * Typography.questionMinimumScaleFactor),
+            contentWidth: max(1, questionLabel.bounds.width)
+        )
+        let count = CGFloat(answerButtons.count)
+        let reservedQuestionHeight = min(
+            preferredQuestionHeight,
+            max(0, questionContentHeight - count * minimumAnswerHeight)
+        )
+        return max(minimumAnswerHeight, floor((questionContentHeight - reservedQuestionHeight) / count))
     }
 
     @discardableResult

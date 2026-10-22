@@ -1,5 +1,31 @@
 import UIKit
 
+/// Keep the system menu's lift and dismissal previews inside the visible button.
+/// A layer corner radius alone does not define the preview shape on iOS 26.
+final class CountryMenuButton: UIButton {
+    override func contextMenuInteraction(
+        _ interaction: UIContextMenuInteraction,
+        previewForHighlightingMenuWithConfiguration configuration: UIContextMenuConfiguration
+    ) -> UITargetedPreview? {
+        roundedMenuPreview()
+    }
+
+    override func contextMenuInteraction(
+        _ interaction: UIContextMenuInteraction,
+        previewForDismissingMenuWithConfiguration configuration: UIContextMenuConfiguration
+    ) -> UITargetedPreview? {
+        roundedMenuPreview()
+    }
+
+    private func roundedMenuPreview() -> UITargetedPreview {
+        let parameters = UIPreviewParameters()
+        parameters.backgroundColor = .clear
+        parameters.visiblePath = UIBezierPath(roundedRect: bounds, cornerRadius: layer.cornerRadius)
+        parameters.shadowPath = parameters.visiblePath
+        return UITargetedPreview(view: self, parameters: parameters)
+    }
+}
+
 extension ExpandedThemeCardView {
     func configureParallaxObservers() {
         NotificationCenter.default.addObserver(

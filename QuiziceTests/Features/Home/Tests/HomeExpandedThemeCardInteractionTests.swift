@@ -4,6 +4,34 @@ import XCTest
 
 @MainActor
 final class HomeExpandedThemeCardInteractionTests: HomeScreenVisualStateTestCase {
+    func testCountryMenuPreviewUsesRoundedShapeForPresentationAndDismissal() throws {
+        let card = makeHostedExpandedThemeCard(motionProvider: HomeThemeCardMotionProviderFake())
+        let button = card.countryButton
+        button.isHidden = false
+        button.menu = UIMenu(children: [UIAction(title: "Италия") { _ in }])
+        let interaction = try XCTUnwrap(button.contextMenuInteraction)
+        let configuration = UIContextMenuConfiguration(identifier: nil, previewProvider: nil) { _ in button.menu }
+
+        for radius: CGFloat in [8, 18, 22] {
+            button.frame = CGRect(x: 20, y: 20, width: 280, height: 44)
+            button.layer.cornerRadius = radius
+            let previews = [
+                button.contextMenuInteraction(interaction, previewForHighlightingMenuWithConfiguration: configuration),
+                button.contextMenuInteraction(interaction, previewForDismissingMenuWithConfiguration: configuration)
+            ]
+            for preview in previews {
+                let preview = try XCTUnwrap(preview)
+                let path = try XCTUnwrap(preview.parameters.visiblePath)
+                XCTAssertTrue(preview.view === button)
+                XCTAssertEqual(path.bounds.width, button.bounds.width, accuracy: 0.001)
+                XCTAssertEqual(path.bounds.height, button.bounds.height, accuracy: 0.001)
+                XCTAssertFalse(path.contains(CGPoint(x: 1, y: 1)))
+                XCTAssertTrue(path.contains(CGPoint(x: button.bounds.midX, y: button.bounds.midY)))
+                assertColor(preview.parameters.backgroundColor, equals: .clear)
+            }
+        }
+    }
+
     func testExpandedThemeReduceMotionBlocksProviderAndDragThenRuntimeToggleNeutralizesPose() throws {
         var reduceMotion = true
         let motionProvider = HomeThemeCardMotionProviderFake()

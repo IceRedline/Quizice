@@ -26,7 +26,7 @@ final class LaunchOverlayPresenter {
         appearance: AppAppearance,
         holdDuration: TimeInterval = Timing.holdDuration,
         motion: FakeLaunchMotion = .standard,
-        preparationTimeout: TimeInterval = 3,
+        preparationTimeout: TimeInterval = 2,
         preparation: (@MainActor () async -> Void)? = nil,
         onDismissed: (() -> Void)? = nil
     ) {
@@ -90,10 +90,9 @@ final class LaunchOverlayPresenter {
                     try await Task.sleep(nanoseconds: UInt64(max(0, preparationTimeout) * 1_000_000_000))
                 } catch { return }
                 guard let self, activePresentationID == presentationID, !Task.isCancelled else { return }
-                preparationTask?.cancel()
-                preparationTask = nil
-                preparationDeadlineTask = nil
-                readiness.isReady = true
+                // A stalled server must not extend the launch animation. Dismiss
+                // directly without waiting for preparation or SwiftUI completion.
+                dismiss(animated: true, duration: Timing.reducedMotionRevealDuration)
             }
         }
     }

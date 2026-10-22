@@ -215,8 +215,10 @@ final class QuizFlowCoordinatorLaunchTests: QuizFlowCoordinatorTestCase {
             window.rootViewController = nil
         }
         presenter.present(
-            in: window, appearance: makeLaunchAppearance(designStyle: .classic), holdDuration: 0,
-            motion: FakeLaunchMotion(logoZoomScale: 42, logoZoomDuration: 0.01),
+            // The network deadline must bypass both the hold and zoom, even
+            // when preparation ignores cancellation and returns much later.
+            in: window, appearance: makeLaunchAppearance(designStyle: .classic), holdDuration: 60,
+            motion: FakeLaunchMotion(logoZoomScale: 42, logoZoomDuration: 60),
             preparationTimeout: 0.05,
             preparation: {
                 started.fulfill()
@@ -234,6 +236,40 @@ final class QuizFlowCoordinatorLaunchTests: QuizFlowCoordinatorTestCase {
         await Task.yield()
         await Task.yield()
         XCTAssertEqual(dismissalCount, 1)
+    }
+
+    func testDefaultLaunchDeadlineCancelsSlowPreparationAndRevealsHome() async throws {
+        let scene = try XCTUnwrap(UIApplication.shared.connectedScenes.compactMap { $0 as? UIWindowScene }.first)
+        let window = UIWindow(windowScene: scene)
+        let root = UIViewController()
+        window.rootViewController = root
+        window.isHidden = false
+        let presenter = LaunchOverlayPresenter()
+        let cancelled = expectation(description: "Slow request cancelled")
+        let dismissed = expectation(description: "Home revealed within launch budget")
+        defer {
+            presenter.dismiss(animated: false)
+            window.isHidden = true
+            window.rootViewController = nil
+        }
+
+        presenter.present(
+            in: window,
+            appearance: makeLaunchAppearance(designStyle: .classic),
+            preparation: {
+                do {
+                    try await Task.sleep(nanoseconds: 15_000_000_000)
+                    XCTFail("Launch must not wait for the transport timeout")
+                } catch {
+                    XCTAssertTrue(Task.isCancelled)
+                    cancelled.fulfill()
+                }
+            },
+            onDismissed: { dismissed.fulfill() }
+        )
+
+        await fulfillment(of: [cancelled, dismissed], timeout: 3)
+        XCTAssertFalse(root.view.accessibilityElementsHidden)
     }
 
     func testFakeLaunchDoesNotStartCompletionBeforeCatalogIsReady() async throws {
