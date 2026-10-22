@@ -123,7 +123,7 @@ final class ExpandedThemeCardView: UIView, UIGestureRecognizerDelegate {
     let backTitleLabel = UILabel()
     let descriptionScrollView = UIScrollView()
     let backDescriptionLabel = UILabel()
-    let countryButton = CountryMenuButton(type: .system)
+    let countryButton = UIButton(type: .system)
     var availableCountries: [String] = []
     var selectedCountry: String?
     let difficultyLabel = UILabel()

@@ -41,14 +41,26 @@ extension ExpandedThemeCardView {
             )
             label.textColor = appearance.secondarySurfaceTextColor
         }
-        countryButton.titleLabel?.font = appearance.typography.font(
+        let countryFont = appearance.typography.font(
             size: Typography.captionSize, weight: .semibold
         )
-        countryButton.setTitleColor(appearance.surfaceTextColor, for: .normal)
-        countryButton.backgroundColor = appearance.row.backgroundColor
-        countryButton.layer.cornerRadius = appearance.row.cornerRadius
-        countryButton.layer.borderWidth = appearance.row.borderWidth
-        countryButton.layer.borderColor = appearance.row.borderColor.cgColor
+        // Let UIButton own the background throughout its menu transition.
+        // iOS 26 temporarily resets a legacy layer-styled menu button's surface.
+        var countryConfiguration = UIButton.Configuration.plain()
+        countryConfiguration.contentInsets = .zero
+        countryConfiguration.cornerStyle = .fixed
+        countryConfiguration.baseForegroundColor = appearance.surfaceTextColor
+        countryConfiguration.background.backgroundColor = appearance.row.backgroundColor
+        countryConfiguration.background.cornerRadius = appearance.row.cornerRadius
+        countryConfiguration.background.strokeWidth = appearance.row.borderWidth
+        countryConfiguration.background.strokeColor = appearance.row.borderColor
+        countryConfiguration.titleLineBreakMode = .byWordWrapping
+        countryConfiguration.titleTextAttributesTransformer = UIConfigurationTextAttributesTransformer { attributes in
+            var attributes = attributes
+            attributes.font = countryFont
+            return attributes
+        }
+        countryButton.configuration = countryConfiguration
         unavailableLabel.font = appearance.typography.font(
             size: Typography.unavailableSize,
             weight: .medium
@@ -199,6 +211,9 @@ extension ExpandedThemeCardView {
 
     func updateBackFaceAccessibilityElements(isAvailable: Bool) {
         var elements: [Any] = [backTitleLabel, backDescriptionLabel]
+        if !countryButton.isHidden {
+            elements.append(countryButton)
+        }
         if !difficultyControl.isHidden {
             elements.append(contentsOf: [difficultyLabel, difficultyControl])
         }

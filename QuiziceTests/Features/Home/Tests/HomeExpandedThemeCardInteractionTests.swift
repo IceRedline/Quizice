@@ -4,30 +4,39 @@ import XCTest
 
 @MainActor
 final class HomeExpandedThemeCardInteractionTests: HomeScreenVisualStateTestCase {
-    func testCountryMenuPreviewUsesRoundedShapeForPresentationAndDismissal() throws {
+    func testCountryButtonPreservesTitleAndSurfaceAcrossSelectionAndAppearanceUpdates() throws {
         let card = makeHostedExpandedThemeCard(motionProvider: HomeThemeCardMotionProviderFake())
+        let theme = makeTheme(name: "Политика и бизнес", questionCount: 5)
+        theme.id = "politics_business"
+        theme.countries = ["IT", "ES", "DE"]
         let button = card.countryButton
-        button.isHidden = false
-        button.menu = UIMenu(children: [UIAction(title: "Италия") { _ in }])
-        let interaction = try XCTUnwrap(button.contextMenuInteraction)
-        let configuration = UIContextMenuConfiguration(identifier: nil, previewProvider: nil) { _ in button.menu }
 
-        for radius: CGFloat in [8, 18, 22] {
-            button.frame = CGRect(x: 20, y: 20, width: 280, height: 44)
-            button.layer.cornerRadius = radius
-            let previews = [
-                button.contextMenuInteraction(interaction, previewForHighlightingMenuWithConfiguration: configuration),
-                button.contextMenuInteraction(interaction, previewForDismissingMenuWithConfiguration: configuration)
-            ]
-            for preview in previews {
-                let preview = try XCTUnwrap(preview)
-                let path = try XCTUnwrap(preview.parameters.visiblePath)
-                XCTAssertTrue(preview.view === button)
-                XCTAssertEqual(path.bounds.width, button.bounds.width, accuracy: 0.001)
-                XCTAssertEqual(path.bounds.height, button.bounds.height, accuracy: 0.001)
-                XCTAssertFalse(path.contains(CGPoint(x: 1, y: 1)))
-                XCTAssertTrue(path.contains(CGPoint(x: button.bounds.midX, y: button.bounds.midY)))
-                assertColor(preview.parameters.backgroundColor, equals: .clear)
+        for style: AppDesignStyle in [.classic, .clean, .radar] {
+            let appearance = SnapshotSupport.appearance(designStyle: style)
+            card.configure(theme: theme, appearance: appearance, availableQuestionCounts: [5],
+                           selectedQuestionCount: 5, selectedCountry: "IT")
+            card.setFace(.back, animated: false)
+            card.layoutIfNeeded()
+            XCTAssertTrue(card.backFaceView.accessibilityElements?.contains { ($0 as? UIButton) === button } == true)
+
+            for country in ["ES", "DE"] {
+                card.selectCountry(country)
+                let title = try XCTUnwrap(AppLocalizationStore.shared.resolvedLocale.localizedString(forRegionCode: country))
+                for highlighted in [true, false] {
+                    button.isHighlighted = highlighted
+                    button.setNeedsUpdateConfiguration()
+                    button.layoutIfNeeded()
+                    XCTAssertEqual(button.titleLabel?.text, "\(title) ▾")
+                    XCTAssertEqual(button.accessibilityValue, title)
+                    let background = try XCTUnwrap(button.configuration?.background)
+                    assertColor(background.backgroundColor, equals: appearance.row.backgroundColor)
+                    assertColor(background.strokeColor, equals: appearance.row.borderColor)
+                    XCTAssertEqual(background.cornerRadius, appearance.row.cornerRadius)
+                    XCTAssertEqual(background.strokeWidth, appearance.row.borderWidth)
+                    // UIKit can clear the outer layer during its menu morph.
+                    // The border must belong to the configured background.
+                    XCTAssertEqual(button.layer.borderWidth, 0)
+                }
             }
         }
     }
