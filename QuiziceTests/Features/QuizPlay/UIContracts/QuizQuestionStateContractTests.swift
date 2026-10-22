@@ -170,7 +170,7 @@ final class QuizQuestionStateContractTests: CrossScreenVisualTestCase {
         XCTAssertFalse(nextButton.isEnabled)
     }
 
-    func testQuestionNextButtonStaysPinnedWhenExtremeAnswerGrowsCard() throws {
+    func testExtremeAnswerFitsWithoutGrowingCardOrMovingNextButton() throws {
         QuizFactory.shared.chosenTheme = makeQuestionTheme()
         QuizFactory.shared.questionsCount = 1
 
@@ -195,7 +195,7 @@ final class QuizQuestionStateContractTests: CrossScreenVisualTestCase {
         viewController.view.layoutIfNeeded()
 
         let nextButton = try XCTUnwrap(viewController.view.descendant(withAccessibilityIdentifier: "questionNextButton") as? UIButton)
-        let scrollView = try XCTUnwrap(viewController.view.descendant(withAccessibilityIdentifier: "questionScrollView") as? UIScrollView)
+        let container = try XCTUnwrap(viewController.view.descendant(withAccessibilityIdentifier: "questionCardContainerView"))
         let cardView = try XCTUnwrap(viewController.view.descendant(withAccessibilityIdentifier: "questionCardView"))
         let pinnedButtonY = nextButton.frame.minY
         let shortCardHeight = cardView.frame.height
@@ -225,17 +225,18 @@ final class QuizQuestionStateContractTests: CrossScreenVisualTestCase {
         let longAnswerLabel = try XCTUnwrap(longAnswerButton.titleLabel)
         let baseFont = currentAppearance().typography.font(size: 18, weight: .semibold)
 
-        XCTAssertGreaterThan(cardView.frame.height, shortCardHeight)
+        XCTAssertEqual(cardView.frame.height, shortCardHeight, accuracy: 0.5)
         XCTAssertGreaterThan(longAnswerButton.bounds.height, 52)
-        XCTAssertEqual(longAnswerLabel.font.pointSize, baseFont.pointSize * 0.72, accuracy: 0.1)
+        XCTAssertLessThan(longAnswerLabel.font.pointSize, baseFont.pointSize)
         try assertAnswerLabelsFit(in: viewController, expectedTitles: [extremeAnswer, "B", "C", "D"])
         XCTAssertEqual(nextButton.frame.minY, pinnedButtonY, accuracy: 0.5)
-        XCTAssertFalse(nextButton.isDescendant(of: scrollView))
-        XCTAssertLessThanOrEqual(scrollView.frame.maxY, nextButton.frame.minY)
-        XCTAssertGreaterThan(scrollView.contentSize.height, scrollView.bounds.height)
+        XCTAssertFalse(container is UIScrollView)
+        XCTAssertFalse(nextButton.isDescendant(of: container))
+        XCTAssertLessThanOrEqual(container.frame.maxY, nextButton.frame.minY)
+        XCTAssertTrue(container.bounds.contains(cardView.frame))
     }
 
-    func testQuestionAdvanceResetsScrolledLongAnswerCardToTop() throws {
+    func testQuestionAdvanceKeepsCardFrameStableAfterLongAnswer() throws {
         QuizFactory.shared.chosenTheme = makeQuestionTheme()
         QuizFactory.shared.questionsCount = 1
 
@@ -262,13 +263,12 @@ final class QuizQuestionStateContractTests: CrossScreenVisualTestCase {
         )
         viewController.view.layoutIfNeeded()
 
-        let scrollView = try XCTUnwrap(
-            viewController.view.descendant(withAccessibilityIdentifier: "questionScrollView") as? UIScrollView
+        let container = try XCTUnwrap(
+            viewController.view.descendant(withAccessibilityIdentifier: "questionCardContainerView")
         )
-        let maximumOffsetY = scrollView.contentSize.height - scrollView.bounds.height + scrollView.adjustedContentInset.bottom
-        XCTAssertGreaterThan(maximumOffsetY, -scrollView.adjustedContentInset.top)
-        scrollView.setContentOffset(CGPoint(x: 0, y: maximumOffsetY), animated: false)
-        XCTAssertGreaterThan(scrollView.contentOffset.y, -scrollView.adjustedContentInset.top)
+        let cardFrame = viewController.questionCardView.frame
+        XCTAssertFalse(container is UIScrollView)
+        XCTAssertTrue(container.bounds.contains(cardFrame))
 
         viewController.loadQuestionToView(
             QuizQuestionViewModel(
@@ -285,7 +285,7 @@ final class QuizQuestionStateContractTests: CrossScreenVisualTestCase {
         )
         viewController.view.layoutIfNeeded()
 
-        XCTAssertEqual(scrollView.contentOffset.y, -scrollView.adjustedContentInset.top, accuracy: 0.5)
+        XCTAssertEqual(viewController.questionCardView.frame, cardFrame)
     }
 
     func testQuestionScreenPreservesPresenterDrivenAnswerFeedbackState() throws {
@@ -358,6 +358,7 @@ final class QuizQuestionStateContractTests: CrossScreenVisualTestCase {
 
         let viewController = QuizQuestionViewController()
         viewController.loadViewIfNeeded()
+        viewController.view.frame = CGRect(x: 0, y: 0, width: 390, height: 844)
         defer { viewController.presenter?.stopTimer() }
 
         let infoButton = try XCTUnwrap(

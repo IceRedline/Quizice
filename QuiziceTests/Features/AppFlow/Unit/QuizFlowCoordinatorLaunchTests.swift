@@ -215,8 +215,10 @@ final class QuizFlowCoordinatorLaunchTests: QuizFlowCoordinatorTestCase {
             window.rootViewController = nil
         }
         presenter.present(
-            in: window, appearance: makeLaunchAppearance(designStyle: .classic), holdDuration: 0,
-            motion: FakeLaunchMotion(logoZoomScale: 42, logoZoomDuration: 0.01),
+            // The network deadline must bypass both the hold and zoom, even
+            // when preparation ignores cancellation and returns much later.
+            in: window, appearance: makeLaunchAppearance(designStyle: .classic), holdDuration: 60,
+            motion: FakeLaunchMotion(logoZoomScale: 42, logoZoomDuration: 60),
             preparationTimeout: 0.05,
             preparation: {
                 started.fulfill()
@@ -234,6 +236,65 @@ final class QuizFlowCoordinatorLaunchTests: QuizFlowCoordinatorTestCase {
         await Task.yield()
         await Task.yield()
         XCTAssertEqual(dismissalCount, 1)
+    }
+
+    func testDefaultLaunchDeadlineCancelsSlowPreparationAndRevealsHome() async throws {
+        let scene = try XCTUnwrap(UIApplication.shared.connectedScenes.compactMap { $0 as? UIWindowScene }.first)
+        let window = UIWindow(windowScene: scene)
+        let root = UIViewController()
+        window.rootViewController = root
+        window.isHidden = false
+        let timeoutScheduled = expectation(description: "Default launch timeout scheduled")
+        var timeoutContinuation: CheckedContinuation<Void, Never>?
+        let presenter = LaunchOverlayPresenter(waitForPreparationTimeout: { duration in
+            XCTAssertEqual(duration, 2)
+            await withCheckedContinuation {
+                timeoutContinuation = $0
+                timeoutScheduled.fulfill()
+            }
+        })
+        let started = expectation(description: "Slow request started")
+        let cancelled = expectation(description: "Slow request cancelled")
+        let dismissed = expectation(description: "Home revealed within launch budget")
+        var didCancel = false
+        var didDismiss = false
+        // Animation timing is covered separately; this test controls the network deadline.
+        UIView.setAnimationsEnabled(false)
+        defer {
+            presenter.dismiss(animated: false)
+            timeoutContinuation?.resume()
+            window.isHidden = true
+            window.rootViewController = nil
+        }
+
+        presenter.present(
+            in: window,
+            appearance: makeLaunchAppearance(designStyle: .classic),
+            preparation: {
+                started.fulfill()
+                do {
+                    try await Task.sleep(nanoseconds: 15_000_000_000)
+                    XCTFail("Launch must not wait for the transport timeout")
+                } catch {
+                    XCTAssertTrue(Task.isCancelled)
+                    didCancel = true
+                    cancelled.fulfill()
+                }
+            },
+            onDismissed: { didDismiss = true; dismissed.fulfill() }
+        )
+
+        await fulfillment(of: [started, timeoutScheduled], timeout: 5)
+        XCTAssertFalse(didCancel)
+        XCTAssertFalse(didDismiss)
+        XCTAssertTrue(root.view.accessibilityElementsHidden)
+
+        let deadline = try XCTUnwrap(timeoutContinuation)
+        timeoutContinuation = nil
+        deadline.resume()
+
+        await fulfillment(of: [cancelled, dismissed], timeout: 5)
+        XCTAssertFalse(root.view.accessibilityElementsHidden)
     }
 
     func testFakeLaunchDoesNotStartCompletionBeforeCatalogIsReady() async throws {

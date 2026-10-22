@@ -88,7 +88,7 @@ extension QuizQuestionViewController {
         questionLabel.accessibilityIdentifier = AccessibilityID.questionTextLabel
         questionLabel.numberOfLines = Typography.unlimitedNumberOfLines
         questionLabel.lineBreakMode = .byWordWrapping
-        questionLabel.setContentCompressionResistancePriority(.required, for: .vertical)
+        questionLabel.setContentCompressionResistancePriority(.defaultHigh, for: .vertical)
     }
     
     func configureTimerViews() {
@@ -195,17 +195,16 @@ extension QuizQuestionViewController {
     }
     
     func addSubviews(to rootView: UIView) {
-        scrollView = UIScrollView()
-        scrollView.accessibilityIdentifier = AccessibilityID.scrollView
-        scrollView.alwaysBounceVertical = false
-        scrollView.translatesAutoresizingMaskIntoConstraints = false
+        cardContainerView = UIView()
+        cardContainerView.accessibilityIdentifier = AccessibilityID.cardContainerView
+        cardContainerView.translatesAutoresizingMaskIntoConstraints = false
 
-        var rootSubviews: [UIView] = [themeNameLabel, questionNumberLabel, closeButton, scrollView, nextButton]
+        var rootSubviews: [UIView] = [themeNameLabel, questionNumberLabel, closeButton, cardContainerView, nextButton]
 #if DEBUG
         rootSubviews.append(debugQuestionSourceLabel)
 #endif
         rootSubviews.forEach(rootView.addSubview)
-        scrollView.addSubview(questionCardView)
+        cardContainerView.addSubview(questionCardView)
         let frontContentViews: [UIView] = [
             timerContainerView,
             questionLabel,
@@ -246,7 +245,7 @@ extension QuizQuestionViewController {
 #endif
 
         let constraints = [
-            themeNameLabel.topAnchor.constraint(equalTo: rootView.safeAreaLayoutGuide.topAnchor, constant: Layout.topInset),
+            adaptiveSpacing(themeNameLabel.topAnchor.constraint(equalTo: rootView.safeAreaLayoutGuide.topAnchor, constant: Layout.topInset), compact: 12),
             themeNameLabel.leadingAnchor.constraint(equalTo: rootView.leadingAnchor, constant: Layout.rootHorizontalInset + Layout.closeButtonSize),
             themeNameLabel.trailingAnchor.constraint(equalTo: rootView.trailingAnchor, constant: -(Layout.rootHorizontalInset + Layout.closeButtonSize)),
             closeButton.centerYAnchor.constraint(equalTo: themeNameLabel.centerYAnchor),
@@ -254,22 +253,21 @@ extension QuizQuestionViewController {
             closeButton.widthAnchor.constraint(equalToConstant: Layout.closeButtonSize),
             closeButton.heightAnchor.constraint(equalToConstant: Layout.closeButtonSize),
             
-            questionNumberLabel.topAnchor.constraint(equalTo: themeNameLabel.bottomAnchor, constant: Layout.questionNumberTopSpacing),
+            adaptiveSpacing(questionNumberLabel.topAnchor.constraint(equalTo: themeNameLabel.bottomAnchor, constant: Layout.questionNumberTopSpacing), compact: 6),
             questionNumberLabel.leadingAnchor.constraint(equalTo: rootView.leadingAnchor, constant: Layout.rootHorizontalInset),
             questionNumberLabel.trailingAnchor.constraint(equalTo: rootView.trailingAnchor, constant: -Layout.rootHorizontalInset),
             
-            scrollView.topAnchor.constraint(equalTo: questionNumberLabel.bottomAnchor, constant: Layout.cardTopSpacing),
-            scrollView.leadingAnchor.constraint(equalTo: rootView.leadingAnchor),
-            scrollView.trailingAnchor.constraint(equalTo: rootView.trailingAnchor),
-            scrollView.bottomAnchor.constraint(equalTo: nextButton.topAnchor, constant: -Layout.actionTopSpacing),
-            scrollView.contentLayoutGuide.widthAnchor.constraint(equalTo: scrollView.frameLayoutGuide.widthAnchor),
+            adaptiveSpacing(cardContainerView.topAnchor.constraint(equalTo: questionNumberLabel.bottomAnchor, constant: Layout.cardTopSpacing), compact: 12),
+            cardContainerView.leadingAnchor.constraint(equalTo: rootView.leadingAnchor),
+            cardContainerView.trailingAnchor.constraint(equalTo: rootView.trailingAnchor),
+            adaptiveSpacing(cardContainerView.bottomAnchor.constraint(equalTo: nextButton.topAnchor, constant: -Layout.actionTopSpacing), compact: -12),
 
-            questionCardView.topAnchor.constraint(equalTo: scrollView.contentLayoutGuide.topAnchor),
-            questionCardView.centerXAnchor.constraint(equalTo: scrollView.frameLayoutGuide.centerXAnchor),
-            questionCardView.leadingAnchor.constraint(greaterThanOrEqualTo: scrollView.contentLayoutGuide.leadingAnchor, constant: Layout.cardHorizontalInset),
-            questionCardView.trailingAnchor.constraint(lessThanOrEqualTo: scrollView.contentLayoutGuide.trailingAnchor, constant: -Layout.cardHorizontalInset),
+            questionCardView.topAnchor.constraint(equalTo: cardContainerView.topAnchor),
+            questionCardView.centerXAnchor.constraint(equalTo: cardContainerView.centerXAnchor),
+            questionCardView.leadingAnchor.constraint(greaterThanOrEqualTo: cardContainerView.leadingAnchor, constant: Layout.cardHorizontalInset),
+            questionCardView.trailingAnchor.constraint(lessThanOrEqualTo: cardContainerView.trailingAnchor, constant: -Layout.cardHorizontalInset),
             questionCardView.widthAnchor.constraint(lessThanOrEqualToConstant: Layout.maximumContentWidth),
-            questionCardView.bottomAnchor.constraint(equalTo: scrollView.contentLayoutGuide.bottomAnchor, constant: -Layout.cardBottomInset),
+            adaptiveSpacing(questionCardView.bottomAnchor.constraint(equalTo: cardContainerView.bottomAnchor, constant: -Layout.cardBottomInset), compact: 0),
             
             questionInfoButton.topAnchor.constraint(
                 equalTo: questionCardContentView.topAnchor,
@@ -306,7 +304,7 @@ extension QuizQuestionViewController {
             questionTopSpacingGuide.topAnchor.constraint(equalTo: timerBar.bottomAnchor),
             questionTopSpacingGuide.bottomAnchor.constraint(equalTo: questionLabel.topAnchor),
             questionTopSpacingGuide.heightAnchor.constraint(
-                greaterThanOrEqualToConstant: Layout.questionSurroundingMinimumSpacing
+                greaterThanOrEqualToConstant: Layout.questionSurroundingCompactSpacing
             ),
 
             questionLabel.leadingAnchor.constraint(equalTo: questionCardContentView.leadingAnchor, constant: Layout.questionHorizontalInset),
@@ -315,7 +313,7 @@ extension QuizQuestionViewController {
             questionBottomSpacingGuide.topAnchor.constraint(equalTo: questionLabel.bottomAnchor),
             questionBottomSpacingGuide.bottomAnchor.constraint(equalTo: answersStackView.topAnchor),
             questionBottomSpacingGuide.heightAnchor.constraint(
-                greaterThanOrEqualToConstant: Layout.questionSurroundingMinimumSpacing
+                greaterThanOrEqualToConstant: Layout.questionSurroundingCompactSpacing
             ),
             questionTopSpacingGuide.heightAnchor.constraint(equalTo: questionBottomSpacingGuide.heightAnchor),
 
@@ -362,27 +360,35 @@ extension QuizQuestionViewController {
             nextButton.centerXAnchor.constraint(equalTo: rootView.centerXAnchor),
             nextButton.widthAnchor.constraint(equalToConstant: Layout.actionButtonWidth),
             nextButton.heightAnchor.constraint(greaterThanOrEqualToConstant: Layout.primaryActionButtonHeight),
-            nextButton.bottomAnchor.constraint(equalTo: rootView.safeAreaLayoutGuide.bottomAnchor, constant: -Layout.bottomMaximumInset)
+            adaptiveSpacing(nextButton.bottomAnchor.constraint(equalTo: rootView.safeAreaLayoutGuide.bottomAnchor, constant: -Layout.bottomMaximumInset), compact: -12)
         ]
         NSLayoutConstraint.activate(constraints + debugSourceConstraints)
 
         let cardWidthConstraint = questionCardView.widthAnchor.constraint(
-            equalTo: scrollView.frameLayoutGuide.widthAnchor,
+            equalTo: cardContainerView.widthAnchor,
             constant: -(Layout.cardHorizontalInset * 2)
         )
         cardWidthConstraint.priority = .defaultHigh
         cardWidthConstraint.isActive = true
 
-        questionCardView.heightAnchor.constraint(
-            greaterThanOrEqualTo: scrollView.frameLayoutGuide.heightAnchor,
-            constant: -Layout.cardBottomInset
-        ).isActive = true
+        for guide in [questionTopSpacingGuide, questionBottomSpacingGuide].compactMap({ $0 }) {
+            let preferredSpacing = guide.heightAnchor.constraint(
+                greaterThanOrEqualToConstant: Layout.questionSurroundingMinimumSpacing
+            )
+            preferredSpacing.priority = UILayoutPriority(749)
+            preferredSpacing.isActive = true
+        }
 
         answerHeightConstraints = answerButtons.map { button in
-            let constraint = button.heightAnchor.constraint(greaterThanOrEqualToConstant: Layout.answerMinimumHeight)
+            let constraint = button.heightAnchor.constraint(equalToConstant: Layout.answerMinimumHeight)
             constraint.isActive = true
             return constraint
         }
+    }
+
+    private func adaptiveSpacing(_ constraint: NSLayoutConstraint, compact: CGFloat) -> NSLayoutConstraint {
+        adaptiveSpacingConstraints.append((constraint, constraint.constant, compact))
+        return constraint
     }
     
     func answerButtonAccessibilityIdentifier(index: Int) -> String {

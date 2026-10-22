@@ -507,28 +507,28 @@ check_split_test_layout_and_markers() {
     'question typography tests must cover the initial frame before selection'
   require_test_method \
     "QuiziceTests/Features/QuizPlay/UIContracts/QuizQuestionTypographyContractTests.swift" \
-    'testLongAnswersRespectAccessibilityContentSizeWhileFitting' \
+    'testLongAnswersFitAccessibilityContentWithoutClippingOrScrolling' \
     'question typography tests must preserve Dynamic Type coverage'
   require_test_method \
     "QuiziceTests/Features/QuizPlay/UIContracts/QuizQuestionTypographyContractTests.swift" \
-    'testLongQuestionsShrinkWithinReadableFloorAcrossSelectableStylesAndPhoneSizes' \
+    'testLongQuestionsFitAvailableCardHeightAcrossSelectableStylesAndPhoneSizes' \
     'question typography tests must bound long-question typography'
   require_test_method \
     "QuiziceTests/Features/QuizPlay/UIContracts/QuizQuestionTypographyContractTests.swift" \
-    'testExtremeQuestionStopsAtReadableFloorAndUsesScrollableFallback' \
-    'question typography tests must preserve the extreme-question fallback'
+    'testExtremeQuestionFitsAvailableCardHeightWithoutScrolling' \
+    'question typography tests must fit extreme questions without scrolling'
   require_test_method \
     "QuiziceTests/Features/QuizPlay/UIContracts/QuizQuestionTypographyContractTests.swift" \
     'testQuestionFontRestoresForShortQuestionAndRefitsAfterWidthChange' \
     'question typography tests must preserve refitting coverage'
   require_test_method \
     "QuiziceTests/Features/QuizPlay/UIContracts/QuizQuestionStateContractTests.swift" \
-    'testQuestionNextButtonStaysPinnedWhenExtremeAnswerGrowsCard' \
-    'question state tests must preserve the pinned next-button fallback'
+    'testExtremeAnswerFitsWithoutGrowingCardOrMovingNextButton' \
+    'question state tests must keep the card and next button fixed for long answers'
   require_test_method \
     "QuiziceTests/Features/QuizPlay/UIContracts/QuizQuestionStateContractTests.swift" \
-    'testQuestionAdvanceResetsScrolledLongAnswerCardToTop' \
-    'question state tests must reset long-answer scroll position when advancing'
+    'testQuestionAdvanceKeepsCardFrameStableAfterLongAnswer' \
+    'question state tests must keep the card frame stable when advancing'
   local split_test_count=0
   local source_test_count
   for test_source in "${SPLIT_TEST_SOURCE_FILES[@]}"; do

@@ -20,13 +20,22 @@ final class LaunchOverlayPresenter {
     private weak var coveredAccessibilityView: UIView?
     private var coveredViewWasAccessibilityHidden = false
     private var onDismissed: (() -> Void)?
+    private let waitForPreparationTimeout: @MainActor (TimeInterval) async throws -> Void
+
+    init(
+        waitForPreparationTimeout: @escaping @MainActor (TimeInterval) async throws -> Void = { timeout in
+            try await Task.sleep(nanoseconds: UInt64(max(0, timeout) * 1_000_000_000))
+        }
+    ) {
+        self.waitForPreparationTimeout = waitForPreparationTimeout
+    }
 
     func present(
         in window: UIWindow,
         appearance: AppAppearance,
         holdDuration: TimeInterval = Timing.holdDuration,
         motion: FakeLaunchMotion = .standard,
-        preparationTimeout: TimeInterval = 3,
+        preparationTimeout: TimeInterval = 2,
         preparation: (@MainActor () async -> Void)? = nil,
         onDismissed: (() -> Void)? = nil
     ) {
@@ -85,15 +94,15 @@ final class LaunchOverlayPresenter {
                 preparationDeadlineTask = nil
                 readiness.isReady = true
             }
+            let waitForPreparationTimeout = self.waitForPreparationTimeout
             preparationDeadlineTask = Task { @MainActor [weak self] in
                 do {
-                    try await Task.sleep(nanoseconds: UInt64(max(0, preparationTimeout) * 1_000_000_000))
+                    try await waitForPreparationTimeout(preparationTimeout)
                 } catch { return }
                 guard let self, activePresentationID == presentationID, !Task.isCancelled else { return }
-                preparationTask?.cancel()
-                preparationTask = nil
-                preparationDeadlineTask = nil
-                readiness.isReady = true
+                // A stalled server must not extend the launch animation. Dismiss
+                // directly without waiting for preparation or SwiftUI completion.
+                dismiss(animated: true, duration: Timing.reducedMotionRevealDuration)
             }
         }
     }

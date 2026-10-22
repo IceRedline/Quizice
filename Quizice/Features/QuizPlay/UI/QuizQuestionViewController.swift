@@ -29,7 +29,7 @@ final class QuizQuestionViewController: BaseQuizViewController, QuizQuestionView
 #endif
         static let exitAlertConfirmButton = "questionExitAlertConfirmButton"
         static let exitAlertCancelButton = "questionExitAlertCancelButton"
-        static let scrollView = "questionScrollView"
+        static let cardContainerView = "questionCardContainerView"
     }
     
     enum Layout {
@@ -43,12 +43,12 @@ final class QuizQuestionViewController: BaseQuizViewController, QuizQuestionView
         static let timerBarHorizontalInset: CGFloat = 4
         static let timerBarHeight: CGFloat = 8
         static let questionSurroundingMinimumSpacing: CGFloat = 24
+        static let questionSurroundingCompactSpacing: CGFloat = 8
         static let questionHorizontalInset: CGFloat = 22
         static let answersHorizontalInset: CGFloat = 18
         static let answerMinimumHeight: CGFloat = 52
         static let answerContentHorizontalInset: CGFloat = 12
         static let answerContentVerticalInset: CGFloat = 6
-        static let questionTargetMaximumHeight: CGFloat = 144
         static let answersBottomInset: CGFloat = 20
         static let actionTopSpacing: CGFloat = 22
         static let cardBottomInset: CGFloat = 18
@@ -189,7 +189,7 @@ final class QuizQuestionViewController: BaseQuizViewController, QuizQuestionView
     var questionExplanationBackButton: UIButton!
     var questionExplanationScrollView: UIScrollView!
     var questionExplanationLabel: UILabel!
-    var scrollView: UIScrollView!
+    var cardContainerView: UIView!
     var timerContainerView: UIView!
     var timerBar: UIProgressView!
     var questionTopSpacingGuide: UILayoutGuide!
@@ -200,6 +200,7 @@ final class QuizQuestionViewController: BaseQuizViewController, QuizQuestionView
     var answer3Button: UIButton!
     var answer4Button: UIButton!
     var answerHeightConstraints: [NSLayoutConstraint] = []
+    var adaptiveSpacingConstraints: [(constraint: NSLayoutConstraint, regular: CGFloat, compact: CGFloat)] = []
     var nextButton: UIButton!
     var closeButton: UIButton!
 #if DEBUG

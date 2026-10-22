@@ -295,6 +295,9 @@ final class ScreenSnapshotTests: XCTestCase {
         assertAdaptiveSnapshots(
             makeViewController: { self.makeQuestionViewController() },
             screenName: "question",
+            // The iPhone target supports portrait only. The fixed question
+            // card is bounded by the actual supported viewport.
+            includesLandscape: false,
             afterPrepare: prepareQuestionSnapshot
         )
     }
@@ -306,15 +309,18 @@ final class ScreenSnapshotTests: XCTestCase {
     private func assertAdaptiveSnapshots(
         makeViewController: () -> UIViewController,
         screenName: String,
+        includesLandscape: Bool = true,
         afterPrepare: ((UIViewController) -> Void)? = nil
     ) {
-        SnapshotSupport.assertScreen(
-            makeViewController(),
-            named: "clean-\(screenName)-landscape",
-            size: landscapeSize,
-            afterPrepare: afterPrepare,
-            testName: "assertAdaptiveSnapshots(makeViewController:screenName:)"
-        )
+        if includesLandscape {
+            SnapshotSupport.assertScreen(
+                makeViewController(),
+                named: "clean-\(screenName)-landscape",
+                size: landscapeSize,
+                afterPrepare: afterPrepare,
+                testName: "assertAdaptiveSnapshots(makeViewController:screenName:)"
+            )
+        }
         SnapshotSupport.assertScreen(
             makeViewController(),
             named: "clean-\(screenName)-compact-portrait",

@@ -4,6 +4,43 @@ import XCTest
 
 @MainActor
 final class HomeExpandedThemeCardInteractionTests: HomeScreenVisualStateTestCase {
+    func testCountryButtonPreservesTitleAndSurfaceAcrossSelectionAndAppearanceUpdates() throws {
+        let card = makeHostedExpandedThemeCard(motionProvider: HomeThemeCardMotionProviderFake())
+        let theme = makeTheme(name: "Политика и бизнес", questionCount: 5)
+        theme.id = "politics_business"
+        theme.countries = ["IT", "ES", "DE"]
+        let button = card.countryButton
+
+        for style: AppDesignStyle in [.classic, .clean, .radar] {
+            let appearance = SnapshotSupport.appearance(designStyle: style)
+            card.configure(theme: theme, appearance: appearance, availableQuestionCounts: [5],
+                           selectedQuestionCount: 5, selectedCountry: "IT")
+            card.setFace(.back, animated: false)
+            card.layoutIfNeeded()
+            XCTAssertTrue(card.backFaceView.accessibilityElements?.contains { ($0 as? UIButton) === button } == true)
+
+            for country in ["ES", "DE"] {
+                card.selectCountry(country)
+                let title = try XCTUnwrap(AppLocalizationStore.shared.resolvedLocale.localizedString(forRegionCode: country))
+                for highlighted in [true, false] {
+                    button.isHighlighted = highlighted
+                    button.setNeedsUpdateConfiguration()
+                    button.layoutIfNeeded()
+                    XCTAssertEqual(button.titleLabel?.text, "\(title) ▾")
+                    XCTAssertEqual(button.accessibilityValue, title)
+                    let background = try XCTUnwrap(button.configuration?.background)
+                    assertColor(background.backgroundColor, equals: appearance.row.backgroundColor)
+                    assertColor(background.strokeColor, equals: appearance.row.borderColor)
+                    XCTAssertEqual(background.cornerRadius, appearance.row.cornerRadius)
+                    XCTAssertEqual(background.strokeWidth, appearance.row.borderWidth)
+                    // UIKit can clear the outer layer during its menu morph.
+                    // The border must belong to the configured background.
+                    XCTAssertEqual(button.layer.borderWidth, 0)
+                }
+            }
+        }
+    }
+
     func testExpandedThemeReduceMotionBlocksProviderAndDragThenRuntimeToggleNeutralizesPose() throws {
         var reduceMotion = true
         let motionProvider = HomeThemeCardMotionProviderFake()
