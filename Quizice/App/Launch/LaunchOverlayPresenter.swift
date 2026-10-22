@@ -20,6 +20,15 @@ final class LaunchOverlayPresenter {
     private weak var coveredAccessibilityView: UIView?
     private var coveredViewWasAccessibilityHidden = false
     private var onDismissed: (() -> Void)?
+    private let waitForPreparationTimeout: @MainActor (TimeInterval) async throws -> Void
+
+    init(
+        waitForPreparationTimeout: @escaping @MainActor (TimeInterval) async throws -> Void = { timeout in
+            try await Task.sleep(nanoseconds: UInt64(max(0, timeout) * 1_000_000_000))
+        }
+    ) {
+        self.waitForPreparationTimeout = waitForPreparationTimeout
+    }
 
     func present(
         in window: UIWindow,
@@ -85,9 +94,10 @@ final class LaunchOverlayPresenter {
                 preparationDeadlineTask = nil
                 readiness.isReady = true
             }
+            let waitForPreparationTimeout = self.waitForPreparationTimeout
             preparationDeadlineTask = Task { @MainActor [weak self] in
                 do {
-                    try await Task.sleep(nanoseconds: UInt64(max(0, preparationTimeout) * 1_000_000_000))
+                    try await waitForPreparationTimeout(preparationTimeout)
                 } catch { return }
                 guard let self, activePresentationID == presentationID, !Task.isCancelled else { return }
                 // A stalled server must not extend the launch animation. Dismiss

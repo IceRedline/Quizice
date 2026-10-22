@@ -244,11 +244,25 @@ final class QuizFlowCoordinatorLaunchTests: QuizFlowCoordinatorTestCase {
         let root = UIViewController()
         window.rootViewController = root
         window.isHidden = false
-        let presenter = LaunchOverlayPresenter()
+        let timeoutScheduled = expectation(description: "Default launch timeout scheduled")
+        var timeoutContinuation: CheckedContinuation<Void, Never>?
+        let presenter = LaunchOverlayPresenter(waitForPreparationTimeout: { duration in
+            XCTAssertEqual(duration, 2)
+            await withCheckedContinuation {
+                timeoutContinuation = $0
+                timeoutScheduled.fulfill()
+            }
+        })
+        let started = expectation(description: "Slow request started")
         let cancelled = expectation(description: "Slow request cancelled")
         let dismissed = expectation(description: "Home revealed within launch budget")
+        var didCancel = false
+        var didDismiss = false
+        // Animation timing is covered separately; this test controls the network deadline.
+        UIView.setAnimationsEnabled(false)
         defer {
             presenter.dismiss(animated: false)
+            timeoutContinuation?.resume()
             window.isHidden = true
             window.rootViewController = nil
         }
@@ -257,18 +271,29 @@ final class QuizFlowCoordinatorLaunchTests: QuizFlowCoordinatorTestCase {
             in: window,
             appearance: makeLaunchAppearance(designStyle: .classic),
             preparation: {
+                started.fulfill()
                 do {
                     try await Task.sleep(nanoseconds: 15_000_000_000)
                     XCTFail("Launch must not wait for the transport timeout")
                 } catch {
                     XCTAssertTrue(Task.isCancelled)
+                    didCancel = true
                     cancelled.fulfill()
                 }
             },
-            onDismissed: { dismissed.fulfill() }
+            onDismissed: { didDismiss = true; dismissed.fulfill() }
         )
 
-        await fulfillment(of: [cancelled, dismissed], timeout: 3)
+        await fulfillment(of: [started, timeoutScheduled], timeout: 5)
+        XCTAssertFalse(didCancel)
+        XCTAssertFalse(didDismiss)
+        XCTAssertTrue(root.view.accessibilityElementsHidden)
+
+        let deadline = try XCTUnwrap(timeoutContinuation)
+        timeoutContinuation = nil
+        deadline.resume()
+
+        await fulfillment(of: [cancelled, dismissed], timeout: 5)
         XCTAssertFalse(root.view.accessibilityElementsHidden)
     }
 
