@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="Quizice/Assets.xcassets/AppIcon.appiconset/QuizIce-%20New%201.png" alt="Quizice icon" width="96">
+  <img src="Quizice/Assets.xcassets/AppIcon.appiconset/QuizIce-%20New%201.png" alt="Quizice icon" width="128">
 </p>
 
 # Quizice
