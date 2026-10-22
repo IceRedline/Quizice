@@ -1,140 +1,167 @@
+<p align="center">
+  <img src="Quizice/Assets.xcassets/AppIcon.appiconset/QuizIce-%20New%201.png" alt="Quizice icon" width="96">
+</p>
+
 # Quizice
 
-### Quiz-game
+A native iPhone quiz app for a quick round or a topic you want to explore.
+Choose a theme, set the difficulty, answer against the clock, and track your
+progress. Create a quiz from your own topic with AI, or let **Feeling lucky**
+pick a mix of questions for you.
 
-A quiz app where you can train answering questions on different topics. 
+[Build from source](#build-from-source) · [How to play](#how-to-play) ·
+[Development guide](docs/development.md) · [Report an issue](https://github.com/tabenskii/Quizice/issues)
 
-Flexibile and scalable: it can be easily adapted to any topic, be it school tests, interview preparation simulators or just entertaining quizzes.
+![Quizice: theme catalog, round setup, a quiz question, and AI quiz creation](docs/images/quizice-preview.png)
 
-The quiz includes themes:
-- Music
-- Tech
-- Culture
-- Politics
+*Home, round setup, gameplay, and AI creation in the Classic design. The preview
+shows a connected backend catalog; the bundled catalog contains four themes.*
 
-![Quizice Preview](https://github.com/user-attachments/assets/e84484ae-8833-4286-9b77-0fbf0b3b68fa)
+## Features
 
-> Swift, UIKit + SwiftUI, Coordinator-led MVP, unidirectional state, SwiftData
+- **Short, configurable rounds.** Choose 5, 10, or 15 questions and an Easy,
+  Medium, or Hard difficulty for backend and AI quizzes.
+- **A growing catalog.** Explore topics from the backend, or start with bundled
+  Music, Technology, History and Culture, and Politics and Business questions.
+  Mark favorite themes to keep them at the top.
+- **Create with AI.** Describe a topic and generate a quiz in the app's language.
+  Production generation requires Game Center sign-in and backend access.
+- **Track your progress.** See completed games, accuracy, and your best result.
+  A backend session enables statistics sync and question-repeat preferences.
+- **Make it yours.** Switch between Classic, Radar, and Clean designs, with
+  system, light, and dark appearance options for Clean.
+- **Play at your pace.** VoiceOver and Switch Control disable the question timer
+  when active at the start of a round. The interface also supports Reduce Motion.
 
-## App reference
+Available in **English, Russian, Spanish, German, Italian, and French**, with
+an in-app language picker and a system-language option.
 
-[Как работает приложение](docs/app-reference.md) — сценарии, источники данных,
-API, хранение и синхронизация, текущие ограничения и отдельный раздел
-[отличий Debug](docs/app-reference.md#отличия-debug).
+## How to play
 
-## SwiftLint
+1. Pick your favorite themes during onboarding, then open a theme card on Home.
+2. Choose the round length and difficulty. Politics and Business also offers a
+   country picker when the backend provides country-specific questions.
+3. Answer each question from four choices. A standard round gives you 20 seconds
+   per question, followed by feedback before you continue.
+4. Review your result, play again, or return to Home to check your statistics.
 
-SwiftLint is integrated as an SPM build-tool plugin for both `Quizice` and
-`QuiziceTests`. The shared rules live in `.swiftlint.yml` and run automatically
-when either target is built. On first use, Xcode may ask you to trust and enable
-the `SwiftLintBuildToolPlugin`.
+For a mixed round, choose **Feeling lucky**. For a custom topic, open
+**Create with AI**. Settings controls language, design, sound, and question-repeat
+preferences.
+
+## Build from source
+
+There is no public App Store or TestFlight download yet. You can run Quizice
+locally from this repository.
+
+**Requirements:** a Mac with Xcode **26.2** (the version used in CI), and an
+iPhone or Simulator running **iOS 18.0 or later**. Dependencies are managed by
+Swift Package Manager; Xcode downloads them on first open.
+
+```sh
+git clone https://github.com/tabenskii/Quizice.git
+cd Quizice
+open Quizice.xcodeproj
+```
+
+1. Let Xcode resolve the packages and enable `SwiftLintBuildToolPlugin` if prompted.
+2. Select the **Quizice** scheme and an iPhone Simulator.
+3. Run with **⌘R** using the default **Debug** configuration.
+
+A fresh Debug installation works with the bundled quiz catalog and analytics
+disabled, without API keys or a backend configuration. To run on a physical
+iPhone, select your development team in **Signing & Capabilities** and configure
+signing for your account.
+
+### Backend and AI setup
+
+To connect services, copy the local configuration template and edit its values:
+
+```sh
+cp -n Configurations/Secrets.xcconfig.template Configurations/Secrets.xcconfig
+```
+
+| Setting | Debug | Release |
+| --- | --- | --- |
+| `BACKEND_BASE_URL` | Optional; a fresh install uses bundled questions when unset | Required HTTPS API URL ending in `/api` |
+| `APPMETRICA_API_KEY` | Optional; empty disables analytics | Optional; empty disables analytics |
+
+`Secrets.xcconfig` is excluded from Git. In an xcconfig file, write a URL as
+`https:/$()/backend.example.com/api` so `//` is not treated as a comment.
+
+Production AI generation runs through the backend using a session obtained via
+Game Center. **Debug Simulator uses the direct AI service instead**, requiring
+a local `YANDEX_AI_API_KEY` in the Run scheme. Bundled quizzes do not need it.
+
+See the [development guide](docs/development.md) for configuration, analytics,
+Release validation, and live backend tests, and
+[Debug differences](docs/app-reference.md#отличия-debug) for the developer menu,
+local backend, and direct AI setup.
 
 ## Architecture
 
-The source tree is organized by feature, with application composition in `App`,
-shared infrastructure in `Core`, framework-independent models and contracts in
-`Domain`, and screen ownership in `Features`. UIKit remains the navigation and
-interaction shell; SwiftUI is used where declarative content has a clear size and
-maintenance benefit.
+Quizice uses **Swift, UIKit, SwiftUI, and SwiftData**. UIKit owns navigation and
+the gameplay shell; SwiftUI provides selected content and settings surfaces.
+Coordinators handle navigation, presenters drive gameplay, and reducers manage
+Home card state.
 
-- [Project structure](docs/project-structure.md)
-- [Architecture review](docs/architecture-review.md)
-- [Refactor report](docs/refactor-report.md)
-- [SwiftUI migration assessment](docs/swiftui-migration-assessment.md)
+| Directory | Responsibility |
+| --- | --- |
+| [`Quizice/App`](Quizice/App) | App lifecycle, dependency composition, navigation, and Debug tools |
+| [`Quizice/Features`](Quizice/Features) | Home, quiz play and results, AI, onboarding, settings, and subscription UI |
+| [`Quizice/Domain`](Quizice/Domain) | Models, quiz rules, and contracts independent of UI and networking frameworks |
+| [`Quizice/Core`](Quizice/Core) | Persistence, authentication, networking, analytics, localization, and design system |
+| [`QuiziceTests`](QuiziceTests) | Unit tests, UI contracts, and visual snapshots |
 
-## Build secrets
+Dependencies flow from `App` to `Features`, then to `Domain` and `Core`.
+SwiftData stores local data; Keychain stores the backend session.
+See [Project structure](docs/project-structure.md) for ownership and conventions.
 
-Credentials that must not appear in source control live in
-`Configurations/Secrets.xcconfig`, which is git-ignored. Copy the template on
-first checkout:
+## Checks
 
-```bash
-cp Configurations/Secrets.xcconfig.template Configurations/Secrets.xcconfig
-# then fill in APPMETRICA_API_KEY and BACKEND_BASE_URL
+Run the static checks without building the app:
+
+```sh
+./scripts/verify-s04-tests-and-failure-states.sh --checks-only
+python3 scripts/tests/test-release-configuration.py
+python3 scripts/tests/test-static-verifier.py
 ```
 
-Debug builds allow both variables to be empty: analytics stays disabled and the
-client uses bundled catalog data. Release builds require `BACKEND_BASE_URL`
-to be an HTTPS backend URL ending in `/api`, without credentials, query or
-fragment. A build phase rejects missing, malformed and local backend addresses;
-it does not contact the server. `APPMETRICA_API_KEY` remains optional.
-In an xcconfig file, write the URL as `https:/$()/backend.example.com/api` so
-the double slash is not parsed as a comment.
+Run XCTest categories with the iOS **26.2** Simulator runtime installed:
 
-`Configurations/Shared.xcconfig` is the base configuration for the app target
-and pulls in `Secrets.xcconfig` via an optional include; the project's build
-settings no longer carry those values directly.
+```sh
+./scripts/run-ios-test-category.sh unit "iPhone 17" 26.2
+./scripts/run-ios-test-category.sh ui "iPhone SE (3rd generation)" 26.2
+./scripts/run-ios-test-category.sh snapshots "iPhone 16e" 26.2
+```
 
-## Yandex AppMetrica
+[GitHub Actions](.github/workflows/ios-tests.yml) runs these categories on pull
+requests, adds UI checks on iPhone 17 Pro Max, combines coverage, and compiles
+Release with a reserved example backend URL. Live backend tests are opt-in.
+See [test configuration](docs/development.md#running-tests) for result bundles,
+snapshot recording, and reruns.
 
-The app uses AppMetrica 6.4.0 for product analytics, sessions, crashes, and
-sanitized operational errors. Advertising attribution, IDFA, location, user
-profiles, and automatic revenue tracking are disabled.
+## Current limitations
 
-1. Register the iOS app in AppMetrica and copy its API key from
-   **Settings → Main**.
-2. Paste the value into `APPMETRICA_API_KEY` in
-   `Configurations/Secrets.xcconfig` (see **Build secrets** above).
-3. Keep the same value for Debug and Release so local sessions and production
-   sessions reach the same app.
+- **Offline play depends on the catalog.** Bundled questions work locally.
+  Once a backend catalog is active, starting a round needs a successful network
+  response; cached theme cards do not include playable questions.
+- **Bundled questions do not filter by difficulty.** Difficulty selection applies
+  to backend question requests and AI generation.
+- **AI quizzes are temporary.** Generated questions belong to the current
+  session and are not saved as permanent catalog themes. Replay generates a new quiz.
+- **Quizice Plus is not available for purchase.** Purchase and restore flows
+  are not connected. Profile, in-app feedback, and alternate app icons are also
+  unfinished.
 
-The value is substituted into the `AppMetricaAPIKey` entry in `Info.plist`.
-An empty value or the placeholder leaves analytics disabled. XCTest and SwiftUI
-Previews also skip SDK activation.
+## Documentation
 
-AppMetrica's verbose internal logging is disabled by default, including in
-Debug builds. To troubleshoot the SDK itself, set the
-`QUIZICE_APPMETRICA_VERBOSE_LOGS` environment variable to `1` in the Run scheme.
-Normal Debug runs keep only Quizice's compact per-event log.
+- [Development guide](docs/development.md) — service configuration, analytics,
+  production builds, and tests.
+- [How the app works](docs/app-reference.md) *(Russian)* — user flows, data sources,
+  API contracts, storage, synchronization, and Debug behavior.
+- [Project structure](docs/project-structure.md) — module ownership and dependencies.
+- [Analytics taxonomy](docs/analytics-taxonomy.md) — events and payload rules.
 
-Events cover screen views, theme selection, quiz start/answers/timeouts/exit/
-completion, result actions, statistics, AI generation, and settings changes.
-Question text, answer text, AI prompts, localized error messages, and generated
-AI theme IDs are never sent to analytics. The backend separately receives the
-authenticated user ID, quiz progress and selected answers, and the AI prompt
-when the user requests a generated quiz, to provide those features.
-
-AppMetrica 6.4.0 provides its own Privacy Manifest. App Store Connect privacy
-answers should still declare the diagnostics and other analytics data collected
-by the SDK, as well as the linked user ID, gameplay content and other user
-content sent to the backend for app functionality. The bundled privacy manifest
-declares these backend data categories; App Store Connect privacy answers and
-the published privacy policy need to be reviewed separately before release.
-Because `AppMetricaAdSupport` is not linked, the app does not use
-AppMetrica cross-app tracking and does not request ATT permission.
-
-## Production backend
-
-The app reads `BackendBaseURL` from the `BACKEND_BASE_URL` build setting,
-which comes from `Configurations/Secrets.xcconfig` (see **Build secrets**).
-Debug can still opt into `http://localhost:8000/api` from the developer menu;
-normal Debug and Release builds use the deployed HTTPS API.
-
-The client initially loads a matching cached backend catalog or bundled localized
-data, then refreshes theme metadata during launch preparation. In backend catalog
-mode, starting a quiz requests a seeded question batch and requires a valid
-response; a failed request does not fall back to bundled questions. Cached
-backend metadata alone does not make quizzes available offline. See the
-[app reference](docs/app-reference.md#каталог-и-offline) for the exact loading rules.
-
-Release AI generation goes through the backend. It requires a valid backend
-session obtained through Game Center and sends the bearer token stored in
-Keychain. Debug Simulator uses the direct AI service; Debug on a device can opt
-into it with a local key (see [Debug differences](docs/app-reference.md#отличия-debug)).
-Production provider credentials remain server-side. The required server
-contract, rollout order, tests, and performance targets are documented in
-[`docs/backend-production-readiness-plan.md`](docs/backend-production-readiness-plan.md).
-
-`LiveBackendContractTests` are opt-in so ordinary unit-test runs never depend on
-the network. Set `QUIZICE_RUN_LIVE_BACKEND_TESTS=1` in the test scheme to run
-them. The latency smoke reports first/median/p95/max timings without using an
-unstable developer connection as a release threshold. Set `QUIZICE_LIVE_BACKEND_URL`
-to an alternate API base URL ending in `/api`; health and readiness then use
-that same origin. Invalid overrides fail instead of falling back to production.
-The two `testFuture...`
-cases are rollout gates for the new response envelopes and guest AI `401`.
-
-CI also compiles Release with a reserved, non-routable example backend URL to
-exercise the production build path without service credentials or network probes.
-Validate the configuration gate locally with
-`python3 scripts/tests/test-release-configuration.py`.
+Found a bug or have an idea? [Open an issue](https://github.com/tabenskii/Quizice/issues)
+with the steps to reproduce, your iOS version, and screenshots when useful.
