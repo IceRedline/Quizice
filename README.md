@@ -12,7 +12,8 @@ The quiz includes themes:
 - Culture
 - Politics
 
-![Quizice Preview](https://github.com/user-attachments/assets/e84484ae-8833-4286-9b77-0fbf0b3b68fa)
+<img width="2400" height="1300" alt="2400x1300" src="https://github.com/user-attachments/assets/d5ffd122-5723-430f-94a1-2d731f02bed4" />
+
 
 > Swift, UIKit + SwiftUI, Coordinator-led MVP, unidirectional state, SwiftData
 
