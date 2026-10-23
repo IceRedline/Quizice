@@ -380,6 +380,23 @@ final class ThemeCardExpansionTransitionView: UIView {
 
 }
 
+final class HomeThemesCollectionViewFlowLayout: UICollectionViewFlowLayout {
+    override func shouldInvalidateLayout(forBoundsChange newBounds: CGRect) -> Bool {
+        newBounds.size != collectionView?.bounds.size
+            || super.shouldInvalidateLayout(forBoundsChange: newBounds)
+    }
+
+    override func invalidationContext(forBoundsChange newBounds: CGRect) -> UICollectionViewLayoutInvalidationContext {
+        let context = super.invalidationContext(forBoundsChange: newBounds)
+        if newBounds.size != collectionView?.bounds.size,
+           let flowContext = context as? UICollectionViewFlowLayoutInvalidationContext {
+            flowContext.invalidateFlowLayoutDelegateMetrics = true
+            flowContext.invalidateFlowLayoutAttributes = true
+        }
+        return context
+    }
+}
+
 final class HomeThemesCollectionView: UICollectionView {
     private enum Animation {
         static let bottomFadeDuration: CFTimeInterval = 0.20
@@ -434,6 +451,11 @@ final class HomeThemesCollectionView: UICollectionView {
     }
 
     private func configureTransparentBackground() {
+        registerForTraitChanges([UITraitPreferredContentSizeCategory.self]) {
+            (collectionView: HomeThemesCollectionView, _: UITraitCollection) in
+            collectionView.collectionViewLayout.invalidateLayout()
+            collectionView.reloadData()
+        }
         backgroundColor = .clear
         backgroundView = nil
         isOpaque = false

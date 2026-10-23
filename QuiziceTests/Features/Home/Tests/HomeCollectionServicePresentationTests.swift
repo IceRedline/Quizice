@@ -4,6 +4,140 @@ import XCTest
 
 @MainActor
 final class HomeCollectionServicePresentationTests: HomeScreenVisualStateTestCase {
+    func testAIActionCardDoesNotReserveAnEmptyAccessibilityPanel() throws {
+        for width: CGFloat in [320, 375] {
+            for hasPlus in [false, true] {
+                let (_, size) = try makeAIActionCard(
+                    width: width, category: .accessibilityMedium, hasPlus: hasPlus
+                )
+                XCTAssertGreaterThanOrEqual(size.height, 72)
+                XCTAssertLessThan(size.height, 140, "The first accessibility size should fit the actual text compactly")
+            }
+        }
+    }
+
+    func testAIActionCardHeightRespondsToAvailableWidthAndSubscriberText() throws {
+        let (_, narrowFreeSize) = try makeAIActionCard(
+            width: 320, category: .accessibilityExtraExtraExtraLarge, hasPlus: false
+        )
+        let (_, wideFreeSize) = try makeAIActionCard(
+            width: 600, category: .accessibilityExtraExtraExtraLarge, hasPlus: false
+        )
+        let (_, narrowPlusSize) = try makeAIActionCard(
+            width: 320, category: .accessibilityExtraExtraExtraLarge, hasPlus: true
+        )
+
+        XCTAssertGreaterThan(narrowFreeSize.height, wideFreeSize.height, "A wrapped title needs more room")
+        XCTAssertGreaterThan(narrowPlusSize.height, narrowFreeSize.height, "Plus must reserve room for its visible subtitle")
+    }
+
+    func testAIActionCardSizingUsesExplicitTraitsInsteadOfAmbientCategory() {
+        let service = ThemesCollectionService()
+        service.hasActivePlusSubscription = true
+        let large = UITraitCollection(preferredContentSizeCategory: .large)
+        let accessible = UITraitCollection(preferredContentSizeCategory: .accessibilityExtraExtraExtraLarge)
+        var accessibleHeightInLargeContext: CGFloat = 0
+        var accessibleHeightInMatchingContext: CGFloat = 0
+        var largeHeightInAccessibleContext: CGFloat = 0
+
+        large.performAsCurrent {
+            accessibleHeightInLargeContext = service.aiThemeCardHeight(width: 327, traits: accessible)
+        }
+        accessible.performAsCurrent {
+            accessibleHeightInMatchingContext = service.aiThemeCardHeight(width: 327, traits: accessible)
+            largeHeightInAccessibleContext = service.aiThemeCardHeight(width: 327, traits: large)
+        }
+
+        XCTAssertGreaterThan(accessibleHeightInLargeContext, 72)
+        XCTAssertEqual(accessibleHeightInLargeContext, accessibleHeightInMatchingContext, accuracy: 0.5)
+        XCTAssertEqual(largeHeightInAccessibleContext, 72, accuracy: 0.5)
+    }
+
+    func testAIActionCardFittedHeightContainsTextAndPreservesBadgeAndGradient() throws {
+        let categories: [UIContentSizeCategory] = [.large, .extraExtraLarge, .accessibilityMedium, .accessibilityExtraExtraExtraLarge]
+        for style in [AppDesignStyle.classic, .clean, .radar] {
+            useDesignStyle(style)
+            for category in categories {
+                for hasPlus in [false, true] {
+                    let (cell, size) = try makeAIActionCard(width: 375, category: category, hasPlus: hasPlus)
+                    let title = try XCTUnwrap(cell.contentView.descendant(
+                        withAccessibilityIdentifier: "homeCreateWithAITitle"
+                    ) as? UILabel)
+                    let subtitle = try XCTUnwrap(cell.contentView.descendant(
+                        withAccessibilityIdentifier: "homeCreateWithAISubtitle"
+                    ) as? UILabel)
+                    let button = try XCTUnwrap(cell.contentView.descendant(
+                        withAccessibilityIdentifier: "homeCreateWithAIButton"
+                    ) as? UIButton)
+                    let badge = cell.contentView.descendant(withAccessibilityIdentifier: "homeCreateWithAIBadge") as? UILabel
+                    let traits = UITraitCollection(preferredContentSizeCategory: category)
+                    let expectedFont = AppAppearanceStore.shared.appearance(compatibleWith: traits).typography.font(
+                        size: 18, weight: .semibold, compatibleWith: traits
+                    )
+
+                    XCTAssertEqual(title.font.pointSize, expectedFont.pointSize, accuracy: 0.01)
+                    XCTAssertEqual(subtitle.isHidden, !hasPlus)
+                    XCTAssertEqual(button.accessibilityValue, hasPlus ? L10n.Subscription.aiCardSubtitle : nil)
+                    XCTAssertEqual(badge == nil, category.isAccessibilityCategory)
+                    if let badge {
+                        XCTAssertEqual(badge.text, (hasPlus ? L10n.Subscription.plus : L10n.Subscription.freeBadge).uppercased())
+                        XCTAssertLessThanOrEqual(badge.intrinsicContentSize.width, badge.bounds.width + 0.5)
+                    }
+                    XCTAssertEqual(
+                        cell.contentView.descendant(withAccessibilityIdentifier: "homeCreateWithAIGradientBorder") != nil,
+                        style != .radar
+                    )
+                    if category == .large {
+                        XCTAssertEqual(size.height, 72, accuracy: 0.5)
+                    }
+                    for label in [title, subtitle] where !label.isHidden {
+                        let frame = label.convert(label.bounds, to: button)
+                        XCTAssertGreaterThan(label.bounds.width, 0)
+                        XCTAssertGreaterThanOrEqual(frame.minY, 7.5)
+                        XCTAssertLessThanOrEqual(frame.maxY, button.bounds.height - 7.5)
+                        XCTAssertLessThanOrEqual(
+                            label.sizeThatFits(CGSize(width: label.bounds.width, height: .greatestFiniteMagnitude)).height,
+                            label.bounds.height + 0.5,
+                            "The visible text must fit at \(category.rawValue), style=\(style), Plus=\(hasPlus)"
+                        )
+                    }
+                }
+            }
+        }
+    }
+
+    private func makeAIActionCard(
+        width: CGFloat,
+        category: UIContentSizeCategory,
+        hasPlus: Bool
+    ) throws -> (UICollectionViewCell, CGSize) {
+        let service = ThemesCollectionService()
+        service.hasActivePlusSubscription = hasPlus
+        let collectionView = makeCollectionView(width: width)
+        let host = UIViewController()
+        host.view.addSubview(collectionView)
+        let window = UIWindow(frame: CGRect(x: 0, y: 0, width: width, height: 844))
+        window.rootViewController = host
+        window.makeKeyAndVisible()
+        testWindows.append(window)
+        collectionView.traitOverrides.preferredContentSizeCategory = category
+        collectionView.updateTraitsIfNeeded()
+        window.layoutIfNeeded()
+        collectionView.layoutIfNeeded()
+        XCTAssertEqual(collectionView.traitCollection.preferredContentSizeCategory, category)
+        let indexPath = IndexPath(item: 1, section: 0)
+        let size = service.collectionView(collectionView, layout: collectionView.collectionViewLayout, sizeForItemAt: indexPath)
+        let cell = service.collectionView(collectionView, cellForItemAt: indexPath)
+        cell.frame = CGRect(origin: .zero, size: size)
+        cell.contentView.frame = cell.bounds
+        collectionView.addSubview(cell)
+        cell.updateTraitsIfNeeded()
+        cell.layoutIfNeeded()
+        cell.contentView.layoutIfNeeded()
+        XCTAssertEqual(cell.traitCollection.preferredContentSizeCategory, category)
+        return (cell, size)
+    }
+
     func testCleanDarkThemeCardsRemainShadowless() {
         useDesignStyle(.clean)
         UserDefaults.standard.set(

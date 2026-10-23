@@ -238,9 +238,9 @@ struct QuizSettingsView: View {
             titleAccessory: {
                 Button(action: presentQuestionStrategyHelp) {
                     Image(systemName: "questionmark.circle.fill")
-                        .font(appearance.typography.swiftUIFont(size: 13, weight: .semibold))
+                        .font(appearance.typography.swiftUIFont(size: 14, weight: .semibold))
                         .foregroundStyle(Color(uiColor: appearance.secondaryScreenTextColor))
-                        .frame(width: 32, height: 32)
+                        .frame(width: 44, height: 44, alignment: .leading)
                         .contentShape(Rectangle())
                 }
                 .buttonStyle(QuizPressButtonStyle())

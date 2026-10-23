@@ -20,6 +20,7 @@ readonly STATISTICS_STORE="Quizice/Core/Persistence/StatisticsStore.swift"
 readonly STATISTICS_SUMMARY="Quizice/Domain/Statistics/StatisticsSummary.swift"
 readonly THEMES_SERVICE="Quizice/Features/Home/Collection/ThemesCollectionService.swift"
 readonly THEMES_ACTION_CARDS="Quizice/Features/Home/Collection/ThemesCollectionService+ActionCards.swift"
+readonly THEME_CARD_CELL="Quizice/Features/Home/Cards/ThemeCardCollectionViewCell.swift"
 readonly STATISTICS_CARD_CELL="Quizice/Features/Home/Cards/StatisticsCardCollectionViewCell.swift"
 readonly EXPANDED_STATISTICS_CARD="Quizice/Features/Home/Cards/ExpandedStatisticsCardView.swift"
 readonly STATISTICS_PRESENTATION="Quizice/Features/Home/Cards/StatisticsPresentation.swift"
@@ -168,7 +169,15 @@ require_fixed_string "$THEMES_SERVICE" 'static let compactLastItemBottomInset: C
 require_fixed_string "$THEMES_SERVICE" 'height: Layout.statisticsCardHeight' 'Final collection item must derive its height from the statistics card height'
 require_fixed_string "$THEMES_SERVICE" 'lastItemBottomInset(availableHeight:' 'Final collection item must include adaptive bottom spacing in its height'
 require_fixed_string "$STATISTICS_CARD_CELL" 'actionButton.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -Layout.bottomInset)' 'Statistics card must leave bottom spacing inside the final item'
-require_fixed_string "$THEMES_SERVICE" 'let twoColumnWidth = floor((collectionView.bounds.width - Layout.itemSpacing) / 2)' 'Nested theme catalog must use a two-column vertical grid width calculation'
+require_fixed_string "$THEMES_SERVICE" 'return ThemeCardLayoutMetrics.grid(' 'Nested theme catalog must derive its layout from shared adaptive grid metrics'
+require_fixed_string "$THEMES_SERVICE" 'width: grid.cardWidth' 'Nested theme catalog must use the adaptive grid card width'
+require_fixed_string "$THEMES_SERVICE" 'height: themeRowHeight(containing: indexPath.item, grid: grid)' 'Nested theme catalog must measure row height using the same adaptive grid'
+require_fixed_string "$THEMES_SERVICE" 'activeThemeColumnCount = grid.columnCount' 'Theme viewport and scroll availability must follow the adaptive column count'
+require_fixed_string "$THEME_CARD_CELL" 'traitCollection.preferredContentSizeCategory.isAccessibilityCategory' 'Theme grid must adapt to accessibility text sizes'
+require_fixed_string "$THEME_CARD_CELL" 'static let maximumTitleLines = 0' 'Theme titles must allow their full text to wrap without a fixed line cap'
+require_fixed_string "$THEME_CARD_CELL" 'measuringLabel.numberOfLines = maximumTitleLines' 'Theme row measurement must allow the same unlimited title lines as the rendered label'
+require_fixed_string "$THEME_CARD_CELL" 'measuringLabel.lineBreakMode = .byWordWrapping' 'Theme row measurement must use the rendered label word-wrapping behavior'
+require_fixed_string "$THEME_CARD_CELL" 'measuringLabel.sizeThatFits(' 'Theme row heights must account for UIKit title line breaking'
 require_fixed_string "$QUIZ_VIEW_LAYOUT" 'layout.scrollDirection = .vertical' 'Home collection must scroll vertically'
 require_fixed_string "$QUIZ_VIEW_LAYOUT" 'func updateCollectionScrollAvailability()' 'Home collection must update scroll behavior from rendered content size'
 require_fixed_string "$QUIZ_VIEW_LAYOUT" 'themesCollectionView.isScrollEnabled = false' 'Outer home collection must remain fixed'

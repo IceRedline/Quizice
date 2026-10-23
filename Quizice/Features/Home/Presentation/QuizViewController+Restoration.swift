@@ -107,6 +107,8 @@ extension QuizViewController {
         aiAlertPresentationTask?.cancel()
         aiAlertPresentationTask = nil
         aiAlertPresenter.dismiss()
+        activeQuizPreparationAlert = nil
+        quizPreparationAlertPresenter.dismiss()
         expandedAIKeyboardAnimator?.stopAnimation(true)
         expandedAIKeyboardAnimator = nil
         expandedThemeCardView?.setParallaxPresentationPhase(.inactive)

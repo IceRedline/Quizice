@@ -329,7 +329,8 @@ final class QuizQuestionStateContractTests: CrossScreenVisualTestCase {
         let infoButton = try XCTUnwrap(
             viewController.view.descendant(withAccessibilityIdentifier: "questionInfoButton") as? UIButton
         )
-        XCTAssertFalse(infoButton.isHidden)
+        XCTAssertTrue(infoButton.isHidden)
+        XCTAssertTrue(viewController.isQuestionExplanationVisible)
         viewController.view.layoutIfNeeded()
 
         XCTAssertEqual(timerContainer.frame, initialTimerFrame)
@@ -379,14 +380,11 @@ final class QuizQuestionStateContractTests: CrossScreenVisualTestCase {
                 $0.title(for: .normal) == "Правильный ответ"
             }
         )
-        correctButton.sendActions(for: .touchUpInside)
         viewController.view.layoutIfNeeded()
-
-        XCTAssertFalse(infoButton.isHidden)
         let questionFrame = questionLabel.frame
         let answerFrames = questionAnswerButtons(in: viewController).map(\.frame)
 
-        infoButton.sendActions(for: .touchUpInside)
+        correctButton.sendActions(for: .touchUpInside)
         viewController.view.layoutIfNeeded()
 
         let explanationLabel = try XCTUnwrap(
@@ -441,6 +439,113 @@ final class QuizQuestionStateContractTests: CrossScreenVisualTestCase {
         XCTAssertTrue(explanationScrollView.isHidden)
         XCTAssertFalse(infoButton.isHidden)
         XCTAssertTrue(backButton.isHidden)
+
+        infoButton.sendActions(for: .touchUpInside)
+        XCTAssertTrue(viewController.isQuestionExplanationVisible)
+        XCTAssertFalse(explanationScrollView.isHidden)
+        XCTAssertTrue(infoButton.isHidden)
+    }
+
+    func testAutomaticExplanationCrossFadesWithoutFlashingInfoButton() async throws {
+        try XCTSkipIf(UIAccessibility.isReduceMotionEnabled, "Cross-fade requires motion enabled")
+        let (controller, _, _, _, window) = makeExitConfirmationHarness()
+        defer {
+            UIView.setAnimationsEnabled(false)
+            window.isHidden = true
+        }
+        CATransaction.flush()
+        UIView.setAnimationsEnabled(true)
+
+        controller.answerButtons[0].sendActions(for: .touchUpInside)
+        CATransaction.flush()
+
+        XCTAssertTrue(controller.isQuestionExplanationVisible)
+        XCTAssertFalse(controller.questionLabel.isHidden)
+        XCTAssertFalse(controller.questionExplanationScrollView.isHidden)
+        XCTAssertTrue(controller.questionInfoButton.isHidden)
+        XCTAssertEqual(controller.questionLabel.alpha, 0)
+        XCTAssertEqual(controller.questionExplanationScrollView.alpha, 1)
+
+        try await waitUntil { controller.questionLabel.isHidden }
+        XCTAssertFalse(controller.questionExplanationScrollView.isHidden)
+        XCTAssertEqual(controller.questionExplanationScrollView.alpha, 1)
+        XCTAssertTrue(controller.questionInfoButton.isHidden)
+    }
+
+    func testWrongAnswerAutomaticallyShowsExplanation() throws {
+        QuizFactory.shared.chosenTheme = makeQuestionTheme()
+        QuizFactory.shared.questionsCount = 1
+        let controller = QuizQuestionViewController()
+        controller.loadViewIfNeeded()
+        defer { controller.presenter?.stopTimer() }
+
+        let wrongButton = try XCTUnwrap(
+            controller.answerButtons.first { $0.title(for: .normal) == "Ошибочный ответ 1" }
+        )
+        wrongButton.sendActions(for: .touchUpInside)
+
+        XCTAssertTrue(controller.isQuestionExplanationVisible)
+        XCTAssertFalse(controller.questionExplanationScrollView.isHidden)
+        XCTAssertTrue(controller.questionLabel.isHidden)
+        XCTAssertTrue(controller.questionInfoButton.isHidden)
+        XCTAssertTrue(controller.nextButton.isEnabled)
+        XCTAssertTrue(controller.answerButtons.allSatisfy { !$0.isEnabled })
+    }
+
+    func testAnswerWithoutExplanationKeepsQuestionVisible() throws {
+        for explanation: String? in [nil, "", " \n\t "] {
+            QuizFactory.shared.chosenTheme = makeQuestionTheme()
+            QuizFactory.shared.questionsCount = 1
+            let controller = QuizQuestionViewController()
+            controller.loadViewIfNeeded()
+            defer { controller.presenter?.stopTimer() }
+            controller.questionExplanationLabel.text = explanation
+
+            let correctButton = try XCTUnwrap(
+                controller.answerButtons.first { $0.title(for: .normal) == "Правильный ответ" }
+            )
+            correctButton.sendActions(for: .touchUpInside)
+
+            XCTAssertFalse(controller.isQuestionExplanationVisible)
+            XCTAssertFalse(controller.questionLabel.isHidden)
+            XCTAssertTrue(controller.questionExplanationScrollView.isHidden)
+            XCTAssertTrue(controller.questionInfoButton.isHidden)
+            XCTAssertTrue(controller.questionExplanationBackButton.isHidden)
+            XCTAssertTrue(controller.nextButton.isEnabled)
+        }
+    }
+
+    func testLoadingNextQuestionHidesExplanationAndResetsScrollPosition() throws {
+        QuizFactory.shared.chosenTheme = makeQuestionTheme()
+        QuizFactory.shared.questionsCount = 1
+        let controller = QuizQuestionViewController()
+        controller.loadViewIfNeeded()
+        defer { controller.presenter?.stopTimer() }
+        let correctButton = try XCTUnwrap(
+            controller.answerButtons.first { $0.title(for: .normal) == "Правильный ответ" }
+        )
+        correctButton.sendActions(for: .touchUpInside)
+        XCTAssertTrue(controller.isQuestionExplanationVisible)
+        controller.questionExplanationScrollView.contentOffset.y = 80
+
+        controller.loadQuestionToView(QuizQuestionViewModel(
+            themeName: "Визуальный тест",
+            questionText: "Следующий вопрос",
+            questionNumberText: "Вопрос №2",
+            answers: (0..<4).map { QuizAnswerOption(id: "next-\($0)", title: "Ответ \($0)") },
+            explanation: "Объяснение следующего вопроса"
+        ))
+
+        XCTAssertFalse(controller.isQuestionExplanationVisible)
+        XCTAssertFalse(controller.isQuestionInfoAvailable)
+        XCTAssertFalse(controller.questionLabel.isHidden)
+        XCTAssertEqual(controller.questionLabel.text, "Следующий вопрос")
+        XCTAssertTrue(controller.questionExplanationScrollView.isHidden)
+        XCTAssertEqual(controller.questionExplanationScrollView.contentOffset, .zero)
+        XCTAssertTrue(controller.questionInfoButton.isHidden)
+        XCTAssertTrue(controller.questionExplanationBackButton.isHidden)
+        XCTAssertFalse(controller.nextButton.isEnabled)
+        XCTAssertTrue(controller.answerButtons.allSatisfy(\.isEnabled))
     }
 
     func testQuestionScreenTimeExpiredStateDisablesAnswersAndKeepsNextActionAvailable() throws {
@@ -451,6 +556,11 @@ final class QuizQuestionStateContractTests: CrossScreenVisualTestCase {
         viewController.loadViewIfNeeded()
 
         viewController.showTimeExpired()
+
+        XCTAssertTrue(viewController.isQuestionExplanationVisible)
+        XCTAssertFalse(viewController.questionExplanationScrollView.isHidden)
+        XCTAssertTrue(viewController.questionLabel.isHidden)
+        XCTAssertTrue(viewController.questionInfoButton.isHidden)
 
         let answerButtons = questionAnswerButtons(in: viewController)
         XCTAssertTrue(answerButtons.allSatisfy { !$0.isEnabled })

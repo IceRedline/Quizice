@@ -49,6 +49,7 @@ readonly PRESENTER_FAILURE_TESTS="QuiziceTests/Unit/QuizQuestionPresenterFailure
 readonly SNAPSHOT_SUPPORT_TESTS="QuiziceTests/Snapshots/SnapshotSupport.swift"
 readonly COMPONENT_SNAPSHOT_TESTS="QuiziceTests/Snapshots/ComponentSnapshotTests.swift"
 readonly HOME_CARD_SNAPSHOT_TESTS="QuiziceTests/Snapshots/HomeCardSnapshotTests.swift"
+readonly HOME_COLLECTION_TESTS="QuiziceTests/Features/Home/Tests/HomeCollectionServiceTests.swift"
 readonly SCREEN_SNAPSHOT_TESTS="QuiziceTests/Snapshots/ScreenSnapshotTests.swift"
 readonly SWIFTUI_SNAPSHOT_TESTS="QuiziceTests/Snapshots/SwiftUISnapshotTests.swift"
 readonly APP_APPEARANCE_TESTS="QuiziceTests/Unit/AppAppearanceTests.swift"
@@ -778,6 +779,18 @@ check_snapshot_coverage_markers() {
   require_test_method "$COMPONENT_SNAPSHOT_TESTS" 'testSecondaryButtonsAcrossDesignStyles' 'Component snapshots must cover secondary buttons across styles'
   require_test_method "$HOME_CARD_SNAPSHOT_TESTS" 'testThemeCardSnapshot' 'Home card snapshots must cover theme cards'
   require_test_method "$HOME_CARD_SNAPSHOT_TESTS" 'testRadarLongThemeCompactCardSnapshot' 'Home card snapshots must cover long Radar titles on compact phones'
+  require_fixed_string "$HOME_CARD_SNAPSHOT_TESTS" 'let requiredTitleHeight = title.sizeThatFits(' 'Long Radar title regression must measure UIKit word wrapping before accepting a snapshot'
+  require_fixed_string "$HOME_CARD_SNAPSHOT_TESTS" 'assertTitleFits(stage: "before snapshot hosting")' 'Long Radar title regression must verify the collection cell layout before snapshot hosting'
+  require_fixed_string "$HOME_CARD_SNAPSHOT_TESTS" 'assertTitleFits(stage: "after snapshot hosting")' 'Long Radar title regression must preserve full title layout during snapshot hosting'
+  require_test_method "$HOME_COLLECTION_TESTS" 'testClassicThemeCardsFitFullTitlesAcrossDynamicTypeAndCatalogWidths' 'Classic theme cards must have full-title layout coverage across Dynamic Type sizes and catalog widths'
+  require_test_method "$HOME_COLLECTION_TESTS" 'testCleanThemeCardsFitFullTitlesAcrossDynamicTypeAndCatalogWidths' 'Clean theme cards must have full-title layout coverage across Dynamic Type sizes and catalog widths'
+  require_test_method "$HOME_COLLECTION_TESTS" 'testRadarThemeCardsFitFullTitlesAcrossDynamicTypeAndCatalogWidths' 'Radar theme cards must have full-title layout coverage across Dynamic Type sizes and catalog widths'
+  require_extended_regex "$HOME_COLLECTION_TESTS" 'XCTAssertLessThanOrEqual\(ceil\(requiredTitleHeight\), title\.bounds\.height' 'Adaptive theme tests must verify the complete measured title fits vertically'
+  require_extended_regex "$HOME_COLLECTION_TESTS" 'XCTAssertLessThanOrEqual\(widestWord, title\.bounds\.width' 'Adaptive theme tests must verify whole title words fit horizontally'
+  local coordinate
+  for coordinate in minX minY width height; do
+    require_fixed_string "$HOME_COLLECTION_TESTS" "XCTAssertEqual(transitionTitle.frame.$coordinate, titleFrame.$coordinate," 'Adaptive theme tests must preserve source title geometry in transition snapshots'
+  done
   require_test_method "$HOME_CARD_SNAPSHOT_TESTS" 'testCompactStatisticsCardSnapshot' 'Home card snapshots must cover compact statistics layout'
   require_test_method "$SCREEN_SNAPSHOT_TESTS" 'testHomeScreenSnapshot' 'Screen snapshots must cover home'
   require_test_method "$SCREEN_SNAPSHOT_TESTS" 'testHomeCompactPortraitSnapshot' 'Screen snapshots must cover the home screen on iPhone SE geometry'

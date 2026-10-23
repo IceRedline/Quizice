@@ -489,6 +489,282 @@ final class HomeCollectionServiceTests: HomeScreenVisualStateTestCase {
         XCTAssertLessThanOrEqual(ceil(requiredHeight), ceil(titleLabel.bounds.height) + 0.5)
     }
 
+    func testClassicThemeCardsFitFullTitlesAcrossDynamicTypeAndCatalogWidths() throws {
+        try assertThemeCardsFitDynamicType(designStyle: .classic)
+    }
+
+    func testCleanThemeCardsFitFullTitlesAcrossDynamicTypeAndCatalogWidths() throws {
+        try assertThemeCardsFitDynamicType(designStyle: .clean)
+    }
+
+    func testRadarThemeCardsFitFullTitlesAcrossDynamicTypeAndCatalogWidths() throws {
+        try assertThemeCardsFitDynamicType(designStyle: .radar)
+    }
+
+    func testVisibleThemeCardsAdaptToLiveWidthAndDynamicTypeChanges() async throws {
+        useDesignStyle(.radar)
+        QuizFactory.shared.themes = ["Технологии", "Литература", "Видеоигры", "История и культура"].map {
+            makeTheme(name: $0)
+        }
+        let controller = QuizViewController(cardReduceMotionProvider: { true })
+        controller.traitOverrides.preferredContentSizeCategory = .large
+        let host = UIViewController()
+        host.addChild(controller)
+        controller.view.translatesAutoresizingMaskIntoConstraints = false
+        host.view.addSubview(controller.view)
+        let homeWidth = controller.view.widthAnchor.constraint(equalToConstant: 390)
+        NSLayoutConstraint.activate([
+            homeWidth,
+            controller.view.leadingAnchor.constraint(equalTo: host.view.leadingAnchor),
+            controller.view.topAnchor.constraint(equalTo: host.view.topAnchor),
+            controller.view.heightAnchor.constraint(equalTo: host.view.heightAnchor)
+        ])
+        controller.didMove(toParent: host)
+        let window = UIWindow(frame: CGRect(x: 0, y: 0, width: 390, height: 844))
+        window.rootViewController = host
+        window.makeKeyAndVisible()
+        testWindows.append(window)
+        try await waitUntil { self.layoutFirstThemeCell(in: controller) != nil }
+        let wideCell = try XCTUnwrap(layoutFirstThemeCell(in: controller))
+        let wideTitle = try XCTUnwrap(wideCell.contentView.descendant(
+            withAccessibilityIdentifier: "homeThemeTitleLabel-technology"
+        ) as? UILabel)
+        let originalPointSize = try XCTUnwrap(wideTitle.font).pointSize
+        let originalCardWidth = wideCell.bounds.width
+        XCTAssertEqual(originalPointSize, ThemeCardLayoutMetrics.titleFontSize, accuracy: 0.01)
+
+        homeWidth.constant = 320
+        host.view.layoutIfNeeded()
+        XCTAssertEqual(controller.view.bounds.width, 320, accuracy: 0.5, "The host must apply the compact width")
+        try await waitUntil {
+            guard let cell = self.layoutFirstThemeCell(in: controller) else { return false }
+            return cell.bounds.width < originalCardWidth
+        }
+        let narrowCell = try XCTUnwrap(layoutFirstThemeCell(in: controller))
+        let viewportIndexPath = IndexPath(item: 0, section: 0)
+        let outerCollection = controller.themesCollectionView!
+        let viewportAttributes = outerCollection.collectionViewLayout.layoutAttributesForItem(at: viewportIndexPath)
+        let viewportCell = outerCollection.cellForItem(at: viewportIndexPath) as? ThemesViewportCollectionViewCell
+        let currentCatalog = controller.themesCollectionService.catalogCollectionView
+        let resizeDiagnostics = "outer=\(outerCollection.bounds), attributes=\(String(describing: viewportAttributes?.frame)), "
+            + "viewport=\(String(describing: viewportCell?.bounds)), content=\(String(describing: viewportCell?.contentView.bounds)), "
+            + "catalog=\(String(describing: currentCatalog?.bounds)), attached=\(currentCatalog?.window != nil), "
+            + "currentViewport=\(currentCatalog === viewportCell?.themesCollectionView)"
+        XCTAssertEqual(controller.themesCollectionView.bounds.width, 320, accuracy: 0.5)
+        XCTAssertEqual(
+            currentCatalog?.bounds.width ?? 0,
+            272, accuracy: 0.5, "The theme viewport must follow the resized outer collection: \(resizeDiagnostics)"
+        )
+        let narrowTitle = try XCTUnwrap(narrowCell.contentView.descendant(
+            withAccessibilityIdentifier: "homeThemeTitleLabel-technology"
+        ) as? UILabel)
+        let narrowIcon = try XCTUnwrap(narrowCell.contentView.descendant(
+            withAccessibilityIdentifier: "homeThemeImageView-technology"
+        ) as? UIImageView)
+        XCTAssertEqual(narrowTitle.font.pointSize, originalPointSize, accuracy: 0.01)
+        XCTAssertLessThan(
+            narrowIcon.convert(narrowIcon.bounds, to: narrowCell.actionButton).maxY,
+            narrowTitle.convert(narrowTitle.bounds, to: narrowCell.actionButton).minY
+        )
+
+        controller.traitOverrides.preferredContentSizeCategory = .accessibilityExtraExtraExtraLarge
+        controller.updateTraitsIfNeeded()
+        controller.view.updateTraitsIfNeeded()
+        try await waitUntil {
+            guard let cell = self.layoutFirstThemeCell(in: controller),
+                  let title = cell.contentView.descendant(
+                    withAccessibilityIdentifier: "homeThemeTitleLabel-technology"
+                  ) as? UILabel,
+                  let catalog = controller.themesCollectionService.catalogCollectionView
+            else { return false }
+            return title.font.pointSize > originalPointSize && abs(cell.bounds.width - catalog.bounds.width) < 0.5
+        }
+        let accessibleCell = try XCTUnwrap(layoutFirstThemeCell(in: controller))
+        let accessibleTitle = try XCTUnwrap(accessibleCell.contentView.descendant(
+            withAccessibilityIdentifier: "homeThemeTitleLabel-technology"
+        ) as? UILabel)
+        let catalog = try XCTUnwrap(controller.themesCollectionService.catalogCollectionView)
+        XCTAssertEqual(catalog.traitCollection.preferredContentSizeCategory, .accessibilityExtraExtraExtraLarge)
+        XCTAssertEqual(accessibleCell.bounds.width, catalog.bounds.width, accuracy: 0.5)
+        XCTAssertTrue(catalog.isScrollEnabled)
+        XCTAssertGreaterThan(accessibleTitle.font.pointSize, originalPointSize)
+        XCTAssertLessThanOrEqual(
+            ("Технологии" as NSString).size(withAttributes: [.font: accessibleTitle.font!]).width,
+            accessibleTitle.bounds.width + 0.5
+        )
+
+        controller.traitOverrides.preferredContentSizeCategory = .large
+        controller.updateTraitsIfNeeded()
+        controller.view.updateTraitsIfNeeded()
+        homeWidth.constant = 390
+        host.view.layoutIfNeeded()
+        XCTAssertEqual(controller.view.bounds.width, 390, accuracy: 0.5, "The host must restore the original width")
+        try await waitUntil {
+            guard let cell = self.layoutFirstThemeCell(in: controller),
+                  let title = cell.contentView.descendant(
+                    withAccessibilityIdentifier: "homeThemeTitleLabel-technology"
+                  ) as? UILabel,
+                  let icon = cell.contentView.descendant(
+                    withAccessibilityIdentifier: "homeThemeImageView-technology"
+                  ) as? UIImageView
+            else { return false }
+            let iconFrame = icon.convert(icon.bounds, to: cell.actionButton)
+            let titleFrame = title.convert(title.bounds, to: cell.actionButton)
+            return abs(cell.bounds.width - originalCardWidth) < 0.5
+                && abs(title.font.pointSize - originalPointSize) < 0.01
+                && iconFrame.maxX < titleFrame.minX
+        }
+        let restoredCell = try XCTUnwrap(layoutFirstThemeCell(in: controller))
+        let restoredTitle = try XCTUnwrap(restoredCell.contentView.descendant(
+            withAccessibilityIdentifier: "homeThemeTitleLabel-technology"
+        ) as? UILabel)
+        let restoredIcon = try XCTUnwrap(restoredCell.contentView.descendant(
+            withAccessibilityIdentifier: "homeThemeImageView-technology"
+        ) as? UIImageView)
+        XCTAssertLessThan(
+            restoredIcon.convert(restoredIcon.bounds, to: restoredCell.actionButton).maxX,
+            restoredTitle.convert(restoredTitle.bounds, to: restoredCell.actionButton).minX
+        )
+    }
+
+    private func layoutFirstThemeCell(in controller: QuizViewController) -> ThemeCardCollectionViewCell? {
+        controller.parent?.view.layoutIfNeeded()
+        controller.view.layoutIfNeeded()
+        controller.themesCollectionView.layoutIfNeeded()
+        let catalog = controller.themesCollectionService.catalogCollectionView
+        catalog?.layoutIfNeeded()
+        let cell = catalog?.cellForItem(at: IndexPath(item: 0, section: 0)) as? ThemeCardCollectionViewCell
+        cell?.layoutIfNeeded()
+        cell?.contentView.layoutIfNeeded()
+        cell?.actionButton.layoutIfNeeded()
+        return cell
+    }
+
+    private func assertThemeCardsFitDynamicType(designStyle: AppDesignStyle) throws {
+        useDesignStyle(designStyle)
+        let themes = ["Технологии", "Литература", "Видеоигры", "История и культура"].map {
+            makeTheme(name: $0)
+        }
+        QuizFactory.shared.themes = themes
+        let categories: [UIContentSizeCategory] = [
+            .large, .extraExtraLarge, .extraExtraExtraLarge, .accessibilityExtraExtraExtraLarge
+        ]
+
+        for width: CGFloat in [272, 327, 342] {
+            for category in categories {
+                let service = ThemesCollectionService(preferredThemeIDsProvider: { [] })
+                let collectionView = makeHostedThemeCollectionView(width: width, category: category)
+                XCTAssertEqual(collectionView.traitCollection.preferredContentSizeCategory, category)
+                let appearance = AppAppearanceStore.shared.appearance(compatibleWith: collectionView.traitCollection)
+                let expectedScaledFont = appearance.typography.font(
+                    size: ThemeCardLayoutMetrics.titleFontSize,
+                    weight: .semibold,
+                    compatibleWith: collectionView.traitCollection
+                )
+
+                for (index, theme) in themes.enumerated() {
+                    let context = "\(designStyle), width \(width), \(category.rawValue), \(theme.theme)"
+                    let indexPath = IndexPath(item: index, section: 0)
+                    let itemSize = service.collectionView(
+                        collectionView,
+                        layout: collectionView.collectionViewLayout,
+                        sizeForItemAt: indexPath
+                    )
+                    let cell = try XCTUnwrap(
+                        service.collectionView(collectionView, cellForItemAt: indexPath)
+                            as? ThemeCardCollectionViewCell,
+                        context
+                    )
+                    cell.frame = CGRect(origin: .zero, size: itemSize)
+                    cell.contentView.frame = cell.bounds
+                    collectionView.addSubview(cell)
+                    cell.updateTraitsIfNeeded()
+                    cell.layoutIfNeeded()
+                    cell.contentView.layoutIfNeeded()
+                    cell.actionButton.layoutIfNeeded()
+                    let title = try XCTUnwrap(
+                        cell.contentView.descendant(
+                            withAccessibilityIdentifier: "homeThemeTitleLabel-\(theme.stableID)"
+                        ) as? UILabel,
+                        context
+                    )
+                    let font = try XCTUnwrap(title.font, context)
+                    XCTAssertEqual(title.text, theme.theme, context)
+                    XCTAssertEqual(title.numberOfLines, 0, context)
+                    XCTAssertEqual(title.lineBreakMode, .byWordWrapping, context)
+                    XCTAssertGreaterThan(title.bounds.width, 0, context)
+                    if category.isAccessibilityCategory {
+                        XCTAssertEqual(itemSize.width, width, accuracy: 0.5, context)
+                        XCTAssertGreaterThan(font.pointSize, ThemeCardLayoutMetrics.titleFontSize, context)
+                        XCTAssertLessThanOrEqual(font.pointSize, expectedScaledFont.pointSize + 0.01, context)
+                    } else {
+                        XCTAssertEqual(font.pointSize, expectedScaledFont.pointSize, accuracy: 0.01, context)
+                    }
+                    if category != .large {
+                        XCTAssertGreaterThan(font.pointSize, ThemeCardLayoutMetrics.titleFontSize, context)
+                    }
+
+                    let requiredTitleHeight = (theme.theme as NSString).boundingRect(
+                        with: CGSize(width: title.bounds.width, height: .greatestFiniteMagnitude),
+                        options: [.usesLineFragmentOrigin, .usesFontLeading],
+                        attributes: [.font: font],
+                        context: nil
+                    ).height
+                    let widestWord = theme.theme.split(whereSeparator: \.isWhitespace).map {
+                        (String($0) as NSString).size(withAttributes: [.font: font]).width
+                    }.max() ?? 0
+                    XCTAssertLessThanOrEqual(ceil(requiredTitleHeight), title.bounds.height + 1, context)
+                    XCTAssertLessThanOrEqual(
+                        title.sizeThatFits(CGSize(width: title.bounds.width, height: .greatestFiniteMagnitude)).height,
+                        title.bounds.height + 0.5, context
+                    )
+                    XCTAssertLessThanOrEqual(widestWord, title.bounds.width + 0.5, context)
+                    let titleFrame = title.convert(title.bounds, to: cell.actionButton)
+                    XCTAssertGreaterThanOrEqual(titleFrame.minY, 0, context)
+                    XCTAssertLessThanOrEqual(titleFrame.maxY, cell.actionButton.bounds.height + 0.5, context)
+                    XCTAssertGreaterThanOrEqual(titleFrame.minX, 0, context)
+                    XCTAssertLessThanOrEqual(titleFrame.maxX, cell.actionButton.bounds.width + 0.5, context)
+
+                    let transition = cell.makeTransitionContent()
+                    let transitionTitle = try XCTUnwrap(
+                        transition.view.subviews.compactMap { $0 as? UILabel }.first,
+                        context
+                    )
+                    XCTAssertEqual(transitionTitle.text, theme.theme, context)
+                    XCTAssertEqual(transitionTitle.frame.minX, titleFrame.minX, accuracy: 0.01, context)
+                    XCTAssertEqual(transitionTitle.frame.minY, titleFrame.minY, accuracy: 0.01, context)
+                    XCTAssertEqual(transitionTitle.frame.width, titleFrame.width, accuracy: 0.01, context)
+                    XCTAssertEqual(transitionTitle.frame.height, titleFrame.height, accuracy: 0.01, context)
+                    XCTAssertEqual(transitionTitle.font, title.font, context)
+                    XCTAssertEqual(transitionTitle.numberOfLines, title.numberOfLines, context)
+                    XCTAssertEqual(transitionTitle.lineBreakMode, title.lineBreakMode, context)
+                    XCTAssertEqual(transition.geometry.containerSize, cell.actionButton.bounds.size, context)
+                    XCTAssertEqual(transition.geometry.titleCenter.x, titleFrame.midX, accuracy: 0.01, context)
+                    XCTAssertEqual(transition.geometry.titleCenter.y, titleFrame.midY, accuracy: 0.01, context)
+                    cell.removeFromSuperview()
+                }
+            }
+        }
+    }
+
+    private func makeHostedThemeCollectionView(
+        width: CGFloat,
+        category: UIContentSizeCategory
+    ) -> UICollectionView {
+        let collectionView = makeThemeCollectionView(width: width)
+        let host = UIViewController()
+        host.view.addSubview(collectionView)
+        let window = UIWindow(frame: CGRect(x: 0, y: 0, width: width, height: 844))
+        window.rootViewController = host
+        window.makeKeyAndVisible()
+        testWindows.append(window)
+        collectionView.traitOverrides.preferredContentSizeCategory = category
+        collectionView.updateTraitsIfNeeded()
+        window.layoutIfNeeded()
+        collectionView.layoutIfNeeded()
+        return collectionView
+    }
+
     func testSingleWordThemeTitleStaysOnOneLineWithoutClipping() throws {
         useDesignStyle(.classic)
         let theme = makeTheme(name: "Технологии")

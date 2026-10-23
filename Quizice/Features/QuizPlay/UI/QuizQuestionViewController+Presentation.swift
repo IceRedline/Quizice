@@ -28,7 +28,7 @@ extension QuizQuestionViewController {
                 applyAnswerFeedback(.normal, to: button, appearance: appearance, animated: true)
             }
         }
-        revealQuestionInfoButton()
+        revealQuestionExplanation()
     }
     
     func resetAllColors() {
@@ -65,7 +65,7 @@ extension QuizQuestionViewController {
 
     func applyQuestion(_ viewModel: QuizQuestionViewModel, updatesQuestionNumber: Bool) {
         setQuestionInfoButtonVisible(false)
-        setQuestionExplanationVisible(false, animated: false)
+        setQuestionExplanationVisible(false, animated: false, movesAccessibilityFocus: false)
         questionInfoButton.alpha = 1
         questionExplanationLabel.text = viewModel.explanation
         questionExplanationScrollView.setContentOffset(.zero, animated: false)
@@ -208,7 +208,7 @@ extension QuizQuestionViewController {
         questionCardView.transform = .identity
         questionCardView.isUserInteractionEnabled = true
         setQuestionInfoButtonVisible(false)
-        setQuestionExplanationVisible(false, animated: false)
+        setQuestionExplanationVisible(false, animated: false, movesAccessibilityFocus: false)
         questionExplanationLabel.text = nil
         themeNameLabel.text = themeName ?? L10n.Question.fallbackTheme
         questionNumberLabel.text = L10n.Question.unavailableNumber
@@ -226,26 +226,20 @@ extension QuizQuestionViewController {
         nextButton.isEnabled = false
     }
 
-    func revealQuestionInfoButton() {
-        guard !isQuestionInfoAvailable else { return }
-        questionCardContentView.layoutIfNeeded()
-        setQuestionInfoButtonVisible(true)
+    func revealQuestionExplanation() {
+        guard
+            !isQuestionInfoAvailable,
+            let explanation = questionExplanationLabel.text,
+            !explanation.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+        else { return }
 
-        guard !UIAccessibility.isReduceMotionEnabled else {
-            questionInfoButton.alpha = 1
-            questionCardContentView.layoutIfNeeded()
-            return
-        }
-
-        questionInfoButton.alpha = 0
-        UIView.animate(
-            withDuration: AnimationTiming.answerFeedbackDuration,
-            delay: 0,
-            options: AnimationTiming.answerFeedbackOptions,
-            animations: {
-                self.questionInfoButton.alpha = 1
-                self.questionCardContentView.layoutIfNeeded()
-            }
+        isQuestionInfoAvailable = true
+        // Answer feedback already announces the result and explanation in order.
+        // Moving VoiceOver focus here would interrupt that announcement.
+        setQuestionExplanationVisible(
+            true,
+            animated: true,
+            movesAccessibilityFocus: false
         )
     }
 

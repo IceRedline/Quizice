@@ -202,7 +202,7 @@ extension QuizViewController {
                 description: L10n.Home.feelingLucky,
                 randomizing: randomQuestionsProvider
             ) else {
-                motivationLabel.text = L10n.Question.unavailableMessage
+                presentRandomQuizPreparationFailure(error: QuizPreparationError.unavailable, sourceView: sourceView)
                 return
             }
             randomSelectionTheme = localTheme
@@ -260,17 +260,30 @@ extension QuizViewController {
                 self.hasQuizLaunchStarted = true
                 router.showQuestion()
             } catch is CancellationError {
+                guard self?.feelingLuckyRequestID == requestID else { return }
                 self?.cancelFeelingLuckyLaunch()
             } catch {
-                self?.analytics.reportOperationalError(error, context: .contentLoad)
-                self?.finishFailedFeelingLuckyLaunch(error: error)
+                guard let self, self.feelingLuckyRequestID == requestID else { return }
+                guard !Task.isCancelled, !QuizPreparationError.isCancellation(error) else {
+                    self.cancelFeelingLuckyLaunch()
+                    return
+                }
+                self.analytics.reportOperationalError(error, context: .contentLoad)
+                self.finishFailedFeelingLuckyLaunch(error: error, sourceView: sourceView)
             }
         }
     }
 
-    private func finishFailedFeelingLuckyLaunch(error: Error) {
+    private func finishFailedFeelingLuckyLaunch(error: Error, sourceView: UIView) {
         cancelFeelingLuckyLaunch()
-        motivationLabel.text = QuizPreparationError.message(for: error)
+        presentRandomQuizPreparationFailure(error: error, sourceView: sourceView)
+    }
+
+    private func presentRandomQuizPreparationFailure(error: Error, sourceView: UIView) {
+        presentQuizPreparationFailure(message: QuizPreparationError.message(for: error)) { [weak self, weak sourceView] in
+            guard let self else { return }
+            self.startRandomTheme(sourceView: sourceView ?? self.themesCollectionView)
+        }
     }
 
     func cancelFeelingLuckyLaunch() {

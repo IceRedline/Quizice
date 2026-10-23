@@ -210,11 +210,91 @@ extension ThemesCollectionService {
         configureFeelingLuckyContent(in: button, appearance: appearance)
     }
 
-    func configureAIThemeCard(in cell: UICollectionViewCell, appearance: AppAppearance) {
+    private func makeAIThemeTitleLabel(
+        appearance: AppAppearance,
+        traits: UITraitCollection,
+        automaticallyAdjustsFont: Bool = true
+    ) -> UILabel {
+        let usesAccessibilityLayout = traits.preferredContentSizeCategory.isAccessibilityCategory
+        let titleLabel = UILabel()
+        titleLabel.accessibilityIdentifier = Content.aiThemeTitleAccessibilityID
+        titleLabel.text = L10n.Home.createWithAI
+        titleLabel.textColor = appearance.screenTextColor
+        titleLabel.adjustsFontForContentSizeCategory = automaticallyAdjustsFont
+        titleLabel.font = appearance.typography.font(
+            size: Appearance.aiThemeTitleFontSize,
+            weight: .semibold,
+            compatibleWith: traits
+        )
+        titleLabel.numberOfLines = usesAccessibilityLayout ? 0 : 1
+        titleLabel.lineBreakMode = .byWordWrapping
+        titleLabel.minimumScaleFactor = 0.82
+        titleLabel.adjustsFontSizeToFitWidth = !usesAccessibilityLayout
+        titleLabel.isUserInteractionEnabled = false
+        return titleLabel
+    }
+
+    private func makeAIThemeSubtitleLabel(
+        appearance: AppAppearance,
+        traits: UITraitCollection,
+        automaticallyAdjustsFont: Bool = true
+    ) -> UILabel {
+        let subtitleLabel = UILabel()
+        subtitleLabel.accessibilityIdentifier = Content.aiThemeSubtitleAccessibilityID
+        subtitleLabel.text = L10n.Subscription.aiCardSubtitle
+        subtitleLabel.textColor = appearance.screenTextColor.withAlphaComponent(0.64)
+        subtitleLabel.adjustsFontForContentSizeCategory = automaticallyAdjustsFont
+        subtitleLabel.font = appearance.typography.font(
+            size: Appearance.aiThemeSubtitleFontSize,
+            weight: .regular,
+            compatibleWith: traits
+        )
+        subtitleLabel.numberOfLines = traits.preferredContentSizeCategory.isAccessibilityCategory ? 0 : 2
+        subtitleLabel.lineBreakMode = .byWordWrapping
+        subtitleLabel.isHidden = !hasActivePlusSubscription
+        subtitleLabel.isUserInteractionEnabled = false
+        return subtitleLabel
+    }
+
+    private var aiThemeBadgeTitle: String {
+        (hasActivePlusSubscription ? L10n.Subscription.plus : L10n.Subscription.freeBadge)
+            .uppercased(with: AppLocalizationStore.shared.resolvedLocale)
+    }
+
+    private func aiThemeBadgeWidth(font: UIFont) -> CGFloat {
+        max(Layout.aiThemeBadgeMinimumWidth, ceil((aiThemeBadgeTitle as NSString).size(
+            withAttributes: [.font: font]
+        ).width) + 2 * Layout.aiThemeBadgeHorizontalInset)
+    }
+
+    func aiThemeCardHeight(width: CGFloat, traits: UITraitCollection) -> CGFloat {
+        let appearance = AppAppearanceStore.shared.appearance(compatibleWith: traits)
+        let usesAccessibilityLayout = traits.preferredContentSizeCategory.isAccessibilityCategory
+        let badgeFont = appearance.typography.font(
+            size: Appearance.aiThemeBadgeFontSize, weight: .bold, compatibleWith: traits
+        )
+        let trailingWidth = usesAccessibilityLayout
+            ? Layout.aiThemeContentLeadingInset
+            : Layout.aiThemeBadgeTrailingInset + aiThemeBadgeWidth(font: badgeFont) + Layout.aiThemeContentTrailingSpacing
+        let textSize = CGSize(width: max(width - Layout.aiThemeContentLeadingInset - trailingWidth, 1),
+                              height: .greatestFiniteMagnitude)
+        // Detached measurement labels must keep the font scaled for the supplied
+        // traits instead of rescaling it to UIKit's ambient content size category.
+        let titleHeight = makeAIThemeTitleLabel(
+            appearance: appearance, traits: traits, automaticallyAdjustsFont: false
+        ).sizeThatFits(textSize).height
+        let subtitleHeight = hasActivePlusSubscription
+            ? makeAIThemeSubtitleLabel(
+                appearance: appearance, traits: traits, automaticallyAdjustsFont: false
+            ).sizeThatFits(textSize).height + 2
+            : 0
+        let badgeHeight = usesAccessibilityLayout ? 0 : badgeFont.lineHeight + 2 * Layout.aiThemeBadgeVerticalInset
+        return max(Layout.aiThemeButtonHeight, ceil(max(titleHeight + subtitleHeight, badgeHeight) + 16))
+    }
+
+    func configureAIThemeCard(in cell: UICollectionViewCell, appearance: AppAppearance, traits: UITraitCollection) {
         cell.applyShadow(.none)
-        let usesAccessibilityLayout = cell.traitCollection
-            .preferredContentSizeCategory
-            .isAccessibilityCategory
+        let usesAccessibilityLayout = traits.preferredContentSizeCategory.isAccessibilityCategory
         let button = makeSecondaryActionButton(
             accessibilityIdentifier: Content.aiThemeAccessibilityID,
             accessibilityLabel: L10n.Home.createWithAIAccessibilityLabel,
@@ -227,40 +307,12 @@ extension ThemesCollectionService {
         button.isEnabled = !isAIThemePresented
         button.isAccessibilityElement = !isAIThemePresented
         button.accessibilityElementsHidden = isAIThemePresented
-        button.accessibilityValue = hasActivePlusSubscription
-            ? L10n.Subscription.aiCardSubtitle
-            : nil
+        button.accessibilityValue = hasActivePlusSubscription ? L10n.Subscription.aiCardSubtitle : nil
         button.layer.borderWidth = 0
         button.layer.borderColor = UIColor.clear.cgColor
         let aiThemeCornerRadius = Layout.aiThemeButtonHeight / 2
-
-        let titleLabel = UILabel()
-        titleLabel.accessibilityIdentifier = Content.aiThemeTitleAccessibilityID
-        titleLabel.text = L10n.Home.createWithAI
-        titleLabel.textColor = appearance.screenTextColor
-        titleLabel.font = appearance.typography.font(
-            size: Appearance.aiThemeTitleFontSize,
-            weight: .semibold
-        )
-        titleLabel.adjustsFontForContentSizeCategory = true
-        titleLabel.numberOfLines = usesAccessibilityLayout ? 2 : 1
-        titleLabel.minimumScaleFactor = 0.82
-        titleLabel.adjustsFontSizeToFitWidth = !usesAccessibilityLayout
-        titleLabel.isUserInteractionEnabled = false
-
-        let subtitleLabel = UILabel()
-        subtitleLabel.accessibilityIdentifier = Content.aiThemeSubtitleAccessibilityID
-        subtitleLabel.text = L10n.Subscription.aiCardSubtitle
-        subtitleLabel.textColor = appearance.screenTextColor.withAlphaComponent(0.64)
-        subtitleLabel.font = appearance.typography.font(
-            size: Appearance.aiThemeSubtitleFontSize,
-            weight: .regular
-        )
-        subtitleLabel.adjustsFontForContentSizeCategory = true
-        subtitleLabel.numberOfLines = 2
-        subtitleLabel.lineBreakMode = .byWordWrapping
-        subtitleLabel.isHidden = !hasActivePlusSubscription
-        subtitleLabel.isUserInteractionEnabled = false
+        let titleLabel = makeAIThemeTitleLabel(appearance: appearance, traits: traits)
+        let subtitleLabel = makeAIThemeSubtitleLabel(appearance: appearance, traits: traits)
 
         let textStack = UIStackView(arrangedSubviews: [titleLabel, subtitleLabel])
         textStack.axis = .vertical
@@ -279,24 +331,20 @@ extension ThemesCollectionService {
             )
         )
         tierBadge.accessibilityIdentifier = Content.aiThemeBadgeAccessibilityID
-        tierBadge.text = (
-            hasActivePlusSubscription
-                ? L10n.Subscription.plus
-                : L10n.Subscription.freeBadge
-        ).uppercased(
-            with: AppLocalizationStore.shared.resolvedLocale
-        )
+        tierBadge.text = aiThemeBadgeTitle
         let tierBadgeAccentColor = appearance.designStyle == .radar
             ? appearance.accentColor
             : AIThemeVisualStyle.accentColor
         tierBadge.textColor = hasActivePlusSubscription
             ? tierBadgeAccentColor
             : appearance.screenTextColor
-        tierBadge.font = appearance.typography.font(
-            size: Appearance.aiThemeBadgeFontSize,
-            weight: .bold
-        )
         tierBadge.adjustsFontForContentSizeCategory = true
+        let badgeFont = appearance.typography.font(
+            size: Appearance.aiThemeBadgeFontSize,
+            weight: .bold,
+            compatibleWith: traits
+        )
+        tierBadge.font = badgeFont
         tierBadge.textAlignment = .center
         tierBadge.backgroundColor = (
             hasActivePlusSubscription
@@ -360,7 +408,7 @@ extension ThemesCollectionService {
         } else {
             contentConstraints.append(contentsOf: [
                 tierBadge.leadingAnchor.constraint(
-                    greaterThanOrEqualTo: textStack.trailingAnchor,
+                    equalTo: textStack.trailingAnchor,
                     constant: Layout.aiThemeContentTrailingSpacing
                 ),
                 tierBadge.trailingAnchor.constraint(
@@ -369,7 +417,7 @@ extension ThemesCollectionService {
                 ),
                 tierBadge.centerYAnchor.constraint(equalTo: button.centerYAnchor),
                 tierBadge.widthAnchor.constraint(
-                    greaterThanOrEqualToConstant: Layout.aiThemeBadgeMinimumWidth
+                    equalToConstant: aiThemeBadgeWidth(font: badgeFont)
                 )
             ])
         }

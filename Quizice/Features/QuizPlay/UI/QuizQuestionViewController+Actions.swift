@@ -61,7 +61,11 @@ extension QuizQuestionViewController {
         setQuestionExplanationVisible(false, animated: true)
     }
 
-    func setQuestionExplanationVisible(_ isVisible: Bool, animated: Bool) {
+    func setQuestionExplanationVisible(
+        _ isVisible: Bool,
+        animated: Bool,
+        movesAccessibilityFocus: Bool = true
+    ) {
         guard questionLabel != nil else { return }
 
         guard isQuestionExplanationVisible != isVisible else {
@@ -77,7 +81,7 @@ extension QuizQuestionViewController {
         let outgoingViews: [UIView]
         let incomingViews: [UIView]
         if isVisible {
-            outgoingViews = [questionLabel, questionInfoButton]
+            outgoingViews = [questionLabel, questionInfoButton].filter { !$0.isHidden }
             incomingViews = [questionExplanationScrollView, questionExplanationBackButton]
         } else {
             outgoingViews = [questionExplanationScrollView, questionExplanationBackButton]
@@ -92,7 +96,7 @@ extension QuizQuestionViewController {
             && view.window != nil
         guard shouldAnimate else {
             applyQuestionExplanationVisibility()
-            postQuestionContentAccessibilityFocus()
+            if movesAccessibilityFocus { postQuestionContentAccessibilityFocus() }
             return
         }
 
@@ -116,7 +120,7 @@ extension QuizQuestionViewController {
             completion: { [weak self] _ in
                 guard let self else { return }
                 self.applyQuestionExplanationVisibility()
-                self.postQuestionContentAccessibilityFocus()
+                if movesAccessibilityFocus { self.postQuestionContentAccessibilityFocus() }
             }
         )
     }

@@ -214,6 +214,8 @@ final class QuizViewController: BaseQuizViewController, ThemeCollectionDelegate,
     var aiProgressTask: Task<Void, Never>?
     var aiAlertPresentationTask: Task<Void, Never>?
     let aiAlertPresenter = QuizAlertPresenter()
+    let quizPreparationAlertPresenter = QuizAlertPresenter()
+    var activeQuizPreparationAlert: QuizAlertOverlay?
     var feelingLuckyTask: Task<Void, Never>?
     var feelingLuckyRequestID: UUID?
     var backendCatalogRefreshTask: Task<Void, Never>?

@@ -181,7 +181,7 @@ extension QuizViewController {
 #endif
 
     func configureThemesCollectionView() {
-        let layout = UICollectionViewFlowLayout()
+        let layout = HomeThemesCollectionViewFlowLayout()
         layout.scrollDirection = .vertical
         layout.minimumLineSpacing = Layout.collectionItemSpacing
         layout.minimumInteritemSpacing = Layout.collectionItemSpacing

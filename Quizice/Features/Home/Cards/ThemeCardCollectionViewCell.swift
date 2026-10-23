@@ -1,47 +1,68 @@
 import UIKit
 
+@MainActor
 enum ThemeCardLayoutMetrics {
     static let horizontalInset: CGFloat = 12
+    static let stackedLeadingInset: CGFloat = 16
     static let iconSize: CGFloat = 32
     static let iconTitleSpacing: CGFloat = 8
     static let verticalInset: CGFloat = 8
     static let titleFontSize: CGFloat = 16
-    static let maximumTitleLines = 3
+    static let maximumTitleLines = 0
     static let singleLineHeight: CGFloat = 64
-    static let additionalLineHeight: CGFloat = 12
 
-    static func rowHeight(
-        titles: [String],
-        cardWidth: CGFloat,
-        font: UIFont
-    ) -> CGFloat {
-        let availableTextWidth = max(
-            cardWidth
-                - horizontalInset * 2
-                - iconSize
-                - iconTitleSpacing,
-            1
-        )
-        let lineCount = titles
-            .map { titleLineCount($0, width: availableTextWidth, font: font) }
-            .max() ?? 1
-        return singleLineHeight + CGFloat(lineCount - 1) * additionalLineHeight
+    struct Grid {
+        let columnCount: Int
+        let cardWidth: CGFloat
+        let stacksContent: Bool
+        let font: UIFont
+
+        var textWidth: CGFloat {
+            let leadingInset = stacksContent ? stackedLeadingInset : horizontalInset
+            return max(cardWidth - leadingInset - horizontalInset - (stacksContent ? 0 : iconSize + iconTitleSpacing), 1)
+        }
+
+        func rowHeight(titles: [String]) -> CGFloat {
+            let measuringLabel = UILabel()
+            measuringLabel.font = font
+            measuringLabel.numberOfLines = maximumTitleLines
+            measuringLabel.lineBreakMode = .byWordWrapping
+            measuringLabel.allowsDefaultTighteningForTruncation = false
+            let textHeight = titles.map {
+                measuringLabel.text = $0
+                return ceil(measuringLabel.sizeThatFits(
+                    CGSize(width: textWidth, height: .greatestFiniteMagnitude)
+                ).height)
+            }.max() ?? font.lineHeight
+            let contentHeight = stacksContent
+                ? iconSize + iconTitleSpacing + textHeight
+                : max(iconSize, textHeight)
+            return max(singleLineHeight, contentHeight + verticalInset * 2)
+        }
     }
 
-    private static func titleLineCount(
-        _ title: String,
-        width: CGFloat,
-        font: UIFont
-    ) -> Int {
-        let bounds = (title as NSString).boundingRect(
-            with: CGSize(width: width, height: .greatestFiniteMagnitude),
-            options: [.usesLineFragmentOrigin, .usesFontLeading],
-            attributes: [.font: font],
-            context: nil
-        )
-        return min(
-            maximumTitleLines,
-            max(1, Int(ceil(bounds.height / font.lineHeight)))
+    static func grid(
+        titles: [String], width: CGFloat, spacing: CGFloat,
+        font: UIFont, traitCollection: UITraitCollection
+    ) -> Grid {
+        let widestWord = titles.flatMap { $0.split(whereSeparator: \.isWhitespace) }
+            .map { ceil((String($0) as NSString).size(withAttributes: [.font: font]).width) }
+            .max() ?? 0
+        let twoColumnWidth = floor((width - spacing) / 2)
+        let columnCount = traitCollection.preferredContentSizeCategory.isAccessibilityCategory
+            || widestWord > twoColumnWidth - stackedLeadingInset - horizontalInset ? 1 : 2
+        let cardWidth = columnCount == 1 ? width : twoColumnWidth
+        let stacksContent = widestWord > cardWidth - horizontalInset * 2 - iconSize - iconTitleSpacing
+        let leadingInset = stacksContent ? stackedLeadingInset : horizontalInset
+        let textWidth = max(cardWidth - leadingInset - horizontalInset - (stacksContent ? 0 : iconSize + iconTitleSpacing), 1)
+        // Only fit an unbreakable word after giving it the full card width.
+        // Keep the user's enlarged type everywhere that it fits naturally.
+        let fittedFont = widestWord > textWidth
+            ? font.withSize(max(min(titleFontSize, font.pointSize), font.pointSize * textWidth / widestWord))
+            : font
+        return Grid(
+            columnCount: columnCount, cardWidth: cardWidth,
+            stacksContent: stacksContent, font: fittedFont
         )
     }
 }
@@ -55,6 +76,8 @@ final class ThemeCardCollectionViewCell: UICollectionViewCell {
     private let themeIconShadowView = UIImageView()
     private let themeImageView = UIImageView()
     private let themeTitleLabel = UILabel()
+    private var horizontalContentConstraints: [NSLayoutConstraint] = []
+    private var stackedContentConstraints: [NSLayoutConstraint] = []
 
     override init(frame: CGRect) {
         super.init(frame: frame)
@@ -112,7 +135,10 @@ final class ThemeCardCollectionViewCell: UICollectionViewCell {
         applyShadow(.none)
     }
 
-    func configure(theme: QuizTheme, appearance: AppAppearance, isSourceHidden: Bool) {
+    func configure(
+        theme: QuizTheme, appearance: AppAppearance, isSourceHidden: Bool,
+        grid: ThemeCardLayoutMetrics.Grid? = nil
+    ) {
         let themeID = theme.stableID
         let tintColor = ThemeVisualCatalog.tintColor(for: theme)
         let borderColor = appearance.themeCardBorder(baseColor: tintColor)
@@ -148,13 +174,17 @@ final class ThemeCardCollectionViewCell: UICollectionViewCell {
             ? CGAffineTransform(translationX: 0, y: ThemeIconVisualStyle.shadowOffset)
             : .identity
 
-        themeTitleLabel.font = appearance.typography.font(
+        themeTitleLabel.font = grid?.font ?? appearance.typography.font(
             size: ThemeCardLayoutMetrics.titleFontSize,
-            weight: .semibold
+            weight: .semibold,
+            compatibleWith: traitCollection
         )
         themeTitleLabel.text = theme.theme
         themeTitleLabel.textColor = appearance.themeCardTextColor(baseColor: tintColor)
         themeTitleLabel.accessibilityIdentifier = "\(ThemesCollectionService.Content.themeTitleAccessibilityIDPrefix)-\(themeID)"
+        NSLayoutConstraint.deactivate(horizontalContentConstraints + stackedContentConstraints)
+        NSLayoutConstraint.activate(grid?.stacksContent == true
+            ? stackedContentConstraints : horizontalContentConstraints)
 
         setSourceHidden(isSourceHidden)
     }
@@ -262,21 +292,46 @@ final class ThemeCardCollectionViewCell: UICollectionViewCell {
         themeIconSlotView.addSubview(themeImageView)
         actionButton.addSubview(themeTitleLabel)
 
-        NSLayoutConstraint.activate([
+        horizontalContentConstraints = [
+            themeIconSlotView.leadingAnchor.constraint(
+                equalTo: actionButton.leadingAnchor,
+                constant: ThemeCardLayoutMetrics.horizontalInset
+            ),
+            themeTitleLabel.leadingAnchor.constraint(
+                equalTo: themeIconSlotView.trailingAnchor,
+                constant: ThemeCardLayoutMetrics.iconTitleSpacing
+            ),
+            themeTitleLabel.centerYAnchor.constraint(equalTo: actionButton.centerYAnchor),
+            themeIconSlotView.centerYAnchor.constraint(equalTo: actionButton.centerYAnchor)
+        ]
+        stackedContentConstraints = [
+            themeIconSlotView.leadingAnchor.constraint(
+                equalTo: actionButton.leadingAnchor,
+                constant: ThemeCardLayoutMetrics.stackedLeadingInset
+            ),
+            themeTitleLabel.leadingAnchor.constraint(
+                equalTo: actionButton.leadingAnchor,
+                constant: ThemeCardLayoutMetrics.stackedLeadingInset
+            ),
+            themeTitleLabel.topAnchor.constraint(
+                equalTo: themeIconSlotView.bottomAnchor,
+                constant: ThemeCardLayoutMetrics.iconTitleSpacing
+            ),
+            themeIconSlotView.topAnchor.constraint(
+                equalTo: actionButton.topAnchor,
+                constant: ThemeCardLayoutMetrics.verticalInset
+            )
+        ]
+        NSLayoutConstraint.activate(horizontalContentConstraints + [
             actionButton.leadingAnchor.constraint(equalTo: contentView.leadingAnchor),
             actionButton.trailingAnchor.constraint(equalTo: contentView.trailingAnchor),
             actionButton.topAnchor.constraint(equalTo: contentView.topAnchor),
             actionButton.bottomAnchor.constraint(equalTo: contentView.bottomAnchor),
 
-            themeTitleLabel.leadingAnchor.constraint(
-                equalTo: themeIconSlotView.trailingAnchor,
-                constant: ThemeCardLayoutMetrics.iconTitleSpacing
-            ),
             themeTitleLabel.trailingAnchor.constraint(
                 equalTo: actionButton.trailingAnchor,
                 constant: -ThemeCardLayoutMetrics.horizontalInset
             ),
-            themeTitleLabel.centerYAnchor.constraint(equalTo: actionButton.centerYAnchor),
             themeTitleLabel.topAnchor.constraint(
                 greaterThanOrEqualTo: actionButton.topAnchor,
                 constant: ThemeCardLayoutMetrics.verticalInset
@@ -286,11 +341,6 @@ final class ThemeCardCollectionViewCell: UICollectionViewCell {
                 constant: -ThemeCardLayoutMetrics.verticalInset
             ),
 
-            themeIconSlotView.leadingAnchor.constraint(
-                equalTo: actionButton.leadingAnchor,
-                constant: ThemeCardLayoutMetrics.horizontalInset
-            ),
-            themeIconSlotView.centerYAnchor.constraint(equalTo: actionButton.centerYAnchor),
             themeIconSlotView.widthAnchor.constraint(equalToConstant: ThemeCardLayoutMetrics.iconSize),
             themeIconSlotView.heightAnchor.constraint(equalToConstant: ThemeCardLayoutMetrics.iconSize),
 
