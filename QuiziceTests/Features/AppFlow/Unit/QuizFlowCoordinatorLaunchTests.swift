@@ -196,6 +196,55 @@ final class QuizFlowCoordinatorLaunchTests: QuizFlowCoordinatorTestCase {
         await fulfillment(of: [dismissalExpectation], timeout: 2)
     }
 
+    func testLaunchKeepsSplashOpaqueUntilInitialContentFinishesPresentation() async throws {
+        let scene = try XCTUnwrap(UIApplication.shared.connectedScenes.compactMap { $0 as? UIWindowScene }.first)
+        let window = UIWindow(windowScene: scene)
+        let root = UIViewController()
+        window.rootViewController = root
+        window.isHidden = false
+        let presenter = LaunchOverlayPresenter()
+        let contentPreparationStarted = expectation(description: "Initial content preparation started")
+        let dismissed = expectation(description: "Prepared content revealed once")
+        dismissed.assertForOverFulfill = true
+        var finishContentPreparation: (() -> Void)?
+        var didPrepareCatalog = false
+        var didDismiss = false
+        UIView.setAnimationsEnabled(false)
+        defer {
+            presenter.dismiss(animated: false)
+            window.isHidden = true
+            window.rootViewController = nil
+        }
+
+        presenter.present(
+            in: window,
+            appearance: makeLaunchAppearance(designStyle: .classic),
+            holdDuration: 0,
+            preparation: { didPrepareCatalog = true },
+            prepareContentForReveal: { completion in
+                XCTAssertTrue(didPrepareCatalog)
+                finishContentPreparation = completion
+                contentPreparationStarted.fulfill()
+            },
+            onDismissed: { didDismiss = true; dismissed.fulfill() }
+        )
+
+        await fulfillment(of: [contentPreparationStarted], timeout: 5)
+        let overlay = try XCTUnwrap(scene.windows.first {
+            $0.accessibilityIdentifier == LaunchOverlayPresenter.accessibilityIdentifier && !$0.isHidden
+        })
+        XCTAssertEqual(overlay.alpha, 1)
+        XCTAssertTrue(root.view.accessibilityElementsHidden)
+        XCTAssertFalse(didDismiss)
+
+        let finish = try XCTUnwrap(finishContentPreparation)
+        finish()
+        finish()
+        await fulfillment(of: [dismissed], timeout: 5)
+        XCTAssertTrue(overlay.isHidden)
+        XCTAssertFalse(root.view.accessibilityElementsHidden)
+    }
+
     func testLaunchPreparationTimeoutRevealsContentAndIgnoresLateCompletion() async throws {
         let scene = try XCTUnwrap(UIApplication.shared.connectedScenes.compactMap { $0 as? UIWindowScene }.first)
         let window = UIWindow(windowScene: scene)
@@ -204,10 +253,16 @@ final class QuizFlowCoordinatorLaunchTests: QuizFlowCoordinatorTestCase {
         window.isHidden = false
         let presenter = LaunchOverlayPresenter()
         var continuation: CheckedContinuation<Void, Never>?
+        var finishContentPreparation: (() -> Void)?
+        var contentPreparationCount = 0
         let started = expectation(description: "Preparation started")
+        let preparingContent = expectation(description: "Deadline prepares initial screen before revealing it")
+        preparingContent.assertForOverFulfill = true
+        let latePreparationReturned = expectation(description: "Cancelled transport returned late")
         let dismissed = expectation(description: "Launch dismissed once")
         dismissed.assertForOverFulfill = true
         var dismissalCount = 0
+        UIView.setAnimationsEnabled(false)
         defer {
             continuation?.resume()
             presenter.dismiss(animated: false)
@@ -215,27 +270,87 @@ final class QuizFlowCoordinatorLaunchTests: QuizFlowCoordinatorTestCase {
             window.rootViewController = nil
         }
         presenter.present(
-            // The network deadline must bypass both the hold and zoom, even
-            // when preparation ignores cancellation and returns much later.
+            // The network deadline bypasses hold and zoom, but must still wait
+            // for the first screen to finish its UIKit presentation.
             in: window, appearance: makeLaunchAppearance(designStyle: .classic), holdDuration: 60,
             motion: FakeLaunchMotion(logoZoomScale: 42, logoZoomDuration: 60),
             preparationTimeout: 0.05,
             preparation: {
                 started.fulfill()
                 await withCheckedContinuation { continuation = $0 }
+                latePreparationReturned.fulfill()
+            },
+            prepareContentForReveal: { completion in
+                contentPreparationCount += 1
+                finishContentPreparation = completion
+                preparingContent.fulfill()
             },
             onDismissed: { dismissalCount += 1; dismissed.fulfill() }
         )
-        await fulfillment(of: [started, dismissed], timeout: 2)
-        XCTAssertFalse(root.view.accessibilityElementsHidden)
-        XCTAssertFalse(scene.windows.contains {
+        await fulfillment(of: [started, preparingContent], timeout: 5)
+        let overlay = try XCTUnwrap(scene.windows.first {
             $0.accessibilityIdentifier == LaunchOverlayPresenter.accessibilityIdentifier && !$0.isHidden
         })
+        XCTAssertEqual(overlay.alpha, 1)
+        XCTAssertTrue(root.view.accessibilityElementsHidden)
+        XCTAssertEqual(dismissalCount, 0)
+
         continuation?.resume()
         continuation = nil
+        await fulfillment(of: [latePreparationReturned], timeout: 5)
         await Task.yield()
-        await Task.yield()
+        XCTAssertEqual(contentPreparationCount, 1)
+        XCTAssertEqual(dismissalCount, 0)
+
+        let finish = try XCTUnwrap(finishContentPreparation)
+        finish()
+        finish()
+        await fulfillment(of: [dismissed], timeout: 5)
+        XCTAssertFalse(root.view.accessibilityElementsHidden)
+        XCTAssertTrue(overlay.isHidden)
         XCTAssertEqual(dismissalCount, 1)
+    }
+
+    func testLateContentPreparationCannotDismissReplacementLaunchOverlay() async throws {
+        let scene = try XCTUnwrap(UIApplication.shared.connectedScenes.compactMap { $0 as? UIWindowScene }.first)
+        let window = UIWindow(windowScene: scene)
+        window.rootViewController = UIViewController()
+        window.isHidden = false
+        let presenter = LaunchOverlayPresenter()
+        var finishOldPreparation: (() -> Void)?
+        let preparingContent = expectation(description: "Original launch prepares initial content")
+        defer {
+            presenter.dismiss(animated: false)
+            window.isHidden = true
+            window.rootViewController = nil
+        }
+        presenter.present(
+            in: window,
+            appearance: makeLaunchAppearance(designStyle: .classic),
+            holdDuration: 0,
+            prepareContentForReveal: { completion in
+                finishOldPreparation = completion
+                preparingContent.fulfill()
+            }
+        )
+        await fulfillment(of: [preparingContent], timeout: 5)
+        presenter.dismiss(animated: false)
+        presenter.present(
+            in: window,
+            appearance: makeLaunchAppearance(designStyle: .classic),
+            holdDuration: 60
+        )
+        let replacementOverlay = try XCTUnwrap(scene.windows.first {
+            $0.accessibilityIdentifier == LaunchOverlayPresenter.accessibilityIdentifier && !$0.isHidden
+        })
+
+        try XCTUnwrap(finishOldPreparation)()
+        await Task.yield()
+
+        XCTAssertFalse(replacementOverlay.isHidden)
+        XCTAssertEqual(replacementOverlay.alpha, 1)
+        XCTAssertNotNil(replacementOverlay.rootViewController)
+        XCTAssertTrue(try XCTUnwrap(window.rootViewController).view.accessibilityElementsHidden)
     }
 
     func testDefaultLaunchDeadlineCancelsSlowPreparationAndRevealsHome() async throws {

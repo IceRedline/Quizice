@@ -191,9 +191,9 @@ final class QuizFlowCoordinator: NSObject, QuizRouting, UIViewControllerTransiti
         presentedViewController.present(viewController, animated: true)
     }
 
-    func presentInitialOnboardingIfNeeded() {
-        guard onboardingProgressStore.needsOnboarding else { return }
-        presentOnboarding(animated: false)
+    func presentInitialOnboardingIfNeeded(completion: @escaping () -> Void = {}) {
+        guard onboardingProgressStore.needsOnboarding else { completion(); return }
+        presentOnboarding(animated: false, completion: completion)
     }
 
     func restoreInitialAccessibilityFocusAfterLaunch() {
@@ -234,8 +234,8 @@ final class QuizFlowCoordinator: NSObject, QuizRouting, UIViewControllerTransiti
         presentedViewController.present(viewController, animated: true)
     }
 
-    private func presentOnboarding(animated: Bool) {
-        guard activeOnboardingViewController == nil else { return }
+    private func presentOnboarding(animated: Bool, completion: @escaping () -> Void = {}) {
+        guard activeOnboardingViewController == nil else { completion(); return }
 
         let appearance = AppAppearanceStore.shared.appearance(
             compatibleWith: window.traitCollection
@@ -259,7 +259,7 @@ final class QuizFlowCoordinator: NSObject, QuizRouting, UIViewControllerTransiti
         viewController.view.backgroundColor = .clear
         activeOnboardingViewController = viewController
         analytics.track(.screenView(screen: .onboarding))
-        presentedViewController.present(viewController, animated: animated)
+        presentedViewController.present(viewController, animated: animated, completion: completion)
     }
 
     private var onboardingThemes: [OnboardingTheme] {

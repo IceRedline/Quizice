@@ -38,6 +38,14 @@ final class QuizFlowCoordinatorOnboardingTests: QuizFlowCoordinatorTestCase {
         XCTAssertEqual(harness.analytics.onboardingScreenViewCount, 0)
     }
 
+    func testNewUserOnboardingIsAlreadyVisibleWhenSplashDisappears() async throws {
+        try await assertInitialScreenAtLaunchReveal(isCompleted: false)
+    }
+
+    func testReturningUserHomeIsAlreadyVisibleWhenSplashDisappears() async throws {
+        try await assertInitialScreenAtLaunchReveal(isCompleted: true)
+    }
+
     func testFinishingOnboardingPersistsThemesAndPreventsNextLaunchPresentation() throws {
         let harness = makeOnboardingHarness(isCompleted: false)
         harness.coordinator.start()
@@ -325,6 +333,82 @@ final class QuizFlowCoordinatorOnboardingTests: QuizFlowCoordinatorTestCase {
             XCTAssertGreaterThanOrEqual(glowFrame.minY, physicsView.bounds.minY)
             XCTAssertLessThanOrEqual(glowFrame.maxY, physicsView.bounds.maxY)
         }
+    }
+
+    private func assertInitialScreenAtLaunchReveal(isCompleted: Bool) async throws {
+        let scene = try XCTUnwrap(UIApplication.shared.connectedScenes.compactMap { $0 as? UIWindowScene }.first)
+        let suiteName = "QuizFlowCoordinatorOnboardingLaunchTests.\(UUID().uuidString)"
+        let defaults = try XCTUnwrap(UserDefaults(suiteName: suiteName))
+        let store = OnboardingProgressStore(userDefaults: defaults)
+        if isCompleted { store.complete(preferredThemeIDs: []) }
+        let window = UIWindow(windowScene: scene)
+        // A real navigation controller is required: a presentation spy would
+        // complete synchronously and miss the frame of Home reported on device.
+        let navigationController = UINavigationController()
+        let coordinator = QuizFlowCoordinator(
+            window: window,
+            navigationController: navigationController,
+            themeRepository: RoutingThemeRepository(
+                themes: [SnapshotSupport.makeTheme(id: "music", name: "Music")]
+            ),
+            session: RoutingSession(),
+            aiQuizThemeService: MockAIQuizThemeService(),
+            onboardingProgressStore: store,
+            analytics: OnboardingAnalyticsSpy()
+        )
+        let presenter = LaunchOverlayPresenter()
+        let revealed = expectation(description: "The correct initial screen is revealed")
+        var initialPresentationCompleted = false
+        UIView.setAnimationsEnabled(false)
+        defer {
+            presenter.dismiss(animated: false)
+            navigationController.dismiss(animated: false)
+            window.isHidden = true
+            window.rootViewController = nil
+            defaults.removePersistentDomain(forName: suiteName)
+        }
+        coordinator.start()
+        window.isHidden = false
+        window.layoutIfNeeded()
+
+        presenter.present(
+            in: window,
+            appearance: makeLaunchAppearance(designStyle: .classic),
+            holdDuration: 0,
+            preparation: { await coordinator.prepareInitialCatalog() },
+            prepareContentForReveal: { completion in
+                coordinator.presentInitialOnboardingIfNeeded {
+                    initialPresentationCompleted = true
+                    if !isCompleted {
+                        let onboarding = navigationController.presentedViewController
+                            as? UIHostingController<QuizOnboardingView>
+                        XCTAssertNotNil(onboarding)
+                        XCTAssertTrue(onboarding?.view.window === window)
+                    }
+                    completion()
+                }
+            },
+            onDismissed: {
+                XCTAssertTrue(initialPresentationCompleted)
+                if isCompleted {
+                    XCTAssertNil(navigationController.presentedViewController)
+                    let home = navigationController.topViewController as? QuizViewController
+                    XCTAssertNotNil(home)
+                    XCTAssertTrue(home?.view.window === window)
+                } else {
+                    let onboarding = navigationController.presentedViewController
+                        as? UIHostingController<QuizOnboardingView>
+                    XCTAssertNotNil(onboarding)
+                    XCTAssertTrue(onboarding?.view.window === window)
+                    if let view = onboarding?.view {
+                        XCTAssertEqual(view.convert(view.bounds, to: window), window.bounds)
+                    }
+                }
+                revealed.fulfill()
+            }
+        )
+
+        await fulfillment(of: [revealed], timeout: 5)
     }
 
     private func makeOnboardingHarness(isCompleted: Bool) -> OnboardingHarness {

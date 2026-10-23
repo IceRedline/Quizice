@@ -17,6 +17,8 @@ final class LaunchOverlayPresenter {
     private var preparationTask: Task<Void, Never>?
     private var preparationDeadlineTask: Task<Void, Never>?
     private var activeReadiness: FakeLaunchReadiness?
+    private var prepareContentForReveal: ((@escaping () -> Void) -> Void)?
+    private var hasStartedPreparingContent = false
     private weak var coveredAccessibilityView: UIView?
     private var coveredViewWasAccessibilityHidden = false
     private var onDismissed: (() -> Void)?
@@ -37,6 +39,7 @@ final class LaunchOverlayPresenter {
         motion: FakeLaunchMotion = .standard,
         preparationTimeout: TimeInterval = 2,
         preparation: (@MainActor () async -> Void)? = nil,
+        prepareContentForReveal: ((@escaping () -> Void) -> Void)? = nil,
         onDismissed: (() -> Void)? = nil
     ) {
         guard
@@ -47,7 +50,7 @@ final class LaunchOverlayPresenter {
 
         let visualStyle = FakeLaunchVisualStyle(appearance: appearance)
         let presentationID = UUID()
-        let readiness = FakeLaunchReadiness(isReady: preparation == nil)
+        let readiness = FakeLaunchReadiness(isReady: preparation == nil && prepareContentForReveal == nil)
         let hostingController = UIHostingController(
             rootView: FakeLaunchScreenView(
                 appearance: appearance,
@@ -76,34 +79,60 @@ final class LaunchOverlayPresenter {
         coveredViewWasAccessibilityHidden = coveredView.accessibilityElementsHidden
         coveredView.accessibilityElementsHidden = true
         self.onDismissed = onDismissed
+        self.prepareContentForReveal = prepareContentForReveal
+        hasStartedPreparingContent = false
         activePresentationID = presentationID
         activeReadiness = readiness
         self.overlayWindow = overlayWindow
         overlayWindow.isHidden = false
 
-        if let preparation {
+        if preparation != nil || prepareContentForReveal != nil {
             preparationTask = Task { @MainActor [weak self] in
-                await preparation()
+                await preparation?()
                 guard
                     let self,
                     activePresentationID == presentationID,
                     !Task.isCancelled
                 else { return }
-                preparationTask = nil
-                preparationDeadlineTask?.cancel()
-                preparationDeadlineTask = nil
-                readiness.isReady = true
+                prepareToReveal(presentationID, afterTimeout: false)
             }
+        }
+        if preparation != nil {
             let waitForPreparationTimeout = self.waitForPreparationTimeout
             preparationDeadlineTask = Task { @MainActor [weak self] in
                 do {
                     try await waitForPreparationTimeout(preparationTimeout)
                 } catch { return }
                 guard let self, activePresentationID == presentationID, !Task.isCancelled else { return }
-                // A stalled server must not extend the launch animation. Dismiss
-                // directly without waiting for preparation or SwiftUI completion.
-                dismiss(animated: true, duration: Timing.reducedMotionRevealDuration)
+                // Stop waiting for the server, but keep the splash opaque until
+                // UIKit has installed the first screen underneath it.
+                prepareToReveal(presentationID, afterTimeout: true)
             }
+        }
+    }
+
+    private func prepareToReveal(_ presentationID: UUID, afterTimeout: Bool) {
+        guard activePresentationID == presentationID, !hasStartedPreparingContent else { return }
+        hasStartedPreparingContent = true
+        preparationTask?.cancel()
+        preparationTask = nil
+        preparationDeadlineTask?.cancel()
+        preparationDeadlineTask = nil
+        let prepareContent = prepareContentForReveal
+        prepareContentForReveal = nil
+        let contentReady = { [weak self] in
+            guard let self, activePresentationID == presentationID,
+                  activeReadiness?.isReady == false else { return }
+            if afterTimeout {
+                dismiss(animated: true, duration: Timing.reducedMotionRevealDuration)
+            } else {
+                activeReadiness?.isReady = true
+            }
+        }
+        if let prepareContent {
+            prepareContent(contentReady)
+        } else {
+            contentReady()
         }
     }
 
@@ -120,6 +149,7 @@ final class LaunchOverlayPresenter {
         preparationDeadlineTask?.cancel()
         preparationDeadlineTask = nil
         activeReadiness = nil
+        prepareContentForReveal = nil
         activePresentationID = nil
 
         guard let overlayWindow else { return }
