@@ -1,38 +1,6 @@
 import SwiftUI
 import UIKit
 
-protocol HomeRouting: AnyObject {
-    func showQuestion()
-    func showSettings()
-    func showOnboarding()
-    func showSubscription()
-}
-
-extension HomeRouting {
-    func showOnboarding() {}
-    func showSubscription() {}
-}
-
-protocol QuizPlayRouting: AnyObject {
-    func showResult(_ result: QuizResultState)
-    func closeQuestion()
-}
-
-protocol QuizResultRouting: AnyObject {
-    func replayQuiz()
-    func returnToThemes()
-}
-
-protocol QuizRouting:
-    HomeRouting,
-    QuizPlayRouting,
-    QuizResultRouting
-{}
-
-protocol QuizHomeReturnHandling: AnyObject {
-    func quizFlowWillReturnToThemes()
-}
-
 final class QuizFlowCoordinator: NSObject, QuizRouting, UIViewControllerTransitioningDelegate {
     private let window: UIWindow
     private let navigationController: UINavigationController
@@ -592,6 +560,14 @@ final class QuizFlowCoordinator: NSObject, QuizRouting, UIViewControllerTransiti
         }
     }
 
+    func resetAccountNavigation(completion: @escaping () -> Void) {
+        activeOnboardingViewController = nil
+        pendingSystemViewController = nil
+        activeQuestionViewController = nil
+        resultViewController = nil
+        returnToThemes(completion: completion)
+    }
+
     func returnToThemes() {
         returnToThemes(completion: nil)
     }
@@ -606,6 +582,10 @@ final class QuizFlowCoordinator: NSObject, QuizRouting, UIViewControllerTransiti
         navigationController.popToRootViewController(animated: false)
         (navigationController.viewControllers.first as? QuizHomeReturnHandling)?
             .quizFlowWillReturnToThemes()
+        guard navigationController.presentedViewController != nil else {
+            completion?()
+            return
+        }
         navigationController.dismiss(animated: true, completion: completion)
     }
 

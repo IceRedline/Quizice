@@ -77,16 +77,19 @@ struct QuizSettingsView: View {
     @StateObject var account: SettingsAccountModel
     let analytics: AnalyticsTracking
     let personalizedRepeatsAvailable: () -> Bool
+    let onAccountDeleted: () -> Void
 
     init(
         analytics: AnalyticsTracking = AppMetricaAnalyticsTracker.shared,
         accountManager: (any AccountManaging)? = nil,
+        onAccountDeleted: @escaping () -> Void = {},
         personalizedRepeatsAvailable: @escaping () -> Bool = {
             ThemeCatalogRepository.shared.catalogOrigin == .backend
                 && StoredBackendAccessTokenProvider().validAccessToken() != nil
         }
     ) {
         self.analytics = analytics
+        self.onAccountDeleted = onAccountDeleted
         self.personalizedRepeatsAvailable = personalizedRepeatsAvailable
         _allowsPersonalizedRepeats = State(initialValue: personalizedRepeatsAvailable())
         _account = StateObject(wrappedValue: SettingsAccountModel(manager: accountManager))
@@ -188,10 +191,10 @@ struct QuizSettingsView: View {
     private func content(topInset: CGFloat) -> some View {
         VStack(spacing: Layout.sectionSpacing) {
             settingsTitle
-            profileSection
             questionStrategySection
             appearanceSection
             supportSection
+            profileSection
         }
         .padding(.horizontal, Layout.contentHorizontalInset)
         .padding(.top, topInset)

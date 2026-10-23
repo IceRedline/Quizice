@@ -2,8 +2,13 @@ import Foundation
 import UIKit
 
 @MainActor
-final class GameCenterAuthenticationService: AccountManaging {
-    private(set) var state: AuthSessionState = .initializing
+final class GameCenterAuthenticationService: AccountManaging, AppAccountAccessProviding {
+    private(set) var state: AuthSessionState = .initializing {
+        didSet { accountAccessStateDidChange?(accountAccessState) }
+    }
+    var accountAccessStateDidChange: ((AppAccountAccessState) -> Void)? {
+        didSet { accountAccessStateDidChange?(accountAccessState) }
+    }
 
     private let gameCenter: GameCenterAuthenticating
     private let api: AuthAPI
@@ -15,7 +20,9 @@ final class GameCenterAuthenticationService: AccountManaging {
     private let aiQuizAccessStore: AIQuizAccessStore
     private let deletionStateStore: AccountDeletionStateStore
     private let eraseLocalAccountData: (String) throws -> Void
-    private var accountOperationInProgress = false
+    private(set) var accountOperationInProgress = false {
+        didSet { accountAccessStateDidChange?(accountAccessState) }
+    }
     private var deferredPlayerState: GameCenterPlayerState?
 
     private var authenticationTask: Task<Void, Never>?
@@ -144,6 +151,16 @@ final class GameCenterAuthenticationService: AccountManaging {
             return
         }
 #endif
+        gameCenter.start(present: present) { [weak self] playerState in
+            self?.handle(playerState)
+        }
+    }
+
+    func signIn(present: @escaping (UIViewController) -> Void) {
+        guard started else { start(present: present); return }
+        guard !accountOperationInProgress, deletionRecord == nil,
+              accountAccessState == .signInRequired else { return }
+        state = .initializing
         gameCenter.start(present: present) { [weak self] playerState in
             self?.handle(playerState)
         }
@@ -284,10 +301,6 @@ final class GameCenterAuthenticationService: AccountManaging {
         statisticsMayRefreshToken: Bool,
         attemptID: UUID
     ) async {
-        // Reading the cached session is a best-effort operation. A broken
-        // Keychain (e.g. after a restore-from-backup or a user reset) must
-        // not force a legitimate Game Center player into guest mode — fall
-        // through to a fresh exchange instead.
         if allowsCachedSession,
            let cachedSession = loadStoredSession(),
            cachedSession.isValid(for: teamPlayerID, now: now()) {
@@ -520,9 +533,6 @@ final class GameCenterAuthenticationService: AccountManaging {
         )
     }
 
-    /// Delete the Keychain session and record failures so operations teams see
-    /// them. Swallowing errors silently made prior incidents hard to diagnose:
-    /// the app kept running with a stale token that could not be cleared.
     private func clearStoredSession() {
         do {
             if let session = try? sessionStore.loadForAccountDeletion() {
@@ -573,8 +583,6 @@ final class GameCenterAuthenticationService: AccountManaging {
         } else {
             throw AccountDeletionError.unavailable
         }
-        // Persist before sending. A timeout must not allow the normal 401 path
-        // to automatically recreate an account that the server already erased.
         deletionStateStore.save(record)
         accountOperationInProgress = true
         stopAccountWork()
@@ -602,6 +610,14 @@ final class GameCenterAuthenticationService: AccountManaging {
                 state = .guest
                 refreshSessionAfterFailure = true
                 throw AccountDeletionError.sessionExpired
+            } catch AccountDeletionError.sessionExpired {
+                try await AccountDeletionRecovery.confirmDeletion(
+                    receipt: receipt, api: api, gameCenter: gameCenter, bundleIdentifier: bundleIdentifier,
+                    isCurrentIdentity: { [weak self] in
+                        self?.currentTeamPlayerID == receipt.teamPlayerID &&
+                            (self?.deferredPlayerState == nil || self?.deferredPlayerState == .authenticated(teamPlayerID: receipt.teamPlayerID))
+                    }
+                )
             } catch let BackendAPIError.httpStatus(status, _) where [404, 405, 422, 501].contains(status) && recordWasNew {
                 // The first request was rejected without performing deletion.
                 // Keep the existing account usable while the API is unavailable.
@@ -636,8 +652,16 @@ final class GameCenterAuthenticationService: AccountManaging {
         guard let receipt = deletionRecord, receipt.cleanupCompleted else { throw AccountDeletionError.unavailable }
         accountOperationInProgress = true
         defer { finishAccountOperation() }
-        let identity = try await gameCenter.fetchIdentity(bundleIdentifier: bundleIdentifier)
-        guard identity.teamPlayerId == receipt.teamPlayerID else { throw GameCenterAuthenticationError.playerChanged }
+        let identity: GameCenterIdentity
+        do { identity = try await gameCenter.fetchIdentity(bundleIdentifier: bundleIdentifier) }
+        catch GameCenterClientError.notAuthenticated {
+            enterGuestMode()
+            throw GameCenterClientError.notAuthenticated
+        }
+        guard identity.teamPlayerId == receipt.teamPlayerID else {
+            if deferredPlayerState == nil { deferredPlayerState = .authenticated(teamPlayerID: identity.teamPlayerId) }
+            throw GameCenterAuthenticationError.playerChanged
+        }
         let session = try await api.authenticate(identity: identity, recreateDeletedAccount: true)
         guard session.teamPlayerID == receipt.teamPlayerID, session.userID != receipt.userID else {
             throw BackendAPIError.contractViolation

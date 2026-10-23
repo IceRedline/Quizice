@@ -505,7 +505,19 @@ final class ScreenSnapshotTests: XCTestCase {
             ) as? UIButton
         )
         aiButton.sendActions(for: .touchUpInside)
-        drainHomeCardAnimations()
+        // The final animation frame still uses the transition's rasterized border.
+        // Run its completion before capturing the card's final gradient and shadow;
+        // a fixed run-loop delay can expire before that handoff on a busy CI runner.
+        if let animator = viewController.expandedCardAnimatorForTesting {
+            animator.stopAnimation(false)
+            animator.finishAnimation(at: .end)
+        }
+        XCTAssertNil(viewController.expandedCardAnimatorForTesting)
+        XCTAssertEqual(viewController.homeCardState.phase, .expandedFront)
+        XCTAssertNil(viewController.view.snapshotDescendant(
+            withAccessibilityIdentifier: "homeExpandedAIThemeCardTransition"
+        ))
+        viewController.view.layoutIfNeeded()
 
         let promptEditor = try XCTUnwrap(
             viewController.view.snapshotDescendant(

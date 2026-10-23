@@ -72,15 +72,15 @@ final class SwiftUISnapshotTests: XCTestCase {
     }
 
     func testSignedInSettingsAccountSnapshot() {
-        let viewController = makeHostingController(rootView: QuizSettingsView(
+        let viewController = SettingsBottomSnapshotHostingController(rootView: QuizSettingsView(
             accountManager: SettingsSnapshotAccountManager(),
             personalizedRepeatsAvailable: { true }
         ))
+        viewController.view.overrideUserInterfaceStyle = .light
 
         SnapshotSupport.assertScreen(
             viewController,
-            named: "clean-settings-delete-account",
-            afterPrepare: prepareSettingsSnapshot
+            named: "clean-settings-delete-account"
         )
     }
 
@@ -95,6 +95,41 @@ final class SwiftUISnapshotTests: XCTestCase {
             named: "clean-settings-privacy-iphone-se",
             device: .iPhone8
         )
+    }
+
+    func testAccountDeletedStartScreenSnapshot() {
+        SnapshotSupport.setUp(designStyle: .classic)
+        let viewController = makeHostingController(rootView: AccountStartView(
+            model: AccountStartModel(state: .deleted),
+            appearance: SnapshotSupport.appearance(designStyle: .classic),
+            onPrimaryAction: {}
+        ))
+
+        SnapshotSupport.assertScreen(viewController, named: "classic-account-deleted")
+    }
+
+    func testAccountSignInCompactSnapshot() {
+        let viewController = makeHostingController(rootView: AccountStartView(
+            model: AccountStartModel(state: .signInRequired),
+            appearance: SnapshotSupport.appearance(designStyle: .clean),
+            onPrimaryAction: {}
+        ))
+
+        SnapshotSupport.assertScreen(viewController, named: "clean-account-sign-in-iphone-se", device: .iPhone8)
+    }
+
+    func testAccountDeletionPendingCompactSnapshot() {
+        SnapshotSupport.setUp(designStyle: .classic)
+        let viewController = makeHostingController(rootView: AccountStartView(
+            model: AccountStartModel(
+                state: .deletionPending,
+                errorMessage: L10n.Settings.Account.deletionFailedMessage
+            ),
+            appearance: SnapshotSupport.appearance(designStyle: .classic),
+            onPrimaryAction: {}
+        ))
+
+        SnapshotSupport.assertScreen(viewController, named: "classic-account-deletion-pending-iphone-se", device: .iPhone8)
     }
 
     func testSubscriptionPaywallSnapshot() throws {

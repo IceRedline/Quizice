@@ -320,6 +320,35 @@ final class HomeSettingsVisualStateTests: HomeScreenVisualStateTestCase {
 
 @MainActor
 final class SettingsAccountModelTests: XCTestCase {
+    func testConfirmedDeletionRoutesOutOfSettings() {
+        var deletionCompletionCount = 0
+        let view = QuizSettingsView(
+            onAccountDeleted: { deletionCompletionCount += 1 },
+            personalizedRepeatsAvailable: { false }
+        )
+
+        view.presentAccountOutcome(.deleted)
+
+        XCTAssertEqual(deletionCompletionCount, 1)
+    }
+
+    func testUnconfirmedDeletionKeepsSettingsAvailableForRetry() {
+        var deletionCompletionCount = 0
+        let view = QuizSettingsView(
+            onAccountDeleted: { deletionCompletionCount += 1 },
+            personalizedRepeatsAvailable: { false }
+        )
+        let outcomes: [SettingsAccountModel.Outcome] = [
+            .deletionFailed, .cleanupRequired, .sessionExpired, .unavailable,
+            .creationFailed, .created
+        ]
+
+        for outcome in outcomes {
+            view.presentAccountOutcome(outcome)
+            XCTAssertEqual(deletionCompletionCount, 0, "Unexpected navigation for \(outcome)")
+        }
+    }
+
     func testUnavailableAccountDoesNotReportDeletionSuccess() async {
         let model = SettingsAccountModel(manager: nil)
 
