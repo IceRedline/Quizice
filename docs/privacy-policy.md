@@ -1,6 +1,6 @@
 # Quizice — Privacy Policy / Политика конфиденциальности
 
-**Effective date / Дата вступления в силу: 2026-10-22**
+**Effective date / Дата вступления в силу: 2026-10-23**
 
 [English](#english) · [Русский](#русский)
 
@@ -54,7 +54,7 @@ The current backend does not have a fixed automatic deletion period for Quizice 
 
 You can request information about, correction of or deletion of your Quizice data by emailing [tabenskii_dev@icloud.com](mailto:tabenskii_dev@icloud.com). Include "Quizice data request" in the subject and describe your request. We may need additional information to locate the correct record and verify that it belongs to you; do not send your Apple password or a session token. We will explain the available action and any information that cannot be removed as part of the request.
 
-There is currently **no account-deletion control inside the app**. Email is the contact channel for a deletion request; sending a request does not itself perform an automatic deletion. Removing Quizice data does not delete your Apple, Game Center, Yandex or GitHub account.
+In app versions that include an account-deletion control, you can send a deletion request from Settings. The app reports completion only after the server confirms deletion and local cleanup succeeds. If the service is unavailable or confirmation cannot be obtained, the app shows an error; you can also request deletion by emailing [tabenskii_dev@icloud.com](mailto:tabenskii_dev@icloud.com). Sending an email does not itself perform automatic deletion. Removing Quizice data does not delete your Apple, Game Center, Yandex or GitHub account.
 
 ### Changes
 
@@ -110,7 +110,7 @@ Quizice хранит на устройстве настройки, резуль�
 
 Запросить сведения о своих данных Quizice, их исправление или удаление можно по адресу [tabenskii_dev@icloud.com](mailto:tabenskii_dev@icloud.com). Укажите в теме письма «Запрос о данных Quizice» и опишите запрос. Для поиска нужной записи и проверки её принадлежности мы можем запросить дополнительные сведения; не отправляйте пароль Apple или токен сессии. В ответе мы сообщим о доступных действиях и данных, которые нельзя удалить в рамках запроса.
 
-В текущей версии **нет кнопки удаления аккаунта внутри приложения**. Электронная почта служит каналом обращения; отправка письма сама по себе не запускает автоматическое удаление. Удаление данных Quizice не удаляет ваши аккаунты Apple, Game Center, Яндекса или GitHub.
+В версиях приложения с кнопкой удаления аккаунта запрос можно отправить из настроек. Приложение сообщает о завершении только после подтверждения удаления сервером и успешной локальной очистки. Если сервис недоступен или подтверждение не получено, приложение показывает ошибку; запросить удаление также можно по адресу [tabenskii_dev@icloud.com](mailto:tabenskii_dev@icloud.com). Отправка письма сама по себе не запускает автоматическое удаление. Удаление данных Quizice не удаляет ваши аккаунты Apple, Game Center, Яндекса или GitHub.
 
 ### Изменения
 
