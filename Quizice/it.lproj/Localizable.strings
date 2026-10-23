@@ -259,7 +259,7 @@
 "settings.account.delete.confirm.title" = "Eliminare il tuo account Quizice?";
 "settings.account.delete.confirm.message" = "Il tuo account Quizice, i progressi di gioco, le statistiche e i temi preferiti saranno eliminati definitivamente dal server e da questo dispositivo. L’operazione non può essere annullata. Il tuo account Game Center non sarà eliminato né modificato.";
 "settings.account.deleted.title" = "Account eliminato";
-"settings.account.deleted.message" = "Il tuo account Quizice e i suoi dati sono stati eliminati. L’account Game Center non è stato modificato. Puoi continuare a giocare come ospite.";
+"settings.account.deleted.message" = "Il tuo account Quizice e i suoi dati sono stati eliminati. L’account Game Center non è stato modificato. Crea un nuovo account Quizice per giocare.";
 "settings.account.delete.failed.title" = "Eliminazione non confermata";
 "settings.account.delete.failed.message" = "Non è stato possibile confermare l’eliminazione dell’account. Controlla la connessione a internet e riprova.";
 "settings.account.cleanup.title" = "Completa la pulizia del dispositivo";
@@ -279,3 +279,12 @@
 "settings.account.unavailable.message" = "Non è disponibile un account Quizice connesso da gestire. Controlla l’accesso a Game Center e la connessione a internet.";
 "settings.account.cancel" = "Annulla";
 "settings.account.retry" = "Riprova";
+
+/* Required account start screen */
+"account_start.connecting.title" = "Connessione all’account";
+"account_start.sign_in.message" = "Accedi con Game Center per giocare. Se non riesci, controlla internet e l’accesso a Game Center nelle impostazioni del dispositivo.";
+"account_start.sign_in.action" = "Continua con Game Center";
+"account_start.deletion_pending.title" = "Completa l’eliminazione";
+"account_start.deletion_pending.message" = "L’eliminazione dell’account non è ancora completata. Riprova per eliminare il tuo account e i suoi dati.";
+"account_start.deletion_pending.action" = "Riprova l’eliminazione";
+"account_start.deletion_pending.sign_in" = "Per completare l’eliminazione, accedi all’account Game Center originale nelle Impostazioni di iPhone e riprova.";

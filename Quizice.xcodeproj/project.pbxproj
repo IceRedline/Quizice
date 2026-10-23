@@ -202,6 +202,12 @@
 		FCE7854FE40453908C7EF297 /* ThemeCardCollectionViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 535641998A813AAACA325295 /* ThemeCardCollectionViewCell.swift */; };
 		FE84BE6C879CCF7923FA8842 /* HomeExpandedThemeCardInteractionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2FE8053B70386C642A9C71F9 /* HomeExpandedThemeCardInteractionTests.swift */; };
 		FF9DED1FA7558E81BB211886 /* QuizViewController+CardLifecycle.swift in Sources */ = {isa = PBXBuildFile; fileRef = 28DB4C4E7F420509A9F6B326 /* QuizViewController+CardLifecycle.swift */; };
+		3CCAD9F07BFA40C9B6B3C1CE /* AppAccountAccessPresenter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2E9D862C0A534094A5931999 /* AppAccountAccessPresenter.swift */; };
+		B458401909D04B279C3EF918 /* AccountStartView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C95988714F2A458BBEDD28CE /* AccountStartView.swift */; };
+		DB744EF6DD9C43ACB5E16436 /* QuizRouting.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9107D51134644B46A29FAFA3 /* QuizRouting.swift */; };
+		1BFA5659D1CC4EF78D3F44C7 /* GameCenterAuthenticationService+AccountAccess.swift in Sources */ = {isa = PBXBuildFile; fileRef = 989CA86BA393469392C09B5C /* GameCenterAuthenticationService+AccountAccess.swift */; };
+		65393731F0DD40D695C96B26 /* AppAccountAccessPresenterTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 12CA8E582F734FF6BA65C912 /* AppAccountAccessPresenterTests.swift */; };
+		C99FA7539E9C46C596939D54 /* AccountDeletionRecovery.swift in Sources */ = {isa = PBXBuildFile; fileRef = 056A80A638DC441DAE876DA9 /* AccountDeletionRecovery.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -426,6 +432,12 @@
 		FE9159A06B5AFE6DFD9A3B32 /* AppAppearance.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AppAppearance.swift; sourceTree = "<group>"; };
 		FE9159A16B5AFE6DFD9A3B33 /* AppAssetColor.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AppAssetColor.swift; sourceTree = "<group>"; };
 		FFDF5EAAC676FAF75121D412 /* QuizViewController+AIWorkflow.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = "QuizViewController+AIWorkflow.swift"; sourceTree = "<group>"; };
+		2E9D862C0A534094A5931999 /* AppAccountAccessPresenter.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = "AppAccountAccessPresenter.swift"; sourceTree = "<group>"; };
+		C95988714F2A458BBEDD28CE /* AccountStartView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = "AccountStartView.swift"; sourceTree = "<group>"; };
+		9107D51134644B46A29FAFA3 /* QuizRouting.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = "QuizRouting.swift"; sourceTree = "<group>"; };
+		989CA86BA393469392C09B5C /* GameCenterAuthenticationService+AccountAccess.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = "GameCenterAuthenticationService+AccountAccess.swift"; sourceTree = "<group>"; };
+		12CA8E582F734FF6BA65C912 /* AppAccountAccessPresenterTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = "AppAccountAccessPresenterTests.swift"; sourceTree = "<group>"; };
+		056A80A638DC441DAE876DA9 /* AccountDeletionRecovery.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AccountDeletionRecovery.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -455,6 +467,8 @@
 		0A6CC410BAF116764D552C04 /* Launch */ = {
 			isa = PBXGroup;
 			children = (
+				C95988714F2A458BBEDD28CE /* AccountStartView.swift */,
+				2E9D862C0A534094A5931999 /* AppAccountAccessPresenter.swift */,
 				78C4376DA94BB6B53140B81B /* FakeLaunchScreenView.swift */,
 				D48E651B445AF8608A621418 /* LaunchOverlayPresenter.swift */,
 			);
@@ -464,6 +478,7 @@
 		0DFAE81D434FB30A2773D6BC /* Unit */ = {
 			isa = PBXGroup;
 			children = (
+				12CA8E582F734FF6BA65C912 /* AppAccountAccessPresenterTests.swift */,
 				32370717E35DA0CBBAE15E78 /* QuizFlowCoordinatorAIThemeTests.swift */,
 				32370718E35DA0CBBAE15E79 /* QuizFlowCoordinatorCatalogReplayTests.swift */,
 				32370719E35DA0CBBAE15E7A /* QuizFlowCoordinatorLocaleReplayTests.swift */,
@@ -954,6 +969,7 @@
 		A7EEAC68733E75D119E4FFFE /* Navigation */ = {
 			isa = PBXGroup;
 			children = (
+				9107D51134644B46A29FAFA3 /* QuizRouting.swift */,
 				296BE2A80B86D48E7E4D0729 /* QuizFlowCoordinator.swift */,
 			);
 			path = Navigation;
@@ -1047,6 +1063,8 @@
 		C3460A14A4ADDFB137F4BAA3 /* Authentication */ = {
 			isa = PBXGroup;
 			children = (
+				056A80A638DC441DAE876DA9 /* AccountDeletionRecovery.swift */,
+				989CA86BA393469392C09B5C /* GameCenterAuthenticationService+AccountAccess.swift */,
 				8822A5B878D44CB82877183D /* AuthModels.swift */,
 				84999FAFF59131533DB4008F /* BackendConfiguration.swift */,
 				D2D585241C87207E5B21CBD4 /* GameCenterAuthenticationService.swift */,
@@ -1397,6 +1415,11 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				C99FA7539E9C46C596939D54 /* AccountDeletionRecovery.swift in Sources */,
+				1BFA5659D1CC4EF78D3F44C7 /* GameCenterAuthenticationService+AccountAccess.swift in Sources */,
+				DB744EF6DD9C43ACB5E16436 /* QuizRouting.swift in Sources */,
+				B458401909D04B279C3EF918 /* AccountStartView.swift in Sources */,
+				3CCAD9F07BFA40C9B6B3C1CE /* AppAccountAccessPresenter.swift in Sources */,
 				A30000012F90000100A30001 /* AIQuizRuntimeDependencies.swift in Sources */,
 				A40000112FA0000100A40011 /* OnboardingPhysicsStage.swift in Sources */,
 				C10000000000000000000003 /* OnboardingPhysicsTopicCard.swift in Sources */,
@@ -1515,6 +1538,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				65393731F0DD40D695C96B26 /* AppAccountAccessPresenterTests.swift in Sources */,
 				A400000B2FA0000100A4000B /* OnboardingProgressStoreTests.swift in Sources */,
 				A400000C2FA0000100A4000C /* QuizFlowCoordinatorOnboardingTests.swift in Sources */,
 				E5A6AB6B022A2674464B20B7 /* YandexAIQuizContractValidationTests.swift in Sources */,
@@ -1662,7 +1686,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = Quizice/Quizice.entitlements;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 4;
+				CURRENT_PROJECT_VERSION = 5;
 				DEVELOPMENT_TEAM = 24M7THZP42;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = Quizice/Info.plist;
@@ -1698,7 +1722,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = Quizice/Quizice.entitlements;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 4;
+				CURRENT_PROJECT_VERSION = 5;
 				DEVELOPMENT_TEAM = 24M7THZP42;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = Quizice/Info.plist;
