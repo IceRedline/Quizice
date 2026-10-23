@@ -184,4 +184,25 @@ extension QuizFactoryTests {
         store.replaceThemes(with: [SnapshotSupport.makeTheme(id: "music", name: "New")])
         XCTAssertEqual(store.fetchThemes().map(\.theme), ["New"])
     }
+
+    func testAccountDeletionErasesCachedFavoritesInMemoryAndSwiftDataButKeepsCatalog() throws {
+        let container = try ModelContainer(for: SwiftDataThemeStore.schema,
+            configurations: ModelConfiguration(isStoredInMemoryOnly: true))
+        let store = SwiftDataThemeStore(context: container.mainContext)
+        let music = SnapshotSupport.makeTheme(id: "music", name: "Music")
+        music.isFavorite = true
+        store.replaceThemes(with: [music])
+        let repository = ThemeCatalogRepository()
+        repository.setModelContext(container.mainContext)
+        repository.themes = [music]
+
+        try repository.eraseCachedPersonalization()
+
+        XCTAssertEqual(repository.themes?.map(\.stableID), ["music"])
+        XCTAssertEqual(repository.themes?.filter(\.isFavorite).count, 0)
+        let reopened = SwiftDataThemeStore(context: ModelContext(container))
+        XCTAssertEqual(reopened.fetchThemes().map(\.stableID), ["music"])
+        XCTAssertFalse(try XCTUnwrap(reopened.fetchThemes().first).questions.isEmpty)
+        XCTAssertEqual(reopened.fetchThemes().filter(\.isFavorite).count, 0)
+    }
 }

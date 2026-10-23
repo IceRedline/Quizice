@@ -2,6 +2,7 @@ import Foundation
 
 enum BackendOperation: String, Equatable {
     case authentication
+    case accountDeletion = "account_deletion"
     case statisticsSync = "statistics_sync"
     case themes
     case themePreferences = "theme_preferences"

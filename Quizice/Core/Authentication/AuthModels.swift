@@ -8,6 +8,7 @@ extension Notification.Name {
     static let backendAuthenticationEstablished = Notification.Name(
         "ru.avtabenskiy.Quizice.backendAuthenticationEstablished"
     )
+    static let backendAccountDeleted = Notification.Name("quizice.backend-account-deleted")
 }
 
 enum AuthSessionState: Equatable {
@@ -15,6 +16,90 @@ enum AuthSessionState: Equatable {
     case guest
     case authenticating
     case authenticated(userID: String, teamPlayerID: String)
+    case deletionPending
+}
+
+@MainActor
+protocol AccountManaging: AnyObject {
+    var accountDeletionAvailable: Bool { get }
+    var canCreateAccount: Bool { get }
+    func deleteAccount() async throws
+    func createAccount() async throws
+}
+
+enum AccountDeletionError: Error, Equatable {
+    case unavailable
+    case inProgress
+    case localCleanupFailed
+    case sessionExpired
+}
+
+/// A small local receipt prevents Game Center from silently recreating a deleted
+/// account, and preserves the same idempotency key after a lost server response.
+final class AccountDeletionStateStore {
+    struct Record: Equatable {
+        let userID: String
+        let teamPlayerID: String
+        let idempotencyKey: String
+        var serverConfirmed: Bool
+        var cleanupCompleted: Bool
+    }
+
+    private let defaults: UserDefaults
+    private let key = "quizice.account-deletion.receipts"
+    private let knownUsersKey = "quizice.account-deletion.known-users"
+
+    init(defaults: UserDefaults = .standard) { self.defaults = defaults }
+
+    func record(for teamPlayerID: String) -> Record? {
+        guard let values = defaults.dictionary(forKey: key)?[teamPlayerID] as? [String: Any],
+              let userID = values["userID"] as? String,
+              let idempotencyKey = values["idempotencyKey"] as? String else { return nil }
+        return Record(userID: userID, teamPlayerID: teamPlayerID, idempotencyKey: idempotencyKey,
+                      serverConfirmed: values["serverConfirmed"] as? Bool ?? false,
+                      cleanupCompleted: values["cleanupCompleted"] as? Bool ?? false)
+    }
+
+    func blocks(_ session: AuthSession) -> Bool {
+        record(for: session.teamPlayerID)?.userID == session.userID
+    }
+
+    /// Keep the account scope independently of the bearer token. A failed token
+    /// refresh must not lose the identity needed to erase data after a later 409.
+    func remember(_ session: AuthSession) {
+        var users = defaults.dictionary(forKey: knownUsersKey) as? [String: String] ?? [:]
+        users[session.teamPlayerID] = session.userID
+        defaults.set(users, forKey: knownUsersKey)
+    }
+
+    func lastKnownUserID(for teamPlayerID: String) -> String? {
+        defaults.dictionary(forKey: knownUsersKey)?[teamPlayerID] as? String
+    }
+
+    func forgetUser(for teamPlayerID: String) {
+        var users = defaults.dictionary(forKey: knownUsersKey) as? [String: String] ?? [:]
+        users.removeValue(forKey: teamPlayerID)
+        defaults.set(users, forKey: knownUsersKey)
+    }
+
+    var pendingRecord: Record? {
+        (defaults.dictionary(forKey: key) ?? [:]).keys.sorted()
+            .compactMap { record(for: $0) }.first { !$0.cleanupCompleted }
+    }
+
+    func save(_ record: Record) {
+        var records = defaults.dictionary(forKey: key) ?? [:]
+        records[record.teamPlayerID] = ["userID": record.userID, "idempotencyKey": record.idempotencyKey,
+                                       "serverConfirmed": record.serverConfirmed,
+                                       "cleanupCompleted": record.cleanupCompleted]
+        defaults.set(records, forKey: key)
+    }
+
+    func remove(for teamPlayerID: String) {
+        var records = defaults.dictionary(forKey: key) ?? [:]
+        records.removeValue(forKey: teamPlayerID)
+        defaults.set(records, forKey: key)
+    }
 }
 
 protocol AIQuizAccessProviding: AnyObject {
@@ -122,16 +207,33 @@ enum BackendAPIError: Error, Equatable {
 
 protocol AuthAPI {
     func authenticate(identity: GameCenterIdentity) async throws -> AuthSession
+    func authenticate(identity: GameCenterIdentity, recreateDeletedAccount: Bool) async throws -> AuthSession
+    func deleteAccount(accessToken: String, idempotencyKey: String) async throws
     func syncStatistics(
         request: StatisticsStore.SyncRequest,
         accessToken: String
     ) async throws -> StatisticsStore.SyncResponse
 }
 
+extension AuthAPI {
+    func authenticate(identity: GameCenterIdentity, recreateDeletedAccount: Bool) async throws -> AuthSession {
+        try await authenticate(identity: identity)
+    }
+
+    func deleteAccount(accessToken: String, idempotencyKey: String) async throws {
+        throw AccountDeletionError.unavailable
+    }
+}
+
 protocol SessionStoring {
     func load() throws -> AuthSession?
+    func loadForAccountDeletion() throws -> AuthSession?
     func save(_ session: AuthSession) throws
     func clear() throws
+}
+
+extension SessionStoring {
+    func loadForAccountDeletion() throws -> AuthSession? { try load() }
 }
 
 enum GameCenterPlayerState: Equatable {

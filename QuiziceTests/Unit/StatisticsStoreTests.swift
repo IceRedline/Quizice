@@ -154,6 +154,58 @@ final class StatisticsStoreTests: XCTestCase {
         XCTAssertEqual(harness.store.loadSummary().correctAnswers, 4)
     }
 
+    func testDeletingAccountErasesItsHistoryAndRecoveryBytesButKeepsOtherAccountsAndSettings() {
+        let harness = makeHarness()
+        harness.store.activateAuthenticatedUser("user-a")
+        harness.store.recordAttempt(correctAnswers: 4, totalQuestions: 5)
+        let deletedKey = harness.defaults.dictionaryRepresentation().keys.first {
+            $0.hasPrefix(harness.key + ".user.")
+        }!
+        harness.defaults.set(Data("old damaged history".utf8), forKey: deletedKey + ".corrupt")
+        harness.store.activateAuthenticatedUser("user-b")
+        harness.store.recordAttempt(correctAnswers: 2, totalQuestions: 5)
+        harness.defaults.set("ru", forKey: "language-setting")
+        harness.store.activateAuthenticatedUser("user-a")
+
+        harness.store.eraseData(for: "user-a")
+
+        XCTAssertNil(harness.store.activeUserID)
+        XCTAssertEqual(harness.store.loadSummary(), .empty)
+        XCTAssertNil(harness.defaults.object(forKey: deletedKey))
+        XCTAssertNil(harness.defaults.object(forKey: deletedKey + ".corrupt"))
+        XCTAssertFalse(harness.store.hasPendingSync(for: "user-a"))
+        let reopened = StatisticsStore(userDefaults: harness.defaults, key: harness.key)
+        reopened.activateAuthenticatedUser("user-b")
+        XCTAssertEqual(reopened.loadSummary().correctAnswers, 2)
+        XCTAssertEqual(harness.defaults.string(forKey: "language-setting"), "ru")
+    }
+
+    func testDeletedAccountCannotBeRestoredByLateResultFromAnotherStoreInstance() {
+        let harness = makeHarness()
+        let oldPresenterStore = StatisticsStore(userDefaults: harness.defaults, key: harness.key)
+        harness.store.activateAuthenticatedUser("deleted-user")
+        harness.store.recordAttempt(correctAnswers: 4, totalQuestions: 5)
+        let oldRequest = oldPresenterStore.makeSyncRequest(for: "deleted-user")
+
+        harness.store.eraseData(for: "deleted-user")
+        oldPresenterStore.recordAttempt(correctAnswers: 5, totalQuestions: 5,
+                                        accessibilityMode: false, for: "deleted-user")
+        oldPresenterStore.applySyncResponse(.init(
+            summary: StatisticsStore.summary(from: [.init(correctAnswers: 4, totalQuestions: 5)]),
+            acceptedAttemptIds: oldRequest.attempts.map(\.id), legacySummaryAccepted: true),
+            for: "deleted-user")
+        oldPresenterStore.activateAuthenticatedUser("deleted-user")
+
+        XCTAssertNil(oldPresenterStore.activeUserID)
+        XCTAssertEqual(oldPresenterStore.loadSummary(), .empty)
+        XCTAssertFalse(oldPresenterStore.hasPendingSync(for: "deleted-user"))
+        XCTAssertTrue(oldPresenterStore.makeSyncRequest(for: "deleted-user").attempts.isEmpty)
+        let reopened = StatisticsStore(userDefaults: harness.defaults, key: harness.key)
+        reopened.activateAuthenticatedUser("new-user")
+        reopened.recordAttempt(correctAnswers: 2, totalQuestions: 5)
+        XCTAssertEqual(reopened.loadSummary().correctAnswers, 2)
+    }
+
     func testApplyingSyncResponseKeepsOnlyUnacknowledgedAttemptsPending() {
         let harness = makeHarness()
         harness.store.recordAttempt(correctAnswers: 4, totalQuestions: 5)

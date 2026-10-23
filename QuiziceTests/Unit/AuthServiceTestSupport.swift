@@ -32,6 +32,9 @@ final class FakeGameCenterClient: GameCenterAuthenticating {
 }
 
 final class FakeAuthAPI: AuthAPI {
+    var deletionRequests: [(String, String)] = []
+    var deletionHandler: (() async throws -> Void)?
+    var recreationRequests = 0
     var authenticatedIdentities: [GameCenterIdentity] = []
     var authenticationErrors: [BackendAPIError] = []
     var syncRequests: [StatisticsStore.SyncRequest] = []
@@ -53,6 +56,16 @@ final class FakeAuthAPI: AuthAPI {
             expiresAt: Date(timeIntervalSince1970: 4_000_000_000),
             teamPlayerID: identity.teamPlayerId
         )
+    }
+
+    func authenticate(identity: GameCenterIdentity, recreateDeletedAccount: Bool) async throws -> AuthSession {
+        if recreateDeletedAccount { recreationRequests += 1 }
+        return try await authenticate(identity: identity)
+    }
+
+    func deleteAccount(accessToken: String, idempotencyKey: String) async throws {
+        deletionRequests.append((accessToken, idempotencyKey))
+        try await deletionHandler?()
     }
 
     func syncStatistics(

@@ -38,6 +38,7 @@ final class ThemeCatalogRepository: ThemeRepository {
 
     private var loadedThemes: [QuizTheme]?
     private var favoritePrincipal: String?
+    private var personalizationGeneration = UUID()
     var themes: [QuizTheme]? {
         get {
             let principal = accessTokenProvider.currentSession()?.userID
@@ -91,6 +92,17 @@ final class ThemeCatalogRepository: ThemeRepository {
 
     func setModelContext(_ context: ModelContext) {
         themeStore = SwiftDataThemeStore(context: context)
+    }
+
+    /// Prevents a response started before deletion from restoring favorites.
+    /// Catalog questions are public content; only their personalized flags reset.
+    @MainActor
+    func eraseCachedPersonalization() throws {
+        personalizationGeneration = UUID()
+        loadedThemes?.forEach { $0.isFavorite = false }
+        favoritePrincipal = nil
+        try themeStore?.erasePersonalization()
+        onCatalogReplaced?()
     }
 
     func loadData(forceReload: Bool = false) {
@@ -175,6 +187,7 @@ final class ThemeCatalogRepository: ThemeRepository {
         guard let backendContentAPI else { return false }
         let principal = accessTokenProvider.currentSession()?.userID
         let revision = preferenceStore.preferencesRevision(locale: locale)
+        let generation = personalizationGeneration
         do {
             let response = try await backendContentAPI.fetchThemes(locale: locale)
             try Task.checkCancellation()
@@ -206,6 +219,7 @@ final class ThemeCatalogRepository: ThemeRepository {
             // background executor and race with UI readers of `themes`.
             return await MainActor.run {
                 guard AppLocalizationStore.shared.resolvedLanguageCode == locale,
+                      personalizationGeneration == generation,
                       accessTokenProvider.currentSession()?.userID == principal else { return false }
                 // Catalog metadata is shared; account-specific favorites are
                 // persisted exclusively in the scoped preference store.
@@ -250,6 +264,7 @@ final class ThemeCatalogRepository: ThemeRepository {
         let principal = accessTokenProvider.currentSession()?.userID
         let storedIDs = preferenceStore.orderedPreferredThemeIDs(locale: locale)
         let revision = preferenceStore.preferencesRevision(locale: locale)
+        let generation = personalizationGeneration
         let favoriteThemeIDs: [String]
         if catalogOrigin == .backend {
             let availableIDs = Set((themes ?? []).map(\.stableID))
@@ -274,6 +289,7 @@ final class ThemeCatalogRepository: ThemeRepository {
             // the onCatalogReplaced callback run on the main queue.
             return await MainActor.run {
                 guard AppLocalizationStore.shared.resolvedLanguageCode == locale,
+                      personalizationGeneration == generation,
                       accessTokenProvider.currentSession()?.userID == principal,
                       preferenceStore.preferencesRevision(locale: locale) == revision else { return false }
                 preferenceStore.applyRemotePreferredThemeIDs(

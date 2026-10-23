@@ -317,3 +317,159 @@ final class HomeSettingsVisualStateTests: HomeScreenVisualStateTestCase {
     }
 
 }
+
+@MainActor
+final class SettingsAccountModelTests: XCTestCase {
+    func testUnavailableAccountDoesNotReportDeletionSuccess() async {
+        let model = SettingsAccountModel(manager: nil)
+
+        let result = await model.deleteAccount()
+
+        XCTAssertEqual(result, .unavailable)
+        XCTAssertFalse(model.canDelete)
+        XCTAssertFalse(model.canCreate)
+        XCTAssertFalse(model.isBusy)
+    }
+
+    func testDeletionWaitsForConfirmationAndBlocksDuplicateOperations() async {
+        let manager = SettingsAccountManagerStub()
+        let started = expectation(description: "Deletion request started")
+        manager.deletionStarted = { started.fulfill() }
+        manager.suspendsDeletion = true
+        let model = SettingsAccountModel(manager: manager)
+
+        let request = Task { await model.deleteAccount() }
+        await fulfillment(of: [started], timeout: 1)
+
+        XCTAssertEqual(model.operation, .deleting)
+        let duplicate = await model.deleteAccount()
+        let creation = await model.createAccount()
+        XCTAssertNil(duplicate)
+        XCTAssertNil(creation)
+        XCTAssertEqual(manager.deletionCount, 1)
+        XCTAssertEqual(manager.creationCount, 0)
+
+        manager.finishDeletion()
+        let result = await request.value
+
+        XCTAssertEqual(result, .deleted)
+        XCTAssertFalse(model.isBusy)
+        XCTAssertFalse(model.canDelete)
+        XCTAssertTrue(model.canCreate)
+    }
+
+    func testDeletionFailureCanBeRetriedWithoutPretendingSuccess() async {
+        let manager = SettingsAccountManagerStub()
+        manager.deletionError = URLError(.notConnectedToInternet)
+        let model = SettingsAccountModel(manager: manager)
+
+        let failure = await model.deleteAccount()
+
+        XCTAssertEqual(failure, .deletionFailed)
+        XCTAssertTrue(model.canDelete)
+        XCTAssertFalse(model.isBusy)
+        manager.deletionError = nil
+
+        let retry = await model.deleteAccount()
+
+        XCTAssertEqual(retry, .deleted)
+        XCTAssertEqual(manager.deletionCount, 2)
+    }
+
+    func testLocalCleanupFailureIsDistinctFromUnconfirmedServerDeletion() async {
+        let manager = SettingsAccountManagerStub()
+        manager.deletionError = AccountDeletionError.localCleanupFailed
+        let model = SettingsAccountModel(manager: manager)
+
+        let result = await model.deleteAccount()
+
+        XCTAssertEqual(result, .cleanupRequired)
+        XCTAssertTrue(model.canDelete)
+        XCTAssertFalse(model.isBusy)
+    }
+
+    func testExpiredDeletionSessionDoesNotCreateAccount() async {
+        let manager = SettingsAccountManagerStub()
+        manager.deletionError = AccountDeletionError.sessionExpired
+        let model = SettingsAccountModel(manager: manager)
+
+        let result = await model.deleteAccount()
+
+        XCTAssertEqual(result, .sessionExpired)
+        XCTAssertEqual(manager.creationCount, 0)
+        XCTAssertFalse(model.isBusy)
+    }
+
+    func testAccountCreationOnlyRunsExplicitlyAndSupportsRetry() async {
+        let manager = SettingsAccountManagerStub()
+        manager.accountDeletionAvailable = false
+        manager.canCreateAccount = true
+        manager.creationError = URLError(.timedOut)
+        let model = SettingsAccountModel(manager: manager)
+        model.refreshAvailability()
+
+        XCTAssertEqual(manager.creationCount, 0)
+        let failure = await model.createAccount()
+        XCTAssertEqual(failure, .creationFailed)
+        XCTAssertTrue(model.canCreate)
+        XCTAssertFalse(model.isBusy)
+        manager.creationError = nil
+
+        let retry = await model.createAccount()
+
+        XCTAssertEqual(retry, .created)
+        XCTAssertTrue(model.canDelete)
+        XCTAssertFalse(model.canCreate)
+        XCTAssertEqual(manager.creationCount, 2)
+    }
+
+    func testAvailabilityIsRecheckedBeforeSendingDeletion() async {
+        let manager = SettingsAccountManagerStub()
+        let model = SettingsAccountModel(manager: manager)
+        manager.accountDeletionAvailable = false
+
+        let result = await model.deleteAccount()
+
+        XCTAssertEqual(result, .unavailable)
+        XCTAssertEqual(manager.deletionCount, 0)
+        XCTAssertFalse(model.canDelete)
+    }
+}
+
+@MainActor
+private final class SettingsAccountManagerStub: AccountManaging {
+    var accountDeletionAvailable = true
+    var canCreateAccount = false
+    var deletionCount = 0
+    var creationCount = 0
+    var deletionError: Error?
+    var creationError: Error?
+    var suspendsDeletion = false
+    var deletionStarted: (() -> Void)?
+    private var deletionContinuation: CheckedContinuation<Void, Never>?
+
+    func deleteAccount() async throws {
+        deletionCount += 1
+        if suspendsDeletion {
+            await withCheckedContinuation { continuation in
+                deletionContinuation = continuation
+                deletionStarted?()
+            }
+        }
+        if let deletionError { throw deletionError }
+        accountDeletionAvailable = false
+        canCreateAccount = true
+    }
+
+    func finishDeletion() {
+        deletionContinuation?.resume()
+        deletionContinuation = nil
+    }
+
+    func createAccount() async throws {
+        creationCount += 1
+        if let creationError { throw creationError }
+        accountDeletionAvailable = true
+        canCreateAccount = false
+    }
+}

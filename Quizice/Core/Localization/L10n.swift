@@ -327,6 +327,10 @@ enum L10n {
         static var profileSectionTitle: String { L10n.localized("settings.section.profile", comment: "Settings profile section title") }
         static var profileSubtitle: String { L10n.localized("settings.profile.subtitle", comment: "Settings profile row subtitle") }
         static var profileUnavailableMessage: String { L10n.localized("settings.profile.unavailable_message", comment: "Settings profile unavailable alert message") }
+        static var privacyPolicy: String { L10n.localized("settings.privacy_policy", comment: "Privacy policy link title") }
+        static var privacyPolicySubtitle: String { L10n.localized("settings.privacy_policy.subtitle", comment: "Privacy policy link subtitle") }
+        static var privacyUnavailableTitle: String { L10n.localized("settings.privacy_policy.unavailable.title", comment: "Privacy policy link could not open title") }
+        static var privacyUnavailableMessage: String { L10n.localized("settings.privacy_policy.unavailable.message", comment: "Privacy policy link could not open message") }
         static var restartRequiredTitle: String { L10n.localized("settings.restart_required.title", comment: "Settings restart required alert title") }
         static var supportSectionTitle: String { L10n.localized("settings.section.support", comment: "Settings support section title") }
         static var design: String { L10n.localized("settings.design", comment: "Settings design row title") }
@@ -348,6 +352,35 @@ enum L10n {
 
         static func restartRequiredMessage(selection: String) -> String {
             L10n.formatted("settings.restart_required.message_format", comment: "Settings restart required alert message format", selection)
+        }
+
+        enum Account {
+            static var delete: String { L10n.localized("settings.account.delete", comment: "Delete account action") }
+            static var deleteSubtitle: String { L10n.localized("settings.account.delete.subtitle", comment: "Delete account row description") }
+            static var deleting: String { L10n.localized("settings.account.deleting", comment: "Account deletion in progress") }
+            static var deleteConfirmationTitle: String { L10n.localized("settings.account.delete.confirm.title", comment: "Account deletion confirmation title") }
+            static var deleteConfirmationMessage: String { L10n.localized("settings.account.delete.confirm.message", comment: "Account deletion consequences") }
+            static var deletedTitle: String { L10n.localized("settings.account.deleted.title", comment: "Account deletion succeeded title") }
+            static var deletedMessage: String { L10n.localized("settings.account.deleted.message", comment: "Account deletion succeeded message") }
+            static var deletionFailedTitle: String { L10n.localized("settings.account.delete.failed.title", comment: "Account deletion failed title") }
+            static var deletionFailedMessage: String { L10n.localized("settings.account.delete.failed.message", comment: "Account deletion failed retry guidance") }
+            static var cleanupRequiredTitle: String { L10n.localized("settings.account.cleanup.title", comment: "Local account cleanup required title") }
+            static var cleanupRequiredMessage: String { L10n.localized("settings.account.cleanup.message", comment: "Server account deleted but local cleanup needs retry") }
+            static var sessionExpiredTitle: String { L10n.localized("settings.account.session_expired.title", comment: "Account deletion session expired title") }
+            static var sessionExpiredMessage: String { L10n.localized("settings.account.session_expired.message", comment: "Account deletion session expired explanation") }
+            static var create: String { L10n.localized("settings.account.create", comment: "Explicitly create a new account action") }
+            static var createSubtitle: String { L10n.localized("settings.account.create.subtitle", comment: "Create a new account row description") }
+            static var creating: String { L10n.localized("settings.account.creating", comment: "Account creation in progress") }
+            static var createConfirmationTitle: String { L10n.localized("settings.account.create.confirm.title", comment: "New account confirmation title") }
+            static var createConfirmationMessage: String { L10n.localized("settings.account.create.confirm.message", comment: "New account does not restore deleted data") }
+            static var createdTitle: String { L10n.localized("settings.account.created.title", comment: "New account creation succeeded title") }
+            static var createdMessage: String { L10n.localized("settings.account.created.message", comment: "New account creation succeeded message") }
+            static var creationFailedTitle: String { L10n.localized("settings.account.create.failed.title", comment: "New account creation failed title") }
+            static var creationFailedMessage: String { L10n.localized("settings.account.create.failed.message", comment: "New account creation failed message") }
+            static var unavailableTitle: String { L10n.localized("settings.account.unavailable.title", comment: "Account management unavailable title") }
+            static var unavailableMessage: String { L10n.localized("settings.account.unavailable.message", comment: "No connected Quizice account available") }
+            static var cancel: String { L10n.localized("settings.account.cancel", comment: "Cancel account operation") }
+            static var retry: String { L10n.localized("settings.account.retry", comment: "Retry account operation") }
         }
 
         enum Icon {

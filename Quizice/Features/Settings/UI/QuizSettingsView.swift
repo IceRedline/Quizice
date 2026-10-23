@@ -29,6 +29,13 @@ private enum Layout {
 }
 
 struct QuizSettingsView: View {
+    enum AccessibilityID {
+        static let deleteAccount = "settingsDeleteAccount"
+        static let createAccount = "settingsCreateAccount"
+        static let accountUnavailable = "settingsAccountUnavailable"
+        static let privacyPolicy = "settingsPrivacyPolicy"
+    }
+
     private enum AppIcon: String, CaseIterable, Identifiable {
         case classic
         case dark
@@ -53,37 +60,8 @@ struct QuizSettingsView: View {
         }
     }
 
-    private enum SettingsAlert: Identifiable {
-        case restart(String)
-        case profile
-        case feedback
-
-        var id: String {
-            switch self {
-            case let .restart(title): return "restart-\(title)"
-            case .profile: return "profile"
-            case .feedback: return "feedback"
-            }
-        }
-
-        var title: String {
-            switch self {
-            case .restart: return L10n.Settings.restartRequiredTitle
-            case .profile: return L10n.Settings.profile
-            case .feedback: return L10n.Settings.feedback
-            }
-        }
-
-        var message: String {
-            switch self {
-            case let .restart(title): return L10n.Settings.restartRequiredMessage(selection: title)
-            case .profile: return L10n.Settings.profileUnavailableMessage
-            case .feedback: return L10n.Settings.feedbackUnavailableMessage
-            }
-        }
-    }
-
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.openURL) var openURL
     @Environment(\.colorScheme) private var colorScheme
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @AppStorage(AppAppearanceStore.Keys.cleanColorScheme) private var selectedThemeID = CleanColorSchemePreference.system.rawValue
@@ -92,15 +70,17 @@ struct QuizSettingsView: View {
     @AppStorage(AppLocalizationStore.Keys.language) private var selectedLanguageID = AppLanguagePreference.system.rawValue
     @AppStorage("quizice.settings.icon") private var selectedIconID = AppIcon.classic.rawValue
     @AppStorage(QuestionRepeatStrategyStore.defaultsKey) private var repeatStrategyID = QuestionRepeatStrategy.showAll.rawValue
-    @State private var activeAlert: SettingsAlert?
+    @State var activeAlert: SettingsAlert?
     @State private var showsQuestionStrategyHelp = false
     @State private var didTrackScreen = false
-    @State private var allowsPersonalizedRepeats: Bool
-    private let analytics: AnalyticsTracking
-    private let personalizedRepeatsAvailable: () -> Bool
+    @State var allowsPersonalizedRepeats: Bool
+    @StateObject var account: SettingsAccountModel
+    let analytics: AnalyticsTracking
+    let personalizedRepeatsAvailable: () -> Bool
 
     init(
         analytics: AnalyticsTracking = AppMetricaAnalyticsTracker.shared,
+        accountManager: (any AccountManaging)? = nil,
         personalizedRepeatsAvailable: @escaping () -> Bool = {
             ThemeCatalogRepository.shared.catalogOrigin == .backend
                 && StoredBackendAccessTokenProvider().validAccessToken() != nil
@@ -109,6 +89,7 @@ struct QuizSettingsView: View {
         self.analytics = analytics
         self.personalizedRepeatsAvailable = personalizedRepeatsAvailable
         _allowsPersonalizedRepeats = State(initialValue: personalizedRepeatsAvailable())
+        _account = StateObject(wrappedValue: SettingsAccountModel(manager: accountManager))
     }
 
     private var selectedTheme: CleanColorSchemePreference {
@@ -135,7 +116,7 @@ struct QuizSettingsView: View {
         AppIcon(rawValue: selectedIconID) ?? .classic
     }
 
-    private var appearance: AppAppearance {
+    var appearance: AppAppearance {
         let traitCollection = UITraitCollection(userInterfaceStyle: selectedTheme.traitUserInterfaceStyle(fallback: colorScheme))
         return AppAppearance(
             designStyle: selectedDesignStyle,
@@ -164,24 +145,27 @@ struct QuizSettingsView: View {
         .environment(\.appAppearance, appearance)
         .preferredColorScheme(appearance.swiftUIColorScheme)
         .tint(Color(uiColor: appearance.screenTextColor))
-        .alert(item: $activeAlert) { alert in
-            Alert(
-                title: Text(alert.title),
-                message: Text(alert.message),
-                dismissButton: .default(Text(L10n.Settings.alertAction))
-            )
-        }
+        .interactiveDismissDisabled(account.isBusy)
+        .alert(item: $activeAlert, content: makeAlert)
         .onReceive(NotificationCenter.default.publisher(for: .backendAuthenticationEstablished)) { _ in
             allowsPersonalizedRepeats = personalizedRepeatsAvailable()
+            account.refreshAvailability()
         }
         .onReceive(NotificationCenter.default.publisher(for: .backendAuthenticationInvalidated)) { _ in
             allowsPersonalizedRepeats = false
+            account.refreshAvailability()
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .backendAccountDeleted)) { _ in
+            allowsPersonalizedRepeats = false
+            account.refreshAvailability()
         }
         .onReceive(NotificationCenter.default.publisher(for: UIApplication.didBecomeActiveNotification)) { _ in
             allowsPersonalizedRepeats = personalizedRepeatsAvailable()
+            account.refreshAvailability()
         }
         .onAppear {
             allowsPersonalizedRepeats = personalizedRepeatsAvailable()
+            account.refreshAvailability()
             guard !didTrackScreen else { return }
             didTrackScreen = true
             analytics.track(.screenView(screen: .settings))
@@ -240,21 +224,9 @@ struct QuizSettingsView: View {
                     .frame(minWidth: 44, minHeight: 44)
             }
             .buttonStyle(QuizPressButtonStyle())
+            .disabled(account.isBusy)
         }
             .padding(.bottom, Layout.titleBottomSpacing)
-    }
-
-    private var profileSection: some View {
-        SettingsSection(title: L10n.Settings.profileSectionTitle) {
-            SettingsActionRow(
-                systemImage: "person.crop.circle.fill",
-                title: L10n.Settings.profile,
-                subtitle: L10n.Settings.profileSubtitle
-            ) {
-                analytics.track(.settingsAction(.profile))
-                activeAlert = .profile
-            }
-        }
     }
 
     private var questionStrategySection: some View {
@@ -446,26 +418,13 @@ struct QuizSettingsView: View {
         }
     }
 
-    private var supportSection: some View {
-        SettingsSection(title: L10n.Settings.supportSectionTitle) {
-            SettingsActionRow(
-                systemImage: "star.bubble.fill",
-                title: L10n.Settings.feedback,
-                subtitle: L10n.Settings.feedbackSubtitle
-            ) {
-                analytics.track(.settingsAction(.feedback))
-                activeAlert = .feedback
-            }
-        }
-    }
-
     private func trackSettingChange(setting: AnalyticsSetting, oldValue: String, newValue: String) {
         guard oldValue != newValue else { return }
         analytics.track(.settingChanged(setting: setting, oldValue: oldValue, newValue: newValue))
     }
 }
 
-private struct SettingsSection<Content: View>: View {
+struct SettingsSection<Content: View>: View {
     @Environment(\.appAppearance) private var appearance
 
     let title: String
@@ -520,26 +479,33 @@ private struct SettingsSection<Content: View>: View {
     }
 }
 
-private struct SettingsActionRow: View {
+struct SettingsActionRow: View {
     @Environment(\.appAppearance) private var appearance
 
     let systemImage: String
     let title: String
     let subtitle: String
+    var role: ButtonRole?
+    var isLoading = false
     let action: () -> Void
 
     var body: some View {
-        Button(action: action) {
+        Button(role: role, action: action) {
             HStack(spacing: Layout.rowSpacing) {
-                SettingsRowHeader(systemImage: systemImage, title: title, subtitle: subtitle)
+                SettingsRowHeader(systemImage: systemImage, title: title, subtitle: subtitle, isDestructive: role == .destructive)
                     .layoutPriority(1)
 
                 Spacer(minLength: Layout.rowAccessoryMinimumSpacing)
 
-                Image(systemName: "chevron.right")
-                    .font(appearance.typography.swiftUIFont(size: 13, weight: .bold))
-                    .foregroundStyle(Color(uiColor: appearance.secondarySurfaceTextColor))
-                    .accessibilityHidden(true)
+                if isLoading {
+                    ProgressView()
+                        .accessibilityHidden(true)
+                } else {
+                    Image(systemName: "chevron.right")
+                        .font(appearance.typography.swiftUIFont(size: 13, weight: .bold))
+                        .foregroundStyle(Color(uiColor: appearance.secondarySurfaceTextColor))
+                        .accessibilityHidden(true)
+                }
             }
             .contentShape(Rectangle())
         }
@@ -628,12 +594,13 @@ private struct SettingsValueRow: View {
     }
 }
 
-private struct SettingsRowHeader: View {
+struct SettingsRowHeader: View {
     @Environment(\.appAppearance) private var appearance
 
     let systemImage: String
     let title: String
     let subtitle: String
+    var isDestructive = false
 
     var body: some View {
         HStack(spacing: Layout.rowSpacing) {
@@ -649,7 +616,7 @@ private struct SettingsRowHeader: View {
             VStack(alignment: .leading, spacing: Layout.rowTextSpacing) {
                 Text(title)
                     .font(appearance.typography.swiftUIFont(size: 17, weight: .semibold))
-                    .foregroundStyle(Color(uiColor: appearance.surfaceTextColor))
+                    .foregroundStyle(isDestructive ? Color.red : Color(uiColor: appearance.surfaceTextColor))
 
                 if !subtitle.isEmpty {
                     Text(subtitle)

@@ -134,6 +134,29 @@ final class OnboardingProgressStore: OnboardingProgressStoring {
         userDefaults.integer(forKey: scopedKey("quizice.preferences.revision." + locale))
     }
 
+    /// Removes favorites for the deleted account in every language. Guest
+    /// snapshots can contain copies claimed by that account, so erase those too.
+    /// Onboarding completion, language, appearance and other accounts are kept.
+    func eraseData(for userID: String) {
+        let suffix = ".user." + Data(userID.utf8).base64EncodedString()
+        let preferencePrefixes = [
+            Keys.localizedPreferredThemeIDsPrefix,
+            Keys.pendingThemePreferencesPrefix,
+            "quizice.preferences.revision.",
+            "quizice.preferences.unclaimedGuest."
+        ]
+        for key in userDefaults.dictionaryRepresentation().keys {
+            let isPreference = preferencePrefixes.contains { key.hasPrefix($0) }
+            let isDeletedAccount = key.hasSuffix(suffix)
+            let isGuest = !key.contains(".user.")
+            if isPreference && (isDeletedAccount || isGuest) {
+                userDefaults.removeObject(forKey: key)
+            }
+        }
+        userDefaults.removeObject(forKey: Keys.preferredThemeIDs)
+        userDefaults.removeObject(forKey: Keys.legacyPreferencesMigrationLocale)
+    }
+
     private func advanceRevision(locale: String) {
         userDefaults.set(preferencesRevision(locale: locale) + 1,
                          forKey: scopedKey("quizice.preferences.revision." + locale))
