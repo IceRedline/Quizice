@@ -259,7 +259,7 @@
 "settings.account.delete.confirm.title" = "Удалить аккаунт Quizice?";
 "settings.account.delete.confirm.message" = "Ваш аккаунт Quizice, игровой прогресс, статистика и избранные темы будут безвозвратно удалены с сервера и этого устройства. Отменить удаление нельзя. Ваш аккаунт Game Center не будет удалён или изменён.";
 "settings.account.deleted.title" = "Аккаунт удалён";
-"settings.account.deleted.message" = "Ваш аккаунт Quizice и его данные удалены. Аккаунт Game Center не изменён. Можно продолжить игру в гостевом режиме.";
+"settings.account.deleted.message" = "Ваш аккаунт Quizice и его данные удалены. Аккаунт Game Center не изменён. Чтобы играть, создайте новый аккаунт Quizice.";
 "settings.account.delete.failed.title" = "Удаление не подтверждено";
 "settings.account.delete.failed.message" = "Не удалось подтвердить удаление аккаунта. Проверьте подключение к интернету и попробуйте снова.";
 "settings.account.cleanup.title" = "Завершите очистку устройства";
@@ -279,3 +279,12 @@
 "settings.account.unavailable.message" = "Нет подключённого аккаунта Quizice для управления. Проверьте вход в Game Center и подключение к интернету.";
 "settings.account.cancel" = "Отмена";
 "settings.account.retry" = "Повторить";
+
+/* Required account start screen */
+"account_start.connecting.title" = "Подключаем аккаунт";
+"account_start.sign_in.message" = "Для игры войдите через Game Center. Если не получается, проверьте интернет и вход в Game Center в настройках устройства.";
+"account_start.sign_in.action" = "Продолжить с Game Center";
+"account_start.deletion_pending.title" = "Завершите удаление";
+"account_start.deletion_pending.message" = "Удаление аккаунта ещё не завершено. Повторите запрос, чтобы удалить аккаунт и его данные.";
+"account_start.deletion_pending.action" = "Повторить удаление";
+"account_start.deletion_pending.sign_in" = "Чтобы завершить удаление, войдите в исходный аккаунт Game Center в настройках iPhone и повторите попытку.";

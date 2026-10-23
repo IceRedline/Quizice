@@ -259,7 +259,7 @@
 "settings.account.delete.confirm.title" = "Supprimer votre compte Quizice ?";
 "settings.account.delete.confirm.message" = "Votre compte Quizice, votre progression, vos statistiques et vos thèmes favoris seront définitivement supprimés du serveur et de cet appareil. Cette action est irréversible. Votre compte Game Center ne sera ni supprimé ni modifié.";
 "settings.account.deleted.title" = "Compte supprimé";
-"settings.account.deleted.message" = "Votre compte Quizice et ses données ont été supprimés. Votre compte Game Center est inchangé. Vous pouvez continuer à jouer en tant qu’invité.";
+"settings.account.deleted.message" = "Votre compte Quizice et ses données ont été supprimés. Votre compte Game Center est inchangé. Créez un nouveau compte Quizice pour jouer.";
 "settings.account.delete.failed.title" = "Suppression non confirmée";
 "settings.account.delete.failed.message" = "La suppression du compte n’a pas pu être confirmée. Vérifiez votre connexion Internet et réessayez.";
 "settings.account.cleanup.title" = "Terminer le nettoyage de cet appareil";
@@ -279,3 +279,12 @@
 "settings.account.unavailable.message" = "Aucun compte Quizice connecté n’est disponible à gérer. Vérifiez votre connexion à Game Center et à Internet.";
 "settings.account.cancel" = "Annuler";
 "settings.account.retry" = "Réessayer";
+
+/* Required account start screen */
+"account_start.connecting.title" = "Connexion à votre compte";
+"account_start.sign_in.message" = "Connectez-vous avec Game Center pour jouer. En cas d’échec, vérifiez Internet et la connexion à Game Center dans les réglages de l’appareil.";
+"account_start.sign_in.action" = "Continuer avec Game Center";
+"account_start.deletion_pending.title" = "Terminez la suppression";
+"account_start.deletion_pending.message" = "La suppression du compte n’est pas encore terminée. Réessayez pour supprimer votre compte et ses données.";
+"account_start.deletion_pending.action" = "Réessayer la suppression";
+"account_start.deletion_pending.sign_in" = "Pour terminer la suppression, connectez-vous au compte Game Center d’origine dans les Réglages de l’iPhone, puis réessayez.";

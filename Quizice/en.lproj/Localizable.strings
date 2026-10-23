@@ -259,7 +259,7 @@
 "settings.account.delete.confirm.title" = "Delete your Quizice account?";
 "settings.account.delete.confirm.message" = "This permanently deletes your Quizice account, game progress, statistics, and favorite themes from the server and this device. This cannot be undone. Your Game Center account will not be deleted or changed.";
 "settings.account.deleted.title" = "Account deleted";
-"settings.account.deleted.message" = "Your Quizice account and its data have been deleted. Your Game Center account is unchanged. You can continue playing as a guest.";
+"settings.account.deleted.message" = "Your Quizice account and its data have been deleted. Your Game Center account is unchanged. Create a new Quizice account to play.";
 "settings.account.delete.failed.title" = "Deletion not confirmed";
 "settings.account.delete.failed.message" = "We could not confirm account deletion. Check your internet connection and try again.";
 "settings.account.cleanup.title" = "Finish clearing this device";
@@ -279,3 +279,12 @@
 "settings.account.unavailable.message" = "No connected Quizice account is available to manage. Check your Game Center sign-in and internet connection.";
 "settings.account.cancel" = "Cancel";
 "settings.account.retry" = "Try again";
+
+/* Required account start screen */
+"account_start.connecting.title" = "Connecting your account";
+"account_start.sign_in.message" = "Continue with Game Center to play. If sign-in fails, check your internet connection and Game Center sign-in in device Settings.";
+"account_start.sign_in.action" = "Continue with Game Center";
+"account_start.deletion_pending.title" = "Finish deleting your account";
+"account_start.deletion_pending.message" = "Account deletion is not yet complete. Retry the request to delete your account and its data.";
+"account_start.deletion_pending.action" = "Retry account deletion";
+"account_start.deletion_pending.sign_in" = "To finish deletion, sign in to the original Game Center account in iPhone Settings, then try again.";

@@ -13,8 +13,65 @@ final class QuizFlowCoordinatorNavigationTests: QuizFlowCoordinatorTestCase {
 
         XCTAssertEqual(harness.navigationController.popToRootCallCount, 1)
         XCTAssertEqual(harness.navigationController.popToRootAnimationFlags, [false])
-        XCTAssertEqual(harness.navigationController.dismissCallCount, 1)
-        XCTAssertEqual(harness.navigationController.dismissAnimationFlags, [true])
+        XCTAssertEqual(harness.navigationController.dismissCallCount, 0)
+        XCTAssertTrue(harness.navigationController.dismissAnimationFlags.isEmpty)
+    }
+
+    func testAccountNavigationResetCompletesWhenHomeHasNoPresentedController() async throws {
+        let harness = try makeRealNavigationResetHarness()
+        defer { harness.dispose() }
+        let home = try XCTUnwrap(harness.navigationController.topViewController as? QuizViewController)
+        let resetCompleted = expectation(description: "Reset completes without a UIKit dismissal")
+        resetCompleted.assertForOverFulfill = true
+        XCTAssertNil(harness.navigationController.presentedViewController)
+
+        harness.coordinator.resetAccountNavigation {
+            XCTAssertTrue(harness.window.rootViewController === harness.navigationController)
+            XCTAssertTrue(harness.navigationController.topViewController === home)
+            XCTAssertTrue(home.view.window === harness.window)
+            XCTAssertNil(harness.navigationController.presentedViewController)
+            resetCompleted.fulfill()
+        }
+
+        await fulfillment(of: [resetCompleted], timeout: 5)
+        XCTAssertEqual(harness.navigationController.viewControllers.count, 1)
+    }
+
+    func testAccountNavigationResetWaitsForRealSettingsAndOnboardingDismissal() async throws {
+        UIView.setAnimationsEnabled(false)
+        for presentsOnboarding in [false, true] {
+            let harness = try makeRealNavigationResetHarness()
+            defer { harness.dispose() }
+            let home = try XCTUnwrap(harness.navigationController.topViewController as? QuizViewController)
+            if presentsOnboarding {
+                let presented = expectation(description: "Onboarding presented before reset")
+                harness.coordinator.presentInitialOnboardingIfNeeded { presented.fulfill() }
+                await fulfillment(of: [presented], timeout: 5)
+                XCTAssertTrue(harness.navigationController.presentedViewController is UIHostingController<QuizOnboardingView>)
+            } else {
+                harness.coordinator.showSettings()
+                try await waitUntil(timeout: 5) {
+                    let presented = harness.navigationController.presentedViewController
+                    return presented?.viewIfLoaded?.window === harness.window && presented?.isBeingPresented == false
+                }
+                XCTAssertTrue(harness.navigationController.presentedViewController is UIHostingController<QuizSettingsView>)
+            }
+            let presentedController = try XCTUnwrap(harness.navigationController.presentedViewController)
+            let resetCompleted = expectation(description: "Reset completes after the old account modal disappears")
+            resetCompleted.assertForOverFulfill = true
+
+            harness.coordinator.resetAccountNavigation {
+                XCTAssertNil(harness.navigationController.presentedViewController)
+                XCTAssertNil(presentedController.presentingViewController)
+                XCTAssertTrue(harness.window.rootViewController === harness.navigationController)
+                XCTAssertTrue(harness.navigationController.topViewController === home)
+                XCTAssertTrue(home.view.window === harness.window)
+                resetCompleted.fulfill()
+            }
+
+            await fulfillment(of: [resetCompleted], timeout: 5)
+            XCTAssertEqual(harness.navigationController.viewControllers.count, 1)
+        }
     }
 
     func testImmediateQuestionReturnExplicitlyRestoresLuckyHomeInteraction() async throws {
@@ -267,7 +324,7 @@ final class QuizFlowCoordinatorNavigationTests: QuizFlowCoordinatorTestCase {
         harness.coordinator.returnToThemes()
 
         XCTAssertEqual(harness.navigationController.popToRootAnimationFlags, [false])
-        XCTAssertEqual(harness.navigationController.dismissAnimationFlags, [true])
+        XCTAssertTrue(harness.navigationController.dismissAnimationFlags.isEmpty)
     }
 
     func testModalRoutesPresentQuestionResultAndSettings() {
@@ -331,6 +388,36 @@ final class QuizFlowCoordinatorNavigationTests: QuizFlowCoordinatorTestCase {
         XCTAssertEqual(receivedActions, ["close"])
     }
 
+    private func makeRealNavigationResetHarness() throws -> RealNavigationResetHarness {
+        let scene = try XCTUnwrap(UIApplication.shared.connectedScenes.compactMap { $0 as? UIWindowScene }.first)
+        let previousKeyWindow = scene.windows.first(where: \.isKeyWindow)
+        let window = UIWindow(windowScene: scene)
+        let navigationController = UINavigationController()
+        let suiteName = "QuizFlowCoordinatorNavigationResetTests.\(UUID().uuidString)"
+        let defaults = try XCTUnwrap(UserDefaults(suiteName: suiteName))
+        let coordinator = QuizFlowCoordinator(
+            window: window,
+            navigationController: navigationController,
+            themeRepository: RoutingThemeRepository(themes: []),
+            session: RoutingSession(),
+            aiQuizThemeService: MockAIQuizThemeService(),
+            onboardingProgressStore: OnboardingProgressStore(userDefaults: defaults),
+            analytics: InlineAIAnalyticsSpy()
+        )
+        coordinator.start()
+        window.makeKeyAndVisible()
+        window.layoutIfNeeded()
+        navigationController.view.layoutIfNeeded()
+        return RealNavigationResetHarness(
+            window: window,
+            previousKeyWindow: previousKeyWindow,
+            navigationController: navigationController,
+            coordinator: coordinator,
+            defaults: defaults,
+            suiteName: suiteName
+        )
+    }
+
     func testResultRouteUsesTheCoordinatorSession() throws {
         let harness = makeHarness()
         harness.session.chosenTheme = ThemeModel(
@@ -348,6 +435,24 @@ final class QuizFlowCoordinatorNavigationTests: QuizFlowCoordinatorTestCase {
             harness.navigationController.presentedControllers.last as? QuizResultViewController
         )
         XCTAssertEqual(resultViewController.presenter?.themeID, "injected-session")
+    }
+}
+
+@MainActor
+private struct RealNavigationResetHarness {
+    let window: UIWindow
+    let previousKeyWindow: UIWindow?
+    let navigationController: UINavigationController
+    let coordinator: QuizFlowCoordinator
+    let defaults: UserDefaults
+    let suiteName: String
+
+    func dispose() {
+        navigationController.dismiss(animated: false)
+        window.isHidden = true
+        window.rootViewController = nil
+        previousKeyWindow?.makeKey()
+        defaults.removePersistentDomain(forName: suiteName)
     }
 }
 

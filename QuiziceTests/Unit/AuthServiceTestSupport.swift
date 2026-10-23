@@ -6,6 +6,8 @@ import XCTest
 @MainActor
 final class FakeGameCenterClient: GameCenterAuthenticating {
     private var stateChanged: ((GameCenterPlayerState) -> Void)?
+    private(set) var startCount = 0
+    var identityError: Error?
     var identity = GameCenterIdentity(
         teamPlayerId: "team-1",
         bundleId: "ru.avtabenskiy.Quizice",
@@ -20,10 +22,12 @@ final class FakeGameCenterClient: GameCenterAuthenticating {
         stateChanged: @escaping (GameCenterPlayerState) -> Void
     ) {
         self.stateChanged = stateChanged
+        startCount += 1
     }
 
     func fetchIdentity(bundleIdentifier: String) async throws -> GameCenterIdentity {
-        identity
+        if let identityError { throw identityError }
+        return identity
     }
 
     func emit(_ state: GameCenterPlayerState) {

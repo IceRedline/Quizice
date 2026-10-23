@@ -19,6 +19,28 @@ enum AuthSessionState: Equatable {
     case deletionPending
 }
 
+/// Only authenticated accounts may enter the app's quiz screens. The legacy
+/// guest storage scope is never an app-access state.
+enum AppAccountAccessState: Equatable {
+    case loading
+    case signInRequired
+    case authenticated
+    case deletionPending
+    case deleted
+}
+
+@MainActor
+protocol AppAccountAccessProviding: AnyObject {
+    var accountAccessState: AppAccountAccessState { get }
+    var authenticatedAccountID: String? { get }
+    var accountAccessStateDidChange: ((AppAccountAccessState) -> Void)? { get set }
+    func signIn(present: @escaping (UIViewController) -> Void)
+}
+
+extension AppAccountAccessProviding {
+    var authenticatedAccountID: String? { nil }
+}
+
 @MainActor
 protocol AccountManaging: AnyObject {
     var accountDeletionAvailable: Bool { get }

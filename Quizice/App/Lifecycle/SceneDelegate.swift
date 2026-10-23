@@ -7,6 +7,7 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
     private var coordinator: QuizFlowCoordinator?
     private let launchOverlayPresenter = LaunchOverlayPresenter()
     private var authenticationService: GameCenterAuthenticationService?
+    private var accountAccessPresenter: AppAccountAccessPresenter?
 
     func scene(
         _ scene: UIScene,
@@ -38,28 +39,38 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
             let appearance = AppAppearanceStore.shared.appearance(
                 compatibleWith: window.traitCollection
             )
-            launchOverlayPresenter.present(
-                in: window,
-                appearance: appearance,
-                preparation: { [weak coordinator] in
-                    await coordinator?.prepareInitialCatalog()
-                },
+            let accountAccessPresenter = AppAccountAccessPresenter(
+                window: window,
+                accessProvider: authenticationService,
+                accountManager: authenticationService,
                 prepareContentForReveal: { [weak coordinator] completion in
                     guard let coordinator else { completion(); return }
                     coordinator.presentInitialOnboardingIfNeeded(completion: completion)
                 },
-                onDismissed: { [weak coordinator, weak authenticationService] in
+                resetContent: { [weak coordinator] completion in
+                    guard let coordinator else { completion(); return }
+                    coordinator.resetAccountNavigation(completion: completion)
+                },
+                presentSystemContent: { [weak coordinator] in coordinator?.presentSystemViewController($0) }
+            )
+            self.accountAccessPresenter = accountAccessPresenter
+            accountAccessPresenter.start()
+            launchOverlayPresenter.present(
+                in: window,
+                appearance: appearance,
+                preparation: { [weak coordinator] in await coordinator?.prepareInitialCatalog() },
+                prepareContentForReveal: { [weak accountAccessPresenter] completion in
+                    guard let accountAccessPresenter else { completion(); return }
+                    accountAccessPresenter.prepareInitialContent(completion: completion)
+                },
+                onDismissed: { [weak coordinator, weak authenticationService, weak accountAccessPresenter] in
+                    accountAccessPresenter?.launchDidFinish()
+                    guard authenticationService?.accountAccessState == .authenticated else { return }
                     coordinator?.restoreInitialAccessibilityFocusAfterLaunch()
-                    authenticationService?.start { [weak coordinator] viewController in
-                        coordinator?.presentSystemViewController(viewController)
-                    }
-                    // If the player is already signed in, GameKit shows its own
-                    // "welcome back" banner in a system-owned window right after
-                    // this call — outside our control — which steals VoiceOver
-                    // focus and leaves it stuck on the status bar area once the
-                    // banner disappears. Reclaim focus once it's had time to
-                    // show and auto-dismiss.
-                    DispatchQueue.main.asyncAfter(deadline: .now() + Self.gameCenterBannerSettleDelay) { [weak coordinator] in
+                    // GameKit's welcome banner can temporarily take VoiceOver focus.
+                    DispatchQueue.main.asyncAfter(deadline: .now() + Self.gameCenterBannerSettleDelay) {
+                        [weak coordinator, weak authenticationService] in
+                        guard authenticationService?.accountAccessState == .authenticated else { return }
                         coordinator?.restoreInitialAccessibilityFocusAfterLaunch()
                     }
                 }
@@ -67,6 +78,9 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         }
         window.makeKeyAndVisible()
         self.window = window
+        authenticationService?.start { [weak accountAccessPresenter] in
+            accountAccessPresenter?.presentSystemViewController($0)
+        }
 
     }
 
@@ -76,6 +90,7 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         // Release any resources associated with this scene that can be re-created the next time the scene connects.
         // The scene may re-connect later, as its session was not necessarily discarded (see `application:didDiscardSceneSessions` instead).
         launchOverlayPresenter.dismiss(animated: false)
+        accountAccessPresenter?.stop()
     }
 
     func sceneDidBecomeActive(_ scene: UIScene) {

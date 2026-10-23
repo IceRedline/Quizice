@@ -136,7 +136,6 @@ extension QuizSettingsView {
                     systemImage: "trash",
                     title: account.operation == .deleting ? L10n.Settings.Account.deleting : L10n.Settings.Account.delete,
                     subtitle: L10n.Settings.Account.deleteSubtitle,
-                    role: .destructive,
                     isLoading: account.operation == .deleting
                 ) {
                     activeAlert = .deleteAccount
@@ -234,9 +233,11 @@ extension QuizSettingsView {
         }
     }
 
-    private func presentAccountOutcome(_ outcome: SettingsAccountModel.Outcome) {
+    func presentAccountOutcome(_ outcome: SettingsAccountModel.Outcome) {
         switch outcome {
-        case .deleted: activeAlert = .accountDeleted
+        case .deleted:
+            activeAlert = nil
+            onAccountDeleted()
         case .created: activeAlert = .accountCreated
         case .deletionFailed: activeAlert = .deletionFailed
         case .creationFailed: activeAlert = .creationFailed

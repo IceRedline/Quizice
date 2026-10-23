@@ -19,6 +19,16 @@ enum L10n {
         static var yes: String { L10n.localized("common.yes", comment: "Positive alert action title") }
     }
 
+    enum AccountStart {
+        static var deletionSignInRequired: String { L10n.localized("account_start.deletion_pending.sign_in", comment: "Sign in to the original Game Center account to finish deletion") }
+        static var connectingTitle: String { L10n.localized("account_start.connecting.title", comment: "Account connection in progress") }
+        static var signInMessage: String { L10n.localized("account_start.sign_in.message", comment: "Game Center sign-in required before playing") }
+        static var continueWithGameCenter: String { L10n.localized("account_start.sign_in.action", comment: "Explicit Game Center sign-in action") }
+        static var deletionPendingTitle: String { L10n.localized("account_start.deletion_pending.title", comment: "Account deletion must finish before playing") }
+        static var deletionPendingMessage: String { L10n.localized("account_start.deletion_pending.message", comment: "Finish pending account deletion guidance") }
+        static var retryDeletion: String { L10n.localized("account_start.deletion_pending.action", comment: "Retry pending account deletion action") }
+    }
+
     enum Onboarding {
         static var skip: String { L10n.localized("onboarding.action.skip", comment: "Skip onboarding button title") }
         static var getStarted: String { L10n.localized("onboarding.action.get_started", comment: "Finish onboarding button title") }
