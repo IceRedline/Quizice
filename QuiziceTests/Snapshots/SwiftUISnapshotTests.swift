@@ -681,17 +681,24 @@ final class SwiftUISnapshotTests: XCTestCase {
             86
         )
         XCTAssertTrue(presenter.present(overlay, appearance: appearance, reduceMotion: true))
-        await fulfillment(of: [frameExpectation], timeout: 2)
-        await Task.yield()
-
-        guard let alertViewController = presenter.alertViewController,
-              let reportedCardFrame
-        else {
+        guard let alertViewController = presenter.alertViewController else {
             XCTFail("Full-screen alert was not presented")
             return
         }
 
+        // Drive the first layout before waiting for SwiftUI's geometry callback.
+        // The callback may still arrive asynchronously on a busy CI simulator.
+        window.layoutIfNeeded()
+        alertViewController.view.setNeedsLayout()
         alertViewController.view.layoutIfNeeded()
+        await fulfillment(of: [frameExpectation], timeout: 10)
+        await Task.yield()
+
+        guard let reportedCardFrame else {
+            XCTFail("Alert card geometry was not reported")
+            return
+        }
+
         let alertFrame = alertViewController.view.convert(alertViewController.view.bounds, to: window)
         XCTAssertTrue(alertViewController.view.window === window)
         XCTAssertEqual(alertFrame.minX, window.bounds.minX, accuracy: 0.5)
