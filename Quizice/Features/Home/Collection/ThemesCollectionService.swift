@@ -29,11 +29,9 @@ final class ThemesCollectionService: NSObject, UICollectionViewDelegate, UIColle
         static let itemSpacing: CGFloat = 16
         static let compactOuterItemSpacing: CGFloat = 12
         static let visibleThemeRowCount = 4
-        static let themeColumnCount = 2
         static let prominentActionCardHeight: CGFloat = 72
         static let accessibilityProminentActionCardHeight: CGFloat = 272
         static let aiThemeButtonHeight = prominentActionCardHeight
-        static let accessibilityAIThemeButtonHeight = accessibilityProminentActionCardHeight
         static let secondaryActionButtonHeight: CGFloat = 54
         static let subscriptionPromoHeight = prominentActionCardHeight
         static let accessibilitySubscriptionPromoHeight = accessibilityProminentActionCardHeight
@@ -144,24 +142,21 @@ final class ThemesCollectionService: NSObject, UICollectionViewDelegate, UIColle
     }
 
     private var visibleThemeLimit: Int {
-        activeViewportRowCount * Layout.themeColumnCount
+        activeViewportRowCount * activeThemeColumnCount
     }
 
     private var showsMoreThemesButton: Bool {
         displayedThemes.count > visibleThemeLimit
     }
 
-    private var maximumViewportRowCount: Int {
-        min(
-            Layout.visibleThemeRowCount,
-            max(
-                Int(ceil(Double(themeCount) / Double(Layout.themeColumnCount))),
-                1
-            )
-        )
-    }
-
     private var themeCount: Int { displayedThemes.count }
+    private var activeThemeColumnCount = 2 {
+        didSet {
+            guard oldValue != activeThemeColumnCount else { return }
+            updateThemeCatalogScrollAvailability()
+            configureMoreThemesButton()
+        }
+    }
     private var activeViewportRowCount = Layout.visibleThemeRowCount {
         didSet {
             guard oldValue != activeViewportRowCount else { return }
@@ -262,7 +257,8 @@ final class ThemesCollectionService: NSObject, UICollectionViewDelegate, UIColle
             cell.configure(
                 theme: theme,
                 appearance: appearance,
-                isSourceHidden: theme.stableID == presentedThemeID
+                isSourceHidden: theme.stableID == presentedThemeID,
+                grid: themeGrid(width: collectionView.bounds.width, traits: collectionView.traitCollection)
             )
             cell.actionButton.removeTarget(self, action: nil, for: .allEvents)
             cell.actionButton.addTarget(self, action: #selector(buttonTouchedDown(_:)), for: .touchDown)
@@ -348,7 +344,7 @@ final class ThemesCollectionService: NSObject, UICollectionViewDelegate, UIColle
         }
 
         if indexPath.item == aiThemeIndex {
-            configureAIThemeCard(in: cell, appearance: appearance)
+            configureAIThemeCard(in: cell, appearance: appearance, traits: collectionView.traitCollection)
             return cell
         }
 
@@ -357,14 +353,10 @@ final class ThemesCollectionService: NSObject, UICollectionViewDelegate, UIColle
 
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
         if isThemeItemsCollectionView(collectionView) {
-            let twoColumnWidth = floor((collectionView.bounds.width - Layout.itemSpacing) / 2)
+            let grid = themeGrid(width: collectionView.bounds.width, traits: collectionView.traitCollection)
             return CGSize(
-                width: twoColumnWidth,
-                height: themeRowHeight(
-                    containing: indexPath.item,
-                    cardWidth: twoColumnWidth,
-                    traitCollection: collectionView.traitCollection
-                )
+                width: grid.cardWidth,
+                height: themeRowHeight(containing: indexPath.item, grid: grid)
             )
         }
 
@@ -400,11 +392,9 @@ final class ThemesCollectionService: NSObject, UICollectionViewDelegate, UIColle
         }
 
         if indexPath.item == aiThemeIndex {
-            let height = collectionView.traitCollection.preferredContentSizeCategory
-                .isAccessibilityCategory
-                ? Layout.accessibilityAIThemeButtonHeight
-                : Layout.aiThemeButtonHeight
-            return CGSize(width: availableWidth, height: height)
+            return CGSize(width: availableWidth, height: aiThemeCardHeight(
+                width: availableWidth, traits: collectionView.traitCollection
+            ))
         }
 
         if indexPath.item == feelingLuckyIndex {
@@ -439,27 +429,25 @@ final class ThemesCollectionService: NSObject, UICollectionViewDelegate, UIColle
         delegate?.themesCollectionDidScroll(scrollView)
     }
 
-    private func themeRowHeight(
-        containing itemIndex: Int,
-        cardWidth: CGFloat,
-        traitCollection: UITraitCollection
-    ) -> CGFloat {
-        let rowStartIndex = (itemIndex / Layout.themeColumnCount) * Layout.themeColumnCount
+    private func themeGrid(width: CGFloat, traits: UITraitCollection) -> ThemeCardLayoutMetrics.Grid {
+        let font = appearanceStore.appearance(compatibleWith: traits).typography.font(
+            size: ThemeCardLayoutMetrics.titleFontSize, weight: .semibold, compatibleWith: traits
+        )
+        return ThemeCardLayoutMetrics.grid(
+            titles: displayedThemes.map(\.theme), width: width, spacing: Layout.itemSpacing,
+            font: font, traitCollection: traits
+        )
+    }
+
+    private func themeRowHeight(containing itemIndex: Int, grid: ThemeCardLayoutMetrics.Grid) -> CGFloat {
+        let rowStartIndex = (itemIndex / grid.columnCount) * grid.columnCount
         guard rowStartIndex < themeCount else {
             return ThemeCardLayoutMetrics.singleLineHeight
         }
         let rowTitles = displayedThemes[
-            rowStartIndex..<min(rowStartIndex + Layout.themeColumnCount, themeCount)
+            rowStartIndex..<min(rowStartIndex + grid.columnCount, themeCount)
         ].map(\.theme)
-        let font = appearanceStore
-            .appearance(compatibleWith: traitCollection)
-            .typography
-            .font(size: ThemeCardLayoutMetrics.titleFontSize, weight: .semibold)
-        return ThemeCardLayoutMetrics.rowHeight(
-            titles: rowTitles,
-            cardWidth: cardWidth,
-            font: font
-        )
+        return grid.rowHeight(titles: rowTitles)
     }
 
     private func isThemeItemsCollectionView(_ collectionView: UICollectionView) -> Bool {
@@ -472,13 +460,13 @@ final class ThemesCollectionService: NSObject, UICollectionViewDelegate, UIColle
         traitCollection: UITraitCollection,
         availableOuterHeight: CGFloat
     ) -> CGFloat {
-        let cardWidth = floor((width - Layout.itemSpacing) / 2)
+        let grid = themeGrid(width: width, traits: traitCollection)
+        activeThemeColumnCount = grid.columnCount
+        let maximumViewportRowCount = min(Layout.visibleThemeRowCount, max(
+            Int(ceil(Double(themeCount) / Double(grid.columnCount))), 1
+        ))
         let allRowHeights = (0..<maximumViewportRowCount).map { row in
-            themeRowHeight(
-                containing: row * Layout.themeColumnCount,
-                cardWidth: cardWidth,
-                traitCollection: traitCollection
-            )
+            themeRowHeight(containing: row * grid.columnCount, grid: grid)
         }
         let usesAccessibilityLayout = traitCollection
             .preferredContentSizeCategory
@@ -489,9 +477,7 @@ final class ThemesCollectionService: NSObject, UICollectionViewDelegate, UIColle
                     ? Layout.accessibilitySubscriptionPromoHeight
                     : Layout.subscriptionPromoHeight)
                 : 0)
-            + (usesAccessibilityLayout
-                ? Layout.accessibilityAIThemeButtonHeight
-                : Layout.aiThemeButtonHeight)
+            + aiThemeCardHeight(width: width, traits: traitCollection)
             + Layout.secondaryActionButtonHeight
             + Layout.statisticsCardHeight
             + lastItemBottomInset(availableHeight: availableOuterHeight)

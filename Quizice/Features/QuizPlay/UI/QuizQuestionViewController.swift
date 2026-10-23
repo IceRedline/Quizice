@@ -370,7 +370,7 @@ final class QuizQuestionViewController: BaseQuizViewController, QuizQuestionView
         hasLoadedQuestion = false
         currentAnswerOptions = []
         setQuestionInfoButtonVisible(false)
-        setQuestionExplanationVisible(false, animated: false)
+        setQuestionExplanationVisible(false, animated: false, movesAccessibilityFocus: false)
         questionExplanationLabel?.text = nil
 
         questionCardView?.layer.removeAllAnimations()

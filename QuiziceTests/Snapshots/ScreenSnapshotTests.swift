@@ -37,6 +37,50 @@ final class ScreenSnapshotTests: XCTestCase {
         )
     }
 
+    func testClassicHomeCatalog375LargeSnapshot() {
+        SnapshotSupport.setUp(designStyle: .classic)
+
+        SnapshotSupport.assertScreen(
+            makeHomeViewController(themes: makeRepresentativeBackendCatalogThemes()),
+            named: "classic-home-catalog-375-large",
+            device: .iPhoneX,
+            contentSizeCategory: .large
+        )
+    }
+
+    func testClassicHomeCatalog375XXLSnapshot() {
+        SnapshotSupport.setUp(designStyle: .classic)
+
+        SnapshotSupport.assertScreen(
+            makeHomeViewController(themes: makeRepresentativeBackendCatalogThemes()),
+            named: "classic-home-catalog-375-xxl",
+            device: .iPhoneX,
+            contentSizeCategory: .extraExtraLarge
+        )
+    }
+
+    func testClassicHomeCatalog375AccessibilityMediumSnapshot() {
+        SnapshotSupport.setUp(designStyle: .classic)
+
+        SnapshotSupport.assertScreen(
+            makeHomeViewController(themes: makeRepresentativeBackendCatalogThemes()),
+            named: "classic-home-catalog-375-accessibility-medium",
+            device: .iPhoneX,
+            contentSizeCategory: .accessibilityMedium
+        )
+    }
+
+    func testClassicHomeCatalog375AccessibilityXXXLSnapshot() {
+        SnapshotSupport.setUp(designStyle: .classic)
+
+        SnapshotSupport.assertScreen(
+            makeHomeViewController(themes: makeRepresentativeBackendCatalogThemes()),
+            named: "classic-home-catalog-375-accessibility-xxxl",
+            device: .iPhoneX,
+            contentSizeCategory: .accessibilityExtraExtraExtraLarge
+        )
+    }
+
     func testHomeCompactPortraitSnapshot() {
         SnapshotSupport.assertScreen(
             makeHomeViewController(),
@@ -382,6 +426,30 @@ final class ScreenSnapshotTests: XCTestCase {
                 name: "Тема \(index + 1)",
                 sfSymbolName: index.isMultiple(of: 2) ? "sparkles" : "lightbulb.fill",
                 colorHex: index.isMultiple(of: 2) ? "#8B5CF6" : "#62A2E6"
+            )
+        }
+    }
+
+    private func makeRepresentativeBackendCatalogThemes() -> [QuizTheme] {
+        // The first ten entries from the backend's data/themes.py catalog.
+        let themes: [(id: String, title: String, symbol: String, colorHex: String)] = [
+            ("music", "Музыка", "music.note.list", "#AF52DE"),
+            ("technology", "Технологии", "cpu.fill", "#007AFF"),
+            ("history_culture", "История и культура", "theatermask.and.paintbrush.fill", "#FF9500"),
+            ("politics_business", "Политика и бизнес", "briefcase.fill", "#5856D6"),
+            ("cinema", "Кино", "film", "#FF2D55"),
+            ("videogames", "Видеоигры", "gamecontroller", "#34C759"),
+            ("literature", "Литература", "book.fill", "#A2845E"),
+            ("geography", "География", "globe", "#00C7BE"),
+            ("physics", "Физика", "atom", "#5E5CE6"),
+            ("chemistry", "Химия", "flask", "#30B0C7")
+        ]
+        return themes.map { theme in
+            SnapshotSupport.makeTheme(
+                id: theme.id,
+                name: theme.title,
+                sfSymbolName: theme.symbol,
+                colorHex: theme.colorHex
             )
         }
     }

@@ -118,6 +118,9 @@
 "question.tap_to_answer.accessibility_hint" = "Toca dos veces para seleccionar esta respuesta.";
 "question.unavailable.message" = "Este tema aún no tiene preguntas disponibles. Vuelve atrás y elige otro tema.";
 "question.progress_complete.message" = "Has completado todas las preguntas disponibles con este ajuste de repetición. Elige otro ajuste o tema.";
+"question.loading_failed.title" = "No se pudieron cargar las preguntas";
+"question.loading_failed.message" = "No hemos podido obtener las preguntas. Inténtalo de nuevo un poco más tarde.";
+"question.network_failure.message" = "Comprueba tu conexión a internet e inténtalo de nuevo.";
 "question.unavailable_answer" = "No disponible";
 "question.unavailable_number" = "Preguntas no disponibles";
 "question.time_remaining" = "Tiempo restante";

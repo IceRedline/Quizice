@@ -216,9 +216,10 @@ final class ThemesViewportCollectionViewCell: UICollectionViewCell {
     static let reuseIdentifier = "homeThemesViewportCell"
 
     let themesCollectionView: HomeThemesCollectionView
+    private var lastCatalogWidth: CGFloat = 0
 
     override init(frame: CGRect) {
-        let layout = UICollectionViewFlowLayout()
+        let layout = HomeThemesCollectionViewFlowLayout()
         layout.scrollDirection = .vertical
         layout.minimumLineSpacing = 16
         layout.minimumInteritemSpacing = 16
@@ -270,6 +271,14 @@ final class ThemesViewportCollectionViewCell: UICollectionViewCell {
     @available(*, unavailable)
     required init?(coder: NSCoder) {
         nil
+    }
+
+    override func layoutSubviews() {
+        super.layoutSubviews()
+        let width = themesCollectionView.bounds.width
+        guard width > 0, width != lastCatalogWidth else { return }
+        lastCatalogWidth = width
+        themesCollectionView.reloadData()
     }
 
     func configure(

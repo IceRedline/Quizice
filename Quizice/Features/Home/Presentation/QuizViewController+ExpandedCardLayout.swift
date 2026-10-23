@@ -45,8 +45,14 @@ extension QuizViewController {
                 self.hasQuizLaunchStarted = true
                 router.showQuestion()
             } catch is CancellationError {
+                guard !Task.isCancelled else { return }
                 self.finishFailedQuizPreparation(message: nil)
             } catch {
+                guard !Task.isCancelled else { return }
+                if QuizPreparationError.isCancellation(error) {
+                    self.finishFailedQuizPreparation(message: nil)
+                    return
+                }
                 self.analytics.reportOperationalError(error, context: .contentLoad)
                 self.finishFailedQuizPreparation(message: QuizPreparationError.message(for: error))
             }
@@ -63,18 +69,53 @@ extension QuizViewController {
         expandedThemeCardView?.isUserInteractionEnabled = true
         updateExpandedThemeCardParallaxPhase()
         if let message {
-            presentQuizPreparationFailure(message: message)
+            presentQuizPreparationFailure(message: message) { [weak self] in
+                self?.sendHomeCardAction(.startRequested)
+            }
         }
     }
 
-    private func presentQuizPreparationFailure(message: String) {
-        let alert = UIAlertController(title: nil, message: message, preferredStyle: .alert)
-        alert.view.accessibilityIdentifier = "quizPreparationErrorAlert"
-        alert.addAction(UIAlertAction(title: L10n.AITheme.retry, style: .default) { [weak self] _ in
-            self?.sendHomeCardAction(.startRequested)
-        })
-        alert.addAction(UIAlertAction(title: L10n.Common.back, style: .cancel))
-        present(alert, animated: true)
+    func presentQuizPreparationFailure(message: String, retry: @escaping () -> Void) {
+        guard activeQuizPreparationAlert == nil else { return }
+        let dismissAction = QuizAlertAction(
+            title: L10n.Common.back,
+            emphasis: .secondary,
+            accessibilityIdentifier: "quizPreparationAlertDismissButton",
+            action: { [weak self] in self?.dismissQuizPreparationFailure() }
+        )
+        let retryAction = QuizAlertAction(
+            title: L10n.AITheme.retry,
+            emphasis: .primary,
+            accessibilityIdentifier: "quizPreparationAlertRetryButton",
+            action: { [weak self] in self?.dismissQuizPreparationFailure(completion: retry) }
+        )
+        let appearance = currentAppearance()
+        let overlay = QuizAlertOverlay(
+            title: L10n.Question.loadingFailedTitle,
+            message: message,
+            systemImage: "exclamationmark.triangle.fill",
+            iconColor: appearance.accentColor,
+            primaryAction: retryAction,
+            secondaryAction: dismissAction,
+            onEscape: dismissAction.action
+        )
+        quizPreparationAlertPresenter.presentingViewController = self
+        guard quizPreparationAlertPresenter.present(
+            overlay,
+            appearance: appearance,
+            reduceMotion: cardReduceMotionProvider()
+        ) else { return }
+        activeQuizPreparationAlert = overlay
+        quizPreparationAlertPresenter.alertViewController?.view.accessibilityIdentifier = "quizPreparationErrorAlert"
+    }
+
+    func dismissQuizPreparationFailure(completion: @escaping () -> Void = {}) {
+        guard activeQuizPreparationAlert != nil else { return }
+        quizPreparationAlertPresenter.dismiss { [weak self] in
+            guard let self, self.activeQuizPreparationAlert != nil else { return }
+            self.activeQuizPreparationAlert = nil
+            completion()
+        }
     }
 
     private func startQuizPreparationProgress(for cardView: ExpandedThemeCardView) {

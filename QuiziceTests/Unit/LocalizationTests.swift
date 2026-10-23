@@ -42,6 +42,9 @@ final class LocalizationTests: XCTestCase {
 
         AppLocalizationStore.shared.languagePreference = .russian
         XCTAssertEqual(L10n.Common.next, "Далее")
+        XCTAssertEqual(L10n.Question.loadingFailedTitle, "Не удалось загрузить вопросы")
+        XCTAssertEqual(L10n.Question.loadingFailedMessage, "Не удалось получить вопросы. Попробуйте ещё раз немного позже.")
+        XCTAssertEqual(L10n.Question.networkFailureMessage, "Проверьте подключение к интернету и попробуйте снова.")
         XCTAssertEqual(L10n.Settings.QuestionStrategy.section, "Вопросы")
         XCTAssertEqual(L10n.Settings.QuestionStrategy.title, "Стратегия повторения")
         XCTAssertEqual(
@@ -70,6 +73,9 @@ final class LocalizationTests: XCTestCase {
             "ai_theme.prompt_too_long",
             "question.exit_alert.title",
             "question.exit_alert.message",
+            "question.loading_failed.title",
+            "question.loading_failed.message",
+            "question.network_failure.message",
             "question.show_explanation",
             "question.show_question",
             "question.time_remaining",

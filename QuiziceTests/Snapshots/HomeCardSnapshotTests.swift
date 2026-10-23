@@ -29,7 +29,7 @@ final class HomeCardSnapshotTests: XCTestCase {
         )
     }
 
-    func testRadarLongThemeCompactCardSnapshot() {
+    func testRadarLongThemeCompactCardSnapshot() throws {
         let longTheme = SnapshotSupport.makeTheme(id: "history_culture", name: "История и культура")
         let cell = SnapshotSupport.makeCollectionCell(
             item: 0,
@@ -37,6 +37,24 @@ final class HomeCardSnapshotTests: XCTestCase {
             designStyle: .radar,
             collectionWidth: 375
         )
+        let title = try XCTUnwrap(
+            cell.contentView.snapshotDescendant(
+                withAccessibilityIdentifier: "homeThemeTitleLabel-history_culture"
+            ) as? UILabel
+        )
+        func assertTitleFits(stage: String) {
+            XCTAssertEqual(title.numberOfLines, 0)
+            XCTAssertGreaterThan(title.bounds.width, 0)
+            let requiredTitleHeight = title.sizeThatFits(
+                CGSize(width: title.bounds.width, height: .greatestFiniteMagnitude)
+            ).height
+            XCTAssertLessThanOrEqual(
+                ceil(requiredTitleHeight),
+                title.bounds.height + 0.5,
+                "The full Radar title must fit \(stage), including UIKit word wrapping"
+            )
+        }
+        assertTitleFits(stage: "before snapshot hosting")
 
         SnapshotSupport.assertComponent(
             cell.contentView,
@@ -44,6 +62,7 @@ final class HomeCardSnapshotTests: XCTestCase {
             size: CGSize(width: 220, height: 220),
             backgroundAppearance: SnapshotSupport.appearance(designStyle: .radar)
         )
+        assertTitleFits(stage: "after snapshot hosting")
     }
 
     func testSubscriptionPromoBannerSnapshot() {

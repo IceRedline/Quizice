@@ -4,11 +4,41 @@ enum QuizPreparationError: Error, Equatable {
     case unavailable
     case insufficientQuestions
 
-    static func message(for error: Error) -> String {
-        if error as? QuizPreparationError == .insufficientQuestions {
-            return L10n.Question.insufficientQuestionsMessage
+    static func isCancellation(_ error: Error) -> Bool {
+        switch error {
+        case is CancellationError:
+            return true
+        case let error as URLError:
+            return error.code == .cancelled
+        case BackendContentError.transport(.cancelled), BackendAPIError.transport(.cancelled):
+            return true
+        default:
+            return false
         }
-        return L10n.Question.unavailableMessage
+    }
+
+    static func message(for error: Error) -> String {
+        switch error {
+        case QuizPreparationError.unavailable:
+            return L10n.Question.unavailableMessage
+        case QuizPreparationError.insufficientQuestions:
+            return L10n.Question.insufficientQuestionsMessage
+        case let error as URLError:
+            return message(for: error.code)
+        case BackendContentError.transport(let code), BackendAPIError.transport(let code):
+            return message(for: code)
+        default:
+            return L10n.Question.loadingFailedMessage
+        }
+    }
+
+    private static func message(for code: URLError.Code) -> String {
+        switch code {
+        case .notConnectedToInternet, .networkConnectionLost, .dataNotAllowed, .internationalRoamingOff:
+            return L10n.Question.networkFailureMessage
+        default:
+            return L10n.Question.loadingFailedMessage
+        }
     }
 }
 

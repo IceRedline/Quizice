@@ -164,22 +164,31 @@ final class HomeThemeCardStateTests: HomeScreenVisualStateTestCase {
         XCTAssertEqual(session.chosenTheme?.questionsAndAnswers.count, 5)
     }
 
-    func testPreparationFailureIsVisibleAboveExpandedCardAndStartCanRetry() async throws {
+    func testPreparationFailureUsesCustomAlertAboveExpandedCardAndRetryStartsQuiz() async throws {
         let (controller, repository, router, startButton) = try await makeBackendLaunchHarness()
         repository.preparationError = URLError(.notConnectedToInternet)
         startButton.sendActions(for: .touchUpInside)
-        try await waitUntil { controller.presentedViewController is UIAlertController }
-        let alert = try XCTUnwrap(controller.presentedViewController as? UIAlertController)
-        XCTAssertEqual(alert.view.accessibilityIdentifier, "quizPreparationErrorAlert")
-        XCTAssertEqual(alert.message, QuizPreparationError.message(for: URLError(.notConnectedToInternet)))
-        XCTAssertTrue(alert.actions.contains { $0.title == L10n.AITheme.retry })
+        try await waitUntil { controller.presentedViewController != nil }
+        let presentedController = try XCTUnwrap(controller.presentedViewController)
+        let alert = try XCTUnwrap(controller.activeQuizPreparationAlert)
+        XCTAssertFalse(presentedController is UIAlertController)
+        XCTAssertEqual(presentedController.view.accessibilityIdentifier, "quizPreparationErrorAlert")
+        XCTAssertEqual(presentedController.modalPresentationStyle, .overFullScreen)
+        XCTAssertEqual(presentedController.modalTransitionStyle, .crossDissolve)
+        XCTAssertEqual(alert.title, L10n.Question.loadingFailedTitle)
+        XCTAssertEqual(alert.message, L10n.Question.networkFailureMessage)
+        XCTAssertEqual(alert.primaryAction.title, L10n.AITheme.retry)
+        XCTAssertEqual(alert.secondaryAction?.title, L10n.Common.back)
         XCTAssertEqual(controller.homeCardState.phase, .expandedBack)
         XCTAssertTrue(startButton.isEnabled)
         XCTAssertEqual(router.showQuestionCallCount, 0)
-        alert.dismiss(animated: false)
-        try await waitUntil { controller.presentedViewController == nil }
+
         repository.preparationError = nil
-        startButton.sendActions(for: .touchUpInside)
+        router.onShowQuestion = { [weak controller] in
+            XCTAssertNil(controller?.presentedViewController)
+            XCTAssertNil(controller?.activeQuizPreparationAlert)
+        }
+        alert.primaryAction.action()
         try await waitUntil { router.showQuestionCallCount == 1 }
         XCTAssertEqual(repository.preparedThemeIDs.count, 2)
     }
@@ -188,11 +197,17 @@ final class HomeThemeCardStateTests: HomeScreenVisualStateTestCase {
         let (controller, repository, router, startButton) = try await makeBackendLaunchHarness()
         repository.returnedQuestionCount = 0
         startButton.sendActions(for: .touchUpInside)
-        try await waitUntil { controller.presentedViewController is UIAlertController }
+        try await waitUntil { controller.presentedViewController != nil }
+        let alert = try XCTUnwrap(controller.activeQuizPreparationAlert)
+        XCTAssertEqual(alert.message, L10n.Question.unavailableMessage)
         XCTAssertEqual(router.showQuestionCallCount, 0)
         XCTAssertEqual(controller.homeCardState.phase, .expandedBack)
-        controller.presentedViewController?.dismiss(animated: false)
+        let backAction = try XCTUnwrap(alert.secondaryAction)
+        backAction.action()
         try await waitUntil { controller.presentedViewController == nil }
+        XCTAssertNil(controller.activeQuizPreparationAlert)
+        XCTAssertEqual(repository.preparedThemeIDs.count, 1)
+        XCTAssertEqual(controller.homeCardState.phase, .expandedBack)
         repository.returnedQuestionCount = 3
         startButton.sendActions(for: .touchUpInside)
         try await waitUntil { router.showQuestionCallCount == 1 }
