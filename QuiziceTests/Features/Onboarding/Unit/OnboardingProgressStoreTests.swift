@@ -152,4 +152,32 @@ extension OnboardingProgressStoreTests {
             XCTAssertFalse(store.hasPendingThemePreferences(locale: "ru"))
         }
     }
+
+    func testDeletingAccountRemovesEveryLocaleAndGuestCopiesButPreservesOtherAccountsAndSettings() {
+        withStore { _, defaults in
+            var userID: String?
+            let store = OnboardingProgressStore(userDefaults: defaults, userIDProvider: { userID })
+            store.complete(preferredThemeIDs: ["guest-choice"], locale: "ru")
+            userID = "A"
+            _ = store.orderedPreferredThemeIDs(locale: "ru")
+            store.complete(preferredThemeIDs: ["space"], locale: "en")
+            userID = "B"
+            store.complete(preferredThemeIDs: ["cinema"], locale: "ru")
+            defaults.set("de", forKey: "language-setting")
+
+            store.eraseData(for: "A")
+
+            XCTAssertEqual(store.orderedPreferredThemeIDs(locale: "ru"), ["cinema"])
+            XCTAssertTrue(store.hasPendingThemePreferences(locale: "ru"))
+            userID = "A"
+            for locale in ["ru", "en"] {
+                XCTAssertNil(store.storedPreferredThemeIDs(locale: locale))
+                XCTAssertFalse(store.hasPendingThemePreferences(locale: locale))
+            }
+            userID = nil
+            XCTAssertNil(store.storedPreferredThemeIDs(locale: "ru"))
+            XCTAssertFalse(store.needsOnboarding)
+            XCTAssertEqual(defaults.string(forKey: "language-setting"), "de")
+        }
+    }
 }

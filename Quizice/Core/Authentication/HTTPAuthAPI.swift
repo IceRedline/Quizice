@@ -12,6 +12,25 @@ final class HTTPAuthAPI: AuthAPI {
         let expiresAt: Date
     }
 
+    private struct RecreateAccountRequest: Encodable {
+        let teamPlayerId: String
+        let bundleId: String
+        let publicKeyUrl: String
+        let signature: String
+        let salt: String
+        let timestamp: String
+        let recreateDeletedAccount = true
+
+        init(identity: GameCenterIdentity) {
+            teamPlayerId = identity.teamPlayerId
+            bundleId = identity.bundleId
+            publicKeyUrl = identity.publicKeyUrl
+            signature = identity.signature
+            salt = identity.salt
+            timestamp = identity.timestamp
+        }
+    }
+
 #if DEBUG
     private struct DevAuthRequest: Encodable {
         let developerUserId: UUID
@@ -68,6 +87,57 @@ final class HTTPAuthAPI: AuthAPI {
                 teamPlayerID: identity.teamPlayerId
             )
         }
+    }
+
+    func authenticate(identity: GameCenterIdentity, recreateDeletedAccount: Bool) async throws -> AuthSession {
+        guard recreateDeletedAccount else { return try await authenticate(identity: identity) }
+        return try await post(path: Endpoint.gameCenterAuth, body: RecreateAccountRequest(identity: identity),
+                              accessToken: nil, operation: .authentication) { [now] (response: AuthResponse) in
+            guard !response.userId.isEmpty, !response.accessToken.isEmpty, response.expiresAt > now() else {
+                throw BackendAPIError.contractViolation
+            }
+            return AuthSession(userID: response.userId, accessToken: response.accessToken,
+                               expiresAt: response.expiresAt, teamPlayerID: identity.teamPlayerId)
+        }
+    }
+
+    /// No automatic retry or reauthentication: a lost response must reuse the
+    /// same deletion key, never create a replacement account as a side effect.
+    func deleteAccount(accessToken: String, idempotencyKey: String) async throws {
+        guard !accessToken.isEmpty, UUID(uuidString: idempotencyKey) != nil else {
+            throw BackendAPIError.contractViolation
+        }
+        try Task.checkCancellation()
+        var request = URLRequest(url: baseURL.appendingPathComponent("v1/me/account"))
+        request.httpMethod = "DELETE"
+        request.timeoutInterval = requestTimeout
+        request.setValue("application/json", forHTTPHeaderField: "Accept")
+        request.setValue("Bearer \(accessToken)", forHTTPHeaderField: BackendConfiguration.authorizationHeader)
+        request.setValue(idempotencyKey, forHTTPHeaderField: "X-Idempotency-Key")
+        let startedAt = clock.now
+        let data: Data
+        let response: URLResponse
+        do {
+            (data, response) = try await session.data(for: request)
+        } catch {
+            if Task.isCancelled || (error as? URLError)?.code == .cancelled {
+                record(.accountDeletion, result: .cancelled, startedAt: startedAt)
+                throw CancellationError()
+            }
+            record(.accountDeletion, result: .transportError, startedAt: startedAt)
+            throw BackendAPIError.transport((error as? URLError)?.code ?? .unknown)
+        }
+        guard let http = response as? HTTPURLResponse else { throw BackendAPIError.invalidResponse }
+        guard http.statusCode == 204 else {
+            let envelope = try? decoder.decode(BackendErrorEnvelope.self, from: data)
+            record(.accountDeletion, result: .httpError, startedAt: startedAt,
+                   statusCode: http.statusCode, responseBytes: data.count)
+            if http.statusCode == 401 { throw AccountDeletionError.sessionExpired }
+            if (200..<300).contains(http.statusCode) { throw BackendAPIError.contractViolation }
+            throw BackendAPIError.httpStatus(http.statusCode, envelope)
+        }
+        // Once a 204 has arrived, finish local cleanup even if the view vanished.
+        record(.accountDeletion, result: .success, startedAt: startedAt, statusCode: http.statusCode)
     }
 
 #if DEBUG

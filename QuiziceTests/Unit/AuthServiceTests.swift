@@ -878,3 +878,285 @@ final class BackendConfigurationTests: XCTestCase {
     }
     #endif
 }
+
+@MainActor
+final class AccountDeletionServiceTests: XCTestCase {
+    func testSuccessfulDeletionClearsDataAndSuppressesAutomaticRecreationAcrossLaunches() async throws {
+        let h = Harness()
+        await h.signIn()
+        h.statistics.recordAttempt(correctAnswers: 2, totalQuestions: 5)
+        try await h.service.deleteAccount()
+        XCTAssertNil(h.store.session)
+        XCTAssertEqual(h.statistics.loadSummary(), .empty)
+        XCTAssertEqual(h.erasedUsers, ["user-1"])
+        XCTAssertTrue(h.service.canCreateAccount)
+        XCTAssertFalse(h.access.isAIQuizAvailable)
+        h.service.retrySynchronization()
+        h.gameCenter.emit(.authenticated(teamPlayerID: "team-1"))
+        h.notifications.post(name: .backendAuthenticationInvalidated, object: nil)
+        await Task.yield()
+        XCTAssertEqual(h.api.authenticatedIdentities.count, 1)
+        let restarted = h.makeService()
+        restarted.start { _ in }
+        h.gameCenter.emit(.authenticated(teamPlayerID: "team-1"))
+        await Task.yield()
+        XCTAssertTrue(restarted.canCreateAccount)
+        XCTAssertEqual(h.api.authenticatedIdentities.count, 1)
+    }
+
+    func testFailedDeletionPreservesDataAndReusesKeyAfterRestart() async throws {
+        let h = Harness()
+        await h.signIn()
+        h.api.deletionHandler = { throw BackendAPIError.transport(.timedOut) }
+        h.statistics.recordAttempt(correctAnswers: 2, totalQuestions: 5)
+        let previous = h.statistics.loadSummary()
+        do { try await h.service.deleteAccount(); XCTFail("Expected timeout") } catch { }
+        XCTAssertNotNil(h.store.session)
+        XCTAssertEqual(h.statistics.loadSummary(), previous)
+        XCTAssertTrue(h.erasedUsers.isEmpty)
+        let restarted = h.makeService()
+        restarted.start { _ in }
+        h.gameCenter.emit(.authenticated(teamPlayerID: "team-1"))
+        XCTAssertTrue(restarted.accountDeletionAvailable)
+        h.api.deletionHandler = nil
+        try await restarted.deleteAccount()
+        XCTAssertEqual(h.api.deletionRequests.count, 2)
+        XCTAssertEqual(h.api.deletionRequests[0].1, h.api.deletionRequests[1].1)
+        XCTAssertEqual(h.api.authenticatedIdentities.count, 1)
+    }
+
+    func testLocalCleanupRetryDoesNotRepeatServerDeletion() async throws {
+        let h = Harness()
+        await h.signIn()
+        h.cleanupFails = true
+        do { try await h.service.deleteAccount(); XCTFail("Expected cleanup failure") }
+        catch { XCTAssertEqual(error as? AccountDeletionError, .localCleanupFailed) }
+        XCTAssertNil(h.store.session)
+        XCTAssertTrue(h.service.accountDeletionAvailable)
+        XCTAssertFalse(h.service.canCreateAccount)
+        h.cleanupFails = false
+        try await h.service.deleteAccount()
+        XCTAssertEqual(h.api.deletionRequests.count, 1)
+        XCTAssertTrue(h.service.canCreateAccount)
+    }
+
+    func testPendingDeletionSurvivesUnavailableOrDifferentGameCenterOnRestart() async throws {
+        for playerState in [GameCenterPlayerState.unavailable, .authenticated(teamPlayerID: "other-player")] {
+            let h = Harness()
+            await h.signIn()
+            h.api.deletionHandler = { throw BackendAPIError.transport(.timedOut) }
+            do { try await h.service.deleteAccount() } catch { }
+            let restarted = h.makeService()
+            restarted.start { _ in }
+            h.gameCenter.emit(playerState)
+            XCTAssertEqual(h.store.session?.userID, "user-1")
+            XCTAssertTrue(restarted.accountDeletionAvailable)
+            XCTAssertEqual(h.api.authenticatedIdentities.count, 1)
+        }
+    }
+
+    func testMissingEndpointPreservesUsableExistingAccount() async throws {
+        let h = Harness()
+        await h.signIn()
+        h.api.deletionHandler = { throw BackendAPIError.httpStatus(404, nil) }
+        do { try await h.service.deleteAccount(); XCTFail("Expected missing endpoint") } catch { }
+        XCTAssertNotNil(h.store.session)
+        XCTAssertTrue(h.access.isAIQuizAvailable)
+        XCTAssertTrue(h.service.accountDeletionAvailable)
+        XCTAssertNil(h.deletionState.record(for: "team-1"))
+    }
+
+    func testFirstUnauthorizedDeletionRefreshesWithoutRecreationAndCanBeRetried() async throws {
+        let h = Harness()
+        await h.signIn()
+        h.api.sessionsByTeamPlayerID["team-1"] = AuthSession(
+            userID: "user-1", accessToken: "refreshed-token", expiresAt: .distantFuture, teamPlayerID: "team-1"
+        )
+        h.api.deletionHandler = { throw AccountDeletionError.sessionExpired }
+
+        do { try await h.service.deleteAccount(); XCTFail("Expected expired session") }
+        catch { XCTAssertEqual(error as? AccountDeletionError, .sessionExpired) }
+        await waitFor { h.service.accountDeletionAvailable && h.store.session?.accessToken == "refreshed-token" }
+
+        XCTAssertNil(h.deletionState.record(for: "team-1"))
+        XCTAssertEqual(h.api.authenticatedIdentities.count, 2)
+        XCTAssertEqual(h.api.recreationRequests, 0)
+        XCTAssertTrue(h.erasedUsers.isEmpty)
+        h.api.deletionHandler = nil
+        try await h.service.deleteAccount()
+        XCTAssertEqual(h.api.deletionRequests.count, 2)
+        XCTAssertEqual(h.api.deletionRequests.last?.0, "refreshed-token")
+        XCTAssertNotEqual(h.api.deletionRequests.first?.1, h.api.deletionRequests.last?.1)
+        XCTAssertEqual(h.erasedUsers, ["user-1"])
+    }
+
+    func testUnauthorizedRetryAfterLostDeletionResponsePreservesReceiptAndCredential() async throws {
+        let h = Harness()
+        await h.signIn()
+        h.api.deletionHandler = { throw BackendAPIError.transport(.timedOut) }
+        do { try await h.service.deleteAccount(); XCTFail("Expected lost response") } catch { }
+        let receipt = try XCTUnwrap(h.deletionState.record(for: "team-1"))
+        h.api.deletionHandler = { throw AccountDeletionError.sessionExpired }
+
+        do { try await h.service.deleteAccount(); XCTFail("Expected expired session") }
+        catch { XCTAssertEqual(error as? AccountDeletionError, .sessionExpired) }
+
+        XCTAssertEqual(h.deletionState.record(for: "team-1"), receipt)
+        XCTAssertEqual(h.store.session?.accessToken, "access-token")
+        XCTAssertEqual(h.service.state, .deletionPending)
+        XCTAssertEqual(h.api.authenticatedIdentities.count, 1)
+        XCTAssertEqual(h.api.recreationRequests, 0)
+        XCTAssertEqual(h.api.deletionRequests.first?.1, h.api.deletionRequests.last?.1)
+        XCTAssertTrue(h.erasedUsers.isEmpty)
+    }
+
+    func testUnauthorizedDeletionRefreshHandlesServerDeletedAccountWithoutRecreation() async throws {
+        let h = Harness()
+        await h.signIn()
+        h.api.deletionHandler = { throw AccountDeletionError.sessionExpired }
+        h.api.authenticationErrors = [.httpStatus(409, .init(code: "account_deleted", message: "Deleted"))]
+
+        do { try await h.service.deleteAccount(); XCTFail("Expected expired session") } catch { }
+        await waitFor { h.service.canCreateAccount }
+
+        XCTAssertEqual(h.erasedUsers, ["user-1"])
+        XCTAssertNil(h.store.session)
+        XCTAssertEqual(h.api.deletionRequests.count, 1)
+        XCTAssertEqual(h.api.recreationRequests, 0)
+        XCTAssertEqual(h.deletionState.record(for: "team-1")?.userID, "user-1")
+    }
+
+    func testServerDeletionAfterFailedRefreshAndRelaunchErasesActualAccountScope() async throws {
+        let h = Harness()
+        // Model an existing installation before the remembered-identity mapping
+        // was introduced: only its expired Keychain session identifies the scope.
+        h.store.session = AuthSession(userID: "user-1", accessToken: "expired-token",
+                                      expiresAt: .distantPast, teamPlayerID: "team-1")
+        h.statistics.activateAuthenticatedUser("user-1")
+        h.statistics.recordAttempt(correctAnswers: 2, totalQuestions: 5)
+        h.api.authenticationErrors = [.transport(.timedOut)]
+        h.service.start { _ in }
+        h.gameCenter.emit(.authenticated(teamPlayerID: "team-1"))
+        await waitFor { h.service.state == .guest }
+        XCTAssertNil(h.store.session)
+        XCTAssertTrue(h.statistics.hasPendingSync(for: "user-1"))
+
+        let reloadedDeletionState = AccountDeletionStateStore(defaults: h.defaults)
+        XCTAssertEqual(reloadedDeletionState.lastKnownUserID(for: "team-1"), "user-1")
+        let restarted = h.makeService(deletionState: reloadedDeletionState)
+        h.api.authenticationErrors = [.httpStatus(409, .init(code: "account_deleted", message: "Deleted"))]
+        restarted.start { _ in }
+        h.gameCenter.emit(.authenticated(teamPlayerID: "team-1"))
+        await waitFor { restarted.canCreateAccount }
+
+        XCTAssertEqual(h.erasedUsers, ["user-1"])
+        XCTAssertEqual(reloadedDeletionState.record(for: "team-1")?.userID, "user-1")
+        XCTAssertNil(reloadedDeletionState.lastKnownUserID(for: "team-1"))
+        XCTAssertFalse(h.statistics.hasPendingSync(for: "user-1"))
+        XCTAssertTrue(h.api.deletionRequests.isEmpty)
+        XCTAssertEqual(h.api.recreationRequests, 0)
+        h.statistics.activateAuthenticatedUser("user-1")
+        XCTAssertEqual(h.statistics.loadSummary(), .empty)
+    }
+
+    func testNewAccountRequiresExplicitRecreationAndDoesNotRestoreOldData() async throws {
+        let h = Harness()
+        await h.signIn()
+        try await h.service.deleteAccount()
+        h.api.sessionsByTeamPlayerID["team-1"] = AuthSession(
+            userID: "new-user", accessToken: "new-token", expiresAt: .distantFuture, teamPlayerID: "team-1"
+        )
+        try await h.service.createAccount()
+        XCTAssertEqual(h.api.recreationRequests, 1)
+        XCTAssertEqual(h.store.session?.userID, "new-user")
+        XCTAssertTrue(h.service.accountDeletionAvailable)
+        XCTAssertFalse(h.service.canCreateAccount)
+        XCTAssertTrue(h.access.isAIQuizAvailable)
+        XCTAssertEqual(h.statistics.loadSummary(), .empty)
+    }
+
+    private func waitFor(_ condition: @escaping () -> Bool) async {
+        for _ in 0..<200 where !condition() {
+            try? await Task.sleep(nanoseconds: 1_000_000)
+        }
+        XCTAssertTrue(condition())
+    }
+
+    @MainActor
+    private final class Harness {
+        let gameCenter = FakeGameCenterClient()
+        let api = FakeAuthAPI()
+        let store = MemorySessionStore()
+        let notifications = NotificationCenter()
+        let access = AIQuizAccessStore()
+        let defaults: UserDefaults
+        let deletionState: AccountDeletionStateStore
+        let statistics: StatisticsStore
+        var erasedUsers: [String] = []
+        var cleanupFails = false
+        lazy var service = makeService()
+
+        init() {
+            defaults = UserDefaults(suiteName: "AccountDeletionServiceTests.\(UUID())")!
+            deletionState = AccountDeletionStateStore(defaults: defaults)
+            statistics = StatisticsStore(userDefaults: defaults, notificationCenter: notifications)
+        }
+
+        func makeService(deletionState: AccountDeletionStateStore? = nil) -> GameCenterAuthenticationService {
+            GameCenterAuthenticationService(
+                gameCenter: gameCenter, api: api, sessionStore: store, statisticsStore: statistics,
+                bundleIdentifier: "com.example.quiz", notificationCenter: notifications,
+                aiQuizAccessStore: access, deletionStateStore: deletionState ?? self.deletionState,
+                eraseLocalAccountData: { [weak self] userID in
+                    guard let self else { return }
+                    if self.cleanupFails { throw CocoaError(.fileWriteUnknown) }
+                    self.erasedUsers.append(userID)
+                }
+            )
+        }
+
+        func signIn() async {
+            service.start { _ in }
+            gameCenter.emit(.authenticated(teamPlayerID: "team-1"))
+            for _ in 0..<100 where !service.accountDeletionAvailable {
+                try? await Task.sleep(nanoseconds: 1_000_000)
+            }
+            XCTAssertTrue(service.accountDeletionAvailable)
+        }
+    }
+}
+
+extension HTTPAuthAPITests {
+    func testAccountDeletionUsesAuthenticatedDELETEAndAcceptsOnly204() async throws {
+        let key = UUID().uuidString
+        var status = 204
+        AuthURLProtocol.requestHandler = { request in
+            XCTAssertEqual(request.url?.path, "/api/v1/me/account")
+            XCTAssertEqual(request.httpMethod, "DELETE")
+            XCTAssertEqual(request.value(forHTTPHeaderField: BackendConfiguration.authorizationHeader), "Bearer token")
+            XCTAssertEqual(request.value(forHTTPHeaderField: "X-Idempotency-Key"), key)
+            XCTAssertNil(Self.bodyData(from: request))
+            return (HTTPURLResponse(url: request.url!, statusCode: status, httpVersion: nil, headerFields: nil)!, Data())
+        }
+        try await makeAPI().deleteAccount(accessToken: "token", idempotencyKey: key)
+        for invalidStatus in [200, 202, 401, 404, 500] {
+            status = invalidStatus
+            do {
+                try await makeAPI().deleteAccount(accessToken: "token", idempotencyKey: key)
+                XCTFail("Must not claim deletion for HTTP \(status)")
+            } catch { }
+        }
+    }
+
+    func testExplicitRecreationSendsOptInFlag() async throws {
+        AuthURLProtocol.requestHandler = { request in
+            let body = try XCTUnwrap(Self.bodyData(from: request))
+            let json = try XCTUnwrap(JSONSerialization.jsonObject(with: body) as? [String: Any])
+            XCTAssertEqual(json["recreateDeletedAccount"] as? Bool, true)
+            XCTAssertEqual(json["teamPlayerId"] as? String, "team-1")
+            return (HTTPURLResponse(url: request.url!, statusCode: 200, httpVersion: nil, headerFields: nil)!,
+                    Data(#"{"userId":"new-user","accessToken":"new-token","expiresAt":"2030-01-01T00:00:00Z"}"#.utf8))
+        }
+        _ = try await makeAPI().authenticate(identity: Self.identity, recreateDeletedAccount: true)
+    }
+}

@@ -248,3 +248,34 @@
 
 "ai_theme.error.quota.title" = "Monatliches KI-Limit erreicht";
 "ai_theme.error.quota.message" = "Die KI-Quizze für diesen Monat sind aufgebraucht. Das Limit wird zu Beginn des nächsten Kalendermonats (UTC) zurückgesetzt. Katalog-Quizze bleiben verfügbar.";
+
+"settings.privacy_policy" = "Datenschutzerklärung";
+"settings.privacy_policy.subtitle" = "So verarbeitet Quizice deine Daten";
+"settings.privacy_policy.unavailable.title" = "Datenschutzerklärung konnte nicht geöffnet werden";
+"settings.privacy_policy.unavailable.message" = "Prüfe, ob ein Browser verfügbar ist, und versuche es erneut.";
+"settings.account.delete" = "Konto löschen";
+"settings.account.delete.subtitle" = "Dein Quizice-Konto und seine Daten dauerhaft löschen";
+"settings.account.deleting" = "Konto wird gelöscht…";
+"settings.account.delete.confirm.title" = "Dein Quizice-Konto löschen?";
+"settings.account.delete.confirm.message" = "Dein Quizice-Konto, Spielfortschritt, Statistiken und Lieblingsthemen werden dauerhaft vom Server und diesem Gerät gelöscht. Dies kann nicht rückgängig gemacht werden. Dein Game-Center-Konto wird weder gelöscht noch geändert.";
+"settings.account.deleted.title" = "Konto gelöscht";
+"settings.account.deleted.message" = "Dein Quizice-Konto und seine Daten wurden gelöscht. Dein Game-Center-Konto bleibt unverändert. Du kannst als Gast weiterspielen.";
+"settings.account.delete.failed.title" = "Löschung nicht bestätigt";
+"settings.account.delete.failed.message" = "Die Kontolöschung konnte nicht bestätigt werden. Prüfe deine Internetverbindung und versuche es erneut.";
+"settings.account.cleanup.title" = "Bereinigung auf diesem Gerät abschließen";
+"settings.account.cleanup.message" = "Dein Konto wurde vom Server gelöscht. Einige Daten auf diesem Gerät konnten jedoch nicht entfernt werden. Versuche es erneut, um die Bereinigung abzuschließen.";
+"settings.account.session_expired.title" = "Sitzung abgelaufen";
+"settings.account.session_expired.message" = "Deine Kontositzung ist abgelaufen. Die Löschung konnte daher nicht bestätigt werden. Es wird nicht automatisch ein neues Quizice-Konto erstellt. Prüfe Game Center und deine Verbindung und versuche es erneut.";
+"settings.account.create" = "Neues Konto erstellen";
+"settings.account.create.subtitle" = "Über Game Center mit einem neuen Quizice-Konto verbinden";
+"settings.account.creating" = "Konto wird erstellt…";
+"settings.account.create.confirm.title" = "Neues Quizice-Konto erstellen?";
+"settings.account.create.confirm.message" = "Das neue Quizice-Konto wird mit deinem Game-Center-Konto verknüpft. Gelöschte Fortschritte, Statistiken und Lieblingsthemen werden nicht wiederhergestellt.";
+"settings.account.created.title" = "Konto verbunden";
+"settings.account.created.message" = "Dein Quizice-Konto ist verbunden. Du kannst die Online-Kontofunktionen wieder nutzen.";
+"settings.account.create.failed.title" = "Konto konnte nicht verbunden werden";
+"settings.account.create.failed.message" = "Prüfe deine Internetverbindung und die Anmeldung bei Game Center und versuche es erneut.";
+"settings.account.unavailable.title" = "Kein verbundenes Konto";
+"settings.account.unavailable.message" = "Es ist kein verbundenes Quizice-Konto zur Verwaltung verfügbar. Prüfe deine Anmeldung bei Game Center und deine Internetverbindung.";
+"settings.account.cancel" = "Abbrechen";
+"settings.account.retry" = "Erneut versuchen";

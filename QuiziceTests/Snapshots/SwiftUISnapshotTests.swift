@@ -71,6 +71,32 @@ final class SwiftUISnapshotTests: XCTestCase {
         )
     }
 
+    func testSignedInSettingsAccountSnapshot() {
+        let viewController = makeHostingController(rootView: QuizSettingsView(
+            accountManager: SettingsSnapshotAccountManager(),
+            personalizedRepeatsAvailable: { true }
+        ))
+
+        SnapshotSupport.assertScreen(
+            viewController,
+            named: "clean-settings-delete-account",
+            afterPrepare: prepareSettingsSnapshot
+        )
+    }
+
+    func testSettingsPrivacyPolicyCompactSnapshot() {
+        let viewController = SettingsBottomSnapshotHostingController(rootView: QuizSettingsView(
+            personalizedRepeatsAvailable: { false }
+        ))
+        viewController.view.overrideUserInterfaceStyle = .light
+
+        SnapshotSupport.assertScreen(
+            viewController,
+            named: "clean-settings-privacy-iphone-se",
+            device: .iPhone8
+        )
+    }
+
     func testSubscriptionPaywallSnapshot() throws {
         let appearance = SnapshotSupport.appearance(designStyle: .clean)
         let analytics = HomeAnalyticsTrackingSpy()
@@ -674,5 +700,36 @@ final class SwiftUISnapshotTests: XCTestCase {
         XCTAssertEqual(alertFrame.height, window.bounds.height, accuracy: 0.5)
         XCTAssertEqual(reportedCardFrame.midX, window.bounds.midX, accuracy: 0.5)
         XCTAssertEqual(reportedCardFrame.midY, window.bounds.midY, accuracy: 0.5)
+    }
+}
+
+@MainActor
+private final class SettingsSnapshotAccountManager: AccountManaging {
+    let accountDeletionAvailable = true
+    let canCreateAccount = false
+
+    func deleteAccount() async throws { throw AccountDeletionError.unavailable }
+    func createAccount() async throws { throw AccountDeletionError.unavailable }
+}
+
+@MainActor
+private final class SettingsBottomSnapshotHostingController: UIHostingController<QuizSettingsView> {
+    override func viewDidLayoutSubviews() {
+        super.viewDidLayoutSubviews()
+        scrollToBottom(in: view)
+    }
+
+    private func scrollToBottom(in view: UIView) {
+        if let scrollView = view as? UIScrollView {
+            let offset = CGPoint(
+                x: -scrollView.adjustedContentInset.left,
+                y: max(-scrollView.adjustedContentInset.top,
+                       scrollView.contentSize.height - scrollView.bounds.height + scrollView.adjustedContentInset.bottom)
+            )
+            if scrollView.contentOffset != offset {
+                scrollView.setContentOffset(offset, animated: false)
+            }
+        }
+        view.subviews.forEach(scrollToBottom)
     }
 }

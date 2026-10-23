@@ -248,3 +248,34 @@
 
 "ai_theme.error.quota.title" = "Месячный лимит AI исчерпан";
 "ai_theme.error.quota.message" = "Вы использовали AI-викторины на этот месяц. Лимит обновится в начале следующего календарного месяца (UTC). Викторины из каталога доступны.";
+
+"settings.privacy_policy" = "Политика конфиденциальности";
+"settings.privacy_policy.subtitle" = "Как Quizice обрабатывает ваши данные";
+"settings.privacy_policy.unavailable.title" = "Не удалось открыть политику";
+"settings.privacy_policy.unavailable.message" = "Проверьте, что на устройстве доступен браузер, и попробуйте снова.";
+"settings.account.delete" = "Удалить аккаунт";
+"settings.account.delete.subtitle" = "Удалить аккаунт Quizice и его данные навсегда";
+"settings.account.deleting" = "Удаляем аккаунт…";
+"settings.account.delete.confirm.title" = "Удалить аккаунт Quizice?";
+"settings.account.delete.confirm.message" = "Ваш аккаунт Quizice, игровой прогресс, статистика и избранные темы будут безвозвратно удалены с сервера и этого устройства. Отменить удаление нельзя. Ваш аккаунт Game Center не будет удалён или изменён.";
+"settings.account.deleted.title" = "Аккаунт удалён";
+"settings.account.deleted.message" = "Ваш аккаунт Quizice и его данные удалены. Аккаунт Game Center не изменён. Можно продолжить игру в гостевом режиме.";
+"settings.account.delete.failed.title" = "Удаление не подтверждено";
+"settings.account.delete.failed.message" = "Не удалось подтвердить удаление аккаунта. Проверьте подключение к интернету и попробуйте снова.";
+"settings.account.cleanup.title" = "Завершите очистку устройства";
+"settings.account.cleanup.message" = "Аккаунт уже удалён с сервера, но часть данных на этом устройстве не удалось очистить. Попробуйте снова, чтобы завершить очистку.";
+"settings.account.session_expired.title" = "Сессия истекла";
+"settings.account.session_expired.message" = "Сессия аккаунта истекла, поэтому удаление не удалось подтвердить. Новый аккаунт Quizice не будет создан автоматически. Проверьте Game Center и подключение, затем попробуйте снова.";
+"settings.account.create" = "Создать аккаунт заново";
+"settings.account.create.subtitle" = "Подключиться через Game Center с новым аккаунтом Quizice";
+"settings.account.creating" = "Создаём аккаунт…";
+"settings.account.create.confirm.title" = "Создать новый аккаунт Quizice?";
+"settings.account.create.confirm.message" = "Новый аккаунт Quizice будет связан с вашим аккаунтом Game Center. Удалённые ранее прогресс, статистика и избранные темы не восстановятся.";
+"settings.account.created.title" = "Аккаунт подключён";
+"settings.account.created.message" = "Аккаунт Quizice подключён. Онлайн-функции аккаунта снова доступны.";
+"settings.account.create.failed.title" = "Не удалось подключить аккаунт";
+"settings.account.create.failed.message" = "Проверьте подключение к интернету и вход в Game Center, затем попробуйте снова.";
+"settings.account.unavailable.title" = "Нет подключённого аккаунта";
+"settings.account.unavailable.message" = "Нет подключённого аккаунта Quizice для управления. Проверьте вход в Game Center и подключение к интернету.";
+"settings.account.cancel" = "Отмена";
+"settings.account.retry" = "Повторить";

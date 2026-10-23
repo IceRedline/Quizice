@@ -40,6 +40,7 @@ final class QuizFlowCoordinator: NSObject, QuizRouting, UIViewControllerTransiti
     private let session: QuizSessionManaging
     private let aiQuizThemeService: AIQuizThemeServiceProtocol
     private let aiQuizAccessProvider: AIQuizAccessProviding
+    private let accountManager: AccountManaging?
     private let onboardingProgressStore: OnboardingProgressStoring
     private let analytics: AnalyticsTracking
     private let notificationCenter: NotificationCenter
@@ -58,6 +59,7 @@ final class QuizFlowCoordinator: NSObject, QuizRouting, UIViewControllerTransiti
     private var aiReplayProgressTask: Task<Void, Never>?
     private var themePreferencesSyncTask: Task<Void, Never>?
     private var authenticationEstablishedObserver: NSObjectProtocol?
+    private var accountDeletionObserver: NSObjectProtocol?
     private let catalogReplayProgressDelay: () async -> Void
 
     init(
@@ -67,6 +69,7 @@ final class QuizFlowCoordinator: NSObject, QuizRouting, UIViewControllerTransiti
         session: QuizSessionManaging = QuizSessionStore.shared,
         aiQuizThemeService: AIQuizThemeServiceProtocol? = nil,
         aiQuizAccessProvider: AIQuizAccessProviding? = nil,
+        accountManager: AccountManaging? = nil,
         onboardingProgressStore: OnboardingProgressStoring = OnboardingProgressStore.shared,
         analytics: AnalyticsTracking = AppMetricaAnalyticsTracker.shared,
         notificationCenter: NotificationCenter = .default,
@@ -86,6 +89,7 @@ final class QuizFlowCoordinator: NSObject, QuizRouting, UIViewControllerTransiti
         self.aiQuizThemeService = aiQuizThemeService
             ?? Self.makeDefaultAIQuizThemeService(accessProvider: resolvedAIQuizAccessProvider)
         self.aiQuizAccessProvider = resolvedAIQuizAccessProvider
+        self.accountManager = accountManager
         self.onboardingProgressStore = onboardingProgressStore
         self.analytics = analytics
         self.notificationCenter = notificationCenter
@@ -94,12 +98,22 @@ final class QuizFlowCoordinator: NSObject, QuizRouting, UIViewControllerTransiti
         self.catalogReplayProgressDelay = catalogReplayProgressDelay
         super.init()
         authenticationEstablishedObserver = notificationCenter.addObserver(
-            forName: .backendAuthenticationEstablished,
-            object: nil,
-            queue: .main
+            forName: .backendAuthenticationEstablished, object: nil, queue: .main
+        ) { [weak self] _ in
+            Task { @MainActor [weak self] in self?.synchronizeThemePreferencesAfterAuthentication() }
+        }
+        accountDeletionObserver = notificationCenter.addObserver(
+            forName: .backendAccountDeleted, object: nil, queue: .main
         ) { [weak self] _ in
             Task { @MainActor [weak self] in
-                self?.synchronizeThemePreferencesAfterAuthentication()
+                guard let self else { return }
+                self.catalogReplayTask?.cancel()
+                self.aiReplayTask?.cancel()
+                self.themePreferencesSyncTask?.cancel()
+                self.roundSession = nil
+                self.session.chosenTheme = nil
+                (self.navigationController.viewControllers.first as? QuizViewController)?
+                    .applyBackendCatalogRefresh(didRefresh: true, locale: AppLocalizationStore.shared.resolvedLanguageCode)
             }
         }
     }
@@ -110,9 +124,8 @@ final class QuizFlowCoordinator: NSObject, QuizRouting, UIViewControllerTransiti
         aiReplayTask?.cancel()
         aiReplayProgressTask?.cancel()
         themePreferencesSyncTask?.cancel()
-        if let authenticationEstablishedObserver {
-            notificationCenter.removeObserver(authenticationEstablishedObserver)
-        }
+        if let authenticationEstablishedObserver { notificationCenter.removeObserver(authenticationEstablishedObserver) }
+        if let accountDeletionObserver { notificationCenter.removeObserver(accountDeletionObserver) }
     }
 
     func start() {
@@ -169,7 +182,7 @@ final class QuizFlowCoordinator: NSObject, QuizRouting, UIViewControllerTransiti
     }
 
     func showSettings() {
-        let viewController = UIHostingController(rootView: QuizSettingsView(analytics: analytics))
+        let viewController = UIHostingController(rootView: QuizSettingsView(analytics: analytics, accountManager: accountManager))
         viewController.modalPresentationStyle = .pageSheet
         if let sheetPresentationController = viewController.sheetPresentationController {
             sheetPresentationController.detents = [.large()]

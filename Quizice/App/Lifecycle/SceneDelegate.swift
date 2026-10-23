@@ -30,7 +30,8 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
             let coordinator = QuizFlowCoordinator(
                 window: window,
                 aiQuizThemeService: aiRuntimeDependencies.themeService,
-                aiQuizAccessProvider: aiRuntimeDependencies.accessProvider
+                aiQuizAccessProvider: aiRuntimeDependencies.accessProvider,
+                accountManager: authenticationService
             )
             coordinator.start()
             self.coordinator = coordinator

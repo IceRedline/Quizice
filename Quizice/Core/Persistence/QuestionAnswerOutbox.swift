@@ -61,8 +61,12 @@ final class PersistentQuestionAnswerOutbox: QuestionAnswerOutboxing, @unchecked 
     private var networkMonitor: NWPathMonitor?
     private var authenticationObserver: NSObjectProtocol?
     private let automaticallySynchronizesOnEnqueue: Bool
+    private var erasedUserIDs: Set<String> = []
 
-    var currentUserID: String? { sessionProvider()?.userID }
+    var currentUserID: String? {
+        guard let userID = sessionProvider()?.userID else { return nil }
+        return lock.withLock { erasedUserIDs.contains(userID) ? nil : userID }
+    }
 
     init(
         api: BackendContentAPI?,
@@ -123,6 +127,7 @@ final class PersistentQuestionAnswerOutbox: QuestionAnswerOutboxing, @unchecked 
     func enqueue(_ event: QuestionAnswerEvent, for userID: String?) {
         do {
             try lock.withLock {
+                if let userID, erasedUserIDs.contains(userID) { return }
                 var state = try loadLocked()
                 guard !state.pending.contains(where: { $0.event.eventId == event.eventId }),
                       !state.rejected.contains(where: { $0.ownedEvent.event.eventId == event.eventId }) else { return }
@@ -132,6 +137,31 @@ final class PersistentQuestionAnswerOutbox: QuestionAnswerOutboxing, @unchecked 
             if automaticallySynchronizesOnEnqueue { Task { await synchronize() } }
         } catch {
             AppLog.persistence.error("Question answer outbox persistence failed")
+        }
+    }
+
+    /// Called only after server-confirmed deletion. The guard survives any late
+    /// callbacks in this instance; the authentication owner persists its separate
+    /// deletion state and prevents automatic recreation after an app restart.
+    func eraseData(for userID: String) throws {
+        try lock.withLock {
+            erasedUserIDs.insert(userID)
+            if flight?.userID == userID {
+                flight?.task.cancel()
+                flight = nil
+            }
+            var state = try loadLocked()
+            state.pending.removeAll { $0.userID == userID }
+            state.rejected.removeAll { $0.ownedEvent.userID == userID }
+            try saveLocked(state)
+
+            // Corrupt backups cannot be scoped reliably. Keeping them could
+            // retain the erased account's answers indefinitely.
+            let directory = fileURL.deletingLastPathComponent()
+            let backups = try FileManager.default.contentsOfDirectory(at: directory, includingPropertiesForKeys: nil)
+            for backup in backups where backup.lastPathComponent.hasPrefix(fileURL.lastPathComponent + ".corrupt-") {
+                try FileManager.default.removeItem(at: backup)
+            }
         }
     }
 
@@ -170,6 +200,7 @@ final class PersistentQuestionAnswerOutbox: QuestionAnswerOutboxing, @unchecked 
     private func drain(for userID: String) async throws {
         guard let api else { throw BackendContentError.unauthenticated }
         while true {
+            try Task.checkCancellation()
             guard currentUserID == userID else { throw QuestionAnswerSyncError.accountChanged }
             let batch = try lock.withLock {
                 Array(try loadLocked().pending.filter { $0.userID == userID }.prefix(100).map(\.event))
@@ -182,16 +213,20 @@ final class PersistentQuestionAnswerOutbox: QuestionAnswerOutboxing, @unchecked 
     private func upload(_ batch: [QuestionAnswerEvent], for userID: String, api: BackendContentAPI) async throws {
         do {
             let response = try await BackendRetry.withExponentialBackoff(baseDelay: retryDelay, isRetryable: Self.isRetryable) {
-                guard let session = self.sessionProvider(), session.userID == userID else {
+                try Task.checkCancellation()
+                guard self.currentUserID == userID,
+                      let session = self.sessionProvider(), session.userID == userID else {
                     throw QuestionAnswerSyncError.accountChanged
                 }
                 return try await api.submitQuestionAnswers(batch, session: session)
             }
+            try Task.checkCancellation()
             let processed = Set(response.processedEventIds)
             guard !processed.isEmpty, processed.isSubset(of: Set(batch.map(\.eventId))) else {
                 throw QuestionAnswerSyncError.unacknowledgedEvents
             }
             try lock.withLock {
+                guard !erasedUserIDs.contains(userID) else { throw QuestionAnswerSyncError.accountChanged }
                 var state = try loadLocked()
                 state.pending.removeAll { $0.userID == userID && processed.contains($0.event.eventId) }
                 try saveLocked(state)
@@ -206,6 +241,7 @@ final class PersistentQuestionAnswerOutbox: QuestionAnswerOutboxing, @unchecked 
                 try await upload(Array(batch.dropFirst(middle)), for: userID, api: api)
             } else if let event = batch.first {
                 try lock.withLock {
+                    guard !erasedUserIDs.contains(userID) else { throw QuestionAnswerSyncError.accountChanged }
                     var state = try loadLocked()
                     if let index = state.pending.firstIndex(where: { $0.userID == userID && $0.event.eventId == event.eventId }) {
                         let owned = state.pending.remove(at: index)

@@ -114,6 +114,7 @@
 		9A44EFC9BFDCB2C4B4A69332 /* QuestionModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = FD513069172BE863A17A4752 /* QuestionModel.swift */; };
 		9AA059E5861E23B6B4A54381 /* ExpandedThemeCardView+Interaction.swift in Sources */ = {isa = PBXBuildFile; fileRef = B4D8A62810414B9A2112D753 /* ExpandedThemeCardView+Interaction.swift */; };
 		9C7DF2F32C74207FC4C9973F /* ExpandedThemeCardView+Layout.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4CE837967A7694188D771EF6 /* ExpandedThemeCardView+Layout.swift */; };
+		F97AC203ACCE40F49319D002 /* QuizSettingsAccountSupport.swift in Sources */ = {isa = PBXBuildFile; fileRef = F97AC203ACCE40F49319D001 /* QuizSettingsAccountSupport.swift */; };
 		9E0FA6243CD26D1693DBAEC5 /* QuizSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 456F83C41E3A0B2F3409172D /* QuizSettingsView.swift */; };
 		A11ACC5503000000000000C1 /* AccessibilityModeMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = A11ACC5502000000000000B1 /* AccessibilityModeMonitor.swift */; };
 		A14F47A4F9D9CB3D27C1AC11 /* UIKitAppearanceSupport.swift in Sources */ = {isa = PBXBuildFile; fileRef = C622321C90C2AFE2CC3990A5 /* UIKitAppearanceSupport.swift */; };
@@ -255,6 +256,7 @@
 		38278C854C1061B8B92E05AE /* HomeThemeCardStateTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = HomeThemeCardStateTests.swift; sourceTree = "<group>"; };
 		3E54AB63467994BD4085F5A9 /* QuizViewController+Transitions.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = "QuizViewController+Transitions.swift"; sourceTree = "<group>"; };
 		43967E761EE3C2C1360397EA /* HomeThemeCardFlipTransitionTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = HomeThemeCardFlipTransitionTests.swift; sourceTree = "<group>"; };
+		F97AC203ACCE40F49319D001 /* QuizSettingsAccountSupport.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = QuizSettingsAccountSupport.swift; sourceTree = "<group>"; };
 		456F83C41E3A0B2F3409172D /* QuizSettingsView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = QuizSettingsView.swift; sourceTree = "<group>"; };
 		468341D5EAF02DFEB474EA55 /* QuizQuestion.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = QuizQuestion.swift; sourceTree = "<group>"; };
 		4CC79807B17A2A6240C4970C /* HomeCardSourceSnapshotFactory.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = HomeCardSourceSnapshotFactory.swift; sourceTree = "<group>"; };
@@ -960,6 +962,7 @@
 		A83B96412100DEBF5F6BC656 /* UI */ = {
 			isa = PBXGroup;
 			children = (
+				F97AC203ACCE40F49319D001 /* QuizSettingsAccountSupport.swift */,
 				456F83C41E3A0B2F3409172D /* QuizSettingsView.swift */,
 			);
 			path = UI;
@@ -1501,6 +1504,7 @@
 				FBCED59FC5ECD40563781E6A /* QuizResultViewControllerProtocol.swift in Sources */,
 				8BC15009A143DA3FC060F334 /* QuizResultPresenter.swift in Sources */,
 				AE606267FD8640D21154316F /* QuizResultViewController.swift in Sources */,
+				F97AC203ACCE40F49319D002 /* QuizSettingsAccountSupport.swift in Sources */,
 				9E0FA6243CD26D1693DBAEC5 /* QuizSettingsView.swift in Sources */,
 				C50000022FA0000100C50002 /* SubscriptionPaywallView.swift in Sources */,
 				7241C8B48AA9226E7A4CA109 /* StatisticsStore.swift in Sources */,
@@ -1658,7 +1662,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = Quizice/Quizice.entitlements;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 3;
 				DEVELOPMENT_TEAM = 24M7THZP42;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = Quizice/Info.plist;
@@ -1694,7 +1698,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = Quizice/Quizice.entitlements;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 3;
 				DEVELOPMENT_TEAM = 24M7THZP42;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = Quizice/Info.plist;

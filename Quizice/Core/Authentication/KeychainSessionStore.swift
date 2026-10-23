@@ -62,16 +62,24 @@ final class KeychainSessionStore: SessionStoring {
     private let client: KeychainClient
     private let encoder = JSONEncoder()
     private let decoder = JSONDecoder()
+    private let deletionStateStore: AccountDeletionStateStore
 
     init(
         service: String = "ru.avtabenskiy.Quizice.auth",
-        client: KeychainClient = SecurityKeychainClient()
+        client: KeychainClient = SecurityKeychainClient(),
+        deletionStateStore: AccountDeletionStateStore = AccountDeletionStateStore()
     ) {
         self.service = service
         self.client = client
+        self.deletionStateStore = deletionStateStore
     }
 
     func load() throws -> AuthSession? {
+        guard let session = try loadForAccountDeletion(), !deletionStateStore.blocks(session) else { return nil }
+        return session
+    }
+
+    func loadForAccountDeletion() throws -> AuthSession? {
         let data: Data?
         do {
             data = try client.loadData(service: service, account: account)

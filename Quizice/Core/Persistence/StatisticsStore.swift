@@ -148,6 +148,7 @@ final class StatisticsStore {
     }
 
     func recordAttempt(correctAnswers: Int, totalQuestions: Int, accessibilityMode: Bool, for userID: String?) {
+        guard !isErased(userID) else { return }
         guard let attempt = Self.sanitizedAttempt(
             correctAnswers: correctAnswers,
             totalQuestions: totalQuestions
@@ -178,7 +179,7 @@ final class StatisticsStore {
     /// Existing caches belonging to other users remain untouched.
     func activateAuthenticatedUser(_ userID: String) {
         let normalizedUserID = userID.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard normalizedUserID.isEmpty == false else { return }
+        guard normalizedUserID.isEmpty == false, !isErased(normalizedUserID) else { return }
 
         var userState = loadState(for: normalizedUserID)
         let guestState = loadState(for: nil)
@@ -206,6 +207,18 @@ final class StatisticsStore {
 
     func activateGuest() {
         userDefaults.removeObject(forKey: activePrincipalKey)
+    }
+
+    /// Called after the backend confirms deletion and the authentication owner
+    /// cancels its statistics synchronization task. Other accounts remain intact.
+    func eraseData(for userID: String) {
+        let deletedKey = storageKey(for: userID)
+        // A presenter can retain another store instance and the old principal.
+        // Keep only a deletion marker so late completions cannot recreate data.
+        userDefaults.set(true, forKey: "\(deletedKey).erased")
+        userDefaults.removeObject(forKey: deletedKey)
+        userDefaults.removeObject(forKey: "\(deletedKey).corrupt")
+        if userDefaults.string(forKey: activePrincipalKey) == userID { activateGuest() }
     }
 
     func makeSyncRequest(for userID: String) -> SyncRequest {
@@ -260,7 +273,8 @@ final class StatisticsStore {
     }
 
     var activeUserID: String? {
-        guard let value = userDefaults.string(forKey: activePrincipalKey), value.isEmpty == false else {
+        guard let value = userDefaults.string(forKey: activePrincipalKey), value.isEmpty == false,
+              !isErased(value) else {
             return nil
         }
         return value
@@ -277,6 +291,7 @@ final class StatisticsStore {
     }
 
     private func loadState(for userID: String?) -> PersistedState {
+        guard !isErased(userID) else { return .empty(migrationId: idGenerator()) }
         let storageKey = storageKey(for: userID)
         guard let data = userDefaults.data(forKey: storageKey) else {
             return .empty(migrationId: idGenerator())
@@ -321,9 +336,15 @@ final class StatisticsStore {
     }
 
     private func save(state: PersistedState, for userID: String?) {
+        guard !isErased(userID) else { return }
         let storageKey = storageKey(for: userID)
         guard let data = try? encoder.encode(state) else { return }
         userDefaults.set(data, forKey: storageKey)
+    }
+
+    private func isErased(_ userID: String?) -> Bool {
+        guard let userID else { return false }
+        return userDefaults.bool(forKey: "\(storageKey(for: userID)).erased")
     }
 
     private static func visibleSummary(for state: PersistedState) -> StatisticsSummary {

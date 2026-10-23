@@ -248,3 +248,34 @@
 
 "ai_theme.error.quota.title" = "Monthly AI limit reached";
 "ai_theme.error.quota.message" = "You have used your AI quizzes for this month. The limit resets at the start of the next calendar month (UTC). You can keep playing catalogue quizzes.";
+
+"settings.privacy_policy" = "Privacy policy";
+"settings.privacy_policy.subtitle" = "How Quizice handles your data";
+"settings.privacy_policy.unavailable.title" = "Could not open the privacy policy";
+"settings.privacy_policy.unavailable.message" = "Please check that a browser is available and try again.";
+"settings.account.delete" = "Delete account";
+"settings.account.delete.subtitle" = "Permanently delete your Quizice account and data";
+"settings.account.deleting" = "Deleting account…";
+"settings.account.delete.confirm.title" = "Delete your Quizice account?";
+"settings.account.delete.confirm.message" = "This permanently deletes your Quizice account, game progress, statistics, and favorite themes from the server and this device. This cannot be undone. Your Game Center account will not be deleted or changed.";
+"settings.account.deleted.title" = "Account deleted";
+"settings.account.deleted.message" = "Your Quizice account and its data have been deleted. Your Game Center account is unchanged. You can continue playing as a guest.";
+"settings.account.delete.failed.title" = "Deletion not confirmed";
+"settings.account.delete.failed.message" = "We could not confirm account deletion. Check your internet connection and try again.";
+"settings.account.cleanup.title" = "Finish clearing this device";
+"settings.account.cleanup.message" = "Your account has been deleted from the server, but some data on this device could not be cleared. Try again to finish clearing it.";
+"settings.account.session_expired.title" = "Session expired";
+"settings.account.session_expired.message" = "Your account session has expired, so deletion could not be confirmed. No new Quizice account will be created automatically. Check Game Center and your connection, then try again.";
+"settings.account.create" = "Create a new account";
+"settings.account.create.subtitle" = "Connect through Game Center with a fresh Quizice account";
+"settings.account.creating" = "Creating account…";
+"settings.account.create.confirm.title" = "Create a new Quizice account?";
+"settings.account.create.confirm.message" = "A new Quizice account will be linked to your Game Center account. Previously deleted progress, statistics, and favorite themes will not be restored.";
+"settings.account.created.title" = "Account connected";
+"settings.account.created.message" = "Your Quizice account is connected. You can use online account features again.";
+"settings.account.create.failed.title" = "Could not connect account";
+"settings.account.create.failed.message" = "Check your internet connection and Game Center sign-in, then try again.";
+"settings.account.unavailable.title" = "No connected account";
+"settings.account.unavailable.message" = "No connected Quizice account is available to manage. Check your Game Center sign-in and internet connection.";
+"settings.account.cancel" = "Cancel";
+"settings.account.retry" = "Try again";

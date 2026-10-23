@@ -211,4 +211,15 @@ final class SwiftDataThemeStore {
             AppMetricaAnalyticsTracker.shared.reportOperationalError(error, context: .persistentStore)
         }
     }
+
+    func erasePersonalization() throws {
+        do {
+            let themes = try context.fetch(FetchDescriptor<StoredQuizTheme>())
+            for theme in themes { theme.isFavorite = false }
+            try context.save()
+        } catch {
+            context.rollback()
+            throw error
+        }
+    }
 }

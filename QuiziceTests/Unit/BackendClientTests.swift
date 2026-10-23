@@ -841,6 +841,31 @@ extension BackendClientTests {
         XCTAssertEqual(outbox.pendingEvents(), [event])
     }
 
+    func testDeletionDuringAnswerUploadDiscardsItsLateResponseAndStopsRetries() async throws {
+        let removed = progressEvent("deleted")
+        let kept = progressEvent("another-account")
+        let url = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        defer { try? FileManager.default.removeItem(at: url) }
+        let api = QuestionAnswerBackendContentAPI(submitResults: [])
+        let outbox = PersistentQuestionAnswerOutbox(api: api, fileURL: url,
+            automaticallySynchronizesOnEnqueue: false,
+            sessionProvider: { ProgressSessionProvider.session("A") }, retryDelay: 0)
+        outbox.enqueue(removed, for: "A")
+        outbox.enqueue(kept, for: "B")
+        api.onSubmit = { events in
+            try outbox.eraseData(for: "A")
+            return QuestionAnswerBatchResponse(processedEventIds: events.map(\.eventId))
+        }
+
+        await outbox.synchronize()
+        await outbox.synchronize()
+
+        XCTAssertEqual(api.submittedBatches.count, 1)
+        XCTAssertEqual(outbox.pendingEvents(), [kept])
+        XCTAssertTrue(outbox.rejectedEvents().isEmpty)
+        XCTAssertNil(outbox.currentUserID)
+    }
+
     func testPermanentAnswerFailureIsIsolatedAndHealthyEventsContinue() async throws {
         for status in [409, 422] {
             let good = progressEvent("good")
@@ -1185,6 +1210,44 @@ extension BackendClientTests {
 }
 
 extension BackendClientTests {
+    func testDeletionInvalidatesInFlightFavoriteAndCatalogResponses() async {
+        let locale = AppLocalizationStore.shared.resolvedLanguageCode
+        let (_, defaults, suiteName) = makePreferenceStore()
+        defer { defaults.removePersistentDomain(forName: suiteName) }
+        let provider = ProgressSessionProvider()
+        let store = OnboardingProgressStore(userDefaults: defaults, userIDProvider: { provider.session?.userID })
+        let backend = ThemePreferencesBackendContentAPI(catalogThemes: Self.preferenceCatalog,
+                                                       remoteFavoriteThemeIDs: ["music"])
+        let repository = ThemeCatalogRepository(backendContentAPI: backend, preferenceStore: store,
+                                               accessTokenProvider: provider)
+        _ = await repository.refreshBackendCatalog(locale: locale)
+        // The account identifier deliberately remains the same. Generation
+        // checks must still reject pre-deletion results before auth finishes.
+        backend.beforeAsyncPreferencesResponse = {
+            await MainActor.run {
+                store.eraseData(for: "A")
+                do { try repository.eraseCachedPersonalization() }
+                catch { XCTFail("Cache erasure failed: \(error)") }
+            }
+        }
+
+        let preferencesApplied = await repository.synchronizeThemePreferences(locale: locale)
+
+        XCTAssertFalse(preferencesApplied)
+        XCTAssertNil(store.storedPreferredThemeIDs(locale: locale))
+        XCTAssertEqual(repository.themes?.filter(\.isFavorite).count, 0)
+        backend.beforeCatalogResponse = {
+            await MainActor.run {
+                do { try repository.eraseCachedPersonalization() }
+                catch { XCTFail("Cache erasure failed: \(error)") }
+            }
+        }
+        let catalogApplied = await repository.refreshBackendCatalog(locale: locale)
+        XCTAssertFalse(catalogApplied)
+        XCTAssertNil(store.storedPreferredThemeIDs(locale: locale))
+        XCTAssertEqual(repository.themes?.filter(\.isFavorite).count, 0)
+    }
+
     func testPreferenceResponseCannotOverwriteANewerLocalChoice() async {
         let locale = AppLocalizationStore.shared.resolvedLanguageCode
         let (store, defaults, suiteName) = makePreferenceStore()
