@@ -1,6 +1,10 @@
 import Foundation
 
 protocol BackendContentAPI {
+    func resetQuestionProgress(
+        themeID: String, resetID: UUID, session: AuthSession
+    ) async throws -> BackendQuestionProgressResetResponse
+
     func fetchRandomQuestions(
         selectionMode: CrossThemeQuestionSelectionMode, count: Int, locale: String,
         difficulty: AIQuizDifficulty, seed: String,
@@ -66,6 +70,12 @@ protocol BackendContentAPI {
 }
 
 extension BackendContentAPI {
+    func resetQuestionProgress(
+        themeID: String, resetID: UUID, session: AuthSession
+    ) async throws -> BackendQuestionProgressResetResponse {
+        throw BackendContentError.unauthenticated
+    }
+
     func fetchQuestions(
         themeID: String, count: Int, locale: String,
         difficulty: AIQuizDifficulty, seed: String,

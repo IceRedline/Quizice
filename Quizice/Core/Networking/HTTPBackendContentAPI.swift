@@ -105,6 +105,36 @@ final class HTTPBackendContentAPI: BackendContentAPI {
         )
     }
 
+    func resetQuestionProgress(
+        themeID: String, resetID: UUID, session: AuthSession
+    ) async throws -> BackendQuestionProgressResetResponse {
+        guard themeID == themeID.trimmingCharacters(in: .whitespacesAndNewlines),
+              themeID.range(of: "^[A-Za-z0-9_-]+$", options: .regularExpression) != nil,
+              resetID != UUID(uuidString: "00000000-0000-0000-0000-000000000000") else {
+            throw BackendContentError.invalidRequest
+        }
+        guard accessTokenProvider.currentSession()?.userID == session.userID else {
+            throw BackendContentError.unauthenticated
+        }
+        try Task.checkCancellation()
+        let url = try makeURL(
+            pathComponents: ["v1", "me", "themes", themeID, "question-progress", "reset"], queryItems: []
+        )
+        let response: BackendQuestionProgressResetResponse = try await post(
+            url: url, operation: .questionProgressReset, accessToken: session.accessToken,
+            body: BackendQuestionProgressResetRequest(resetId: resetID),
+            expectedUserID: session.userID,
+            validate: {
+                BackendContentResponseValidator.isValid($0, requestedThemeID: themeID, requestedResetID: resetID)
+            }
+        )
+        try Task.checkCancellation()
+        guard accessTokenProvider.currentSession()?.userID == session.userID else {
+            throw BackendContentError.unauthenticated
+        }
+        return response
+    }
+
     func submitQuestionAnswers(_ events: [QuestionAnswerEvent], session: AuthSession) async throws -> QuestionAnswerBatchResponse {
         guard !events.isEmpty, events.count <= 100 else { throw BackendContentError.invalidRequest }
         guard accessTokenProvider.currentSession()?.userID == session.userID else {
@@ -260,7 +290,7 @@ final class HTTPBackendContentAPI: BackendContentAPI {
                     requestedLocale: locale,
                     requestedSeed: normalizedSeed,
                     requestedCountry: country
-                )
+                ) && (!$0.isExhausted || $0.progressMode == strategy.progressMode)
             }
         )
     }
@@ -383,7 +413,7 @@ final class HTTPBackendContentAPI: BackendContentAPI {
                     requestedLocale: locale,
                     requestedSeed: normalizedSeed,
                     requestedCountry: country
-                )
+                ) && (!$0.isExhausted || $0.progressMode == strategy.progressMode)
             }
         )
     }
