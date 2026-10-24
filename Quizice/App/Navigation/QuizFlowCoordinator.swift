@@ -8,6 +8,7 @@ final class QuizFlowCoordinator: NSObject, QuizRouting, UIViewControllerTransiti
     private let session: QuizSessionManaging
     private let aiQuizThemeService: AIQuizThemeServiceProtocol
     private let aiQuizAccessProvider: AIQuizAccessProviding
+    private let aiServiceStatusAPI: AIServiceStatusAPI?
     private let accountManager: AccountManaging?
     private let onboardingProgressStore: OnboardingProgressStoring
     private let analytics: AnalyticsTracking
@@ -37,6 +38,7 @@ final class QuizFlowCoordinator: NSObject, QuizRouting, UIViewControllerTransiti
         session: QuizSessionManaging = QuizSessionStore.shared,
         aiQuizThemeService: AIQuizThemeServiceProtocol? = nil,
         aiQuizAccessProvider: AIQuizAccessProviding? = nil,
+        aiServiceStatusAPI: AIServiceStatusAPI? = nil,
         accountManager: AccountManaging? = nil,
         onboardingProgressStore: OnboardingProgressStoring = OnboardingProgressStore.shared,
         analytics: AnalyticsTracking = AppMetricaAnalyticsTracker.shared,
@@ -57,6 +59,7 @@ final class QuizFlowCoordinator: NSObject, QuizRouting, UIViewControllerTransiti
         self.aiQuizThemeService = aiQuizThemeService
             ?? Self.makeDefaultAIQuizThemeService(accessProvider: resolvedAIQuizAccessProvider)
         self.aiQuizAccessProvider = resolvedAIQuizAccessProvider
+        self.aiServiceStatusAPI = aiServiceStatusAPI
         self.accountManager = accountManager
         self.onboardingProgressStore = onboardingProgressStore
         self.analytics = analytics
@@ -103,6 +106,7 @@ final class QuizFlowCoordinator: NSObject, QuizRouting, UIViewControllerTransiti
             session: session,
             aiQuizThemeService: aiQuizThemeService,
             aiQuizAccessProvider: aiQuizAccessProvider,
+            aiServiceStatusAPI: aiServiceStatusAPI,
             analytics: analytics,
             randomQuestionsProvider: randomQuestionsProvider,
             randomQuestionSelectionModeProvider: randomQuestionSelectionModeProvider

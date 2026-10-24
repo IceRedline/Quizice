@@ -32,6 +32,7 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
                 window: window,
                 aiQuizThemeService: aiRuntimeDependencies.themeService,
                 aiQuizAccessProvider: aiRuntimeDependencies.accessProvider,
+                aiServiceStatusAPI: BackendConfiguration.load().map { HTTPAIServiceStatusAPI(configuration: $0) },
                 accountManager: authenticationService
             )
             coordinator.start()
