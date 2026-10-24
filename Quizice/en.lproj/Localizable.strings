@@ -293,3 +293,11 @@
 "account_start.deletion_pending.message" = "Account deletion is not yet complete. Retry the request to delete your account and its data.";
 "account_start.deletion_pending.action" = "Retry account deletion";
 "account_start.deletion_pending.sign_in" = "To finish deletion, sign in to the original Game Center account in iPhone Settings, then try again.";
+
+"onboarding.question_strategy.title" = "How should questions repeat?";
+"onboarding.question_strategy.subtitle" = "Choose which questions you’ll see again.";
+"onboarding.question_strategy.settings_hint" = "You can change this later in Settings.";
+"onboarding.question_strategy.availability_hint" = "Applies to ready-made topics from the online catalog after Game Center sign-in. Guests see all questions.";
+"onboarding.question_strategy.hideAnswered.detail" = "Questions you’ve answered won’t appear again.";
+"onboarding.question_strategy.retryIncorrect.detail" = "Hide questions answered correctly and keep the ones you missed.";
+"onboarding.question_strategy.showAll.detail" = "Any question may appear again.";

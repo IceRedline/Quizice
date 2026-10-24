@@ -293,3 +293,11 @@
 "account_start.deletion_pending.message" = "L’eliminazione dell’account non è ancora completata. Riprova per eliminare il tuo account e i suoi dati.";
 "account_start.deletion_pending.action" = "Riprova l’eliminazione";
 "account_start.deletion_pending.sign_in" = "Per completare l’eliminazione, accedi all’account Game Center originale nelle Impostazioni di iPhone e riprova.";
+
+"onboarding.question_strategy.title" = "Quali domande ripetere?";
+"onboarding.question_strategy.subtitle" = "Scegli quali domande rivedere.";
+"onboarding.question_strategy.settings_hint" = "Puoi cambiare la scelta nelle Impostazioni.";
+"onboarding.question_strategy.availability_hint" = "Vale per i temi pronti del catalogo online dopo l’accesso a Game Center. Gli ospiti vedono tutte le domande.";
+"onboarding.question_strategy.hideAnswered.detail" = "Le domande a cui hai già risposto non riappariranno.";
+"onboarding.question_strategy.retryIncorrect.detail" = "Nascondi le domande corrette e mantieni quelle sbagliate.";
+"onboarding.question_strategy.showAll.detail" = "Qualsiasi domanda può riapparire.";

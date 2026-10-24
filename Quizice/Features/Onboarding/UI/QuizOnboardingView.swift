@@ -50,6 +50,7 @@ struct QuizOnboardingView: View {
     let catalogOrigin: QuizCatalogOrigin
     let onComplete: (Set<String>) -> Void
 
+    @AppStorage(QuestionRepeatStrategyStore.defaultsKey) private var repeatStrategyID = QuestionRepeatStrategy.defaultStrategy.rawValue
     @State private var selectedPage: OnboardingPage
     @State private var selectedThemeIDs: Set<String>
     @AccessibilityFocusState private var focusedHeaderPage: OnboardingPage?
@@ -61,12 +62,18 @@ struct QuizOnboardingView: View {
         catalogOrigin: QuizCatalogOrigin = .bundled,
         initialPage: OnboardingPage = .welcome,
         preferredThemeIDs: Set<String> = [],
+        strategyDefaults: UserDefaults = .standard,
         onComplete: @escaping (Set<String>) -> Void
     ) {
         self.appearance = appearance
         self.themes = themes
         self.catalogOrigin = catalogOrigin
         self.onComplete = onComplete
+        _repeatStrategyID = AppStorage(
+            wrappedValue: QuestionRepeatStrategy.defaultStrategy.rawValue,
+            QuestionRepeatStrategyStore.defaultsKey,
+            store: strategyDefaults
+        )
         _selectedPage = State(initialValue: initialPage)
         _selectedThemeIDs = State(
             initialValue: preferredThemeIDs.intersection(Set(themes.map(\.id)))
@@ -100,6 +107,7 @@ struct QuizOnboardingView: View {
 
                     OnboardingTutorialPage(
                         themePreview: themes.first,
+                        repeatStrategy: questionRepeatStrategy,
                         isActive: selectedPage == .tutorial,
                         focusedHeaderPage: $focusedHeaderPage
                     )
@@ -108,18 +116,22 @@ struct QuizOnboardingView: View {
                 .tabViewStyle(.page(indexDisplayMode: .never))
                 .indexViewStyle(.page(backgroundDisplayMode: .never))
                 .overlay(alignment: .leading) {
-                    Color.clear
-                        .frame(width: Layout.storyTapWidth)
-                        .contentShape(Rectangle())
-                        .onTapGesture(perform: goBack)
-                        .accessibilityHidden(true)
+                    if selectedPage == .welcome {
+                        Color.clear
+                            .frame(width: Layout.storyTapWidth)
+                            .contentShape(Rectangle())
+                            .onTapGesture(perform: goBack)
+                            .accessibilityHidden(true)
+                    }
                 }
                 .overlay(alignment: .trailing) {
-                    Color.clear
-                        .frame(width: Layout.storyTapWidth)
-                        .contentShape(Rectangle())
-                        .onTapGesture(perform: advance)
-                        .accessibilityHidden(true)
+                    if selectedPage == .welcome {
+                        Color.clear
+                            .frame(width: Layout.storyTapWidth)
+                            .contentShape(Rectangle())
+                            .onTapGesture(perform: advance)
+                            .accessibilityHidden(true)
+                    }
                 }
 
                 footer
@@ -145,6 +157,13 @@ struct QuizOnboardingView: View {
             )
             focusedHeaderPage = page
         }
+    }
+
+    var questionRepeatStrategy: Binding<QuestionRepeatStrategy> {
+        Binding(
+            get: { QuestionRepeatStrategy(rawValue: repeatStrategyID) ?? .defaultStrategy },
+            set: { repeatStrategyID = $0.rawValue }
+        )
     }
 
     private var chrome: some View {
@@ -297,6 +316,69 @@ struct QuizOnboardingView: View {
     private var pageAnimation: Animation? {
         guard !reduceMotion else { return nil }
         return .timingCurve(0.32, 0.72, 0, 1, duration: 0.32)
+    }
+}
+
+struct OnboardingQuestionStrategyPicker: View {
+    @Binding var selection: QuestionRepeatStrategy
+    @Environment(\.appAppearance) private var appearance
+
+    private let strategies: [QuestionRepeatStrategy] = [.hideAnswered, .retryIncorrect, .showAll]
+
+    var body: some View {
+        VStack(spacing: 10) {
+            ForEach(strategies, id: \.rawValue) { strategy in
+                strategyButton(strategy)
+            }
+        }
+        .accessibilityIdentifier("onboardingQuestionStrategyPicker")
+    }
+
+    private func strategyButton(_ strategy: QuestionRepeatStrategy) -> some View {
+        let isSelected = selection == strategy
+        let title = L10n.Settings.QuestionStrategy.title(for: strategy)
+        let detail = L10n.Onboarding.QuestionStrategy.detail(for: strategy)
+        return Button {
+            selection = strategy
+        } label: {
+            HStack(alignment: .top, spacing: 12) {
+                VStack(alignment: .leading, spacing: 5) {
+                    Text(title)
+                        .font(appearance.typography.swiftUIFont(size: 17, weight: .semibold))
+                        .foregroundStyle(Color(uiColor: appearance.surfaceTextColor))
+                    Text(detail)
+                        .font(appearance.typography.swiftUIFont(size: 14, weight: .regular))
+                        .foregroundStyle(Color(uiColor: appearance.secondarySurfaceTextColor))
+                }
+                .multilineTextAlignment(.leading)
+                .fixedSize(horizontal: false, vertical: true)
+                .frame(maxWidth: .infinity, alignment: .leading)
+
+                Image(systemName: isSelected ? "checkmark.circle.fill" : "circle")
+                    .font(appearance.typography.swiftUIFont(size: 22, weight: .semibold))
+                    .foregroundStyle(Color(uiColor: isSelected ? appearance.surfaceTextColor : appearance.secondarySurfaceTextColor))
+                    .accessibilityHidden(true)
+            }
+            .padding(14)
+            .frame(maxWidth: .infinity, minHeight: 64, alignment: .leading)
+            .background(
+                Color(uiColor: appearance.card.backgroundColor),
+                in: RoundedRectangle(cornerRadius: appearance.card.cornerRadius, style: .continuous)
+            )
+            .overlay {
+                RoundedRectangle(cornerRadius: appearance.card.cornerRadius, style: .continuous)
+                    .stroke(
+                        Color(uiColor: isSelected ? appearance.surfaceTextColor : appearance.card.borderColor),
+                        lineWidth: isSelected ? 2 : max(appearance.card.borderWidth, 1)
+                    )
+            }
+            .contentShape(RoundedRectangle(cornerRadius: appearance.card.cornerRadius, style: .continuous))
+        }
+        .buttonStyle(QuizPressButtonStyle())
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel("\(title). \(detail)")
+        .accessibilityAddTraits(isSelected ? .isSelected : [])
+        .accessibilityIdentifier("onboardingQuestionStrategy-\(strategy.rawValue)")
     }
 }
 

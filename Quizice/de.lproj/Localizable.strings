@@ -293,3 +293,11 @@
 "account_start.deletion_pending.message" = "Die Kontolöschung ist noch nicht abgeschlossen. Wiederhole die Anfrage, um dein Konto und seine Daten zu löschen.";
 "account_start.deletion_pending.action" = "Löschung erneut versuchen";
 "account_start.deletion_pending.sign_in" = "Melde dich zum Abschließen der Löschung in den iPhone-Einstellungen beim ursprünglichen Game Center-Account an und versuche es erneut.";
+
+"onboarding.question_strategy.title" = "Welche Fragen wiederholen?";
+"onboarding.question_strategy.subtitle" = "Wähle, welche Fragen du erneut sehen möchtest.";
+"onboarding.question_strategy.settings_hint" = "Du kannst dies später in den Einstellungen ändern.";
+"onboarding.question_strategy.availability_hint" = "Gilt für fertige Themen aus dem Online-Katalog nach der Anmeldung bei Game Center. Gäste sehen alle Fragen.";
+"onboarding.question_strategy.hideAnswered.detail" = "Bereits beantwortete Fragen erscheinen nicht erneut.";
+"onboarding.question_strategy.retryIncorrect.detail" = "Richtig beantwortete Fragen ausblenden, falsch beantwortete behalten.";
+"onboarding.question_strategy.showAll.detail" = "Jede Frage kann erneut erscheinen.";
