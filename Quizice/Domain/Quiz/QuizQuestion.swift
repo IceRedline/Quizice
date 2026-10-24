@@ -3,6 +3,7 @@ import Foundation
 class QuizQuestion {
     var questionID: String?
     var questionVersion: Int?
+    var progressGeneration: UUID?
     var locale: String?
     var question: String
     var answers: [String]
@@ -12,6 +13,7 @@ class QuizQuestion {
     init(
         questionID: String? = nil,
         questionVersion: Int? = nil,
+        progressGeneration: UUID? = nil,
         locale: String? = nil,
         question: String,
         answers: [String],
@@ -20,6 +22,7 @@ class QuizQuestion {
     ) {
         self.questionID = questionID
         self.questionVersion = questionVersion
+        self.progressGeneration = progressGeneration
         self.locale = locale
         self.question = question
         self.answers = answers

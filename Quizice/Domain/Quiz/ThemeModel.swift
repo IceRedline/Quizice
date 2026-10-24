@@ -48,6 +48,7 @@ extension QuizTheme {
             questions: questions.map {
                 QuizQuestion(
                     questionID: $0.questionID, questionVersion: $0.questionVersion,
+                    progressGeneration: $0.progressGeneration,
                     locale: $0.locale, question: $0.question, answers: $0.answers,
                     correctAnswer: $0.correctAnswer, explanation: $0.explanation
                 )
