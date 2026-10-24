@@ -154,7 +154,7 @@ extension QuizQuestionViewController {
         )
         questionExplanationBackButton.isHidden = true
 
-        questionExplanationScrollView = UIScrollView()
+        questionExplanationScrollView = PersistentScrollIndicatorScrollView()
         questionExplanationScrollView.accessibilityIdentifier = AccessibilityID.questionExplanationScrollView
         questionExplanationScrollView.alwaysBounceVertical = false
         questionExplanationScrollView.isDirectionalLockEnabled = true
@@ -326,7 +326,10 @@ extension QuizQuestionViewController {
                 constant: Layout.questionSurroundingMinimumSpacing
             ),
             questionExplanationScrollView.leadingAnchor.constraint(equalTo: questionLabel.leadingAnchor),
-            questionExplanationScrollView.trailingAnchor.constraint(equalTo: questionLabel.trailingAnchor),
+            questionExplanationScrollView.trailingAnchor.constraint(
+                equalTo: questionLabel.trailingAnchor,
+                constant: PersistentScrollIndicatorScrollView.indicatorGutter
+            ),
             questionExplanationScrollView.bottomAnchor.constraint(
                 equalTo: answersStackView.topAnchor,
                 constant: -Layout.questionSurroundingMinimumSpacing
@@ -347,14 +350,16 @@ extension QuizQuestionViewController {
                 equalTo: questionExplanationScrollView.contentLayoutGuide.leadingAnchor
             ),
             questionExplanationLabel.trailingAnchor.constraint(
-                equalTo: questionExplanationScrollView.contentLayoutGuide.trailingAnchor
+                equalTo: questionExplanationScrollView.contentLayoutGuide.trailingAnchor,
+                constant: -PersistentScrollIndicatorScrollView.indicatorGutter
             ),
             questionExplanationLabel.bottomAnchor.constraint(
                 lessThanOrEqualTo: questionExplanationScrollView.contentLayoutGuide.bottomAnchor,
                 constant: -Layout.explanationContentVerticalInset
             ),
             questionExplanationLabel.widthAnchor.constraint(
-                equalTo: questionExplanationScrollView.frameLayoutGuide.widthAnchor
+                equalTo: questionExplanationScrollView.frameLayoutGuide.widthAnchor,
+                constant: -PersistentScrollIndicatorScrollView.indicatorGutter
             ),
             
             nextButton.centerXAnchor.constraint(equalTo: rootView.centerXAnchor),
