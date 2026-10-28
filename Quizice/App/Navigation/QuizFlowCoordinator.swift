@@ -9,6 +9,8 @@ final class QuizFlowCoordinator: NSObject, QuizRouting, UIViewControllerTransiti
     private let aiQuizThemeService: AIQuizThemeServiceProtocol
     private let aiQuizAccessProvider: AIQuizAccessProviding
     private let accountManager: AccountManaging?
+    private let answerOutbox: QuestionAnswerOutboxing
+    @MainActor private var dataSynchronizer: AccountDataSynchronizer?
     private let onboardingProgressStore: OnboardingProgressStoring
     private let analytics: AnalyticsTracking
     private let notificationCenter: NotificationCenter
@@ -40,6 +42,7 @@ final class QuizFlowCoordinator: NSObject, QuizRouting, UIViewControllerTransiti
         aiQuizThemeService: AIQuizThemeServiceProtocol? = nil,
         aiQuizAccessProvider: AIQuizAccessProviding? = nil,
         accountManager: AccountManaging? = nil,
+        answerOutbox: QuestionAnswerOutboxing = PersistentQuestionAnswerOutbox.shared,
         onboardingProgressStore: OnboardingProgressStoring = OnboardingProgressStore.shared,
         analytics: AnalyticsTracking = AppMetricaAnalyticsTracker.shared,
         notificationCenter: NotificationCenter = .default,
@@ -60,6 +63,7 @@ final class QuizFlowCoordinator: NSObject, QuizRouting, UIViewControllerTransiti
             ?? Self.makeDefaultAIQuizThemeService(accessProvider: resolvedAIQuizAccessProvider)
         self.aiQuizAccessProvider = resolvedAIQuizAccessProvider
         self.accountManager = accountManager
+        self.answerOutbox = answerOutbox
         self.onboardingProgressStore = onboardingProgressStore
         self.analytics = analytics
         self.notificationCenter = notificationCenter
@@ -70,7 +74,7 @@ final class QuizFlowCoordinator: NSObject, QuizRouting, UIViewControllerTransiti
         authenticationEstablishedObserver = notificationCenter.addObserver(
             forName: .backendAuthenticationEstablished, object: nil, queue: .main
         ) { [weak self] _ in
-            Task { @MainActor [weak self] in self?.synchronizeThemePreferencesAfterAuthentication() }
+            Task { @MainActor [weak self] in await self?.refreshAccountData(requiringNewPass: true) }
         }
         accountDeletionObserver = notificationCenter.addObserver(
             forName: .backendAccountDeleted, object: nil, queue: .main
@@ -80,6 +84,7 @@ final class QuizFlowCoordinator: NSObject, QuizRouting, UIViewControllerTransiti
                 self.catalogReplayTask?.cancel()
                 self.aiReplayTask?.cancel()
                 self.themePreferencesSyncTask?.cancel()
+                self.dataSynchronizer?.cancel()
                 self.roundSession = nil
                 self.session.chosenTheme = nil
                 (self.navigationController.viewControllers.first as? QuizViewController)?
@@ -281,10 +286,31 @@ final class QuizFlowCoordinator: NSObject, QuizRouting, UIViewControllerTransiti
         presentSystemViewController(viewController)
     }
 
-    private func synchronizeThemePreferencesAfterAuthentication() {
-        synchronizeThemePreferences(
-            locale: AppLocalizationStore.shared.resolvedLanguageCode
-        )
+    @MainActor
+    func refreshAccountData() async {
+        await refreshAccountData(requiringNewPass: false)
+    }
+
+    @MainActor
+    private func refreshAccountData(requiringNewPass: Bool) async {
+        if dataSynchronizer == nil {
+            dataSynchronizer = AccountDataSynchronizer(
+                statistics: { [weak self] in
+                    await (self?.accountManager as? AccountSynchronizing)?.synchronizeAccountData()
+                },
+                answers: { [weak self] in await self?.answerOutbox.synchronize() },
+                favorites: { [weak self] in
+                    guard let self else { return }
+                    let locale = AppLocalizationStore.shared.resolvedLanguageCode
+                    let refreshed = await self.themeRepository.synchronizeThemePreferences(locale: locale)
+                    guard !Task.isCancelled else { return }
+                    if refreshed {
+                        (self.navigationController.viewControllers.first as? QuizViewController)?.refreshVisibleAccountData()
+                    }
+                }
+            )
+        }
+        await dataSynchronizer?.refresh(requiringNewPass: requiringNewPass)
     }
 
     private func synchronizeThemePreferences(locale: String) {
@@ -571,6 +597,7 @@ final class QuizFlowCoordinator: NSObject, QuizRouting, UIViewControllerTransiti
     }
 
     func resetAccountNavigation(completion: @escaping () -> Void) {
+        dataSynchronizer?.cancel()
         activeOnboardingViewController = nil
         pendingSystemViewController = nil
         activeQuestionViewController = nil

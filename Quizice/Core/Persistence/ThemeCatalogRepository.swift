@@ -41,20 +41,24 @@ final class ThemeCatalogRepository: ThemeRepository {
     private let repeatStrategyProvider: () -> QuestionRepeatStrategy
 
     private var loadedThemes: [QuizTheme]?
+    private var catalogOrder: [String] = []
     private var favoritePrincipal: String?
+    private var favoriteRevision = -1
     private var personalizationGeneration = UUID()
     var themes: [QuizTheme]? {
         get {
             let principal = accessTokenProvider.currentSession()?.userID
-            if catalogOrigin == .backend, favoritePrincipal != principal {
+            let revision = favoritesStore.localRevision(for: principal)
+            if favoritePrincipal != principal || favoriteRevision != revision {
                 favoritePrincipal = principal
-                loadedThemes?.sort { $0.stableID < $1.stableID }
+                favoriteRevision = revision
                 applyFavoriteOrder(currentFavoriteIDs)
             }
             return loadedThemes
         }
         set {
             loadedThemes = newValue
+            catalogOrder = newValue?.map(\.stableID) ?? []
             favoritePrincipal = accessTokenProvider.currentSession()?.userID
         }
     }
@@ -566,14 +570,17 @@ final class ThemeCatalogRepository: ThemeRepository {
     }
 
     private func applyFavoriteOrder(_ favoriteThemeIDs: [String]) {
-        guard let currentThemes = themes else { return }
+        guard let loadedThemes else { return }
+        let currentThemes = loadedThemes.sorted {
+            (catalogOrder.firstIndex(of: $0.stableID) ?? Int.max) < (catalogOrder.firstIndex(of: $1.stableID) ?? Int.max)
+        }
         let rankByID = Dictionary(
             uniqueKeysWithValues: favoriteThemeIDs.enumerated().map { ($0.element, $0.offset) }
         )
         currentThemes.forEach {
             $0.isFavorite = rankByID[$0.stableID] != nil
         }
-        themes = currentThemes.enumerated()
+        self.loadedThemes = currentThemes.enumerated()
             .sorted { lhs, rhs in
                 let lhsRank = rankByID[lhs.element.stableID]
                 let rhsRank = rankByID[rhs.element.stableID]

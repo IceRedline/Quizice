@@ -2,7 +2,7 @@ import Foundation
 import UIKit
 
 @MainActor
-final class GameCenterAuthenticationService: AccountManaging, AppAccountAccessProviding {
+final class GameCenterAuthenticationService: AccountManaging, AccountSynchronizing, AppAccountAccessProviding {
     private(set) var state: AuthSessionState = .initializing {
         didSet { accountAccessStateDidChange?(accountAccessState) }
     }
@@ -211,6 +211,15 @@ final class GameCenterAuthenticationService: AccountManaging, AppAccountAccessPr
         }
     }
 #endif
+
+    func synchronizeAccountData() async {
+        retrySynchronization()
+        if let authenticationTask { await authenticationTask.value }
+        while let synchronizationTask {
+            await synchronizationTask.value
+            if Task.isCancelled { return }
+        }
+    }
 
     func retrySynchronization() {
         guard !accountOperationInProgress, deletionRecord == nil else { return }

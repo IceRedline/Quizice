@@ -27,6 +27,7 @@ final class GlobalFavoritesStore {
         var localRevision = 0
         var hasSelection = false
         var explicitGuestSelection = false
+        var explicitGuestThemeIDs: [String]?
 
         var visible: [String] {
             pending.reduce(baseline) { result, mutation in
@@ -41,6 +42,7 @@ final class GlobalFavoritesStore {
         var accounts: [String: Account] = [:]
         var guest = Account()
         var erasedUsers: Set<String> = []
+        var guestLegacyImported: Bool?
     }
 
     private static let lock = NSRecursiveLock()
@@ -77,6 +79,7 @@ final class GlobalFavoritesStore {
                 account.baseline.removeAll { removals.contains($0) }
                 account.baseline.append(contentsOf: additions.filter { !account.baseline.contains($0) })
                 account.explicitGuestSelection = true
+                account.explicitGuestThemeIDs = selected
             } else if !additions.isEmpty || !removals.isEmpty {
                 account.pending.append(FavoriteMutation(mutationId: makeID(), addThemeIds: additions, removeThemeIds: removals))
             }
@@ -149,6 +152,18 @@ final class GlobalFavoritesStore {
     }
 
     private func prepare(_ userID: String?, state: inout State) {
+        if state.guestLegacyImported != true {
+            if !state.guest.hasSelection {
+                var legacy = defaults.stringArray(forKey: OnboardingProgressStore.Keys.preferredThemeIDs) ?? []
+                for locale in ["de", "en", "es", "fr", "it", "ru"] {
+                    legacy += defaults.stringArray(forKey: OnboardingProgressStore.Keys.preferredThemeIDs(locale: locale)) ?? []
+                }
+                state.guest.baseline = Self.normalized(legacy)
+                state.guest.hasSelection = !legacy.isEmpty
+            }
+            // Old unowned data remains locally visible but is never claimable.
+            state.guestLegacyImported = true
+        }
         guard let userID, !state.erasedUsers.contains(userID) else { return }
         if state.accounts[userID] == nil {
             var account = Account()
@@ -172,7 +187,7 @@ final class GlobalFavoritesStore {
             state.accounts[userID] = account
         }
         if state.guest.explicitGuestSelection {
-            let ids = state.guest.visible
+            let ids = state.guest.explicitGuestThemeIDs ?? state.guest.visible
             if !ids.isEmpty {
                 state.accounts[userID]?.pending.append(FavoriteMutation(mutationId: makeID(), addThemeIds: ids, removeThemeIds: []))
             }

@@ -59,8 +59,12 @@ final class OnboardingProgressStoreTests: XCTestCase {
             defaults.set(["music"], forKey: OnboardingProgressStore.Keys.preferredThemeIDs(locale: "ru"))
             defaults.set(true, forKey: "quizice.preferences.unclaimedGuest.ru")
             let store = GlobalFavoritesStore(defaults: defaults)
+            XCTAssertEqual(store.favorites(for: nil), ["music"])
             XCTAssertNil(store.favorites(for: "A"))
             XCTAssertNil(store.nextMutation(for: "A"))
+            let reopened = GlobalFavoritesStore(defaults: defaults)
+            XCTAssertEqual(reopened.favorites(for: nil), ["music"])
+            XCTAssertNil(reopened.nextMutation(for: "A"))
         }
     }
 
