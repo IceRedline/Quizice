@@ -20,6 +20,8 @@ final class QuizFlowCoordinator: NSObject, QuizRouting, UIViewControllerTransiti
     private weak var resultViewController: QuizResultViewController?
     private var roundSession: QuizSessionStore?
     private weak var activeOnboardingViewController: UIViewController?
+    private var onboardingVisibleThemeIDs: Set<String>?
+    private var onboardingInitialSelection: Set<String>?
     private var pendingSystemViewController: UIViewController?
     private var catalogReplayTask: Task<Void, Never>?
     private var catalogReplayProgressTask: Task<Void, Never>?
@@ -208,6 +210,9 @@ final class QuizFlowCoordinator: NSObject, QuizRouting, UIViewControllerTransiti
         let appearance = AppAppearanceStore.shared.appearance(
             compatibleWith: window.traitCollection
         )
+        onboardingVisibleThemeIDs = Set(onboardingThemes.map(\.id))
+        onboardingInitialSelection = Set(onboardingProgressStore.orderedPreferredThemeIDs(locale: AppLocalizationStore.shared.resolvedLanguageCode))
+        let editingUserID = onboardingProgressStore.preferenceUserID
         let onboardingView = QuizOnboardingView(
             appearance: appearance,
             themes: onboardingThemes,
@@ -218,7 +223,8 @@ final class QuizFlowCoordinator: NSObject, QuizRouting, UIViewControllerTransiti
                 )
             ),
             onComplete: { [weak self] preferredThemeIDs in
-                self?.completeOnboarding(preferredThemeIDs: preferredThemeIDs)
+                guard let self, self.onboardingProgressStore.preferenceUserID == editingUserID else { return }
+                self.completeOnboarding(preferredThemeIDs: preferredThemeIDs)
             }
         )
         let viewController = UIHostingController(rootView: onboardingView)
@@ -249,6 +255,8 @@ final class QuizFlowCoordinator: NSObject, QuizRouting, UIViewControllerTransiti
             .filter(preferredThemeIDs.contains)
         onboardingProgressStore.complete(
             preferredThemeIDs: orderedPreferredThemeIDs,
+            visibleThemeIDs: onboardingVisibleThemeIDs ?? Set(onboardingThemes.map(\.id)),
+            initiallySelected: onboardingInitialSelection ?? Set(onboardingProgressStore.orderedPreferredThemeIDs(locale: locale)),
             locale: locale
         )
         (navigationController.viewControllers.first as? QuizViewController)?
@@ -256,6 +264,8 @@ final class QuizFlowCoordinator: NSObject, QuizRouting, UIViewControllerTransiti
         synchronizeThemePreferences(locale: locale)
         let viewController = activeOnboardingViewController
         activeOnboardingViewController = nil
+        onboardingVisibleThemeIDs = nil
+        onboardingInitialSelection = nil
         guard let viewController else {
             presentPendingSystemViewControllerIfNeeded()
             return
