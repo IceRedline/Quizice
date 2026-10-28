@@ -569,6 +569,51 @@ final class QuizQuestionTypographyContractTests: CrossScreenVisualTestCase {
 
 @MainActor
 final class QuizQuestionIPadLayoutTests: CrossScreenVisualTestCase {
+    func testExplanationAndQuestionReturnIntoViewAfterScrollingToAnswers() throws {
+        let controller = QuizQuestionViewController()
+        let presenter = ExitConfirmationPresenterSpy()
+        controller.configurePresenter(presenter)
+        controller.loadViewIfNeeded()
+        controller.view.frame = CGRect(x: 0, y: 0, width: 744, height: 400)
+        let answers = (0..<4).map { index in
+            String(repeating: "Длинный вариант ответа \(index). ", count: 12)
+        }
+        controller.loadQuestionToView(QuizQuestionViewModel(
+            themeName: "Тема", questionText: "Какой ответ правильный?", questionNumberText: "Вопрос №2",
+            answers: answers.enumerated().map { QuizAnswerOption(id: String($0.offset), title: $0.element) },
+            explanation: "Пояснение к выбранному ответу."
+        ))
+        controller.view.layoutIfNeeded()
+        controller.updateProgress(0.42)
+        let starts = presenter.startTimerCallCount
+        let bodyScroll = try XCTUnwrap(controller.questionBodyScrollView)
+        let bottomOffset = bodyScroll.contentSize.height - bodyScroll.bounds.height
+        XCTAssertGreaterThan(bottomOffset, 0)
+        bodyScroll.setContentOffset(CGPoint(x: 0, y: bottomOffset), animated: false)
+        let explanation = try XCTUnwrap(controller.questionExplanationScrollView)
+        XCTAssertLessThan(explanation.convert(explanation.bounds, to: bodyScroll).maxY, bodyScroll.bounds.minY)
+
+        controller.colorAndDisableButtons()
+        XCTAssertTrue(controller.isQuestionExplanationVisible)
+        XCTAssertEqual(bodyScroll.contentOffset.y, 0, accuracy: 0.5)
+        XCTAssertEqual(explanation.contentOffset.y, 0, accuracy: 0.5)
+        XCTAssertTrue(bodyScroll.bounds.intersects(explanation.convert(explanation.bounds, to: bodyScroll)))
+
+        bodyScroll.setContentOffset(CGPoint(x: 0, y: bottomOffset), animated: false)
+        controller.questionExplanationBackButtonTapped()
+        XCTAssertFalse(controller.isQuestionExplanationVisible)
+        XCTAssertEqual(bodyScroll.contentOffset.y, 0, accuracy: 0.5)
+        XCTAssertTrue(bodyScroll.bounds.intersects(controller.questionLabel.convert(controller.questionLabel.bounds, to: bodyScroll)))
+
+        bodyScroll.setContentOffset(CGPoint(x: 0, y: bottomOffset), animated: false)
+        controller.questionInfoButtonTapped()
+        XCTAssertTrue(controller.isQuestionExplanationVisible)
+        XCTAssertEqual(bodyScroll.contentOffset.y, 0, accuracy: 0.5)
+        XCTAssertEqual(controller.currentAnswerOptions.map(\.title), answers)
+        XCTAssertEqual(controller.timerBar.progress, 0.42, accuracy: 0.001)
+        XCTAssertEqual(presenter.startTimerCallCount, starts)
+    }
+
     func testIPadResizePreservesQuestionAnswersAndTimer() throws {
         for style in [AppDesignStyle.classic, .radar, .clean] {
             UserDefaults.standard.set(style.rawValue, forKey: AppAppearanceStore.Keys.designStyle)

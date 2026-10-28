@@ -74,6 +74,9 @@ extension QuizQuestionViewController {
         }
 
         isQuestionExplanationVisible = isVisible
+        // The answers may have moved the outer scroll below the question. Both
+        // content modes must begin in view when switching between them.
+        questionBodyScrollView.setContentOffset(.zero, animated: false)
         if isVisible {
             questionExplanationScrollView.setContentOffset(.zero, animated: false)
         }
