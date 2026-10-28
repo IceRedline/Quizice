@@ -1,6 +1,6 @@
 import UIKit
 
-final class ThemesCollectionService: NSObject, UICollectionViewDelegate, UICollectionViewDataSource, UICollectionViewDelegateFlowLayout, UIGestureRecognizerDelegate {
+final class ThemesCollectionService: NSObject, UICollectionViewDelegate, UICollectionViewDataSource, UICollectionViewDelegateFlowLayout, HomeThemeMasonryLayoutDelegate, UIGestureRecognizerDelegate {
     enum Content {
         static let themeCellReuseIdentifier = "themeCell"
         static let themeImageAccessibilityIDPrefix = "homeThemeImageView"
@@ -28,7 +28,7 @@ final class ThemesCollectionService: NSObject, UICollectionViewDelegate, UIColle
         static let sectionInsets = UIEdgeInsets(top: 0, left: 24, bottom: 0, right: 24)
         static let itemSpacing: CGFloat = 16
         static let compactOuterItemSpacing: CGFloat = 12
-        static let visibleThemeRowCount = 4
+        static let viewportCardsPerColumn = 4
         static let prominentActionCardHeight: CGFloat = 72
         static let accessibilityProminentActionCardHeight: CGFloat = 272
         static let aiThemeButtonHeight = prominentActionCardHeight
@@ -141,25 +141,14 @@ final class ThemesCollectionService: NSObject, UICollectionViewDelegate, UIColle
         return Self.orderedThemes(themes, preferredThemeIDs: preferredThemeIDs)
     }
 
-    private var visibleThemeLimit: Int {
-        activeViewportRowCount * activeThemeColumnCount
-    }
-
     private var showsMoreThemesButton: Bool {
-        displayedThemes.count > visibleThemeLimit
+        catalogCanScroll
     }
 
     private var themeCount: Int { displayedThemes.count }
-    private var activeThemeColumnCount = 2 {
+    private var catalogCanScroll = false {
         didSet {
-            guard oldValue != activeThemeColumnCount else { return }
-            updateThemeCatalogScrollAvailability()
-            configureMoreThemesButton()
-        }
-    }
-    private var activeViewportRowCount = Layout.visibleThemeRowCount {
-        didSet {
-            guard oldValue != activeViewportRowCount else { return }
+            guard oldValue != catalogCanScroll else { return }
             updateThemeCatalogScrollAvailability()
             configureMoreThemesButton()
         }
@@ -279,7 +268,7 @@ final class ThemesCollectionService: NSObject, UICollectionViewDelegate, UIColle
             cell.configure(
                 dataSource: self,
                 delegate: self,
-                canScroll: displayedThemes.count > visibleThemeLimit
+                canScroll: catalogCanScroll
             )
             installMoreThemesButtonIfNeeded(in: cell)
             configureMoreThemesButton()
@@ -356,7 +345,7 @@ final class ThemesCollectionService: NSObject, UICollectionViewDelegate, UIColle
             let grid = themeGrid(width: collectionView.bounds.width, traits: collectionView.traitCollection)
             return CGSize(
                 width: grid.cardWidth,
-                height: themeRowHeight(containing: indexPath.item, grid: grid)
+                height: grid.cardHeight(title: displayedThemes[safe: indexPath.item]?.theme ?? "")
             )
         }
 
@@ -439,15 +428,17 @@ final class ThemesCollectionService: NSObject, UICollectionViewDelegate, UIColle
         )
     }
 
-    private func themeRowHeight(containing itemIndex: Int, grid: ThemeCardLayoutMetrics.Grid) -> CGFloat {
-        let rowStartIndex = (itemIndex / grid.columnCount) * grid.columnCount
-        guard rowStartIndex < themeCount else {
-            return ThemeCardLayoutMetrics.singleLineHeight
-        }
-        let rowTitles = displayedThemes[
-            rowStartIndex..<min(rowStartIndex + grid.columnCount, themeCount)
-        ].map(\.theme)
-        return grid.rowHeight(titles: rowTitles)
+    func themeMasonryGeometry(in collectionView: UICollectionView) -> HomeThemeMasonryGeometry {
+        let grid = themeGrid(width: collectionView.bounds.width, traits: collectionView.traitCollection)
+        return themeMasonryGeometry(width: collectionView.bounds.width, grid: grid)
+    }
+
+    private func themeMasonryGeometry(width: CGFloat, grid: ThemeCardLayoutMetrics.Grid) -> HomeThemeMasonryGeometry {
+        HomeThemeMasonryGeometry(
+            itemHeights: displayedThemes.map { grid.cardHeight(title: $0.theme) },
+            columnCount: grid.columnCount, cardWidth: grid.cardWidth,
+            spacing: Layout.itemSpacing, width: width
+        )
     }
 
     private func isThemeItemsCollectionView(_ collectionView: UICollectionView) -> Bool {
@@ -461,13 +452,7 @@ final class ThemesCollectionService: NSObject, UICollectionViewDelegate, UIColle
         availableOuterHeight: CGFloat
     ) -> CGFloat {
         let grid = themeGrid(width: width, traits: traitCollection)
-        activeThemeColumnCount = grid.columnCount
-        let maximumViewportRowCount = min(Layout.visibleThemeRowCount, max(
-            Int(ceil(Double(themeCount) / Double(grid.columnCount))), 1
-        ))
-        let allRowHeights = (0..<maximumViewportRowCount).map { row in
-            themeRowHeight(containing: row * grid.columnCount, grid: grid)
-        }
+        let geometry = themeMasonryGeometry(width: width, grid: grid)
         let usesAccessibilityLayout = traitCollection
             .preferredContentSizeCategory
             .isAccessibilityCategory
@@ -487,26 +472,17 @@ final class ThemesCollectionService: NSObject, UICollectionViewDelegate, UIColle
             availableOuterHeight - fixedOuterContentHeight,
             ThemeCardLayoutMetrics.singleLineHeight
         )
-        var fittedRowCount = 0
-        var fittedHeight: CGFloat = 0
-        for rowHeight in allRowHeights {
-            let candidateHeight = fittedHeight
-                + (fittedRowCount > 0 ? Layout.itemSpacing : 0)
-                + rowHeight
-            guard fittedRowCount == 0 || candidateHeight <= viewportBudget else { break }
-            fittedRowCount += 1
-            fittedHeight = candidateHeight
-        }
-
-        activeViewportRowCount = max(fittedRowCount, 1)
-        let maximumViewportHeight = allRowHeights.reduce(0, +)
-            + Layout.itemSpacing * CGFloat(max(allRowHeights.count - 1, 0))
-        let minimumViewportHeight = allRowHeights.first
+        let maximumViewportHeight = geometry.frames
+            .prefix(Layout.viewportCardsPerColumn * grid.columnCount)
+            .map(\.maxY).max() ?? ThemeCardLayoutMetrics.singleLineHeight
+        let minimumViewportHeight = geometry.frames.prefix(grid.columnCount).map(\.maxY).max()
             ?? ThemeCardLayoutMetrics.singleLineHeight
-        return min(
+        let viewportHeight = min(
             maximumViewportHeight,
             max(viewportBudget, minimumViewportHeight)
         )
+        catalogCanScroll = geometry.contentSize.height > viewportHeight + 0.5
+        return viewportHeight
     }
 
     private func availableContentHeight(in collectionView: UICollectionView) -> CGFloat {
@@ -532,10 +508,9 @@ final class ThemesCollectionService: NSObject, UICollectionViewDelegate, UIColle
 
     private func updateThemeCatalogScrollAvailability() {
         guard let themeItemsCollectionView else { return }
-        let canScroll = displayedThemes.count > visibleThemeLimit
-        themeItemsCollectionView.isScrollEnabled = canScroll
-        themeItemsCollectionView.alwaysBounceVertical = canScroll
-        themeItemsCollectionView.bounces = canScroll
+        themeItemsCollectionView.isScrollEnabled = catalogCanScroll
+        themeItemsCollectionView.alwaysBounceVertical = catalogCanScroll
+        themeItemsCollectionView.bounces = catalogCanScroll
     }
 
     private func prepare(_ cell: UICollectionViewCell, appearance: AppAppearance) {
@@ -649,7 +624,11 @@ final class ThemesCollectionService: NSObject, UICollectionViewDelegate, UIColle
 
         let distanceFromTop = collectionView.contentOffset.y
             + collectionView.adjustedContentInset.top
+        let distanceToBottom = collectionView.contentSize.height
+            + collectionView.adjustedContentInset.bottom
+            - collectionView.bounds.maxY
         let isVisible = distanceFromTop < Layout.moreThemesVisibilityThreshold
+            && (distanceFromTop <= 0 || distanceToBottom > 0.5)
         button.setVisible(isVisible, animated: animated)
         (collectionView as? HomeThemesCollectionView)?.updateBottomFade(
             visibility: isVisible ? 1 : 0,
@@ -664,15 +643,18 @@ final class ThemesCollectionService: NSObject, UICollectionViewDelegate, UIColle
     @objc private func moreThemesButtonTapped() {
         guard
             showsMoreThemesButton,
-            let collectionView = themeItemsCollectionView,
-            collectionView.numberOfItems(inSection: 0) > visibleThemeLimit
+            let collectionView = themeItemsCollectionView
         else { return }
 
-        collectionView.scrollToItem(
-            at: IndexPath(item: visibleThemeLimit, section: 0),
-            at: .top,
-            animated: true
+        let maximumOffset = max(collectionView.contentSize.height - collectionView.bounds.height, 0)
+        let pageHeight = max(
+            collectionView.bounds.height - Layout.moreThemesButtonHeight,
+            ThemeCardLayoutMetrics.singleLineHeight
         )
+        collectionView.setContentOffset(CGPoint(
+            x: collectionView.contentOffset.x,
+            y: min(collectionView.contentOffset.y + pageHeight, maximumOffset)
+        ), animated: true)
     }
 
     @objc private func moreThemesOverlayTapped(_ gestureRecognizer: UITapGestureRecognizer) {
