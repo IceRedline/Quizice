@@ -27,6 +27,7 @@ jobs:
         run: |
           python3 scripts/tests/test-release-configuration.py
           python3 scripts/tests/test-static-verifier.py
+          python3 scripts/tests/test-ios-test-category.py
 
       - name: Compile Release without analytics credentials
         # Reserved example address validates build configuration only; no live requests.
