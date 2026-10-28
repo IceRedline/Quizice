@@ -89,17 +89,7 @@ final class GameCenterAuthenticationService: AccountManaging, AccountSynchronizi
     }
 
     static func live(bundle: Bundle = .main) -> GameCenterAuthenticationService {
-        let api: AuthAPI
-        if let configuration = BackendConfiguration.load(bundle: bundle) {
-            let httpAPI = HTTPAuthAPI(
-                configuration: configuration,
-                metrics: AppMetricaAnalyticsTracker.shared
-            )
-            api = httpAPI
-        } else {
-            AppLog.auth.error("[Auth] Backend configuration is unavailable")
-            api = UnavailableAuthAPI()
-        }
+        let api = BackendServiceFactory.authAPI(bundle: bundle)
         let service = GameCenterAuthenticationService(
             gameCenter: GameCenterClient(),
             api: api,

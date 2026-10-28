@@ -18,6 +18,24 @@ final class AccountDataSynchronizer {
         self.favorites = favorites
     }
 
+    convenience init(
+        accountManager: AccountManaging?, answerOutbox: QuestionAnswerOutboxing,
+        themeRepository: ThemeRepository, favoritesDidRefresh: @escaping @MainActor () -> Void
+    ) {
+        self.init(
+            statistics: { [weak accountManager] in
+                await (accountManager as? AccountSynchronizing)?.synchronizeAccountData()
+            },
+            answers: { await answerOutbox.synchronize() },
+            favorites: {
+                let locale = AppLocalizationStore.shared.resolvedLanguageCode
+                let refreshed = await themeRepository.synchronizeThemePreferences(locale: locale)
+                guard !Task.isCancelled else { return }
+                if refreshed { favoritesDidRefresh() }
+            }
+        )
+    }
+
     func refresh(requiringNewPass: Bool = false) async {
         if let task {
             if requiringNewPass { needsAnotherPass = true }

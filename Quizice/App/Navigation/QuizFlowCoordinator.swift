@@ -60,7 +60,7 @@ final class QuizFlowCoordinator: NSObject, QuizRouting, UIViewControllerTransiti
         self.themeRepository = themeRepository
         self.session = session
         self.aiQuizThemeService = aiQuizThemeService
-            ?? Self.makeDefaultAIQuizThemeService(accessProvider: resolvedAIQuizAccessProvider)
+            ?? BackendServiceFactory.aiQuizThemeService(accessProvider: resolvedAIQuizAccessProvider)
         self.aiQuizAccessProvider = resolvedAIQuizAccessProvider
         self.accountManager = accountManager
         self.answerOutbox = answerOutbox
@@ -295,20 +295,10 @@ final class QuizFlowCoordinator: NSObject, QuizRouting, UIViewControllerTransiti
     private func refreshAccountData(requiringNewPass: Bool) async {
         if dataSynchronizer == nil {
             dataSynchronizer = AccountDataSynchronizer(
-                statistics: { [weak self] in
-                    await (self?.accountManager as? AccountSynchronizing)?.synchronizeAccountData()
-                },
-                answers: { [weak self] in await self?.answerOutbox.synchronize() },
-                favorites: { [weak self] in
-                    guard let self else { return }
-                    let locale = AppLocalizationStore.shared.resolvedLanguageCode
-                    let refreshed = await self.themeRepository.synchronizeThemePreferences(locale: locale)
-                    guard !Task.isCancelled else { return }
-                    if refreshed {
-                        (self.navigationController.viewControllers.first as? QuizViewController)?.refreshVisibleAccountData()
-                    }
-                }
-            )
+                accountManager: accountManager, answerOutbox: answerOutbox, themeRepository: themeRepository
+            ) { [weak self] in
+                (self?.navigationController.viewControllers.first as? QuizViewController)?.refreshVisibleAccountData()
+            }
         }
         await dataSynchronizer?.refresh(requiringNewPass: requiringNewPass)
     }
@@ -699,18 +689,5 @@ final class QuizFlowCoordinator: NSObject, QuizRouting, UIViewControllerTransiti
         viewController.transitioningDelegate = self
         cardSlideTransitionAnimator.sourceViewController = presentingViewController as? QuizCardSlideTransitionSource
         presentingViewController.present(viewController, animated: true)
-    }
-
-    private static func makeDefaultAIQuizThemeService(
-        accessProvider: AIQuizAccessProviding
-    ) -> AIQuizThemeServiceProtocol {
-        if let configuration = BackendConfiguration.load() {
-            return BackendAIQuizThemeService(
-                configuration: configuration,
-                metrics: AppMetricaAnalyticsTracker.shared,
-                accessProvider: accessProvider
-            )
-        }
-        return YandexAIQuizThemeService(apiKey: nil)
     }
 }
