@@ -2,7 +2,7 @@ import Foundation
 import UIKit
 
 @MainActor
-final class GameCenterAuthenticationService: AccountManaging, AppAccountAccessProviding {
+final class GameCenterAuthenticationService: AccountManaging, AccountSynchronizing, AppAccountAccessProviding {
     private(set) var state: AuthSessionState = .initializing {
         didSet { accountAccessStateDidChange?(accountAccessState) }
     }
@@ -89,17 +89,7 @@ final class GameCenterAuthenticationService: AccountManaging, AppAccountAccessPr
     }
 
     static func live(bundle: Bundle = .main) -> GameCenterAuthenticationService {
-        let api: AuthAPI
-        if let configuration = BackendConfiguration.load(bundle: bundle) {
-            let httpAPI = HTTPAuthAPI(
-                configuration: configuration,
-                metrics: AppMetricaAnalyticsTracker.shared
-            )
-            api = httpAPI
-        } else {
-            AppLog.auth.error("[Auth] Backend configuration is unavailable")
-            api = UnavailableAuthAPI()
-        }
+        let api = BackendServiceFactory.authAPI(bundle: bundle)
         let service = GameCenterAuthenticationService(
             gameCenter: GameCenterClient(),
             api: api,
@@ -211,6 +201,15 @@ final class GameCenterAuthenticationService: AccountManaging, AppAccountAccessPr
         }
     }
 #endif
+
+    func synchronizeAccountData() async {
+        retrySynchronization()
+        if let authenticationTask { await authenticationTask.value }
+        while let synchronizationTask {
+            await synchronizationTask.value
+            if Task.isCancelled { return }
+        }
+    }
 
     func retrySynchronization() {
         guard !accountOperationInProgress, deletionRecord == nil else { return }
