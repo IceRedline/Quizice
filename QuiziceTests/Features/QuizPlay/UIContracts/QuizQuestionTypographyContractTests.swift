@@ -595,9 +595,10 @@ final class QuizQuestionIPadLayoutTests: CrossScreenVisualTestCase {
 
         controller.colorAndDisableButtons()
         XCTAssertTrue(controller.isQuestionExplanationVisible)
-        XCTAssertEqual(bodyScroll.contentOffset.y, 0, accuracy: 0.5)
         XCTAssertEqual(explanation.contentOffset.y, 0, accuracy: 0.5)
-        XCTAssertTrue(bodyScroll.bounds.intersects(explanation.convert(explanation.bounds, to: bodyScroll)))
+        let explanationStart = controller.questionExplanationLabel.convert(CGPoint.zero, to: bodyScroll)
+        XCTAssertGreaterThanOrEqual(explanationStart.y, bodyScroll.bounds.minY)
+        XCTAssertLessThan(explanationStart.y, bodyScroll.bounds.maxY)
 
         bodyScroll.setContentOffset(CGPoint(x: 0, y: bottomOffset), animated: false)
         controller.questionExplanationBackButtonTapped()
@@ -608,10 +609,36 @@ final class QuizQuestionIPadLayoutTests: CrossScreenVisualTestCase {
         bodyScroll.setContentOffset(CGPoint(x: 0, y: bottomOffset), animated: false)
         controller.questionInfoButtonTapped()
         XCTAssertTrue(controller.isQuestionExplanationVisible)
-        XCTAssertEqual(bodyScroll.contentOffset.y, 0, accuracy: 0.5)
+        let reopenedStart = controller.questionExplanationLabel.convert(CGPoint.zero, to: bodyScroll)
+        XCTAssertGreaterThanOrEqual(reopenedStart.y, bodyScroll.bounds.minY)
+        XCTAssertLessThan(reopenedStart.y, bodyScroll.bounds.maxY)
         XCTAssertEqual(controller.currentAnswerOptions.map(\.title), answers)
         XCTAssertEqual(controller.timerBar.progress, 0.42, accuracy: 0.001)
         XCTAssertEqual(presenter.startTimerCallCount, starts)
+    }
+
+    func testShortExplanationIsVisibleWithinVeryLongQuestionSpace() throws {
+        let controller = QuizQuestionViewController()
+        controller.configurePresenter(ExitConfirmationPresenterSpy())
+        controller.loadViewIfNeeded()
+        controller.view.frame = CGRect(x: 0, y: 0, width: 375, height: 400)
+        controller.loadQuestionToView(QuizQuestionViewModel(
+            themeName: "Тема",
+            questionText: String(repeating: "Длинный текст вопроса для маленького окна. ", count: 30),
+            questionNumberText: "Вопрос №1",
+            answers: ["A", "B", "C", "D"].map { QuizAnswerOption(id: $0, title: $0) },
+            explanation: "Короткое пояснение."
+        ))
+        controller.view.layoutIfNeeded()
+        let bodyScroll = try XCTUnwrap(controller.questionBodyScrollView)
+        let initialTextTop = controller.questionExplanationLabel.convert(CGPoint.zero, to: bodyScroll).y
+        XCTAssertGreaterThan(initialTextTop, bodyScroll.bounds.maxY)
+
+        controller.revealQuestionExplanation()
+        XCTAssertTrue(controller.isQuestionExplanationVisible)
+        let textTop = controller.questionExplanationLabel.convert(CGPoint.zero, to: bodyScroll).y
+        XCTAssertGreaterThanOrEqual(textTop, bodyScroll.bounds.minY)
+        XCTAssertLessThan(textTop, bodyScroll.bounds.maxY)
     }
 
     func testIPadResizePreservesQuestionAnswersAndTimer() throws {
