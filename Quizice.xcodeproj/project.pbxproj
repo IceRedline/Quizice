@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		EA1100020000000000000001 /* AppAdaptiveLayout.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA1100010000000000000001 /* AppAdaptiveLayout.swift */; };
+		EA1100020000000000000002 /* AppAdaptiveLayoutTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA1100010000000000000002 /* AppAdaptiveLayoutTests.swift */; };
 		5A2094584CAC44A6958C4625 /* ThemesCollectionService+Ordering.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63391CFDA407414A9006C148 /* ThemesCollectionService+Ordering.swift */; };
 		5079EEED26914A8A9282A036 /* BackendContentResponseValidator.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBB882E2FE414E0CB6B16876 /* BackendContentResponseValidator.swift */; };
 		55AF62AF27204B888E377FAB /* QuestionAnswerOutbox.swift in Sources */ = {isa = PBXBuildFile; fileRef = F7BB544353014B47B422AFE9 /* QuestionAnswerOutbox.swift */; };
@@ -221,6 +223,8 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		EA1100010000000000000001 /* AppAdaptiveLayout.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppAdaptiveLayout.swift; sourceTree = "<group>"; };
+		EA1100010000000000000002 /* AppAdaptiveLayoutTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppAdaptiveLayoutTests.swift; sourceTree = "<group>"; };
 		63391CFDA407414A9006C148 /* ThemesCollectionService+Ordering.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ThemesCollectionService+Ordering.swift"; sourceTree = "<group>"; };
 		BBB882E2FE414E0CB6B16876 /* BackendContentResponseValidator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "BackendContentResponseValidator.swift"; sourceTree = "<group>"; };
 		F7BB544353014B47B422AFE9 /* QuestionAnswerOutbox.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = QuestionAnswerOutbox.swift; sourceTree = "<group>"; };
@@ -653,6 +657,7 @@
 		4E8FAAF492BFADE68107EB49 /* DesignSystem */ = {
 			isa = PBXGroup;
 			children = (
+				EA1100010000000000000001 /* AppAdaptiveLayout.swift */,
 				D9D8382518160C6EAC329C4E /* Appearance */,
 				448C1EB07280F0425D451FDC /* Interactions */,
 			);
@@ -1130,6 +1135,7 @@
 		CD179204ADA6EC814E9254A0 /* Unit */ = {
 			isa = PBXGroup;
 			children = (
+				EA1100010000000000000002 /* AppAdaptiveLayoutTests.swift */,
 				2C045F0F1F8FF8CCB7196E1B /* AnalyticsServiceTests.swift */,
 				6A7E73CC187A089F6D5215B1 /* AppAppearanceTests.swift */,
 				6A7E73CD187A089F6D5215B2 /* AppAppearanceStorePersistenceTests.swift */,
@@ -1415,6 +1421,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				EA1100020000000000000001 /* AppAdaptiveLayout.swift in Sources */,
 				C99FA7539E9C46C596939D54 /* AccountDeletionRecovery.swift in Sources */,
 				1BFA5659D1CC4EF78D3F44C7 /* GameCenterAuthenticationService+AccountAccess.swift in Sources */,
 				DB744EF6DD9C43ACB5E16436 /* QuizRouting.swift in Sources */,
@@ -1538,6 +1545,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				EA1100020000000000000002 /* AppAdaptiveLayoutTests.swift in Sources */,
 				65393731F0DD40D695C96B26 /* AppAccountAccessPresenterTests.swift in Sources */,
 				A400000B2FA0000100A4000B /* OnboardingProgressStoreTests.swift in Sources */,
 				A400000C2FA0000100A4000C /* QuizFlowCoordinatorOnboardingTests.swift in Sources */,
