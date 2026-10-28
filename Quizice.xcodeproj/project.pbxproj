@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		EA1100020000000000000004 /* HomeIPadLayoutTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA1100010000000000000004 /* HomeIPadLayoutTests.swift */; };
+		EA1100020000000000000003 /* ThemesCollectionService+Layout.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA1100010000000000000003 /* ThemesCollectionService+Layout.swift */; };
 		EA1100020000000000000001 /* AppAdaptiveLayout.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA1100010000000000000001 /* AppAdaptiveLayout.swift */; };
 		EA1100020000000000000002 /* AppAdaptiveLayoutTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA1100010000000000000002 /* AppAdaptiveLayoutTests.swift */; };
 		5A2094584CAC44A6958C4625 /* ThemesCollectionService+Ordering.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63391CFDA407414A9006C148 /* ThemesCollectionService+Ordering.swift */; };
@@ -223,6 +225,8 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		EA1100010000000000000004 /* HomeIPadLayoutTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeIPadLayoutTests.swift; sourceTree = "<group>"; };
+		EA1100010000000000000003 /* ThemesCollectionService+Layout.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ThemesCollectionService+Layout.swift"; sourceTree = "<group>"; };
 		EA1100010000000000000001 /* AppAdaptiveLayout.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppAdaptiveLayout.swift; sourceTree = "<group>"; };
 		EA1100010000000000000002 /* AppAdaptiveLayoutTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppAdaptiveLayoutTests.swift; sourceTree = "<group>"; };
 		63391CFDA407414A9006C148 /* ThemesCollectionService+Ordering.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ThemesCollectionService+Ordering.swift"; sourceTree = "<group>"; };
@@ -1127,6 +1131,7 @@
 				E82336079EA413DAC55F5098 /* ThemeVisualCatalog.swift */,
 				C10000000000000000000002 /* ThemesCollectionService+ActionCards.swift */,
 				D49927F6947B94B34C9F29BA /* ThemesCollectionService.swift */,
+				EA1100010000000000000003 /* ThemesCollectionService+Layout.swift */,
 				63391CFDA407414A9006C148 /* ThemesCollectionService+Ordering.swift */,
 			);
 			path = Collection;
@@ -1222,6 +1227,7 @@
 				E40F29E2BD99A6317287D442 /* HomeExpandedThemeCardMotionTests.swift */,
 				66FB84EEF6A4EB07DF89DC96 /* HomeFeelingLuckyTests.swift */,
 				F5FAE3E57EBF5A8A9109C383 /* HomeScreenLayoutTests.swift */,
+				EA1100010000000000000004 /* HomeIPadLayoutTests.swift */,
 				76E4EC4EB0C8E98033CD562A /* HomeScreenVisualStateTestSupport.swift */,
 				A897406DD3D518BF6C8DC11B /* HomeSettingsVisualStateTests.swift */,
 				38278C854C1061B8B92E05AE /* HomeThemeCardStateTests.swift */,
@@ -1502,6 +1508,7 @@
 				B2CD30CAC15215296B9D9BBE /* ThemeVisualCatalog.swift in Sources */,
 				C10000000000000000000001 /* ThemesCollectionService+ActionCards.swift in Sources */,
 				AE72B30D9E74A63EAA3592D0 /* ThemesCollectionService.swift in Sources */,
+				EA1100020000000000000003 /* ThemesCollectionService+Layout.swift in Sources */,
 				5A2094584CAC44A6958C4625 /* ThemesCollectionService+Ordering.swift in Sources */,
 				F8EF7182B7B25C43203DD912 /* ThemeCollectionDelegate.swift in Sources */,
 				7B6E2427F4083AC5C9CF0078 /* CoreMotionHomeThemeCardMotionProvider.swift in Sources */,
@@ -1569,6 +1576,7 @@
 				69C84844289D05221CEB4A0C /* HomeExpandedThemeCardMotionTests.swift in Sources */,
 				1F44B009AAF5DD1072270E7F /* HomeFeelingLuckyTests.swift in Sources */,
 				5ED9935BDCAC75C5033BA293 /* HomeScreenLayoutTests.swift in Sources */,
+				EA1100020000000000000004 /* HomeIPadLayoutTests.swift in Sources */,
 				854AA5FE065B61BAF9F1ACD8 /* HomeScreenVisualStateTestSupport.swift in Sources */,
 				6DB56F4BB29B3A755A90FB36 /* HomeSettingsVisualStateTests.swift in Sources */,
 				04420B51F08A23ECE3A2F82E /* HomeThemeCardStateTests.swift in Sources */,
