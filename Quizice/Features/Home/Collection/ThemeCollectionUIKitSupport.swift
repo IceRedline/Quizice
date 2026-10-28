@@ -219,15 +219,9 @@ final class ThemesViewportCollectionViewCell: UICollectionViewCell {
     private var lastCatalogWidth: CGFloat = 0
 
     override init(frame: CGRect) {
-        let layout = HomeThemesCollectionViewFlowLayout()
-        layout.scrollDirection = .vertical
-        layout.minimumLineSpacing = 16
-        layout.minimumInteritemSpacing = 16
-        layout.sectionInset = .zero
-
         themesCollectionView = HomeThemesCollectionView(
             frame: .zero,
-            collectionViewLayout: layout
+            collectionViewLayout: HomeThemeMasonryLayout()
         )
         super.init(frame: frame)
 
